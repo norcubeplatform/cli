@@ -1,0 +1,1833 @@
+{
+  "components": {
+    "schemas": {
+      "constants.BackupJobStatus": {
+        "enum": [
+          "queued",
+          "running",
+          "failed",
+          "success",
+          "partial",
+          "canceled"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "JobStatusQueued",
+          "JobStatusRunning",
+          "JobStatusFailed",
+          "JobStatusSuccess",
+          "JobStatusPartial",
+          "JobStatusCanceled"
+        ]
+      },
+      "constants.BackupJobTrigger": {
+        "enum": [
+          "manual",
+          "schedule"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "JobTriggerManual",
+          "JobTriggerSchedule"
+        ]
+      },
+      "constants.BackupPolicyCompression": {
+        "enum": [
+          "gzip",
+          "zstd",
+          "none"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "CompressionGzip",
+          "CompressionZstd",
+          "CompressionNone"
+        ]
+      },
+      "constants.BackupPolicyEncryption": {
+        "enum": [
+          "sse-kms",
+          "sse-s3",
+          "client-side",
+          "none"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "EncryptionSSEKMS",
+          "EncryptionSSES3",
+          "EncryptionClientSide",
+          "EncryptionNone"
+        ]
+      },
+      "constants.BackupPolicyMethod": {
+        "enum": [
+          "logical_dump",
+          "physical",
+          "pitr"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "MethodLogicalDump",
+          "MethodPhysical",
+          "MethodPITR"
+        ]
+      },
+      "constants.DatasourceCredentialMode": {
+        "enum": [
+          "connection_uri",
+          "fields"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "CredentialModeURI",
+          "CredentialModeFields"
+        ]
+      },
+      "constants.DatasourceEngine": {
+        "enum": [
+          "postgres",
+          "mongodb"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "EnginePostgres",
+          "EngineMongoDB"
+        ]
+      },
+      "constants.DatasourceEnvironment": {
+        "enum": [
+          "prod",
+          "staging",
+          "dev",
+          "test"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "EnvironmentProd",
+          "EnvironmentStaging",
+          "EnvironmentDev",
+          "EnvironmentTest"
+        ]
+      },
+      "constants.DatasourceRegion": {
+        "enum": [
+          "eu-central-1"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "RegionEUCentral1"
+        ]
+      },
+      "constants.StorageDestinationRegion": {
+        "enum": [
+          "eu-central-1"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "StorageDestinationRegionEUCentral1"
+        ]
+      },
+      "datasourcehandler.payloadCreateRequest": {
+        "properties": {
+          "engine": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/constants.DatasourceEngine"
+              }
+            ],
+            "example": "postgres"
+          },
+          "environment": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/constants.DatasourceEnvironment"
+              }
+            ],
+            "example": "staging"
+          },
+          "name": {
+            "example": "my-database",
+            "type": "string"
+          },
+          "region": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/constants.DatasourceRegion"
+              }
+            ],
+            "example": "eu-central-1"
+          }
+        },
+        "required": [
+          "engine",
+          "environment",
+          "name",
+          "region"
+        ],
+        "type": "object"
+      },
+      "datasourcehandler.payloadCreateResponse": {
+        "properties": {
+          "id": {
+            "example": "9ac10aed-7c50-4afe-87ca-e5cc46bb29f2",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "datasourcehandler.payloadCredentialFieldsDTO": {
+        "properties": {
+          "mongodb": {
+            "$ref": "#/components/schemas/dsn.MongoFields"
+          },
+          "postgres": {
+            "$ref": "#/components/schemas/dsn.PostgresFields"
+          }
+        },
+        "type": "object"
+      },
+      "datasourcehandler.payloadDataSourcePolicyAttachRequest": {
+        "properties": {
+          "destinationId": {
+            "example": "dc70e90d-a49f-4333-9f33-54a27d18869e",
+            "type": "string"
+          },
+          "enabled": {
+            "example": true,
+            "type": "boolean"
+          },
+          "policyId": {
+            "example": "a3bb189e-8bf9-3888-9912-ace4e6543002",
+            "type": "string"
+          },
+          "priority": {
+            "example": 3,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "destinationId",
+          "enabled",
+          "policyId"
+        ],
+        "type": "object"
+      },
+      "datasourcehandler.payloadDataSourcePolicyAttachResponse": {
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "datasourcehandler.payloadDatasourcePolicyUpdateRequest": {
+        "properties": {
+          "enabled": {
+            "description": "Enabled toggles the scheduler gate for this one attachment. The\nscheduler only enqueues jobs where attachment.enabled = true, so\nsetting this to false pauses just this policy on this data source\nwithout losing schedule history or detaching the policy.",
+            "example": false,
+            "type": "boolean"
+          },
+          "priority": {
+            "description": "Priority orders concurrent attachments when multiple policies are\neligible to run on the same data source at the same minute.",
+            "example": 50,
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "datasourcehandler.payloadDatasourceUpdateRequest": {
+        "properties": {
+          "environment": {
+            "example": "production",
+            "type": "string"
+          },
+          "isActive": {
+            "description": "IsActive flips the master switch: false halts every backup policy\nattached to this data source (the scheduler skips data sources with\nis_active=false). Other fields above are simple metadata edits.",
+            "example": false,
+            "type": "boolean"
+          },
+          "name": {
+            "example": "prod-postgres",
+            "type": "string"
+          },
+          "region": {
+            "example": "eu-central-1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "datasourcehandler.payloadSetCredentialsRequest": {
+        "properties": {
+          "fields": {
+            "$ref": "#/components/schemas/datasourcehandler.payloadCredentialFieldsDTO"
+          },
+          "mode": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/constants.DatasourceCredentialMode"
+              }
+            ],
+            "example": "connection_uri"
+          },
+          "uri": {
+            "example": "postgres://user:pass@host:5432/db?sslmode=require",
+            "type": "string"
+          }
+        },
+        "required": [
+          "mode"
+        ],
+        "type": "object"
+      },
+      "datasourcehandler.payloadSetCredentialsResponse": {
+        "properties": {
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "dsn.MongoFields": {
+        "properties": {
+          "authSource": {
+            "type": "string"
+          },
+          "db": {
+            "type": "string"
+          },
+          "hosts": {
+            "description": "pro mongodb://",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "params": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "password": {
+            "type": "string"
+          },
+          "replicaSet": {
+            "type": "string"
+          },
+          "scheme": {
+            "enum": [
+              "mongodb",
+              "mongodb+srv"
+            ],
+            "type": "string"
+          },
+          "srv_host": {
+            "description": "pro +srv",
+            "type": "string"
+          },
+          "tls": {
+            "type": "boolean"
+          },
+          "user": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "db",
+          "scheme"
+        ],
+        "type": "object"
+      },
+      "dsn.PostgresFields": {
+        "properties": {
+          "db": {
+            "type": "string"
+          },
+          "host": {
+            "type": "string"
+          },
+          "params": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "password": {
+            "description": "optional (může být v URI)",
+            "type": "string"
+          },
+          "port": {
+            "maximum": 65535,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "sslmode": {
+            "description": "require|verify-full|...",
+            "type": "string"
+          },
+          "user": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "db",
+          "host",
+          "port",
+          "user"
+        ],
+        "type": "object"
+      },
+      "dto.BackupJob": {
+        "properties": {
+          "datasourceEngine": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/constants.DatasourceEngine"
+              }
+            ],
+            "example": "postgres"
+          },
+          "datasourceId": {
+            "example": "db70e90d-a49f-4333-9f33-54a27d18869e",
+            "type": "string"
+          },
+          "datasourceName": {
+            "example": "production-db",
+            "type": "string"
+          },
+          "destinationId": {
+            "example": "dst70e90d-a49f-4333-9f33-54a27d18869e",
+            "type": "string"
+          },
+          "destinationIsManaged": {
+            "example": false,
+            "type": "boolean"
+          },
+          "destinationRegion": {
+            "example": "eu-central-1",
+            "type": "string"
+          },
+          "jobBytesWritten": {
+            "example": 104857600,
+            "type": "integer"
+          },
+          "jobCreatedAt": {
+            "example": "2023-10-01T11:00:00Z",
+            "type": "string"
+          },
+          "jobDeletedAt": {
+            "description": "Soft-deletion fields populated by the retention worker. JobDeletedAt\nis the wall-clock when the worker expired this backup; JobExpirationReason\nis one of \"age_exceeded\" | \"keep_last_n_exceeded\".",
+            "example": "2026-05-01T03:00:00Z",
+            "type": "string"
+          },
+          "jobDurationMs": {
+            "example": 1500000,
+            "type": "integer"
+          },
+          "jobErrorSummary": {
+            "example": "Connection timeout",
+            "type": "string"
+          },
+          "jobExpirationReason": {
+            "example": "age_exceeded",
+            "type": "string"
+          },
+          "jobFinishedAt": {
+            "example": "2023-10-01T12:30:00Z",
+            "type": "string"
+          },
+          "jobId": {
+            "example": "dc70e90d-a49f-4333-9f33-54a27d18869e",
+            "type": "string"
+          },
+          "jobScheduledFor": {
+            "example": "2023-10-01T12:00:00Z",
+            "type": "string"
+          },
+          "jobStartedAt": {
+            "example": "2023-10-01T12:05:00Z",
+            "type": "string"
+          },
+          "jobStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/constants.BackupJobStatus"
+              }
+            ],
+            "example": "success"
+          },
+          "jobTrigger": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/constants.BackupJobTrigger"
+              }
+            ],
+            "example": "schedule"
+          },
+          "policyCompression": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/constants.BackupPolicyEncryption"
+              }
+            ],
+            "example": "gzip"
+          },
+          "policyEncryption": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/constants.BackupPolicyEncryption"
+              }
+            ],
+            "example": "aes256"
+          },
+          "policyId": {
+            "example": "pc70e90d-a49f-4333-9f33-54a27d18869e",
+            "type": "string"
+          },
+          "policyMethod": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/constants.BackupPolicyMethod"
+              }
+            ],
+            "example": "full"
+          },
+          "policyName": {
+            "example": "Daily Backup",
+            "type": "string"
+          },
+          "policyRetentionDays": {
+            "example": 30,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "datasourceEngine",
+          "datasourceId",
+          "datasourceName",
+          "destinationId",
+          "destinationIsManaged",
+          "destinationRegion",
+          "jobBytesWritten",
+          "jobCreatedAt",
+          "jobId",
+          "jobScheduledFor",
+          "jobStatus",
+          "jobTrigger",
+          "policyCompression",
+          "policyEncryption",
+          "policyId",
+          "policyMethod",
+          "policyName",
+          "policyRetentionDays"
+        ],
+        "type": "object"
+      },
+      "dto.BackupPolicy": {
+        "properties": {
+          "compression": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/constants.BackupPolicyCompression"
+              }
+            ],
+            "example": "gzip"
+          },
+          "encryption": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/constants.BackupPolicyEncryption"
+              }
+            ],
+            "example": "aes-256-cbc"
+          },
+          "id": {
+            "example": "83b7870d-7201-4759-8403-305adcfc925e",
+            "type": "string"
+          },
+          "keepLastN": {
+            "example": 3,
+            "type": "integer"
+          },
+          "method": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/constants.BackupPolicyMethod"
+              }
+            ],
+            "example": "logical_dump"
+          },
+          "name": {
+            "example": "daily-backup-gzip",
+            "type": "string"
+          },
+          "organizationId": {
+            "example": "97db78c8-ce61-4c5b-bcc4-0fe82af026e4",
+            "type": "string"
+          },
+          "parallelism": {
+            "example": 4,
+            "type": "integer"
+          },
+          "pitrEnabled": {
+            "example": true,
+            "type": "boolean"
+          },
+          "retentionDays": {
+            "example": 7,
+            "type": "integer"
+          },
+          "scheduleCron": {
+            "example": "0 0 * * *",
+            "type": "string"
+          },
+          "throttleMbps": {
+            "example": 100,
+            "type": "integer"
+          },
+          "timezone": {
+            "example": "Europe/Prague",
+            "type": "string"
+          }
+        },
+        "required": [
+          "encryption",
+          "id",
+          "keepLastN",
+          "method",
+          "name",
+          "organizationId",
+          "parallelism",
+          "pitrEnabled",
+          "retentionDays",
+          "scheduleCron",
+          "timezone"
+        ],
+        "type": "object"
+      },
+      "dto.DataSource": {
+        "properties": {
+          "activeBackupJobs": {
+            "example": 2,
+            "type": "integer"
+          },
+          "createdAt": {
+            "example": "2023-01-01T00:00:00Z",
+            "type": "string"
+          },
+          "engine": {
+            "example": "postgres",
+            "type": "string"
+          },
+          "environment": {
+            "example": "staging",
+            "type": "string"
+          },
+          "hasCredentials": {
+            "example": true,
+            "type": "boolean"
+          },
+          "id": {
+            "example": "be2b30de-593c-4060-9043-f651d354de7a",
+            "type": "string"
+          },
+          "isActive": {
+            "example": true,
+            "type": "boolean"
+          },
+          "lastBackupAt": {
+            "example": "2023-01-01T00:00:00Z",
+            "type": "string"
+          },
+          "lastBackupSizeBytes": {
+            "example": 1048576,
+            "type": "integer"
+          },
+          "name": {
+            "example": "my-database",
+            "type": "string"
+          },
+          "nextRunAt": {
+            "example": "2023-01-01T00:00:00Z",
+            "type": "string"
+          },
+          "organizationId": {
+            "example": "7d4a65c6-938b-48f7-a792-6980667381d2",
+            "type": "string"
+          },
+          "updatedAt": {
+            "example": "2023-01-01T00:00:00Z",
+            "type": "string"
+          }
+        },
+        "required": [
+          "engine",
+          "environment",
+          "id",
+          "isActive",
+          "name",
+          "organizationId"
+        ],
+        "type": "object"
+      },
+      "dto.DatasourcePolicy": {
+        "properties": {
+          "backupPolicy": {
+            "$ref": "#/components/schemas/dto.BackupPolicy"
+          },
+          "createdAt": {
+            "example": "2023-01-01T00:00:00Z",
+            "type": "string"
+          },
+          "datasource": {
+            "$ref": "#/components/schemas/dto.DataSource"
+          },
+          "destination": {
+            "$ref": "#/components/schemas/dto.Destination"
+          },
+          "id": {
+            "example": "83b7870d-7201-4759-8403-305adcfc925e",
+            "type": "string"
+          },
+          "isEnabled": {
+            "example": true,
+            "type": "boolean"
+          },
+          "jitterSeconds": {
+            "example": 300,
+            "type": "integer"
+          },
+          "lastSheduledAt": {
+            "example": "2023-01-01T00:00:00Z",
+            "type": "string"
+          },
+          "nextRunAt": {
+            "example": "2023-01-01T00:00:00Z",
+            "type": "string"
+          },
+          "priority": {
+            "example": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "backupPolicy",
+          "destination",
+          "id",
+          "isEnabled",
+          "jitterSeconds",
+          "priority"
+        ],
+        "type": "object"
+      },
+      "dto.Destination": {
+        "properties": {
+          "id": {
+            "example": "83b7870d-7201-4759-8403-305adcfc925e",
+            "type": "string"
+          },
+          "isManaged": {
+            "example": true,
+            "type": "boolean"
+          },
+          "name": {
+            "example": "s3-backup-destination",
+            "type": "string"
+          },
+          "organizationId": {
+            "example": "97db78c8-ce61-4c5b-bcc4-0fe82af026e4",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "isManaged",
+          "name",
+          "organizationId"
+        ],
+        "type": "object"
+      },
+      "policyhandler.payloadCreateRequest": {
+        "properties": {
+          "compression": {
+            "description": "gzip, zstd, none",
+            "type": "string"
+          },
+          "encryption": {
+            "description": "sse-kms",
+            "type": "string"
+          },
+          "keepLastN": {
+            "type": "integer"
+          },
+          "method": {
+            "description": "logical_dump, physical, pitr",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "parallelism": {
+            "type": "integer"
+          },
+          "pitrEnabled": {
+            "type": "boolean"
+          },
+          "retentionDays": {
+            "type": "integer"
+          },
+          "scheduleCron": {
+            "type": "string"
+          },
+          "throttleMbps": {
+            "type": "integer"
+          },
+          "timezone": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "keepLastN",
+          "name",
+          "retentionDays",
+          "scheduleCron",
+          "timezone"
+        ],
+        "type": "object"
+      },
+      "policyhandler.payloadCreateResponse": {
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "policyhandler.payloadEnsureManagedStorageDestinationRequest": {
+        "properties": {
+          "region": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/constants.StorageDestinationRegion"
+              }
+            ],
+            "example": "eu-central-1"
+          }
+        },
+        "required": [
+          "region"
+        ],
+        "type": "object"
+      },
+      "policyhandler.payloadEnsureManagedStorageDestinationResponse": {
+        "properties": {
+          "id": {
+            "example": "dc70e90d-a49f-4333-9f33-54a27d18869e",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "response.APIError": {
+        "properties": {
+          "data": {},
+          "fields": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "msg": {
+            "example": "see fields",
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "type": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/response.Type"
+              }
+            ],
+            "example": "VALIDATION_FAILED"
+          }
+        },
+        "required": [
+          "msg",
+          "type"
+        ],
+        "type": "object"
+      },
+      "response.APIResponsePaginationCursors": {
+        "properties": {
+          "next": {
+            "example": "eyJpZCI6InUuLi4ifQ==",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "response.APIResponsePaginationMeta": {
+        "properties": {
+          "timestamp": {
+            "example": "2025-01-08T17:29:30.663Z",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "response.APIResponseWithPagination": {
+        "properties": {
+          "cursors": {
+            "$ref": "#/components/schemas/response.APIResponsePaginationCursors"
+          },
+          "list": {},
+          "meta": {
+            "$ref": "#/components/schemas/response.APIResponsePaginationMeta"
+          }
+        },
+        "required": [
+          "cursors",
+          "list",
+          "meta"
+        ],
+        "type": "object"
+      },
+      "response.Type": {
+        "enum": [
+          "INVALID_PAYLOAD",
+          "VALIDATION_FAILED",
+          "NOT_FOUND",
+          "CONFLICT",
+          "INTERNAL_ERROR",
+          "UNAUTHORIZED",
+          "FORBIDDEN",
+          "MISSING_ORGANIZATION_ID",
+          "MISSING_USER_ID"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "ErrInvalidPayload",
+          "ErrValidationFailed",
+          "ErrNotFound",
+          "ErrConflict",
+          "ErrInternal",
+          "ErrUnauthorized",
+          "ErrForbidden",
+          "ErrMissingOrganizationID",
+          "ErrMissingUserID"
+        ]
+      }
+    }
+  },
+  "info": {
+    "contact": {
+      "email": "jan@jetlio.com",
+      "name": "Jan Švábík"
+    },
+    "description": "This documents the backend service used by the frontend platform.",
+    "title": "JDS SnapDB App Backend",
+    "version": ""
+  },
+  "openapi": "3.0.3",
+  "paths": {
+    "/backup-policies": {
+      "get": {
+        "description": "List all backup policies for the organization.",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/response.APIResponseWithPagination"
+                    },
+                    {
+                      "properties": {
+                        "list": {
+                          "items": {
+                            "$ref": "#/components/schemas/dto.BackupPolicy"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "List Policies",
+        "tags": [
+          "Policies"
+        ]
+      },
+      "post": {
+        "description": "Create a new backup policy for the organization.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/policyhandler.payloadCreateRequest"
+              }
+            }
+          },
+          "description": "Policy creation payload",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/policyhandler.payloadCreateResponse"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Create Policy",
+        "tags": [
+          "Policies"
+        ]
+      }
+    },
+    "/backups": {
+      "get": {
+        "deprecated": true,
+        "description": "List backups",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "datasourceIDs",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/response.APIResponseWithPagination"
+                    },
+                    {
+                      "properties": {
+                        "list": {
+                          "items": {
+                            "$ref": "#/components/schemas/dto.BackupJob"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "List backups",
+        "tags": [
+          "Backups"
+        ]
+      }
+    },
+    "/datasources": {
+      "get": {
+        "description": "Retrieve a paginated list of data sources for the organization.",
+        "operationId": "list",
+        "parameters": [
+          {
+            "description": "Pagination cursor",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Search query to filter data sources by name",
+            "in": "query",
+            "name": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/response.APIResponseWithPagination"
+                    },
+                    {
+                      "properties": {
+                        "list": {
+                          "items": {
+                            "$ref": "#/components/schemas/dto.DataSource"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "List Data Sources",
+        "tags": [
+          "Data Sources"
+        ]
+      },
+      "post": {
+        "description": "Create a new data source for the organization.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/datasourcehandler.payloadCreateRequest"
+              }
+            }
+          },
+          "description": "Data Source creation payload",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/datasourcehandler.payloadCreateResponse"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Create Data Source",
+        "tags": [
+          "Data Sources"
+        ]
+      }
+    },
+    "/datasources/{datasourceId}/backups": {
+      "get": {
+        "description": "Retrieve a paginated list of backup jobs for the organization, with optional filtering by data source IDs.",
+        "operationId": "listBackupJobs",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Data Source ID",
+            "in": "path",
+            "name": "datasourceId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/response.APIResponseWithPagination"
+                    },
+                    {
+                      "properties": {
+                        "list": {
+                          "items": {
+                            "$ref": "#/components/schemas/dto.BackupJob"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "List Backup Jobs",
+        "tags": [
+          "Data Sources"
+        ]
+      }
+    },
+    "/datasources/{datasourceId}/policies": {
+      "get": {
+        "description": "List all policies attached to a specific data source.",
+        "operationId": "listPolicies",
+        "parameters": [
+          {
+            "description": "Data Source ID",
+            "in": "path",
+            "name": "datasourceId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/dto.DatasourcePolicy"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "List policies of data source",
+        "tags": [
+          "Data Sources"
+        ]
+      },
+      "post": {
+        "description": "Attach a backup policy to a data source with a specific storage destination.",
+        "parameters": [
+          {
+            "description": "Data Source ID",
+            "in": "path",
+            "name": "datasourceId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/datasourcehandler.payloadDataSourcePolicyAttachRequest"
+              }
+            }
+          },
+          "description": "Request payload",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/datasourcehandler.payloadDataSourcePolicyAttachResponse"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Attach Policy to Data Source",
+        "tags": [
+          "Data Sources"
+        ]
+      }
+    },
+    "/datasources/{datasourceId}/policies/{policyId}": {
+      "delete": {
+        "description": "Detach a backup policy from a specific data source.",
+        "parameters": [
+          {
+            "description": "Data Source ID",
+            "in": "path",
+            "name": "datasourceId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Policy ID",
+            "in": "path",
+            "name": "policyId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Detach Policy from Data Source",
+        "tags": [
+          "Data Sources"
+        ]
+      },
+      "patch": {
+        "description": "Partial update of the join row between a data source and a backup policy. Setting `enabled=false` pauses that specific policy on that specific data source (the scheduler stops considering it) without detaching it — schedule history, jitter, and the cron expression are preserved. Use this when you want to temporarily silence one policy; use DELETE to remove the attachment entirely.",
+        "operationId": "updatePolicyAttachment",
+        "parameters": [
+          {
+            "description": "Data Source ID",
+            "in": "path",
+            "name": "datasourceId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Policy ID",
+            "in": "path",
+            "name": "policyId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/datasourcehandler.payloadDatasourcePolicyUpdateRequest"
+              }
+            }
+          },
+          "description": "Fields to patch (omit fields you don't want to change)",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Update a data-source ↔ policy attachment",
+        "tags": [
+          "Data Sources"
+        ]
+      }
+    },
+    "/datasources/{id}": {
+      "get": {
+        "description": "Retrieve details of a specific data source by its ID.",
+        "operationId": "get",
+        "parameters": [
+          {
+            "description": "Data Source ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.DataSource"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Get Data Source",
+        "tags": [
+          "Data Sources"
+        ]
+      },
+      "patch": {
+        "description": "Partial update of a data source's metadata. Any field omitted is left unchanged. Set `isActive=false` to halt every backup policy attached to this data source without detaching them.",
+        "operationId": "updateDataSource",
+        "parameters": [
+          {
+            "description": "Data Source ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/datasourcehandler.payloadDatasourceUpdateRequest"
+              }
+            }
+          },
+          "description": "Fields to patch (omit fields you don't want to change)",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Update a data source",
+        "tags": [
+          "Data Sources"
+        ]
+      }
+    },
+    "/datasources/{id}/credentials": {
+      "put": {
+        "description": "Set or update the credentials for a specific data source. Supports two types of credentials: username/password and connection URI.",
+        "parameters": [
+          {
+            "description": "Data Source ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/datasourcehandler.payloadSetCredentialsRequest"
+              }
+            }
+          },
+          "description": "Credentials payload",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/datasourcehandler.payloadSetCredentialsResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Set credentials for a data source",
+        "tags": [
+          "Data Sources"
+        ]
+      }
+    },
+    "/storage-destinations/managed/ensure": {
+      "post": {
+        "description": "Ensure that a managed storage destination exists for the given region. If it does not exist, it will be created.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/policyhandler.payloadEnsureManagedStorageDestinationRequest"
+              }
+            }
+          },
+          "description": "Request payload",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/policyhandler.payloadEnsureManagedStorageDestinationResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Ensure managed storage destination",
+        "tags": [
+          "Storage Destinations"
+        ]
+      }
+    }
+  }
+}

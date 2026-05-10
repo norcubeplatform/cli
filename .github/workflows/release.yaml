@@ -1,0 +1,39 @@
+name: release
+
+# Triggered by `git tag vX.Y.Z && git push --tags`. GoReleaser does the rest:
+# cross-compiles, archives, computes checksums, uploads to a GitHub release.
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  # Required so goreleaser-action can create the GitHub release and upload
+  # the binaries. Nothing else needs write access.
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          # GoReleaser uses git history to render the changelog and to fail
+          # fast on dirty checkouts; full clone is required.
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: '~> v2'
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
