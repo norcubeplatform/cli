@@ -12,9 +12,18 @@ Command-line interface for the [Norcube platform](https://norcube.com). Manage b
 curl -fsSL https://github.com/norcubeplatform/cli/raw/main/install.sh | sh
 ```
 
-Installs to `/usr/local/bin/norcube` and creates a short alias `nrc` →
-`norcube` in the same directory. Override the install directory with
-`INSTALL_DIR=$HOME/.local/bin`, or pin a version with `VERSION=v0.2.0`.
+Installs to `~/.norcube/bin/norcube` and creates a short alias `nrc` →
+`norcube` in the same directory. A per-user location means `norcube upgrade`
+never needs sudo. Override the install directory with
+`INSTALL_DIR=/usr/local/bin` (system-wide; later upgrades will need sudo),
+or pin a version with `VERSION=v0.2.0`.
+
+If `~/.norcube/bin` isn't on your `PATH` yet, the script prints the export
+line to add to your shell rc:
+
+```bash
+export PATH="$HOME/.norcube/bin:$PATH"
+```
 
 The script verifies the SHA-256 against the release's `checksums.txt`
 before writing to disk; it'll abort if the download was tampered with.

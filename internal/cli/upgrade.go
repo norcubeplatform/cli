@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -93,6 +94,26 @@ func runUpgrade(ctx context.Context, out io.Writer) error {
 
 	fmt.Fprintf(out, "Upgrading from v%s to v%s…\n", current, latest.Version())
 	if err := updater.UpdateTo(ctx, latest, exe); err != nil {
+		// Permission denied on system-wide install dirs (/usr/local/bin, etc.)
+		// — give the user a concrete next step instead of the raw error.
+		if errors.Is(err, fs.ErrPermission) || strings.Contains(err.Error(), "permission denied") {
+			return fmt.Errorf(`install update: cannot write to %s.
+
+This usually means norcube is installed system-wide (e.g. /usr/local/bin).
+Two ways forward:
+
+  1. Run with sudo:
+       sudo norcube upgrade
+
+  2. Reinstall to a per-user location (no sudo needed for future upgrades):
+       sudo rm %s %s
+       curl -fsSL https://github.com/%s/%s/raw/main/install.sh | sh
+
+Underlying error: %w`,
+				filepath.Dir(exe),
+				exe, filepath.Join(filepath.Dir(exe), "nrc"),
+				releaseOwner, releaseRepo, err)
+		}
 		return fmt.Errorf("install update: %w", err)
 	}
 	fmt.Fprintf(out, "Upgraded to v%s. Run `norcube --version` to verify.\n", latest.Version())

@@ -18,7 +18,11 @@
 set -eu
 
 REPO="norcubeplatform/cli"
-INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
+# Default to a per-user directory so `norcube upgrade` never needs sudo.
+# Matches the convention used by bun, flyctl, rustup, pnpm, volta, etc.
+# Override with INSTALL_DIR=/usr/local/bin to put the binary on a system path
+# (uses sudo when the destination isn't writable).
+INSTALL_DIR="${INSTALL_DIR:-$HOME/.norcube/bin}"
 VERSION="${VERSION:-latest}"
 
 die() { printf 'error: %s\n' "$1" >&2; exit 1; }
@@ -94,13 +98,24 @@ fi
 # Extract.
 tar -xzf "$TMP/$ARCHIVE" -C "$TMP" norcube || die "tar extraction failed"
 
-# Install. Use sudo only when the destination isn't writable, like rustup does.
+# Install. Decide whether we need sudo by walking up the install path until
+# we find an existing ancestor directory, then testing its writability. The
+# naive `-w "$INSTALL_DIR"` check fails for a fresh install (nothing exists
+# yet) and would incorrectly fall back to sudo even when $HOME is writable.
+probe="$INSTALL_DIR"
+while [ ! -d "$probe" ]; do
+    parent="$(dirname "$probe")"
+    # Safety: dirname of "/" returns "/" — stop instead of looping forever.
+    [ "$parent" = "$probe" ] && break
+    probe="$parent"
+done
 SUDO=""
-if [ ! -w "$INSTALL_DIR" ] && [ ! -w "$(dirname "$INSTALL_DIR")" ]; then
+if [ ! -w "$probe" ]; then
     if command -v sudo >/dev/null 2>&1; then
         SUDO="sudo"
+        printf 'Target %s is not writable; using sudo for install (upgrades will need sudo too).\n' "$probe"
     else
-        die "$INSTALL_DIR is not writable and sudo is not available"
+        die "$probe is not writable and sudo is not available"
     fi
 fi
 $SUDO install -d "$INSTALL_DIR"
