@@ -15,6 +15,14 @@ import (
 // jobs doesn't accidentally OOM their terminal. Adjust with --max-items.
 const maxBackupItems = 10000
 
+// defaultPageLimit is sent as ?limit= when --limit isn't explicitly passed.
+// The backend SQL takes LIMIT straight from the request, so omitting the
+// param causes a `LIMIT 0` query that returns nothing — see the discussion
+// in apps/snapdb/internal/handler/backuphandler/handler.go (listJobsDefaultLimit).
+// We send our own default so the CLI works even against backend builds
+// that haven't picked up the clamp yet.
+const defaultPageLimit = 50
+
 func newBackupCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "backup",
@@ -58,15 +66,20 @@ to follow the cursor until exhausted, with a safety cap of --max-items.`,
 				cap = maxBackupItems
 			}
 
-			var jobs []snapdb.DtoBackupJob
+			// Initialise non-nil so `-o json` on an empty result prints "[]"
+			// rather than "null" — saves every downstream `jq` invocation
+			// from having to handle both shapes.
+			jobs := []snapdb.DtoBackupJob{}
 			nextCursor := cursor
 			truncated := false
 
 			for {
 				params := &snapdb.GetBackupsParams{}
-				if limit > 0 {
-					params.Limit = &limit
+				effectiveLimit := limit
+				if effectiveLimit <= 0 {
+					effectiveLimit = defaultPageLimit
 				}
+				params.Limit = &effectiveLimit
 				if nextCursor != "" {
 					params.Cursor = &nextCursor
 				}
