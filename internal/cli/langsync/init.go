@@ -54,14 +54,19 @@ After writing the config, init runs a follow-up action controlled by
   pull (default) — download the server's current state to disk.
                    Right when the team has been editing strings in
                    the web app and a fresh checkout needs them.
-  push           — full sync: send local files to the server,
-                   autotranslate the rest, write the result back to
-                   disk. Right when this project already has JSON
-                   files and the namespace on the server is empty
-                   (or you want local to win the merge).
+  push-all       — push every local <lang>.json file as the source
+                   of truth. Human translations in non-default
+                   languages are preserved; autotranslate only
+                   fills cells the client didn't provide. Right
+                   when this project has existing translation files
+                   and you want them to be authoritative.
+  push-default   — push only the default-language file; let AI
+                   translate everything else from scratch. Right
+                   when you have only the default lang locally and
+                   want the LLM to seed the rest.
   none           — write the config and stop.
 
-Either seed mode only applies to newly-added namespaces; entries
+Any seed mode only applies to newly-added namespaces; entries
 already in .langsync.json from a previous init are left alone.
 --force counts every picked namespace as new.
 
@@ -69,8 +74,9 @@ Examples:
   norcube langsync init
   norcube langsync init -n web -n marketing --dir i18n
   norcube langsync init --force
-  norcube langsync init --seed push          # use my local JSON files as the source of truth
-  norcube langsync init --seed none          # config only, do nothing else`,
+  norcube langsync init --seed push-all       # use my local JSON files as the source of truth
+  norcube langsync init --seed push-default   # only my default-lang file; AI does the rest
+  norcube langsync init --seed none           # config only, do nothing else`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			// We always write the config to the current working
 			// directory. Walking up to find an existing one would
@@ -181,13 +187,19 @@ Examples:
 				fmt.Fprintln(out, "\nNo newly-added namespaces to seed.")
 			case seed == seedModePull:
 				fmt.Fprintf(out, "\nPulling current server state for %d namespace(s):\n", len(toSeed))
-				if err := runInitSeed(cmd, c, final, cfgPath, toSeed, strategyServer); err != nil {
+				if err := runInitSeed(cmd, c, final, cfgPath, toSeed, seedModePull); err != nil {
 					fmt.Fprintf(out, "Pull encountered errors — run `norcube langsync pull` to retry.\n")
 					return err
 				}
-			case seed == seedModePush:
-				fmt.Fprintf(out, "\nPushing local files for %d namespace(s) and waiting for autotranslate:\n", len(toSeed))
-				if err := runInitSeed(cmd, c, final, cfgPath, toSeed, strategyLocal); err != nil {
+			case seed == seedModePushAll:
+				fmt.Fprintf(out, "\nPushing every local <lang>.json for %d namespace(s) and waiting for autotranslate:\n", len(toSeed))
+				if err := runInitSeed(cmd, c, final, cfgPath, toSeed, seedModePushAll); err != nil {
+					fmt.Fprintf(out, "Push encountered errors — run `norcube langsync sync` to retry.\n")
+					return err
+				}
+			case seed == seedModePushDefault:
+				fmt.Fprintf(out, "\nPushing only the default-language file for %d namespace(s); AI will fill the rest:\n", len(toSeed))
+				if err := runInitSeed(cmd, c, final, cfgPath, toSeed, seedModePushDefault); err != nil {
 					fmt.Fprintf(out, "Push encountered errors — run `norcube langsync sync` to retry.\n")
 					return err
 				}
@@ -198,7 +210,7 @@ Examples:
 	cmd.Flags().StringVar(&dirFlag, "dir", "", "Parent directory for translation files (each picked namespace becomes <dir>/<namespace>); skips the per-namespace dir prompt")
 	cmd.Flags().StringSliceVarP(&nsFlags, "namespace", "n", nil, "Namespace name to include (repeat for multiple); skips the picker")
 	cmd.Flags().BoolVar(&forceWrite, "force", false, "Overwrite an existing .langsync.json instead of merging")
-	cmd.Flags().StringVar(&seedFlag, "seed", string(seedModePull), "After writing the config: pull (download server state), push (upload local files + autotranslate), or none (do nothing)")
+	cmd.Flags().StringVar(&seedFlag, "seed", string(seedModePull), "After writing the config: pull | push-all | push-default | none")
 	return cmd
 }
 
@@ -223,40 +235,60 @@ func newlyAddedNamespaces(additions []projectcfg.Namespace, existing *projectcfg
 	return out
 }
 
-// seedMode controls what init does AFTER writing the config: pull
-// the server state, push local files, or nothing. See the --seed
-// flag for what each one means in user-facing terms.
+// seedMode controls what init does AFTER writing the config:
+//
+//   pull         — server → disk (default)
+//   push-all     — disk (every <lang>.json) → server; autotranslate
+//                  only fills cells the client didn't provide
+//   push-default — disk (default-lang file only) → server; AI
+//                  translates all other languages from scratch
+//   none         — write the config and stop
 type seedMode string
 
 const (
-	seedModePull seedMode = "pull"
-	seedModePush seedMode = "push"
-	seedModeNone seedMode = "none"
+	seedModePull        seedMode = "pull"
+	seedModePushAll     seedMode = "push-all"
+	seedModePushDefault seedMode = "push-default"
+	seedModeNone        seedMode = "none"
 )
 
 func parseSeedMode(s string) (seedMode, error) {
 	switch strings.ToLower(strings.TrimSpace(s)) {
 	case "", "pull":
 		return seedModePull, nil
-	case "push":
-		return seedModePush, nil
+	case "push-all":
+		return seedModePushAll, nil
+	case "push-default":
+		return seedModePushDefault, nil
 	case "none", "skip", "off":
 		return seedModeNone, nil
 	}
-	return "", fmt.Errorf("invalid --seed %q (must be pull|push|none)", s)
+	return "", fmt.Errorf("invalid --seed %q (must be pull|push-all|push-default|none)", s)
 }
 
-// runInitSeed drives either the pull or push seed pass. Both use
-// runParallelSync; only the strategy differs. Failures are reported
-// but don't roll back the config — the user can always rerun the
-// appropriate command later.
-func runInitSeed(cmd *cobra.Command, c *langsyncContext, cfg *projectcfg.File, cfgPath string, toSeed []projectcfg.Namespace, strat syncStrategy) error {
-	return runParallelSync(cmd, c, cfg, cfgPath, toSeed, syncOptions{
-		strategy:    strat,
+// runInitSeed drives the pull or one of the push seed passes. The
+// strategy + pushDefaultOnly bits are derived from the seedMode and
+// passed into runParallelSync; the rest of the parallel-sync code
+// is the same for every seed mode.
+func runInitSeed(cmd *cobra.Command, c *langsyncContext, cfg *projectcfg.File, cfgPath string, toSeed []projectcfg.Namespace, mode seedMode) error {
+	opts := syncOptions{
 		wait:        true,
 		waitTimeout: 5 * time.Minute,
 		pollEvery:   1 * time.Second,
-	})
+	}
+	switch mode {
+	case seedModePull:
+		opts.strategy = strategyServer
+	case seedModePushAll:
+		opts.strategy = strategyLocal
+		opts.pushDefaultOnly = false
+	case seedModePushDefault:
+		opts.strategy = strategyLocal
+		opts.pushDefaultOnly = true
+	default:
+		return fmt.Errorf("internal: runInitSeed called with non-seed mode %q", mode)
+	}
+	return runParallelSync(cmd, c, cfg, cfgPath, toSeed, opts)
 }
 
 // loadExistingForInit reads any pre-existing config at path. With

@@ -121,6 +121,13 @@ type syncOptions struct {
 	wait        bool
 	waitTimeout time.Duration
 	pollEvery   time.Duration
+
+	// pushDefaultOnly limits the push to the default-language file
+	// (legacy behavior). When false (the default for `sync`),
+	// every <lang>.json file in the namespace dir is submitted, so
+	// human-edited translations in non-default langs are preserved
+	// instead of getting blasted by autotranslate.
+	pushDefaultOnly bool
 }
 
 // runParallelSync is the shared entry point for both `sync` and the
@@ -257,21 +264,24 @@ func syncNamespaceParallel(
 	opts syncOptions,
 ) (namespaceSyncStats, *langsync.DtoDTOSyncJob, error) {
 	dir := cfg.ResolveDir(configPath, ns)
-	localPath := filepath.Join(dir, translations.LangFileName(ns.DefaultLocalLanguage))
 
-	localMarks, err := readLocalDefaultMarks(localPath, opts.strategy)
+	marksPerLang, totalCells, err := collectLocalMarks(dir, ns.DefaultLocalLanguage, opts.pushDefaultOnly)
 	if err != nil {
-		d.Fail(ns.Namespace, fmt.Errorf("read local file: %w", err))
+		d.Fail(ns.Namespace, fmt.Errorf("read local files: %w", err))
 		return namespaceSyncStats{}, nil, err
 	}
-	d.Update(ns.Namespace, "reading", 0, 0, fmt.Sprintf("%d local marks in %s", len(localMarks), relPath(configPath, localPath)))
+	d.Update(ns.Namespace, "reading", 0, 0,
+		fmt.Sprintf("%d local marks across %d language file(s) in %s",
+			totalCells, len(marksPerLang), relPath(configPath, dir)))
 
 	// Interactive resolution runs serially per namespace (the user
 	// can't realistically answer multiple namespaces' prompts at
-	// once). We pause the dashboard's row to plain text during the
-	// prompt and resume after.
+	// once). Scoped to the default lang — non-default conflicts are
+	// pushed local-wins without a prompt (matches the user intent of
+	// "my files are the truth for human translations").
 	if opts.strategy == strategyInteractive {
-		resolved, err := interactivelyResolveConflicts(ctx, c, ns.Namespace, localMarks, ns.DefaultLocalLanguage)
+		defaultMarks := marksPerLang[ns.DefaultLocalLanguage]
+		resolved, err := interactivelyResolveConflicts(ctx, c, ns.Namespace, defaultMarks, ns.DefaultLocalLanguage)
 		if err != nil {
 			if errors.Is(err, ErrCancelled) {
 				d.Complete(ns.Namespace, "aborted interactive resolution")
@@ -280,11 +290,11 @@ func syncNamespaceParallel(
 			d.Fail(ns.Namespace, err)
 			return namespaceSyncStats{}, nil, err
 		}
-		localMarks = resolved
+		marksPerLang[ns.DefaultLocalLanguage] = resolved
 	}
 
 	d.Update(ns.Namespace, "submitting", 0, 0, "")
-	jobID, err := submitSyncJob(ctx, c, ns, opts, localMarks)
+	jobID, err := submitSyncJob(ctx, c, ns, opts, marksPerLang)
 	if err != nil {
 		d.Fail(ns.Namespace, fmt.Errorf("submit job: %w", err))
 		return namespaceSyncStats{}, nil, err
@@ -311,29 +321,74 @@ func syncNamespaceParallel(
 	return stats, final, nil
 }
 
-// readLocalDefaultMarks loads the local default-language file.
-// Missing file → empty map (server handles "nothing to push"
-// naturally).
-func readLocalDefaultMarks(path string, strat syncStrategy) (map[string]string, error) {
-	m, err := translations.ReadFlatJSON(path)
-	if err == nil {
-		return m, nil
+// collectLocalMarks reads the namespace's on-disk translation files
+// and returns a map[lang]map[mark]value plus the total cell count
+// (sum of map sizes, used for the dashboard's "reading" line).
+//
+// When pushDefaultOnly is true, only the default-language file is
+// read — the legacy behavior, kept for `--seed push-default` users
+// who explicitly want the AI to re-translate everything.
+//
+// Missing files are tolerated: the namespace dir might not exist
+// yet on a fresh init, or some <lang>.json may be absent because
+// nobody has populated that language locally. Missing language ==
+// empty map, which the server reads as "no opinion on this lang."
+func collectLocalMarks(dir, defaultCode string, pushDefaultOnly bool) (map[string]map[string]string, int, error) {
+	out := map[string]map[string]string{}
+	total := 0
+
+	defaultPath := filepath.Join(dir, translations.LangFileName(defaultCode))
+	defaultMarks, err := translations.ReadFlatJSON(defaultPath)
+	switch {
+	case err == nil:
+		out[defaultCode] = defaultMarks
+		total += len(defaultMarks)
+	case errors.Is(err, os.ErrNotExist):
+		out[defaultCode] = map[string]string{}
+	default:
+		return nil, 0, err
 	}
-	if errors.Is(err, os.ErrNotExist) {
-		return map[string]string{}, nil
+
+	if pushDefaultOnly {
+		return out, total, nil
 	}
-	return nil, err
+
+	// Discover every other <code>.json sitting next to the default
+	// file. The translations package's ListLangsInDir handles
+	// dotfile filtering and stable ordering for us.
+	codes, paths, err := translations.ListLangsInDir(dir)
+	if err != nil {
+		return nil, 0, err
+	}
+	for i, code := range codes {
+		if code == defaultCode {
+			continue
+		}
+		marks, err := translations.ReadFlatJSON(paths[i])
+		if err != nil {
+			// Skip and warn on stderr rather than aborting the
+			// whole sync — a broken lang file shouldn't block the
+			// other files from going up. Caller's progress UI
+			// surfaces the count of files read.
+			fmt.Fprintf(os.Stderr, "[%s] warning: skipping %s: %v\n", code, paths[i], err)
+			continue
+		}
+		out[code] = marks
+		total += len(marks)
+	}
+	return out, total, nil
 }
 
-func submitSyncJob(ctx context.Context, c *langsyncContext, ns projectcfg.Namespace, opts syncOptions, marks map[string]string) (string, error) {
+func submitSyncJob(ctx context.Context, c *langsyncContext, ns projectcfg.Namespace, opts syncOptions, marksPerLang map[string]map[string]string) (string, error) {
 	serverStrategy := "local"
 	if opts.strategy == strategyServer {
 		serverStrategy = "server"
 	}
+	mpl := marksPerLang
 	body := langsync.SyncjobCreateSyncRequest{
 		DefaultLanguageCode:  ptrStr(ns.DefaultLocalLanguage),
 		DryRun:               ptrBool(opts.dryRun),
-		Marks:                marksMapPtr(marks),
+		MarksPerLanguage:     &mpl,
 		Prune:                ptrBool(opts.prune),
 		Strategy:             ptrStr(serverStrategy),
 		WaitForAutotranslate: ptrBool(opts.wait),

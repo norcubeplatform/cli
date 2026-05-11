@@ -774,14 +774,17 @@ type SyncjobCreateSyncRequest struct {
 	DefaultLanguageCode *string `json:"defaultLanguageCode,omitempty"`
 	DryRun              *bool   `json:"dryRun,omitempty"`
 
-	// Marks Marks is the on-disk source-of-truth from the CLI side. Empty
-	// maps are valid (sync with no marks = "trigger autotranslate
-	// for what's there").
-	Marks                *map[string]string `json:"marks,omitempty"`
-	Prune                *bool              `json:"prune,omitempty"`
-	Strategy             *string            `json:"strategy,omitempty"`
-	WaitForAutotranslate *bool              `json:"waitForAutotranslate,omitempty"`
-	WaitTimeoutSeconds   *int               `json:"waitTimeoutSeconds,omitempty"`
+	// Marks Marks is the legacy default-lang-only shape. Kept for one
+	// release of the CLI; new clients submit MarksPerLanguage.
+	Marks *map[string]string `json:"marks,omitempty"`
+
+	// MarksPerLanguage MarksPerLanguage is the preferred shape — one inner map per
+	// language code (including the default one).
+	MarksPerLanguage     *map[string]map[string]string `json:"marksPerLanguage,omitempty"`
+	Prune                *bool                         `json:"prune,omitempty"`
+	Strategy             *string                       `json:"strategy,omitempty"`
+	WaitForAutotranslate *bool                         `json:"waitForAutotranslate,omitempty"`
+	WaitTimeoutSeconds   *int                          `json:"waitTimeoutSeconds,omitempty"`
 }
 
 // TermImportFinishRequest defines model for term.importFinishRequest.

@@ -1246,7 +1246,17 @@
             "additionalProperties": {
               "type": "string"
             },
-            "description": "Marks is the on-disk source-of-truth from the CLI side. Empty\nmaps are valid (sync with no marks = \"trigger autotranslate\nfor what's there\").",
+            "description": "Marks is the legacy default-lang-only shape. Kept for one\nrelease of the CLI; new clients submit MarksPerLanguage.",
+            "type": "object"
+          },
+          "marksPerLanguage": {
+            "additionalProperties": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "description": "MarksPerLanguage is the preferred shape — one inner map per\nlanguage code (including the default one).",
             "type": "object"
           },
           "prune": {
