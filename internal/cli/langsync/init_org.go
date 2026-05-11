@@ -1,6 +1,7 @@
 package langsync
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -58,12 +59,12 @@ func resolveInitOrg(cmd *cobra.Command, existing *projectcfg.File) (api.Organiza
 	if err != nil {
 		return api.Organization{}, fmt.Errorf("list organizations: %w", err)
 	}
-	if len(orgs) == 0 {
-		return api.Organization{}, fmt.Errorf("you don't have access to any organization — visit the web app to get added to one")
-	}
 
 	// Case 1: --org flag — match by id OR slug.
 	if flags.HasOrgFlag() {
+		if len(orgs) == 0 {
+			return api.Organization{}, fmt.Errorf("--org %q given but you have access to no organizations yet — run `nrc org create` first", flags.OrgOverride)
+		}
 		want := strings.ToLower(strings.TrimSpace(flags.OrgOverride))
 		for _, o := range orgs {
 			if o.ID == flags.OrgOverride || strings.ToLower(o.Slug) == want {
@@ -73,18 +74,31 @@ func resolveInitOrg(cmd *cobra.Command, existing *projectcfg.File) (api.Organiza
 		return api.Organization{}, fmt.Errorf("--org %q didn't match any organization slug or id you have access to", flags.OrgOverride)
 	}
 
+	// Case zero-orgs: offer to create one inline. Non-interactive
+	// shells fail with the same instruction as before.
+	if len(orgs) == 0 {
+		if !stdinIsInteractive() {
+			return api.Organization{}, fmt.Errorf("you have no organizations yet — run `nrc org create <name>` first (non-interactive shell can't show the prompt)")
+		}
+		fmt.Fprintln(cmd.OutOrStdout(), "You don't have any organization yet — creating one to pin this project to.")
+		return createOrgInteractive(cmd.Context(), client)
+	}
+
 	// Case 3a: single org → silent.
 	if len(orgs) == 1 {
 		return orgs[0], nil
 	}
 
-	// Case 3b: multiple orgs → interactive picker, preselect active.
+	// Case 3b: multiple orgs → interactive picker, preselect active,
+	// with a "+ Create new" sentinel at the bottom for users who
+	// want to spin up a fresh org without leaving the wizard.
 	if !stdinIsInteractive() {
 		return api.Organization{}, fmt.Errorf(
 			"you have access to %d organizations — pass --org <slug> to pick one (non-interactive shell can't show the picker)",
 			len(orgs))
 	}
-	options := make([]huh.Option[string], 0, len(orgs))
+	const createSentinel = "__norcube_create_org__"
+	options := make([]huh.Option[string], 0, len(orgs)+1)
 	for _, o := range orgs {
 		label := o.Slug
 		if o.Name != "" && o.Name != o.Slug {
@@ -95,6 +109,8 @@ func resolveInitOrg(cmd *cobra.Command, existing *projectcfg.File) (api.Organiza
 		}
 		options = append(options, huh.NewOption(label, o.ID))
 	}
+	options = append(options, huh.NewOption("+ Create new organization…", createSentinel))
+
 	var selectedID string
 	if cfg.ActiveOrg.ID != "" {
 		selectedID = cfg.ActiveOrg.ID
@@ -111,10 +127,60 @@ func resolveInitOrg(cmd *cobra.Command, existing *projectcfg.File) (api.Organiza
 		}
 		return api.Organization{}, err
 	}
+	if selectedID == createSentinel {
+		return createOrgInteractive(cmd.Context(), client)
+	}
 	for _, o := range orgs {
 		if o.ID == selectedID {
 			return o, nil
 		}
 	}
 	return api.Organization{}, fmt.Errorf("internal: selection %q not found in org list", selectedID)
+}
+
+// createOrgInteractive runs an inline "name + optional slug" prompt
+// pair, POSTs to /organizations, and returns the new org. Used both
+// by the zero-orgs path (no choice but to create) and the
+// "+ Create new" picker option (user picked it explicitly).
+//
+// The created org is NOT set as active_org — init pins the project
+// to it via .langsync.json, and we don't want a side effect on the
+// user's global active context.
+func createOrgInteractive(ctx context.Context, client *api.AuthClient) (api.Organization, error) {
+	var name, slug string
+	form := huh.NewForm(
+		huh.NewGroup(
+			huh.NewInput().
+				Title("New organization name").
+				Description("Human-readable name; you can pick a URL slug below.").
+				Validate(func(s string) error {
+					if strings.TrimSpace(s) == "" {
+						return fmt.Errorf("name must not be empty")
+					}
+					return nil
+				}).
+				Value(&name),
+			huh.NewInput().
+				Title("Slug (optional)").
+				Description("Lowercase URL identifier. Leave blank to let the server derive one from the name.").
+				Value(&slug),
+		),
+	)
+	if err := form.Run(); err != nil {
+		if errors.Is(err, huh.ErrUserAborted) {
+			return api.Organization{}, ErrCancelled
+		}
+		return api.Organization{}, err
+	}
+	name = strings.TrimSpace(name)
+	slug = strings.TrimSpace(slug)
+	var slugPtr *string
+	if slug != "" {
+		slugPtr = &slug
+	}
+	created, err := client.CreateOrganization(ctx, name, slugPtr)
+	if err != nil {
+		return api.Organization{}, fmt.Errorf("create organization: %w", err)
+	}
+	return *created, nil
 }

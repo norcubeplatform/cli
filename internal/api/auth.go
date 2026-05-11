@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -55,6 +56,32 @@ func (c *AuthClient) ListOrganizations(ctx context.Context) ([]Organization, err
 		return nil, err
 	}
 	return out, nil
+}
+
+// CreateOrganization creates a new org with the given name. slug is
+// optional — when nil or empty the server derives one from the name.
+// The caller becomes the owner. Returns the new org's id, slug, and
+// canonicalised name.
+//
+// The server returns the new org wrapped in {"organization": {...}}
+// — we unwrap so the caller gets the same Organization shape that
+// ListOrganizations hands back.
+func (c *AuthClient) CreateOrganization(ctx context.Context, name string, slug *string) (*Organization, error) {
+	payload := struct {
+		Name string  `json:"name"`
+		Slug *string `json:"slug,omitempty"`
+	}{Name: name, Slug: slug}
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return nil, err
+	}
+	var resp struct {
+		Organization Organization `json:"organization"`
+	}
+	if err := c.do(ctx, http.MethodPost, "/organizations", bytes.NewReader(body), &resp); err != nil {
+		return nil, err
+	}
+	return &resp.Organization, nil
 }
 
 type apiError struct {
