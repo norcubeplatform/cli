@@ -21,7 +21,7 @@ func newInitCmd() *cobra.Command {
 		dirFlag    string
 		nsFlags    []string
 		forceWrite bool
-		autoPull   bool
+		seedFlag   string
 	)
 	cmd := &cobra.Command{
 		Use:   "init",
@@ -42,18 +42,28 @@ The wizard:
 Re-run any time to add a new namespace; existing entries are kept
 untouched (use --force to overwrite the file from scratch).
 
-By default, init also pulls the current server state for every
-newly added namespace, so a fresh checkout lands with files already
-populated by what the team has translated. Re-runs only pull
-the namespaces that weren't already configured (existing ones are
-assumed to be in sync); --force counts every picked namespace as
-new and pulls them all. Pass --no-pull to skip pulling entirely.
+After writing the config, init runs a follow-up action controlled by
+--seed:
+  pull (default) — download the server's current state to disk.
+                   Right when the team has been editing strings in
+                   the web app and a fresh checkout needs them.
+  push           — full sync: send local files to the server,
+                   autotranslate the rest, write the result back to
+                   disk. Right when this project already has JSON
+                   files and the namespace on the server is empty
+                   (or you want local to win the merge).
+  none           — write the config and stop.
+
+Either seed mode only applies to newly-added namespaces; entries
+already in .langsync.json from a previous init are left alone.
+--force counts every picked namespace as new.
 
 Examples:
   norcube langsync init
   norcube langsync init -n web -n marketing --dir i18n
   norcube langsync init --force
-  norcube langsync init --no-pull   # config only, don't download translations`,
+  norcube langsync init --seed push          # use my local JSON files as the source of truth
+  norcube langsync init --seed none          # config only, do nothing else`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			c, err := newLangsyncContext(cmd)
 			if err != nil {
@@ -128,27 +138,33 @@ Examples:
 				fmt.Fprintf(out, "  • %s  (dir: %s, default local lang: %s)\n", ns.Namespace, ns.Dir, ns.DefaultLocalLanguage)
 			}
 
-			// Auto-pull pass: fetch current server state for every
-			// newly-added namespace so a fresh checkout lands with
-			// the team's existing translations on disk. Skipped with
-			// --pull=false. Already-configured namespaces are
-			// assumed in sync; --force flips that and pulls
-			// everything we just picked.
-			toPull := newlyAddedNamespaces(additions, existing, forceWrite)
-			if autoPull && len(toPull) > 0 {
-				fmt.Fprintf(out, "\nPulling current server state for %d namespace(s):\n", len(toPull))
-				if err := runInitPull(cmd, c, final, cfgPath, toPull); err != nil {
-					// Pull failures don't roll back the config save.
-					// The user can re-run `norcube langsync pull` to
-					// retry. We still surface the error code so
-					// scripts notice.
+			// Seed pass: only run on newly-added namespaces.
+			// Already-configured entries are assumed in sync;
+			// --force flips that and treats every picked namespace
+			// as new. Failures here don't roll back the config save
+			// — the user can rerun the appropriate command later.
+			seed, err := parseSeedMode(seedFlag)
+			if err != nil {
+				return err
+			}
+			toSeed := newlyAddedNamespaces(additions, existing, forceWrite)
+			switch {
+			case seed == seedModeNone:
+				fmt.Fprintln(out, "\nSkipped seed (--seed none). Run `norcube langsync pull` or `sync` when you're ready.")
+			case len(toSeed) == 0:
+				fmt.Fprintln(out, "\nNo newly-added namespaces to seed.")
+			case seed == seedModePull:
+				fmt.Fprintf(out, "\nPulling current server state for %d namespace(s):\n", len(toSeed))
+				if err := runInitSeed(cmd, c, final, cfgPath, toSeed, strategyServer); err != nil {
 					fmt.Fprintf(out, "Pull encountered errors — run `norcube langsync pull` to retry.\n")
 					return err
 				}
-			} else if !autoPull {
-				fmt.Fprintln(out, "\nSkipped auto-pull (--pull=false). Run `norcube langsync pull` when you want current translations on disk.")
-			} else {
-				fmt.Fprintln(out, "\nNext: run `norcube langsync sync` to push local marks (or `pull` to refresh from the server).")
+			case seed == seedModePush:
+				fmt.Fprintf(out, "\nPushing local files for %d namespace(s) and waiting for autotranslate:\n", len(toSeed))
+				if err := runInitSeed(cmd, c, final, cfgPath, toSeed, strategyLocal); err != nil {
+					fmt.Fprintf(out, "Push encountered errors — run `norcube langsync sync` to retry.\n")
+					return err
+				}
 			}
 			return nil
 		},
@@ -156,7 +172,7 @@ Examples:
 	cmd.Flags().StringVar(&dirFlag, "dir", "", "Parent directory for translation files (each picked namespace becomes <dir>/<namespace>); skips the per-namespace dir prompt")
 	cmd.Flags().StringSliceVarP(&nsFlags, "namespace", "n", nil, "Namespace name to include (repeat for multiple); skips the picker")
 	cmd.Flags().BoolVar(&forceWrite, "force", false, "Overwrite an existing .langsync.json instead of merging")
-	cmd.Flags().BoolVar(&autoPull, "pull", true, "After writing the config, download current server state for newly-added namespaces (pass --pull=false to skip)")
+	cmd.Flags().StringVar(&seedFlag, "seed", string(seedModePull), "After writing the config: pull (download server state), push (upload local files + autotranslate), or none (do nothing)")
 	return cmd
 }
 
@@ -181,15 +197,36 @@ func newlyAddedNamespaces(additions []projectcfg.Namespace, existing *projectcfg
 	return out
 }
 
-// runInitPull drives the pull pass for init's auto-pull step. It's
-// essentially the body of `norcube langsync pull` but scoped to a
-// specific subset of namespaces from a config that was just
-// written. Failures are reported but don't roll back the config —
-// the user can always rerun `norcube langsync pull` once whatever
-// transient issue is fixed.
-func runInitPull(cmd *cobra.Command, c *langsyncContext, cfg *projectcfg.File, cfgPath string, toPull []projectcfg.Namespace) error {
-	return runParallelSync(cmd, c, cfg, cfgPath, toPull, syncOptions{
-		strategy:    strategyServer,
+// seedMode controls what init does AFTER writing the config: pull
+// the server state, push local files, or nothing. See the --seed
+// flag for what each one means in user-facing terms.
+type seedMode string
+
+const (
+	seedModePull seedMode = "pull"
+	seedModePush seedMode = "push"
+	seedModeNone seedMode = "none"
+)
+
+func parseSeedMode(s string) (seedMode, error) {
+	switch strings.ToLower(strings.TrimSpace(s)) {
+	case "", "pull":
+		return seedModePull, nil
+	case "push":
+		return seedModePush, nil
+	case "none", "skip", "off":
+		return seedModeNone, nil
+	}
+	return "", fmt.Errorf("invalid --seed %q (must be pull|push|none)", s)
+}
+
+// runInitSeed drives either the pull or push seed pass. Both use
+// runParallelSync; only the strategy differs. Failures are reported
+// but don't roll back the config — the user can always rerun the
+// appropriate command later.
+func runInitSeed(cmd *cobra.Command, c *langsyncContext, cfg *projectcfg.File, cfgPath string, toSeed []projectcfg.Namespace, strat syncStrategy) error {
+	return runParallelSync(cmd, c, cfg, cfgPath, toSeed, syncOptions{
+		strategy:    strat,
 		wait:        true,
 		waitTimeout: 5 * time.Minute,
 		pollEvery:   1 * time.Second,

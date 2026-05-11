@@ -155,7 +155,14 @@ For repos that ship i18n JSON files alongside source (`i18n/<namespace>/<lang>.j
 # one-time setup in a project root
 norcube langsync init
 # (pick namespaces, confirm dirs — wizard fetches each namespace's
-#  default language from the server and bakes the code into the file)
+#  default language from the server and bakes the code into the file,
+#  then PULLS current server state to disk by default)
+
+# use my local JSON files as the seed instead of pulling from server
+norcube langsync init --seed push
+
+# write config only, no pull or push
+norcube langsync init --seed none
 
 # preview a sync without touching the server or disk
 norcube langsync sync --dry-run
