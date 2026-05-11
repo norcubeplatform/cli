@@ -53,6 +53,14 @@ func runUpgrade(ctx context.Context, out io.Writer) error {
 	if err != nil {
 		return fmt.Errorf("locate current binary: %w", err)
 	}
+	// When invoked via the `nrc` short-name symlink, os.Executable() returns
+	// the symlink path ("…/nrc"), but the release tar only contains the
+	// canonical `norcube` binary. Resolve to the real file so the updater
+	// looks for the right name inside the archive. The `nrc` symlink keeps
+	// working after the swap because it points by name, not by inode.
+	if resolved, rerr := filepath.EvalSymlinks(exe); rerr == nil {
+		exe = resolved
+	}
 
 	// Verify uploaded archives against checksums.txt before swap so a
 	// tampered release can't replace the live binary.
