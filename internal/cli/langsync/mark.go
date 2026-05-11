@@ -220,8 +220,12 @@ fetch the next page, or pass --all-pages to follow until exhausted.`,
 
 			flags := clictx.Get(cmd)
 			err = output.PrintPaged(cmd.OutOrStdout(), c.output, flags.NoPager, output.Table[langsync.DtoDTOTerm]{
-				Headers:   []string{"ID", "MARK", "CONTEXT", "TRANSLATIONS", "CREATED"},
-				MaxWidths: []int{0, 40, 32, 0, 0},
+				Headers: []string{"ID", "MARK", "CONTEXT", "TRANSLATIONS", "CREATED"},
+				// Don't truncate MARK — the whole point is to see the
+				// source text. CONTEXT still gets a cap because it's
+				// freeform and routinely runs long ("the third button
+				// from the top in the user-settings panel etc.").
+				MaxWidths: []int{0, 0, 32, 0, 0},
 				Rows: func(t langsync.DtoDTOTerm) []string {
 					return []string{
 						fmt.Sprintf("%d", t.Term.Id),
