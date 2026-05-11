@@ -145,7 +145,7 @@ Examples:
 				return err
 			}
 
-			picked, err := resolveInitNamespaceSelection(namespaces, nsFlags, existing)
+			picked, err := resolveInitNamespaceSelection(cmd.Context(), c, namespaces, nsFlags, existing)
 			if err != nil {
 				if errors.Is(err, ErrCancelled) {
 					fmt.Fprintln(cmd.OutOrStdout(), "Cancelled.")
@@ -364,7 +364,7 @@ func fetchLanguageCodesByID(ctx context.Context, c *langsyncContext) (map[int]st
 // interactive multi-select into a slice of DtoDTONamespace pointing
 // at the picked rows. Already-configured namespaces are preselected
 // in the picker (so re-running init defaults to "keep what I have").
-func resolveInitNamespaceSelection(all []langsync.DtoDTONamespace, flags []string, existing *projectcfg.File) ([]langsync.DtoDTONamespace, error) {
+func resolveInitNamespaceSelection(ctx context.Context, c *langsyncContext, all []langsync.DtoDTONamespace, flags []string, existing *projectcfg.File) ([]langsync.DtoDTONamespace, error) {
 	byName := map[string]langsync.DtoDTONamespace{}
 	for _, ns := range all {
 		if ns.Name != nil && *ns.Name != "" {
@@ -432,7 +432,22 @@ func resolveInitNamespaceSelection(all []langsync.DtoDTONamespace, flags []strin
 			addNS(ns)
 		}
 	}
-	if len(opts) == 0 {
+	// Sentinel value pinned at the bottom of the multi-select.
+	// Toggling it triggers an inline createNamespaceInteractive
+	// flow AFTER the form returns; the newly-created namespace
+	// joins whatever else the user toggled. Bottom placement
+	// matters: the "Enter with no toggles takes the top row"
+	// fallback should land on a real namespace, not on the
+	// create sentinel.
+	const createNamespaceSentinel = "__norcube_create_namespace__"
+	opts = append(opts, huh.NewOption("+ Create new namespace…", createNamespaceSentinel))
+
+	if len(opts) == 1 {
+		// Only the create sentinel — no existing namespaces. This
+		// path can be reached when the org is genuinely empty;
+		// the caller already handles the zero-namespaces case
+		// upstream, but a defensive guard here keeps a confusing
+		// "pick from one row" prompt from showing up.
 		return nil, fmt.Errorf("no namespaces available to pick")
 	}
 
@@ -450,7 +465,7 @@ func resolveInitNamespaceSelection(all []langsync.DtoDTONamespace, flags []strin
 	err := newWizard(huh.NewGroup(
 		huh.NewMultiSelect[string]().
 			Title("Which namespaces should this project sync?").
-			Description("[Space] toggles a row, [Enter] confirms. Hit Enter with no toggles to just take the top row. Pre-checked entries are already in .langsync.json.").
+			Description("[Space] toggles a row, [Enter] confirms. Hit Enter with no toggles to just take the top row. Pre-checked entries are already in .langsync.json. Toggle the bottom row to create a new namespace.").
 			Options(opts...).
 			Value(&selected),
 	)).Run()
@@ -463,26 +478,53 @@ func resolveInitNamespaceSelection(all []langsync.DtoDTONamespace, flags []strin
 
 	// Empty selection fallback: huh.MultiSelect returns an empty
 	// slice when the user hits Enter without ever pressing Space.
-	// That's the same UX trap that bit the user — fall back to the
-	// top row (the active/preselected namespace, pinned earlier)
-	// so a single Enter is still a useful action.
+	// Fall back to the top row (the active/preselected one,
+	// pinned earlier) so a single Enter still picks something
+	// useful. The create sentinel sits at the BOTTOM of opts on
+	// purpose so it never wins this fallback.
 	if len(selected) == 0 && len(opts) > 0 {
-		// huh's options keep their declared order; opts[0] is the
-		// pinned-at-top entry — the active/already-configured
-		// namespace. Use its value as the implicit single pick.
 		topValue := optionValue(opts[0])
-		if topValue != "" {
+		if topValue != "" && topValue != createNamespaceSentinel {
 			fmt.Fprintf(os.Stderr, "No rows toggled — using the top entry %q.\n", topValue)
 			selected = []string{topValue}
 		}
 	}
 
-	var picked []langsync.DtoDTONamespace
+	// Process the create sentinel: if toggled, run the create
+	// flow, register the new namespace in byName, and rewrite
+	// `selected` so it points at the new namespace's name
+	// instead of the sentinel value. Other toggled rows pass
+	// through unchanged so the user can create + pick existing
+	// in one go.
+	var pickedNames []string
 	for _, name := range selected {
+		if name != createNamespaceSentinel {
+			pickedNames = append(pickedNames, name)
+			continue
+		}
+		fmt.Fprintln(os.Stderr, "Create a new namespace for this project:")
+		newNS, err := createNamespaceInteractive(ctx, c)
+		if err != nil {
+			if errors.Is(err, ErrCancelled) {
+				fmt.Fprintln(os.Stderr, "Cancelled namespace creation; continuing without it.")
+				continue
+			}
+			return nil, err
+		}
+		if newNS.Name == nil || *newNS.Name == "" {
+			return nil, fmt.Errorf("backend returned a namespace without a name")
+		}
+		byName[*newNS.Name] = *newNS
+		pickedNames = append(pickedNames, *newNS.Name)
+	}
+
+	var picked []langsync.DtoDTONamespace
+	for _, name := range pickedNames {
 		picked = append(picked, byName[name])
 	}
 	return picked, nil
 }
+
 
 // optionValue extracts the underlying value from a huh.Option. The
 // library doesn't expose a public getter (the value is unexported),
