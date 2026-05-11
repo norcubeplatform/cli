@@ -99,7 +99,15 @@ func resolveInitOrg(cmd *cobra.Command, existing *projectcfg.File) (api.Organiza
 	}
 	const createSentinel = "__norcube_create_org__"
 	options := make([]huh.Option[string], 0, len(orgs)+1)
-	for _, o := range orgs {
+
+	// Build the option list with the active org pinned at row 0.
+	// huh's Select scrolls the viewport so the preselected value
+	// is visible — if active_org sat in the middle, that scroll
+	// could push the first 2-3 rows off-screen at first render
+	// (huh #628). Putting active at row 0 means the viewport
+	// starts at the top, and the user never wonders "where did
+	// the first item go?".
+	addOpt := func(o api.Organization) {
 		label := o.Slug
 		if o.Name != "" && o.Name != o.Slug {
 			label = fmt.Sprintf("%s — %s", o.Slug, o.Name)
@@ -109,18 +117,39 @@ func resolveInitOrg(cmd *cobra.Command, existing *projectcfg.File) (api.Organiza
 		}
 		options = append(options, huh.NewOption(label, o.ID))
 	}
+	for _, o := range orgs {
+		if o.Slug == cfg.ActiveOrg.Slug {
+			addOpt(o)
+		}
+	}
+	for _, o := range orgs {
+		if o.Slug != cfg.ActiveOrg.Slug {
+			addOpt(o)
+		}
+	}
 	options = append(options, huh.NewOption("+ Create new organization…", createSentinel))
 
 	var selectedID string
 	if cfg.ActiveOrg.ID != "" {
 		selectedID = cfg.ActiveOrg.ID
 	}
-	err = huh.NewSelect[string]().
-		Title("Which organization does this project belong to?").
-		Description("The choice is baked into .langsync.json so sync always targets the right org regardless of `nrc org use`.").
-		Options(options...).
-		Value(&selectedID).
-		Run()
+	// Deliberately no Height() — huh's Select calls
+	// updateViewportHeight() on every keystroke, which sets
+	// YOffset to s.selected. Net effect: the cursor stays
+	// anchored at the top of the viewport and the list scrolls
+	// "into" it, so pressing down hides the first row. With Height
+	// unset (and the option count short), huh skips the offending
+	// codepath entirely and renders the full list without
+	// scrolling. See huh/field_select.go:524-543 for the relevant
+	// branch.
+	err = newWizard(huh.NewGroup(
+		huh.NewSelect[string]().
+			Title("Which organization does this project belong to?").
+			Description("The choice is baked into .langsync.json so sync always targets the right org regardless of `nrc org use`. Active org is pinned at top.").
+			Options(options...).
+			Filtering(len(options) > 8).
+			Value(&selectedID),
+	)).Run()
 	if err != nil {
 		if errors.Is(err, huh.ErrUserAborted) {
 			return api.Organization{}, ErrCancelled
@@ -148,11 +177,16 @@ func resolveInitOrg(cmd *cobra.Command, existing *projectcfg.File) (api.Organiza
 // user's global active context.
 func createOrgInteractive(ctx context.Context, client *api.AuthClient) (api.Organization, error) {
 	var name, slug string
-	form := huh.NewForm(
+	// One field per group → proper wizard pages. Names and slug
+	// each get their own screen with a step header, no overlapping
+	// cursors.
+	form := newWizard(
 		huh.NewGroup(
+			stepNote(1, 2, "New organization name",
+				"Human-readable name. The URL slug comes next — it can be auto-derived."),
 			huh.NewInput().
-				Title("New organization name").
-				Description("Human-readable name; you can pick a URL slug below.").
+				Title("Name").
+				Placeholder("e.g. Acme Inc").
 				Validate(func(s string) error {
 					if strings.TrimSpace(s) == "" {
 						return fmt.Errorf("name must not be empty")
@@ -160,9 +194,13 @@ func createOrgInteractive(ctx context.Context, client *api.AuthClient) (api.Orga
 					return nil
 				}).
 				Value(&name),
+		),
+		huh.NewGroup(
+			stepNote(2, 2, "URL slug (optional)",
+				"Lowercase URL identifier. Press Enter to let the server derive one from the name."),
 			huh.NewInput().
-				Title("Slug (optional)").
-				Description("Lowercase URL identifier. Leave blank to let the server derive one from the name.").
+				Title("Slug").
+				Placeholder("e.g. acme").
 				Value(&slug),
 		),
 	)

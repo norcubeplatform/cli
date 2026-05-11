@@ -139,6 +139,20 @@ func runParallelSync(cmd *cobra.Command, c *langsyncContext, cfg *projectcfg.Fil
 		return nil
 	}
 
+	// Pre-flight: detect local <code>.json files for languages
+	// that aren't attached to the namespace yet. Without this, the
+	// backend's planner would silently drop those values. The
+	// pre-flight prompts interactively to attach (or create+attach
+	// a custom lang) before the dashboard starts; non-TTY runs get
+	// a warning per skipped file instead. Errors here are fatal —
+	// the user almost certainly wants to fix the situation before
+	// committing to the sync.
+	if opts.strategy != strategyServer {
+		if err := preflightAttachLanguages(cmd.Context(), c, cfg, configPath, targets); err != nil {
+			return err
+		}
+	}
+
 	names := make([]string, 0, len(targets))
 	for _, ns := range targets {
 		names = append(names, ns.Namespace)
@@ -265,7 +279,7 @@ func syncNamespaceParallel(
 ) (namespaceSyncStats, *langsync.DtoDTOSyncJob, error) {
 	dir := cfg.ResolveDir(configPath, ns)
 
-	marksPerLang, totalCells, err := collectLocalMarks(dir, ns.DefaultLocalLanguage, opts.pushDefaultOnly)
+	marksPerLang, totalCells, err := collectLocalMarks(dir, ns.DefaultLocalLanguage, ns.LanguageAliases, opts.pushDefaultOnly)
 	if err != nil {
 		d.Fail(ns.Namespace, fmt.Errorf("read local files: %w", err))
 		return namespaceSyncStats{}, nil, err
@@ -309,7 +323,7 @@ func syncNamespaceParallel(
 	stats := statsFromJob(final)
 
 	if !opts.dryRun && final != nil && final.Status != nil && *final.Status == "completed" {
-		written, werr := writeResultFiles(final, dir, configPath)
+		written, werr := writeResultFiles(final, dir, configPath, ns.LanguageAliases)
 		if werr != nil {
 			d.Fail(ns.Namespace, fmt.Errorf("write files: %w", werr))
 			return stats, final, werr
@@ -322,18 +336,23 @@ func syncNamespaceParallel(
 }
 
 // collectLocalMarks reads the namespace's on-disk translation files
-// and returns a map[lang]map[mark]value plus the total cell count
-// (sum of map sizes, used for the dashboard's "reading" line).
+// and returns a map[server-lang-code]map[mark]value plus the total
+// cell count.
+//
+// aliases applies the forward mapping (disk filename code → server
+// language code). For example: a file `cs_cz.json` with the alias
+// `{"cs_cz": "cs-CZ"}` reads into the result keyed by "cs-CZ", which
+// is what Langsync's backend knows the language as. Without an
+// alias entry the disk code is used as-is.
 //
 // When pushDefaultOnly is true, only the default-language file is
-// read — the legacy behavior, kept for `--seed push-default` users
-// who explicitly want the AI to re-translate everything.
+// read — the `--seed push-default` mode for users who want AI to
+// re-translate everything else from scratch.
 //
-// Missing files are tolerated: the namespace dir might not exist
-// yet on a fresh init, or some <lang>.json may be absent because
-// nobody has populated that language locally. Missing language ==
-// empty map, which the server reads as "no opinion on this lang."
-func collectLocalMarks(dir, defaultCode string, pushDefaultOnly bool) (map[string]map[string]string, int, error) {
+// Missing files are tolerated: namespaces with no on-disk language
+// file get an empty submission for that lang ("no opinion"), and
+// the server's planner skips silently.
+func collectLocalMarks(dir, defaultCode string, aliases map[string]string, pushDefaultOnly bool) (map[string]map[string]string, int, error) {
 	out := map[string]map[string]string{}
 	total := 0
 
@@ -341,10 +360,10 @@ func collectLocalMarks(dir, defaultCode string, pushDefaultOnly bool) (map[strin
 	defaultMarks, err := translations.ReadFlatJSON(defaultPath)
 	switch {
 	case err == nil:
-		out[defaultCode] = defaultMarks
+		out[serverLangCode(defaultCode, aliases)] = defaultMarks
 		total += len(defaultMarks)
 	case errors.Is(err, os.ErrNotExist):
-		out[defaultCode] = map[string]string{}
+		out[serverLangCode(defaultCode, aliases)] = map[string]string{}
 	default:
 		return nil, 0, err
 	}
@@ -353,9 +372,6 @@ func collectLocalMarks(dir, defaultCode string, pushDefaultOnly bool) (map[strin
 		return out, total, nil
 	}
 
-	// Discover every other <code>.json sitting next to the default
-	// file. The translations package's ListLangsInDir handles
-	// dotfile filtering and stable ordering for us.
 	codes, paths, err := translations.ListLangsInDir(dir)
 	if err != nil {
 		return nil, 0, err
@@ -366,17 +382,26 @@ func collectLocalMarks(dir, defaultCode string, pushDefaultOnly bool) (map[strin
 		}
 		marks, err := translations.ReadFlatJSON(paths[i])
 		if err != nil {
-			// Skip and warn on stderr rather than aborting the
-			// whole sync — a broken lang file shouldn't block the
-			// other files from going up. Caller's progress UI
-			// surfaces the count of files read.
 			fmt.Fprintf(os.Stderr, "[%s] warning: skipping %s: %v\n", code, paths[i], err)
 			continue
 		}
-		out[code] = marks
+		out[serverLangCode(code, aliases)] = marks
 		total += len(marks)
 	}
 	return out, total, nil
+}
+
+// serverLangCode resolves a disk filename code to the server-side
+// language code, applying the forward alias map. The function
+// signature is deliberately tiny so callers don't have to nil-check
+// the alias map at every call site.
+func serverLangCode(diskCode string, aliases map[string]string) string {
+	if aliases != nil {
+		if mapped, ok := aliases[diskCode]; ok && mapped != "" {
+			return mapped
+		}
+	}
+	return diskCode
 }
 
 func submitSyncJob(ctx context.Context, c *langsyncContext, ns projectcfg.Namespace, opts syncOptions, marksPerLang map[string]map[string]string) (string, error) {
@@ -470,13 +495,28 @@ func statsFromJob(j *langsync.DtoDTOSyncJob) namespaceSyncStats {
 	return s
 }
 
-func writeResultFiles(j *langsync.DtoDTOSyncJob, dir, configPath string) (int, error) {
+func writeResultFiles(j *langsync.DtoDTOSyncJob, dir, configPath string, aliases map[string]string) (int, error) {
 	if j.ResultPerLanguage == nil {
 		return 0, nil
 	}
+	// Reverse alias map: server code → disk filename code. The
+	// forward map (disk → server) is used on the read side; here
+	// we need to go the other way to land each language's results
+	// in the file the user expects on disk.
+	reverse := map[string]string{}
+	for diskCode, serverCode := range aliases {
+		if serverCode == "" {
+			continue
+		}
+		reverse[serverCode] = diskCode
+	}
 	written := 0
-	for code, marks := range *j.ResultPerLanguage {
-		path := filepath.Join(dir, translations.LangFileName(code))
+	for serverCode, marks := range *j.ResultPerLanguage {
+		diskCode := serverCode
+		if alias, ok := reverse[serverCode]; ok && alias != "" {
+			diskCode = alias
+		}
+		path := filepath.Join(dir, translations.LangFileName(diskCode))
 		if err := translations.WriteFlatJSON(path, marks); err != nil {
 			return written, fmt.Errorf("write %s: %w", path, err)
 		}

@@ -60,25 +60,22 @@ func newLangsyncContext(cmd *cobra.Command) (*langsyncContext, error) {
 	// langsync command in that tree hits acme's org regardless of
 	// what `nrc org use` last set. --org still wins so an explicit
 	// override (e.g. for debugging) is always available.
+	//
+	// We deliberately do NOT print a "operating on org X" note
+	// when the project override kicks in. The project config IS
+	// the source of truth — restating it on every command is just
+	// noise and pushes the actual command output down. If a user
+	// ever needs to confirm which org a command is hitting,
+	// `nrc whoami` and the .langsync.json contents are
+	// authoritative.
 	orgID, _ := flags.ResolveOrg(cfg)
-	flagSet := flags.HasOrgFlag()
-	projectOrgNote := ""
-	if !flagSet {
-		if projOrgID, projSlug, ok := tryReadProjectOrg(); ok {
-			if projOrgID != cfg.ActiveOrg.ID {
-				// Only note when we're actually overriding —
-				// silent when the project's org matches the
-				// active one (most common case).
-				projectOrgNote = fmt.Sprintf("Operating on org %q (from .langsync.json); active org is %q.", projSlug, cfg.ActiveOrg.Slug)
-			}
+	if !flags.HasOrgFlag() {
+		if projOrgID, _, ok := tryReadProjectOrg(); ok {
 			orgID = projOrgID
 		}
 	}
 	if orgID == "" {
 		return nil, fmt.Errorf("no active organization — run `norcube org use <slug>` or pass --org <slug>")
-	}
-	if projectOrgNote != "" {
-		fmt.Fprintln(cmd.ErrOrStderr(), projectOrgNote)
 	}
 
 	ts := auth.NewTokenSource(authURL, auth.AudienceLangsync, orgID)

@@ -52,11 +52,16 @@ func pickNamespace(ctx context.Context, c *langsyncContext, title string) (strin
 	}
 
 	var selected string
-	err = huh.NewSelect[string]().
-		Title(title).
-		Options(options...).
-		Value(&selected).
-		Run()
+	// No Height() — see init_org.go for the huh viewport bug
+	// workaround note. Namespace lists are short enough to render
+	// in full without the scrolling glitch.
+	err = newWizard(huh.NewGroup(
+		huh.NewSelect[string]().
+			Title(title).
+			Options(options...).
+			Filtering(len(options) > 8).
+			Value(&selected),
+	)).Run()
 	if err != nil {
 		if errors.Is(err, huh.ErrUserAborted) {
 			return "", ErrCancelled
@@ -95,12 +100,13 @@ func confirm(prompt string, yesFlag bool) (bool, error) {
 		return false, fmt.Errorf("%s — pass --yes to confirm non-interactively", prompt)
 	}
 	var ok bool
-	err := huh.NewConfirm().
-		Title(prompt).
-		Affirmative("Yes").
-		Negative("Cancel").
-		Value(&ok).
-		Run()
+	err := newWizard(huh.NewGroup(
+		huh.NewConfirm().
+			Title(prompt).
+			Affirmative("Yes").
+			Negative("Cancel").
+			Value(&ok),
+	)).Run()
 	if err != nil {
 		if errors.Is(err, huh.ErrUserAborted) {
 			return false, ErrCancelled

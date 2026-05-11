@@ -108,12 +108,15 @@ func promptResolveOne(mark, localVal, serverVal string, index, total int, opts [
 	)
 	var choice string
 	title := fmt.Sprintf("[%d/%d] Conflict on %q", index, total, mark)
-	err := huh.NewSelect[string]().
-		Title(title).
-		Description(desc).
-		Options(opts...).
-		Value(&choice).
-		Run()
+	// No Height() — only 6 conflict-resolution options; fits in
+	// full without the huh viewport-anchored-cursor scroll glitch.
+	err := newWizard(huh.NewGroup(
+		huh.NewSelect[string]().
+			Title(title).
+			Description(desc).
+			Options(opts...).
+			Value(&choice),
+	)).Run()
 	if err != nil {
 		if errors.Is(err, huh.ErrUserAborted) {
 			return "", ErrCancelled

@@ -3,6 +3,7 @@ package langsync
 import (
 	"errors"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -98,7 +99,18 @@ the name positional + --default-language are both required.`,
 			if len(args) == 1 {
 				name = strings.TrimSpace(args[0])
 			}
-			name, defaultLanguage, context, err = resolveCreateFields(name, defaultLanguage, context)
+			// Only fetch the org's lang list when the picker
+			// might actually need it: --default-language is empty
+			// and the shell is interactive. Skips the round trip
+			// on every scripted invocation.
+			var orgLangs []langsync.DtoDTOLanguage
+			if defaultLanguage == "" && stdinIsInteractive() {
+				orgLangs, err = fetchOrgLanguageList(cmd.Context(), c)
+				if err != nil {
+					return err
+				}
+			}
+			name, defaultLanguage, context, err = resolveCreateFields(name, defaultLanguage, context, orgLangs)
 			if err != nil {
 				if errors.Is(err, ErrCancelled) {
 					fmt.Fprintln(cmd.OutOrStdout(), "Cancelled.")
@@ -138,10 +150,16 @@ the name positional + --default-language are both required.`,
 	return cmd
 }
 
-// resolveCreateFields prompts for any missing required fields when stdin
-// is a TTY, errors out otherwise. The cobra-level flags supply the
-// scripted path; this fills in the interactive gaps.
-func resolveCreateFields(name, lang, ctx string) (string, string, string, error) {
+// resolveCreateFields prompts for any missing required fields when
+// stdin is a TTY, errors out otherwise. The cobra-level flags
+// supply the scripted path; this fills in the interactive gaps.
+//
+// orgLangs is the active org's full lang list. When the user needs
+// to pick a default language interactively, the picker filters this
+// list — searchable by code AND name so a user who doesn't know
+// codes can type "english" / "czech" and find it. Callers pass nil
+// when --default-language was supplied (no picker needed).
+func resolveCreateFields(name, lang, ctx string, orgLangs []langsync.DtoDTOLanguage) (string, string, string, error) {
 	missing := name == "" || lang == ""
 	if !missing {
 		return name, lang, ctx, nil
@@ -159,12 +177,22 @@ func resolveCreateFields(name, lang, ctx string) (string, string, string, error)
 		newLang = lang
 		newCtx  = ctx
 	)
-	fields := []huh.Field{}
+
+	// Wizard structure: one field per group → huh renders each
+	// step as its own screen, eliminating the "multiple cursors"
+	// problem and giving us the "1/N" pagination footer for free.
+	// Step headers via NewNote keep the title visible even when a
+	// filterable Select hides its own title mid-typing (huh #510).
+	totalSteps := countSteps(name == "", lang == "", true)
+	stepNo := 1
+	var groups []*huh.Group
+
 	if name == "" {
-		fields = append(fields,
+		groups = append(groups, huh.NewGroup(
+			stepNote(stepNo, totalSteps, "Namespace name", "URL slug, case-sensitive. This is what every --namespace flag will reference."),
 			huh.NewInput().
 				Title("Namespace name").
-				Description("URL slug, case-sensitive. This is what every --namespace flag will reference.").
+				Placeholder("e.g. web, marketing, mobile-app").
 				Validate(func(s string) error {
 					if strings.TrimSpace(s) == "" {
 						return fmt.Errorf("must not be empty")
@@ -172,29 +200,87 @@ func resolveCreateFields(name, lang, ctx string) (string, string, string, error)
 					return nil
 				}).
 				Value(&newName),
-		)
+		))
+		stepNo++
 	}
+
 	if lang == "" {
-		fields = append(fields,
-			huh.NewInput().
-				Title("Default language code").
-				Description("Language source marks are written in (e.g. en, cs, de).").
-				Validate(func(s string) error {
-					if strings.TrimSpace(s) == "" {
-						return fmt.Errorf("must not be empty")
-					}
-					return nil
-				}).
-				Value(&newLang),
-		)
+		if len(orgLangs) > 0 {
+			// Searchable Select. Pre-select "en" when present
+			// since most projects start there; the user can still
+			// type to filter to anything else.
+			opts := make([]huh.Option[string], 0, len(orgLangs))
+			sortedLangs := make([]langsync.DtoDTOLanguage, len(orgLangs))
+			copy(sortedLangs, orgLangs)
+			sort.Slice(sortedLangs, func(i, j int) bool {
+				ci, cj := "", ""
+				if sortedLangs[i].Code != nil {
+					ci = *sortedLangs[i].Code
+				}
+				if sortedLangs[j].Code != nil {
+					cj = *sortedLangs[j].Code
+				}
+				return ci < cj
+			})
+			for _, l := range sortedLangs {
+				if l.Code == nil || *l.Code == "" {
+					continue
+				}
+				label := *l.Code
+				if l.Name != nil && *l.Name != "" && *l.Name != *l.Code {
+					label = fmt.Sprintf("%s — %s", *l.Code, *l.Name)
+				}
+				opts = append(opts, huh.NewOption(label, *l.Code))
+				if *l.Code == "en" && newLang == "" {
+					newLang = "en"
+				}
+			}
+			groups = append(groups, huh.NewGroup(
+				stepNote(stepNo, totalSteps,
+					"Default language",
+					"Source-of-truth language — its file (e.g. en.json) is what the AI translates from."),
+				huh.NewSelect[string]().
+					Title("Pick the default language").
+					Description("Type to filter by code (en, cs-CZ) or name (English, Czech). Arrows move; Enter confirms.").
+					Options(opts...).
+					Filtering(true).
+					Height(12).
+					Value(&newLang),
+			))
+		} else {
+			// Fallback — no org lang list available (offline /
+			// error). Plain Input keeps the command usable.
+			groups = append(groups, huh.NewGroup(
+				stepNote(stepNo, totalSteps, "Default language code",
+					"Code of the language source marks are written in."),
+				huh.NewInput().
+					Title("Default language code").
+					Placeholder("en, cs, de…").
+					Validate(func(s string) error {
+						if strings.TrimSpace(s) == "" {
+							return fmt.Errorf("must not be empty")
+						}
+						return nil
+					}).
+					Value(&newLang),
+			))
+		}
+		stepNo++
 	}
-	fields = append(fields,
+
+	// Context is always shown as the final step (it's optional, so
+	// the form rules out cancellation by accident — Enter advances
+	// past an empty input).
+	groups = append(groups, huh.NewGroup(
+		stepNote(stepNo, totalSteps, "Context (optional)",
+			"Short description shown next to the namespace in pickers and lists. Press Enter to skip."),
 		huh.NewInput().
-			Title("Context (optional)").
-			Description("Short description, shown in the picker. Press Enter to skip.").
+			Title("Context").
+			Placeholder("Press Enter to skip").
 			Value(&newCtx),
-	)
-	err := huh.NewForm(huh.NewGroup(fields...)).Run()
+	))
+
+	err := newWizard(groups...).Run()
 	if err != nil {
 		if errors.Is(err, huh.ErrUserAborted) {
 			return "", "", "", ErrCancelled
@@ -202,6 +288,23 @@ func resolveCreateFields(name, lang, ctx string) (string, string, string, error)
 		return "", "", "", err
 	}
 	return strings.TrimSpace(newName), strings.TrimSpace(newLang), strings.TrimSpace(newCtx), nil
+}
+
+// countSteps tallies how many wizard steps will be presented based
+// on which fields the caller pre-populated. Pure-function helper
+// kept here so resolveCreateFields stays readable.
+func countSteps(askName, askLang, askContext bool) int {
+	n := 0
+	if askName {
+		n++
+	}
+	if askLang {
+		n++
+	}
+	if askContext {
+		n++
+	}
+	return n
 }
 
 func newNamespaceUpdateCmd() *cobra.Command {

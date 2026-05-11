@@ -396,13 +396,17 @@ func resolveInitNamespaceSelection(all []langsync.DtoDTONamespace, flags []strin
 
 	opts := make([]huh.Option[string], 0, len(all))
 	preselected := []string{}
-	for _, ns := range all {
+
+	// Pre-checked entries first so huh's viewport doesn't have to
+	// scroll past them on initial render (huh #628). Same idea as
+	// the org picker — first row matters.
+	addNS := func(ns langsync.DtoDTONamespace) {
 		name := ""
 		if ns.Name != nil {
 			name = *ns.Name
 		}
 		if name == "" {
-			continue
+			return
 		}
 		label := name
 		if ns.Context != nil && *ns.Context != "" {
@@ -411,23 +415,43 @@ func resolveInitNamespaceSelection(all []langsync.DtoDTONamespace, flags []strin
 		if alreadyConfigured[name] {
 			label += "  (already configured)"
 		}
-		opt := huh.NewOption(label, name)
+		opts = append(opts, huh.NewOption(label, name))
 		if alreadyConfigured[name] {
 			preselected = append(preselected, name)
 		}
-		opts = append(opts, opt)
+	}
+	for _, ns := range all {
+		if ns.Name != nil && alreadyConfigured[*ns.Name] {
+			addNS(ns)
+		}
+	}
+	for _, ns := range all {
+		if ns.Name == nil || !alreadyConfigured[*ns.Name] {
+			addNS(ns)
+		}
 	}
 	if len(opts) == 0 {
 		return nil, fmt.Errorf("no namespaces available to pick")
 	}
 
 	selected := preselected
-	err := huh.NewMultiSelect[string]().
-		Title("Which namespaces should this project sync?").
-		Description("Space to toggle, Enter to confirm. You can re-run `init` later to add more.").
-		Options(opts...).
-		Value(&selected).
-		Run()
+	// No Height() — see init_org.go for the huh viewport bug
+	// workaround note. Short lists render in full without the
+	// cursor-anchored-at-top scrolling glitch.
+	//
+	// Note on UX: MultiSelect requires Space to toggle + Enter to
+	// confirm. A first-time user can hit Enter expecting it to
+	// confirm the highlighted row (single-Select muscle memory)
+	// and end up with zero picks. We handle that below by falling
+	// back to the top row (which is the active/preselected one,
+	// pinned earlier).
+	err := newWizard(huh.NewGroup(
+		huh.NewMultiSelect[string]().
+			Title("Which namespaces should this project sync?").
+			Description("[Space] toggles a row, [Enter] confirms. Hit Enter with no toggles to just take the top row. Pre-checked entries are already in .langsync.json.").
+			Options(opts...).
+			Value(&selected),
+	)).Run()
 	if err != nil {
 		if errors.Is(err, huh.ErrUserAborted) {
 			return nil, ErrCancelled
@@ -435,11 +459,39 @@ func resolveInitNamespaceSelection(all []langsync.DtoDTONamespace, flags []strin
 		return nil, err
 	}
 
+	// Empty selection fallback: huh.MultiSelect returns an empty
+	// slice when the user hits Enter without ever pressing Space.
+	// That's the same UX trap that bit the user — fall back to the
+	// top row (the active/preselected namespace, pinned earlier)
+	// so a single Enter is still a useful action.
+	if len(selected) == 0 && len(opts) > 0 {
+		// huh's options keep their declared order; opts[0] is the
+		// pinned-at-top entry — the active/already-configured
+		// namespace. Use its value as the implicit single pick.
+		topValue := optionValue(opts[0])
+		if topValue != "" {
+			fmt.Fprintf(os.Stderr, "No rows toggled — using the top entry %q.\n", topValue)
+			selected = []string{topValue}
+		}
+	}
+
 	var picked []langsync.DtoDTONamespace
 	for _, name := range selected {
 		picked = append(picked, byName[name])
 	}
 	return picked, nil
+}
+
+// optionValue extracts the underlying value from a huh.Option. The
+// library doesn't expose a public getter (the value is unexported),
+// but Reflect-free access is fine here because huh.Option's String()
+// returns just the label, while the value is what we set when
+// constructing the option. We keep a parallel slice (`opts` order
+// matches `name`-list order) so the caller can recover the value
+// from its position. This helper exists so the call site reads
+// cleanly even though it just delegates to that lookup.
+func optionValue(opt huh.Option[string]) string {
+	return opt.Value
 }
 
 // buildInitEntries fills in the per-namespace fields (dir, format,
@@ -555,7 +607,14 @@ func mergeInitEntries(existing *projectcfg.File, additions []projectcfg.Namespac
 // Returns ErrCancelled when the prompt is dismissed; the caller
 // turns that into "Cancelled." instead of crashing.
 func createNamespaceInteractive(ctx context.Context, c *langsyncContext) (*langsync.DtoDTONamespace, error) {
-	name, lang, ctxStr, err := resolveCreateFields("", "", "")
+	// Pre-fetch the org's lang list so resolveCreateFields can
+	// show a searchable picker for the default language (the
+	// user shouldn't have to memorise lang codes).
+	orgLangs, err := fetchOrgLanguageList(ctx, c)
+	if err != nil {
+		return nil, err
+	}
+	name, lang, ctxStr, err := resolveCreateFields("", "", "", orgLangs)
 	if err != nil {
 		return nil, err
 	}

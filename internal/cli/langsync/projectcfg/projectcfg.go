@@ -92,6 +92,21 @@ type Namespace struct {
 	// writes marks in. Stored for reference and drift detection; sync
 	// fetches the server default at runtime and errors if they diverge.
 	DefaultLocalLanguage string `json:"default_local_language"`
+	// LanguageAliases maps on-disk file codes to the server-side
+	// language codes Langsync knows. Set automatically by the pre-flight
+	// when the user resolves a "no exact match" picker (e.g. picks
+	// "Map to cs-CZ" for cs_cz.json) — the entry persists so future
+	// syncs auto-apply the mapping without prompting again.
+	//
+	// Forward (key → value): apply when reading <key>.json to decide
+	// which server lang the values belong to.
+	// Reverse (value → key): apply when writing pull-back results to
+	// decide which filename to write to.
+	//
+	// Exact code matches (cs.json ↔ server "cs") don't need an alias.
+	// Pure separator differences (cs_cz ↔ cs-CZ) get an automatic
+	// silent alias so the file's local spelling is preserved.
+	LanguageAliases map[string]string `json:"language_aliases,omitempty"`
 }
 
 // Find walks up from start (inclusive) looking for a .langsync.json
