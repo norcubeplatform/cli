@@ -403,6 +403,78 @@ type DtoDTONamespace struct {
 	UpdatedAt         *string   `json:"updated_at,omitempty"`
 }
 
+// DtoDTOSyncJob defines model for dto.DTOSyncJob.
+type DtoDTOSyncJob struct {
+	AutotranslateDone  *int `json:"autotranslateDone,omitempty"`
+	AutotranslateTotal *int `json:"autotranslateTotal,omitempty"`
+
+	// AutotranslateTriggeredAt Progress — autotranslate phase. Triggered timestamp is the
+	// at-most-once gate; total/done give the cell-level progress.
+	AutotranslateTriggeredAt *string `json:"autotranslateTriggeredAt,omitempty"`
+	CreatedAt                *string `json:"createdAt,omitempty"`
+	CreatedCount             *int    `json:"createdCount,omitempty"`
+	DefaultLanguageCode      *string `json:"defaultLanguageCode,omitempty"`
+	DeletedCount             *int    `json:"deletedCount,omitempty"`
+	DryRun                   *bool   `json:"dryRun,omitempty"`
+
+	// ErrorMessage Terminal failure reason (only set when status='failed').
+	ErrorMessage *string `json:"errorMessage,omitempty"`
+
+	// Failures Failures — non-fatal per-op problems accumulated across the
+	// job. Empty array (not null) when there are none, so the CLI
+	// can always do `for _, f := range job.Failures`.
+	Failures   *[]DtoDTOSyncJobFailure `json:"failures,omitempty"`
+	FinishedAt *string                 `json:"finishedAt,omitempty"`
+	Id         *string                 `json:"id,omitempty"`
+
+	// Plan Plan — the planned ops. Populated for dry-run jobs (status=
+	// 'planned') and truncated to a configurable limit so a 50k-op
+	// plan doesn't blow up the response. When truncated, planTotal
+	// and planSample tell the client how to interpret what they got.
+	Plan       *[]DtoDTOSyncJobOp `json:"plan,omitempty"`
+	PlanSample *int               `json:"planSample,omitempty"`
+	PlanTotal  *int               `json:"planTotal,omitempty"`
+	Prune      *bool              `json:"prune,omitempty"`
+	PushDone   *int               `json:"pushDone,omitempty"`
+
+	// PushTotal Progress — push phase.
+	PushTotal *int `json:"pushTotal,omitempty"`
+
+	// ResultPerLanguage Result — only populated on status='completed'.
+	ResultPerLanguage      *map[string]map[string]string `json:"resultPerLanguage,omitempty"`
+	StartedAt              *string                       `json:"startedAt,omitempty"`
+	Status                 *string                       `json:"status,omitempty"`
+	StillUntranslatedCount *int                          `json:"stillUntranslatedCount,omitempty"`
+	Strategy               *string                       `json:"strategy,omitempty"`
+	UpdatedCount           *int                          `json:"updatedCount,omitempty"`
+	WaitForAutotranslate   *bool                         `json:"waitForAutotranslate,omitempty"`
+}
+
+// DtoDTOSyncJobCreateResponse defines model for dto.DTOSyncJobCreateResponse.
+type DtoDTOSyncJobCreateResponse struct {
+	Id *string `json:"id,omitempty"`
+}
+
+// DtoDTOSyncJobFailure defines model for dto.DTOSyncJobFailure.
+type DtoDTOSyncJobFailure struct {
+	Error *string `json:"error,omitempty"`
+	Mark  *string `json:"mark,omitempty"`
+	OpIdx *int    `json:"opIdx,omitempty"`
+	Phase *string `json:"phase,omitempty"`
+}
+
+// DtoDTOSyncJobOp defines model for dto.DTOSyncJobOp.
+type DtoDTOSyncJobOp struct {
+	Applied *bool   `json:"applied,omitempty"`
+	Error   *string `json:"error,omitempty"`
+
+	// Kind create | update | delete
+	Kind         *string `json:"kind,omitempty"`
+	Mark         *string `json:"mark,omitempty"`
+	OpIdx        *int    `json:"opIdx,omitempty"`
+	PayloadValue *string `json:"payloadValue,omitempty"`
+}
+
 // DtoDTOTerm defines model for dto.DTOTerm.
 type DtoDTOTerm struct {
 	Term         DtoDTOTermDetail     `json:"term"`
@@ -697,6 +769,21 @@ type SharedTermImportSetup struct {
 	TranslateAutomatically bool `json:"translateAutomatically"`
 }
 
+// SyncjobCreateSyncRequest defines model for syncjob.createSyncRequest.
+type SyncjobCreateSyncRequest struct {
+	DefaultLanguageCode *string `json:"defaultLanguageCode,omitempty"`
+	DryRun              *bool   `json:"dryRun,omitempty"`
+
+	// Marks Marks is the on-disk source-of-truth from the CLI side. Empty
+	// maps are valid (sync with no marks = "trigger autotranslate
+	// for what's there").
+	Marks                *map[string]string `json:"marks,omitempty"`
+	Prune                *bool              `json:"prune,omitempty"`
+	Strategy             *string            `json:"strategy,omitempty"`
+	WaitForAutotranslate *bool              `json:"waitForAutotranslate,omitempty"`
+	WaitTimeoutSeconds   *int               `json:"waitTimeoutSeconds,omitempty"`
+}
+
 // TermImportFinishRequest defines model for term.importFinishRequest.
 type TermImportFinishRequest struct {
 	Setup SharedTermImportSetup `json:"setup"`
@@ -879,6 +966,9 @@ type UpdateNamespaceJSONRequestBody = NamespacePayloadUpdateNamespaceRequest
 
 // AddLanguageJSONRequestBody defines body for AddLanguage for application/json ContentType.
 type AddLanguageJSONRequestBody = NamespacePayloadAddLanguageRequest
+
+// PostNamespacesNamespaceNameSyncJSONRequestBody defines body for PostNamespacesNamespaceNameSync for application/json ContentType.
+type PostNamespacesNamespaceNameSyncJSONRequestBody = SyncjobCreateSyncRequest
 
 // AddTermJSONRequestBody defines body for AddTerm for application/json ContentType.
 type AddTermJSONRequestBody = TermPayloadAddRequest
@@ -1095,6 +1185,14 @@ type ClientInterface interface {
 
 	// RemoveLanguage request
 	RemoveLanguage(ctx context.Context, namespaceName string, languageId int, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PostNamespacesNamespaceNameSyncWithBody request with any body
+	PostNamespacesNamespaceNameSyncWithBody(ctx context.Context, namespaceName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PostNamespacesNamespaceNameSync(ctx context.Context, namespaceName string, body PostNamespacesNamespaceNameSyncJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetNamespacesNamespaceNameSyncJobId request
+	GetNamespacesNamespaceNameSyncJobId(ctx context.Context, namespaceName string, jobId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListByNamespace request
 	ListByNamespace(ctx context.Context, namespaceName string, params *ListByNamespaceParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -1651,6 +1749,42 @@ func (c *Client) AddLanguage(ctx context.Context, namespaceName string, body Add
 
 func (c *Client) RemoveLanguage(ctx context.Context, namespaceName string, languageId int, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRemoveLanguageRequest(c.Server, namespaceName, languageId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostNamespacesNamespaceNameSyncWithBody(ctx context.Context, namespaceName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostNamespacesNamespaceNameSyncRequestWithBody(c.Server, namespaceName, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostNamespacesNamespaceNameSync(ctx context.Context, namespaceName string, body PostNamespacesNamespaceNameSyncJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostNamespacesNamespaceNameSyncRequest(c.Server, namespaceName, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetNamespacesNamespaceNameSyncJobId(ctx context.Context, namespaceName string, jobId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetNamespacesNamespaceNameSyncJobIdRequest(c.Server, namespaceName, jobId)
 	if err != nil {
 		return nil, err
 	}
@@ -3040,6 +3174,94 @@ func NewRemoveLanguageRequest(server string, namespaceName string, languageId in
 	return req, nil
 }
 
+// NewPostNamespacesNamespaceNameSyncRequest calls the generic PostNamespacesNamespaceNameSync builder with application/json body
+func NewPostNamespacesNamespaceNameSyncRequest(server string, namespaceName string, body PostNamespacesNamespaceNameSyncJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPostNamespacesNamespaceNameSyncRequestWithBody(server, namespaceName, "application/json", bodyReader)
+}
+
+// NewPostNamespacesNamespaceNameSyncRequestWithBody generates requests for PostNamespacesNamespaceNameSync with any type of body
+func NewPostNamespacesNamespaceNameSyncRequestWithBody(server string, namespaceName string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "namespaceName", namespaceName, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/namespaces/%s/sync", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetNamespacesNamespaceNameSyncJobIdRequest generates requests for GetNamespacesNamespaceNameSyncJobId
+func NewGetNamespacesNamespaceNameSyncJobIdRequest(server string, namespaceName string, jobId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "namespaceName", namespaceName, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithOptions("simple", false, "jobId", jobId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/namespaces/%s/sync/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewListByNamespaceRequest generates requests for ListByNamespace
 func NewListByNamespaceRequest(server string, namespaceName string, params *ListByNamespaceParams) (*http.Request, error) {
 	var err error
@@ -3881,6 +4103,14 @@ type ClientWithResponsesInterface interface {
 
 	// RemoveLanguageWithResponse request
 	RemoveLanguageWithResponse(ctx context.Context, namespaceName string, languageId int, reqEditors ...RequestEditorFn) (*RemoveLanguageResponse, error)
+
+	// PostNamespacesNamespaceNameSyncWithBodyWithResponse request with any body
+	PostNamespacesNamespaceNameSyncWithBodyWithResponse(ctx context.Context, namespaceName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostNamespacesNamespaceNameSyncResponse, error)
+
+	PostNamespacesNamespaceNameSyncWithResponse(ctx context.Context, namespaceName string, body PostNamespacesNamespaceNameSyncJSONRequestBody, reqEditors ...RequestEditorFn) (*PostNamespacesNamespaceNameSyncResponse, error)
+
+	// GetNamespacesNamespaceNameSyncJobIdWithResponse request
+	GetNamespacesNamespaceNameSyncJobIdWithResponse(ctx context.Context, namespaceName string, jobId string, reqEditors ...RequestEditorFn) (*GetNamespacesNamespaceNameSyncJobIdResponse, error)
 
 	// ListByNamespaceWithResponse request
 	ListByNamespaceWithResponse(ctx context.Context, namespaceName string, params *ListByNamespaceParams, reqEditors ...RequestEditorFn) (*ListByNamespaceResponse, error)
@@ -4935,6 +5165,76 @@ func (r RemoveLanguageResponse) ContentType() string {
 	return ""
 }
 
+type PostNamespacesNamespaceNameSyncResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON202      *DtoDTOSyncJobCreateResponse
+	JSON400      *ResponseAPIError
+	JSON401      *ResponseAPIError
+	JSON403      *ResponseAPIError
+	JSON404      *ResponseAPIError
+	JSON500      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r PostNamespacesNamespaceNameSyncResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PostNamespacesNamespaceNameSyncResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r PostNamespacesNamespaceNameSyncResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type GetNamespacesNamespaceNameSyncJobIdResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DtoDTOSyncJob
+	JSON400      *ResponseAPIError
+	JSON401      *ResponseAPIError
+	JSON403      *ResponseAPIError
+	JSON404      *ResponseAPIError
+	JSON500      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r GetNamespacesNamespaceNameSyncJobIdResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetNamespacesNamespaceNameSyncJobIdResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetNamespacesNamespaceNameSyncJobIdResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type ListByNamespaceResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -5779,6 +6079,32 @@ func (c *ClientWithResponses) RemoveLanguageWithResponse(ctx context.Context, na
 		return nil, err
 	}
 	return ParseRemoveLanguageResponse(rsp)
+}
+
+// PostNamespacesNamespaceNameSyncWithBodyWithResponse request with arbitrary body returning *PostNamespacesNamespaceNameSyncResponse
+func (c *ClientWithResponses) PostNamespacesNamespaceNameSyncWithBodyWithResponse(ctx context.Context, namespaceName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostNamespacesNamespaceNameSyncResponse, error) {
+	rsp, err := c.PostNamespacesNamespaceNameSyncWithBody(ctx, namespaceName, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostNamespacesNamespaceNameSyncResponse(rsp)
+}
+
+func (c *ClientWithResponses) PostNamespacesNamespaceNameSyncWithResponse(ctx context.Context, namespaceName string, body PostNamespacesNamespaceNameSyncJSONRequestBody, reqEditors ...RequestEditorFn) (*PostNamespacesNamespaceNameSyncResponse, error) {
+	rsp, err := c.PostNamespacesNamespaceNameSync(ctx, namespaceName, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostNamespacesNamespaceNameSyncResponse(rsp)
+}
+
+// GetNamespacesNamespaceNameSyncJobIdWithResponse request returning *GetNamespacesNamespaceNameSyncJobIdResponse
+func (c *ClientWithResponses) GetNamespacesNamespaceNameSyncJobIdWithResponse(ctx context.Context, namespaceName string, jobId string, reqEditors ...RequestEditorFn) (*GetNamespacesNamespaceNameSyncJobIdResponse, error) {
+	rsp, err := c.GetNamespacesNamespaceNameSyncJobId(ctx, namespaceName, jobId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetNamespacesNamespaceNameSyncJobIdResponse(rsp)
 }
 
 // ListByNamespaceWithResponse request returning *ListByNamespaceResponse
@@ -7470,6 +7796,128 @@ func ParseRemoveLanguageResponse(rsp *http.Response) (*RemoveLanguageResponse, e
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest ResponseAPIResponseEmpty
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePostNamespacesNamespaceNameSyncResponse parses an HTTP response from a PostNamespacesNamespaceNameSyncWithResponse call
+func ParsePostNamespacesNamespaceNameSyncResponse(rsp *http.Response) (*PostNamespacesNamespaceNameSyncResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PostNamespacesNamespaceNameSyncResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 202:
+		var dest DtoDTOSyncJobCreateResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON202 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetNamespacesNamespaceNameSyncJobIdResponse parses an HTTP response from a GetNamespacesNamespaceNameSyncJobIdWithResponse call
+func ParseGetNamespacesNamespaceNameSyncJobIdResponse(rsp *http.Response) (*GetNamespacesNamespaceNameSyncJobIdResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetNamespacesNamespaceNameSyncJobIdResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DtoDTOSyncJob
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

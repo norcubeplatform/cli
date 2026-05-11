@@ -2,7 +2,7 @@
 
 Command-line interface for the [Norcube platform](https://norcube.com). Manage backups, namespaces, organizations, and more from the terminal.
 
-> **Status**: v0 — login + organization management. Per-service commands (`norcube snapdb backup ...`, `norcube langsync term ...`) are coming next.
+> **Status**: v0 — login + organization management, SnapDB browse/pause/resume, full Langsync CRUD, and project-level `langsync init` / `langsync sync` for repo-side translation files.
 
 ## Install
 
@@ -134,8 +134,59 @@ State lives in two places:
 | `norcube snapdb policy detach --datasource <id> --policy <id> [--yes]` | Remove an attachment (destructive; confirms unless `--yes`) |
 | `norcube snapdb backup list` | List backup jobs across the org, newest first |
 | `norcube snapdb backup list --datasource <id>` | Filter the list to one (or more) data sources |
+| `norcube langsync namespace list` | List Langsync namespaces in the active organization |
+| `norcube langsync namespace create <name> --default-language <code>` | Create a namespace |
+| `norcube langsync namespace update <name> [--rename …] [--default-language …]` | Edit a namespace |
+| `norcube langsync mark add ["mark"] -n <ns> [--default-value …] [--auto-translate]` | Add a source string to a namespace |
+| `norcube langsync mark list -n <ns> [--search …]` | List source strings (cursor-paginated) |
+| `norcube langsync lang list [-n <ns>]` | List languages — org-wide by default, namespace-scoped with `-n` |
+| `norcube langsync lang add <code-or-id> -n <ns>` | Attach a language to a namespace |
+| `norcube langsync lang create <code> <name>` | Create a custom (org-scoped) language |
+| `norcube langsync init` | Set up `.langsync.json` in a project (see below) |
+| `norcube langsync sync [--dry-run] [-n <ns>] [--strategy local\|server]` | Sync local translation files with Langsync |
 
 > Backup detail / download and restore commands will land once the SnapDB backend ships those endpoints (currently stubbed at 501).
+
+### Langsync in a project (`init` + `sync`)
+
+For repos that ship i18n JSON files alongside source (`i18n/<namespace>/<lang>.json`), `langsync init` creates a `.langsync.json` describing which directories sync against which Langsync namespaces. `langsync sync` then keeps server and disk in step.
+
+```bash
+# one-time setup in a project root
+norcube langsync init
+# (pick namespaces, confirm dirs — wizard fetches each namespace's
+#  default language from the server and bakes the code into the file)
+
+# preview a sync without touching the server or disk
+norcube langsync sync --dry-run
+
+# real sync (server-driven): the CLI submits one job per namespace,
+# the backend computes the diff, pushes creates/updates/deletes,
+# triggers autotranslate, and returns the per-language result. The
+# CLI polls and renders progress as the backend works. Resumable
+# across backend restarts (jobs live in Postgres, autotranslate
+# never re-fires).
+norcube langsync sync
+
+# pull-only refresh (no push, no autotranslate request)
+norcube langsync sync --strategy server
+
+# resolve every default-lang conflict by hand
+# (keep local / keep server / apply choice to all remaining)
+norcube langsync sync --strategy interactive
+
+# also delete server marks that are no longer in the local file
+norcube langsync sync --prune
+
+# fire the autotranslate but don't wait — pull translations in a later sync
+norcube langsync sync --wait=false
+```
+
+The default conflict policy is **local-wins** — when the same key has different values locally and on the server, the local one is pushed. `--strategy server` flips that into a pull-only refresh. `--strategy interactive` walks every conflict via a TUI prompt with "apply to all" shortcuts.
+
+By default, server marks missing from the local default-language file are left alone (the safe default — sync is conservative about destructive actions). Pass `--prune` to delete them.
+
+By default sync **waits** for autotranslate to finish before writing the per-language files, so one `sync` run gives you complete on-disk state. The wait is capped by `--wait-timeout` (default 2m); on timeout, sync writes whatever the server has so far and notes the remaining gap in the summary. Pass `--wait=false` to skip the wait entirely (useful for big initial syncs where you'd rather come back later for the translations).
 
 ### Pause vs detach
 

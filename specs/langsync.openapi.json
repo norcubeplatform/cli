@@ -285,6 +285,153 @@
         },
         "type": "object"
       },
+      "dto.DTOSyncJob": {
+        "properties": {
+          "autotranslateDone": {
+            "type": "integer"
+          },
+          "autotranslateTotal": {
+            "type": "integer"
+          },
+          "autotranslateTriggeredAt": {
+            "description": "Progress — autotranslate phase. Triggered timestamp is the\nat-most-once gate; total/done give the cell-level progress.",
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "createdCount": {
+            "type": "integer"
+          },
+          "defaultLanguageCode": {
+            "type": "string"
+          },
+          "deletedCount": {
+            "type": "integer"
+          },
+          "dryRun": {
+            "type": "boolean"
+          },
+          "errorMessage": {
+            "description": "Terminal failure reason (only set when status='failed').",
+            "type": "string"
+          },
+          "failures": {
+            "description": "Failures — non-fatal per-op problems accumulated across the\njob. Empty array (not null) when there are none, so the CLI\ncan always do `for _, f := range job.Failures`.",
+            "items": {
+              "$ref": "#/components/schemas/dto.DTOSyncJobFailure"
+            },
+            "type": "array"
+          },
+          "finishedAt": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "plan": {
+            "description": "Plan — the planned ops. Populated for dry-run jobs (status=\n'planned') and truncated to a configurable limit so a 50k-op\nplan doesn't blow up the response. When truncated, planTotal\nand planSample tell the client how to interpret what they got.",
+            "items": {
+              "$ref": "#/components/schemas/dto.DTOSyncJobOp"
+            },
+            "type": "array"
+          },
+          "planSample": {
+            "type": "integer"
+          },
+          "planTotal": {
+            "type": "integer"
+          },
+          "prune": {
+            "type": "boolean"
+          },
+          "pushDone": {
+            "type": "integer"
+          },
+          "pushTotal": {
+            "description": "Progress — push phase.",
+            "type": "integer"
+          },
+          "resultPerLanguage": {
+            "additionalProperties": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "description": "Result — only populated on status='completed'.",
+            "type": "object"
+          },
+          "startedAt": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "stillUntranslatedCount": {
+            "type": "integer"
+          },
+          "strategy": {
+            "type": "string"
+          },
+          "updatedCount": {
+            "type": "integer"
+          },
+          "waitForAutotranslate": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "dto.DTOSyncJobCreateResponse": {
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "dto.DTOSyncJobFailure": {
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "mark": {
+            "type": "string"
+          },
+          "opIdx": {
+            "type": "integer"
+          },
+          "phase": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "dto.DTOSyncJobOp": {
+        "properties": {
+          "applied": {
+            "type": "boolean"
+          },
+          "error": {
+            "type": "string"
+          },
+          "kind": {
+            "description": "create | update | delete",
+            "type": "string"
+          },
+          "mark": {
+            "type": "string"
+          },
+          "opIdx": {
+            "type": "integer"
+          },
+          "payloadValue": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "dto.DTOTerm": {
         "properties": {
           "term": {
@@ -1085,6 +1232,36 @@
           "overwriteExisting",
           "translateAutomatically"
         ],
+        "type": "object"
+      },
+      "syncjob.createSyncRequest": {
+        "properties": {
+          "defaultLanguageCode": {
+            "type": "string"
+          },
+          "dryRun": {
+            "type": "boolean"
+          },
+          "marks": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Marks is the on-disk source-of-truth from the CLI side. Empty\nmaps are valid (sync with no marks = \"trigger autotranslate\nfor what's there\").",
+            "type": "object"
+          },
+          "prune": {
+            "type": "boolean"
+          },
+          "strategy": {
+            "type": "string"
+          },
+          "waitForAutotranslate": {
+            "type": "boolean"
+          },
+          "waitTimeoutSeconds": {
+            "type": "integer"
+          }
+        },
         "type": "object"
       },
       "term.importFinishRequest": {
@@ -3474,6 +3651,191 @@
         "summary": "Remove a language from a namespace",
         "tags": [
           "Namespace"
+        ]
+      }
+    },
+    "/namespaces/{namespaceName}/sync": {
+      "post": {
+        "description": "Enqueues a sync job that diffs the submitted default-language marks against the server's state, optionally pushes the diff, triggers autotranslate, and finalises a per-language result. The actual work happens asynchronously; the CLI polls GET .../sync/{id} for progress.",
+        "parameters": [
+          {
+            "description": "Namespace name (URL slug)",
+            "in": "path",
+            "name": "namespaceName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/syncjob.createSyncRequest"
+              }
+            }
+          },
+          "description": "Sync job parameters",
+          "required": true,
+          "x-originalParamName": "body"
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.DTOSyncJobCreateResponse"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Create a sync job for a namespace",
+        "tags": [
+          "Namespaces"
+        ]
+      }
+    },
+    "/namespaces/{namespaceName}/sync/{jobId}": {
+      "get": {
+        "description": "Returns the sync job's progress and (when complete) the per-language result. Clients poll this endpoint until status is one of {completed, planned, failed, cancelled}.",
+        "parameters": [
+          {
+            "description": "Namespace name (URL slug)",
+            "in": "path",
+            "name": "namespaceName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sync job UUID",
+            "in": "path",
+            "name": "jobId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.DTOSyncJob"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Get a sync job's current state",
+        "tags": [
+          "Namespaces"
         ]
       }
     },

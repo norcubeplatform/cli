@@ -1,0 +1,456 @@
+package langsync
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"os"
+	"path/filepath"
+	"sort"
+	"strings"
+	"sync"
+	"time"
+
+	"github.com/spf13/cobra"
+
+	"github.com/norcubeplatform/cli/internal/api/langsync"
+	"github.com/norcubeplatform/cli/internal/cli/langsync/projectcfg"
+	"github.com/norcubeplatform/cli/internal/cli/langsync/projectcfg/translations"
+)
+
+// syncStrategy mirrors the --strategy flag. "interactive" runs
+// purely client-side: it walks every default-language conflict
+// with the server BEFORE submitting, then sends a "local" job
+// with the user's resolved values. The backend only ever sees
+// "local" or "server".
+type syncStrategy string
+
+const (
+	strategyLocal       syncStrategy = "local"
+	strategyServer      syncStrategy = "server"
+	strategyInteractive syncStrategy = "interactive"
+)
+
+func newSyncCmd() *cobra.Command {
+	var (
+		dryRun      bool
+		strategy    string
+		nsFilters   []string
+		configPath  string
+		prune       bool
+		wait        bool
+		waitTimeout time.Duration
+		pollEvery   time.Duration
+	)
+	cmd := &cobra.Command{
+		Use:   "sync",
+		Short: "Reconcile a project's local translation files with Langsync",
+		Long: `Reconciles the local translation files in .langsync.json against
+the configured Langsync namespaces. The CLI submits one sync job per
+namespace and polls until the server is done; all namespaces run in
+parallel so you see a live dashboard of every job at once.
+
+Phases (driven by the backend, durable across backend restarts):
+  1. planning — diff submitted marks vs server state, write op list
+  2. pushing  — apply each op (idempotent on resume)
+  3. autotranslating — trigger LLM batch (at-most-once cost guarantee)
+  4. finalizing — read per-language state and return it
+
+Flags:
+  --dry-run            stop after planning; the response carries the plan
+  --strategy local     (default) push local, local-wins on conflicts
+  --strategy server    skip push entirely (pull-only refresh)
+  --strategy interactive  per-conflict prompt before submitting
+  --prune              delete server-side marks missing locally
+  --wait               (default) block until autotranslate has drained
+  --wait=false         submit and return; translations finish in the background
+
+Examples:
+  norcube langsync sync
+  norcube langsync sync --dry-run
+  norcube langsync sync -n ytracker-backend
+  norcube langsync sync --strategy server
+  norcube langsync sync --strategy interactive
+  norcube langsync sync --prune
+  norcube langsync sync --wait=false   # don't block on autotranslate`,
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			c, err := newLangsyncContext(cmd)
+			if err != nil {
+				return err
+			}
+			path, cfg, err := loadProjectConfig(configPath)
+			if err != nil {
+				return err
+			}
+			strat, err := parseStrategy(strategy)
+			if err != nil {
+				return err
+			}
+			targets, err := selectSyncTargets(cfg, nsFilters)
+			if err != nil {
+				return err
+			}
+			opts := syncOptions{
+				strategy:    strat,
+				dryRun:      dryRun,
+				prune:       prune,
+				wait:        wait,
+				waitTimeout: waitTimeout,
+				pollEvery:   pollEvery,
+			}
+			return runParallelSync(cmd, c, cfg, path, targets, opts)
+		},
+	}
+	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "Submit a planning-only job (returns the diff without applying it)")
+	cmd.Flags().StringVar(&strategy, "strategy", string(strategyLocal), "Conflict policy: local|server|interactive")
+	cmd.Flags().StringSliceVarP(&nsFilters, "namespace", "n", nil, "Sync only this namespace (repeat for multiple)")
+	cmd.Flags().StringVar(&configPath, "config", "", "Path to .langsync.json (defaults to walking up from the cwd)")
+	cmd.Flags().BoolVar(&prune, "prune", false, "Delete server-side marks that aren't present in the local default-language file")
+	cmd.Flags().BoolVar(&wait, "wait", true, "Block until autotranslate has filled every gap (pass --wait=false to skip)")
+	cmd.Flags().DurationVar(&waitTimeout, "wait-timeout", 5*time.Minute, "Client-side timeout for the polling loop")
+	cmd.Flags().DurationVar(&pollEvery, "poll-every", 1*time.Second, "How often to poll the job's state")
+	return cmd
+}
+
+// syncOptions bundles per-run flags so per-namespace fns don't grow
+// without bound.
+type syncOptions struct {
+	strategy    syncStrategy
+	dryRun      bool
+	prune       bool
+	wait        bool
+	waitTimeout time.Duration
+	pollEvery   time.Duration
+}
+
+// runParallelSync is the shared entry point for both `sync` and the
+// init auto-pull path. It owns the dashboard lifecycle (start/close)
+// and the goroutine fan-out.
+func runParallelSync(cmd *cobra.Command, c *langsyncContext, cfg *projectcfg.File, configPath string, targets []projectcfg.Namespace, opts syncOptions) error {
+	if len(targets) == 0 {
+		fmt.Fprintln(cmd.OutOrStdout(), "Nothing to do — no namespaces configured.")
+		return nil
+	}
+
+	names := make([]string, 0, len(targets))
+	for _, ns := range targets {
+		names = append(names, ns.Namespace)
+	}
+	d := newDashboard(cmd.OutOrStdout(), names)
+	d.Start()
+
+	// One goroutine per namespace. Each returns a result row that
+	// feeds the post-run issue/summary block.
+	results := make([]syncResult, len(targets))
+	var wg sync.WaitGroup
+	for i := range targets {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			ns := targets[i]
+			stats, job, err := syncNamespaceParallel(cmd.Context(), c, d, cfg, configPath, ns, opts)
+			results[i] = syncResult{namespace: ns.Namespace, stats: stats, err: err, finalJob: job}
+		}(i)
+	}
+	wg.Wait()
+	d.Close()
+
+	// Issues block: per-namespace failure detail with actionable
+	// hints (especially the "X cells still empty" common case,
+	// which usually means an empty source value the LLM had
+	// nothing to translate from). The dashboard rows above are the
+	// per-namespace summary; we don't print a separate Summary
+	// block since that would duplicate them line-for-line.
+	issues := collectIssues(cmd.Context(), c, cfg, configPath, results)
+	if len(issues) > 0 {
+		d.PrintHeading("Issues")
+		for _, line := range issues {
+			d.PrintNote(line)
+		}
+	}
+
+	if opts.dryRun {
+		d.PrintHeading("Dry run — nothing was changed")
+	}
+
+	anyErr := false
+	for _, r := range results {
+		if r.err != nil {
+			anyErr = true
+			break
+		}
+	}
+	if anyErr {
+		return fmt.Errorf("one or more namespaces failed to sync")
+	}
+	return nil
+}
+
+func loadProjectConfig(override string) (string, *projectcfg.File, error) {
+	path := override
+	if path == "" {
+		var err error
+		path, err = projectcfg.Find("")
+		if err != nil {
+			return "", nil, err
+		}
+	}
+	cfg, err := projectcfg.Load(path)
+	if err != nil {
+		return "", nil, err
+	}
+	return path, cfg, nil
+}
+
+func parseStrategy(s string) (syncStrategy, error) {
+	switch strings.ToLower(strings.TrimSpace(s)) {
+	case "local", "":
+		return strategyLocal, nil
+	case "server":
+		return strategyServer, nil
+	case "interactive":
+		if !stdinIsInteractive() {
+			return "", fmt.Errorf("--strategy interactive needs a TTY (stdin isn't a terminal)")
+		}
+		return strategyInteractive, nil
+	default:
+		return "", fmt.Errorf("invalid --strategy %q (must be local|server|interactive)", s)
+	}
+}
+
+func selectSyncTargets(cfg *projectcfg.File, filters []string) ([]projectcfg.Namespace, error) {
+	if len(filters) == 0 {
+		return cfg.Namespaces, nil
+	}
+	want := map[string]bool{}
+	for _, n := range filters {
+		want[strings.TrimSpace(n)] = true
+	}
+	var out []projectcfg.Namespace
+	for _, ns := range cfg.Namespaces {
+		if want[ns.Namespace] {
+			out = append(out, ns)
+			delete(want, ns.Namespace)
+		}
+	}
+	if len(want) > 0 {
+		var missing []string
+		for n := range want {
+			missing = append(missing, n)
+		}
+		sort.Strings(missing)
+		return nil, fmt.Errorf("namespace(s) not in .langsync.json: %s", strings.Join(missing, ", "))
+	}
+	return out, nil
+}
+
+// syncNamespaceParallel is what each goroutine runs. It reports
+// progress via the dashboard (Update/Complete/Fail) rather than
+// printing directly, so all namespaces share one rendering region.
+func syncNamespaceParallel(
+	ctx context.Context,
+	c *langsyncContext,
+	d *dashboard,
+	cfg *projectcfg.File,
+	configPath string,
+	ns projectcfg.Namespace,
+	opts syncOptions,
+) (namespaceSyncStats, *langsync.DtoDTOSyncJob, error) {
+	dir := cfg.ResolveDir(configPath, ns)
+	localPath := filepath.Join(dir, translations.LangFileName(ns.DefaultLocalLanguage))
+
+	localMarks, err := readLocalDefaultMarks(localPath, opts.strategy)
+	if err != nil {
+		d.Fail(ns.Namespace, fmt.Errorf("read local file: %w", err))
+		return namespaceSyncStats{}, nil, err
+	}
+	d.Update(ns.Namespace, "reading", 0, 0, fmt.Sprintf("%d local marks in %s", len(localMarks), relPath(configPath, localPath)))
+
+	// Interactive resolution runs serially per namespace (the user
+	// can't realistically answer multiple namespaces' prompts at
+	// once). We pause the dashboard's row to plain text during the
+	// prompt and resume after.
+	if opts.strategy == strategyInteractive {
+		resolved, err := interactivelyResolveConflicts(ctx, c, ns.Namespace, localMarks, ns.DefaultLocalLanguage)
+		if err != nil {
+			if errors.Is(err, ErrCancelled) {
+				d.Complete(ns.Namespace, "aborted interactive resolution")
+				return namespaceSyncStats{}, nil, nil
+			}
+			d.Fail(ns.Namespace, err)
+			return namespaceSyncStats{}, nil, err
+		}
+		localMarks = resolved
+	}
+
+	d.Update(ns.Namespace, "submitting", 0, 0, "")
+	jobID, err := submitSyncJob(ctx, c, ns, opts, localMarks)
+	if err != nil {
+		d.Fail(ns.Namespace, fmt.Errorf("submit job: %w", err))
+		return namespaceSyncStats{}, nil, err
+	}
+
+	final, err := pollSyncJobDashboard(ctx, c, d, ns.Namespace, jobID, opts)
+	if err != nil {
+		d.Fail(ns.Namespace, err)
+		return namespaceSyncStats{}, final, err
+	}
+
+	stats := statsFromJob(final)
+
+	if !opts.dryRun && final != nil && final.Status != nil && *final.Status == "completed" {
+		written, werr := writeResultFiles(final, dir, configPath)
+		if werr != nil {
+			d.Fail(ns.Namespace, fmt.Errorf("write files: %w", werr))
+			return stats, final, werr
+		}
+		stats.filesWritten = written
+	}
+
+	d.Complete(ns.Namespace, summarizeForFinishLine(final, stats.filesWritten))
+	return stats, final, nil
+}
+
+// readLocalDefaultMarks loads the local default-language file.
+// Missing file → empty map (server handles "nothing to push"
+// naturally).
+func readLocalDefaultMarks(path string, strat syncStrategy) (map[string]string, error) {
+	m, err := translations.ReadFlatJSON(path)
+	if err == nil {
+		return m, nil
+	}
+	if errors.Is(err, os.ErrNotExist) {
+		return map[string]string{}, nil
+	}
+	return nil, err
+}
+
+func submitSyncJob(ctx context.Context, c *langsyncContext, ns projectcfg.Namespace, opts syncOptions, marks map[string]string) (string, error) {
+	serverStrategy := "local"
+	if opts.strategy == strategyServer {
+		serverStrategy = "server"
+	}
+	body := langsync.SyncjobCreateSyncRequest{
+		DefaultLanguageCode:  ptrStr(ns.DefaultLocalLanguage),
+		DryRun:               ptrBool(opts.dryRun),
+		Marks:                marksMapPtr(marks),
+		Prune:                ptrBool(opts.prune),
+		Strategy:             ptrStr(serverStrategy),
+		WaitForAutotranslate: ptrBool(opts.wait),
+	}
+	res, err := c.client.PostNamespacesNamespaceNameSyncWithResponse(ctx, ns.Namespace, body)
+	if err != nil {
+		return "", err
+	}
+	if res.JSON202 == nil {
+		if isNamespaceForbidden(res.JSON403) || isNamespaceForbidden(res.JSON404) {
+			return "", namespaceAccessError(c.cfg.ActiveOrg.Slug, ns.Namespace)
+		}
+		return "", apiError(res.HTTPResponse, res.Body,
+			res.JSON400, res.JSON401, res.JSON403, res.JSON404, res.JSON500)
+	}
+	if res.JSON202.Id == nil || *res.JSON202.Id == "" {
+		return "", fmt.Errorf("backend returned a 202 with no job id")
+	}
+	return *res.JSON202.Id, nil
+}
+
+// namespaceSyncStats carries the per-namespace result. The
+// dashboard's final row renders directly from the SyncJob DTO via
+// summarizeForFinishLine; this struct is what flows into the Issues
+// diagnostic pass.
+type namespaceSyncStats struct {
+	pushTotal              int
+	pushDone               int
+	created                int
+	updated                int
+	deleted                int
+	autotranslateTriggered bool
+	autotranslateTotal     int
+	autotranslateDone      int
+	filesWritten           int
+	stillUntranslated      int
+	terminalStatus         string
+	errorMessage           string
+}
+
+func statsFromJob(j *langsync.DtoDTOSyncJob) namespaceSyncStats {
+	s := namespaceSyncStats{}
+	if j == nil {
+		return s
+	}
+	if j.PushTotal != nil {
+		s.pushTotal = *j.PushTotal
+	}
+	if j.PushDone != nil {
+		s.pushDone = *j.PushDone
+	}
+	if j.CreatedCount != nil {
+		s.created = *j.CreatedCount
+	}
+	if j.UpdatedCount != nil {
+		s.updated = *j.UpdatedCount
+	}
+	if j.DeletedCount != nil {
+		s.deleted = *j.DeletedCount
+	}
+	if j.AutotranslateTriggeredAt != nil && *j.AutotranslateTriggeredAt != "" {
+		s.autotranslateTriggered = true
+	}
+	if j.AutotranslateTotal != nil {
+		s.autotranslateTotal = *j.AutotranslateTotal
+	}
+	if j.AutotranslateDone != nil {
+		s.autotranslateDone = *j.AutotranslateDone
+	}
+	if j.StillUntranslatedCount != nil {
+		s.stillUntranslated = *j.StillUntranslatedCount
+	}
+	if j.Status != nil {
+		s.terminalStatus = *j.Status
+	}
+	if j.ErrorMessage != nil {
+		s.errorMessage = *j.ErrorMessage
+	}
+	return s
+}
+
+func writeResultFiles(j *langsync.DtoDTOSyncJob, dir, configPath string) (int, error) {
+	if j.ResultPerLanguage == nil {
+		return 0, nil
+	}
+	written := 0
+	for code, marks := range *j.ResultPerLanguage {
+		path := filepath.Join(dir, translations.LangFileName(code))
+		if err := translations.WriteFlatJSON(path, marks); err != nil {
+			return written, fmt.Errorf("write %s: %w", path, err)
+		}
+		written++
+	}
+	return written, nil
+}
+
+func relPath(configPath, target string) string {
+	root := filepath.Dir(configPath)
+	if rel, err := filepath.Rel(root, target); err == nil {
+		return rel
+	}
+	return target
+}
+
+func shortID(id string) string {
+	if len(id) > 8 {
+		return id[:8]
+	}
+	return id
+}
+
+func ptrStr(s string) *string { return &s }
+func ptrBool(b bool) *bool    { return &b }
+
+func marksMapPtr(m map[string]string) *map[string]string {
+	if m == nil {
+		m = map[string]string{}
+	}
+	return &m
+}
