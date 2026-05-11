@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -118,8 +119,25 @@ Examples:
 			if err != nil {
 				return err
 			}
+			// Zero-namespaces case mirrors the zero-orgs flow:
+			// instead of erroring, offer to create one inline so
+			// the user can bootstrap a fresh project in a single
+			// command. Non-interactive shells still get a clear
+			// error pointing at the explicit create command.
 			if len(namespaces) == 0 {
-				return fmt.Errorf("no namespaces in the active organization — create one with `norcube langsync namespace create` first")
+				if !stdinIsInteractive() {
+					return fmt.Errorf("no namespaces in org %q — run `nrc langsync namespace create` first (non-interactive shell can't show the prompt)", org.Slug)
+				}
+				fmt.Fprintf(cmd.OutOrStdout(), "Organization %q has no namespaces yet — creating one to seed this project.\n", org.Slug)
+				ns, err := createNamespaceInteractive(cmd.Context(), c)
+				if err != nil {
+					if errors.Is(err, ErrCancelled) {
+						fmt.Fprintln(cmd.OutOrStdout(), "Cancelled.")
+						return nil
+					}
+					return err
+				}
+				namespaces = []langsync.DtoDTONamespace{*ns}
 			}
 			langByID, err := fetchLanguageCodesByID(cmd.Context(), c)
 			if err != nil {
@@ -526,4 +544,53 @@ func mergeInitEntries(existing *projectcfg.File, additions []projectcfg.Namespac
 		}
 	}
 	return out
+}
+
+// createNamespaceInteractive prompts the user for a namespace
+// name / default-language / context, POSTs to /namespaces, then
+// fetches the newly-created namespace's full DTO so the rest of
+// init can read its DefaultLanguageId. Used when the active org
+// has zero namespaces and init would otherwise have no work to do.
+//
+// Returns ErrCancelled when the prompt is dismissed; the caller
+// turns that into "Cancelled." instead of crashing.
+func createNamespaceInteractive(ctx context.Context, c *langsyncContext) (*langsync.DtoDTONamespace, error) {
+	name, lang, ctxStr, err := resolveCreateFields("", "", "")
+	if err != nil {
+		return nil, err
+	}
+
+	body := langsync.CreateNamespaceJSONRequestBody{
+		Name:    name,
+		Context: ctxStr,
+	}
+	if id, parseErr := strconv.Atoi(strings.TrimSpace(lang)); parseErr == nil && id > 0 {
+		body.DefaultLanguageId = &id
+	} else {
+		code := strings.TrimSpace(lang)
+		body.DefaultLanguageCode = &code
+	}
+	res, err := c.client.CreateNamespaceWithResponse(ctx, body)
+	if err != nil {
+		return nil, err
+	}
+	if res.JSON200 == nil {
+		return nil, apiError(res.HTTPResponse, res.Body,
+			res.JSON400, res.JSON401, res.JSON403, res.JSON404, res.JSON500)
+	}
+
+	// The create endpoint returns an empty success body, so we
+	// follow up with a GET to retrieve the DefaultLanguageId the
+	// server assigned. One extra round trip, but only on the rare
+	// zero-namespaces init path.
+	getRes, err := c.client.GetNamespaceByNameAndOrgWithResponse(ctx, name)
+	if err != nil {
+		return nil, fmt.Errorf("fetch newly-created namespace: %w", err)
+	}
+	if getRes.JSON200 == nil {
+		return nil, apiError(getRes.HTTPResponse, getRes.Body,
+			getRes.JSON400, getRes.JSON401, getRes.JSON403, getRes.JSON404, getRes.JSON500)
+	}
+	fmt.Printf("Created namespace %q (default language %q).\n", name, lang)
+	return getRes.JSON200, nil
 }
