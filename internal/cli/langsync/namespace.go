@@ -3,6 +3,7 @@ package langsync
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/charmbracelet/huh"
@@ -106,11 +107,21 @@ the name positional + --default-language are both required.`,
 				return err
 			}
 
-			res, err := c.client.CreateNamespaceWithResponse(cmd.Context(), langsync.CreateNamespaceJSONRequestBody{
-				Name:            name,
-				DefaultLanguage: defaultLanguage,
-				Context:         context,
-			})
+			// Pick the right new explicit field based on what the user
+			// typed: numeric → defaultLanguageId, else → defaultLanguageCode.
+			// The backend resolver does the org-scoped lookup.
+			body := langsync.CreateNamespaceJSONRequestBody{
+				Name:    name,
+				Context: context,
+			}
+			if id, parseErr := strconv.Atoi(strings.TrimSpace(defaultLanguage)); parseErr == nil && id > 0 {
+				body.DefaultLanguageId = &id
+			} else {
+				code := strings.TrimSpace(defaultLanguage)
+				body.DefaultLanguageCode = &code
+			}
+
+			res, err := c.client.CreateNamespaceWithResponse(cmd.Context(), body)
 			if err != nil {
 				return err
 			}
@@ -197,7 +208,7 @@ func newNamespaceUpdateCmd() *cobra.Command {
 	var (
 		rename          string
 		context         string
-		defaultLanguage int
+		defaultLanguage string // accept code OR id; resolve below
 	)
 	cmd := &cobra.Command{
 		Use:   "update <name>",
@@ -205,9 +216,9 @@ func newNamespaceUpdateCmd() *cobra.Command {
 		Long: `Partial update of a namespace. Pass only the fields you want to
 change — omitted flags leave existing values alone.
 
-Note: --default-language here takes an integer language id (not a code),
-because the underlying endpoint accepts the id form. Look up the id via
-` + "`norcube langsync namespace list`" + ` first.`,
+--default-language accepts either a language code (e.g. en, cs) or the
+numeric language id. The CLI resolves codes via /languages before
+sending the request — the underlying endpoint wants the id form.`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			c, err := newLangsyncContext(cmd)
@@ -227,9 +238,17 @@ because the underlying endpoint accepts the id form. Look up the id via
 				body.Context = &context
 			}
 			if cmd.Flags().Changed("default-language") {
-				body.DefaultLanguage = &defaultLanguage
+				// Send whichever new explicit field matches the user's
+				// input. Server resolves to a Language and applies the
+				// access check — no client-side /languages lookup.
+				if id, parseErr := strconv.Atoi(strings.TrimSpace(defaultLanguage)); parseErr == nil && id > 0 {
+					body.DefaultLanguageId = &id
+				} else {
+					code := strings.TrimSpace(defaultLanguage)
+					body.DefaultLanguageCode = &code
+				}
 			}
-			if body.Name == nil && body.Context == nil && body.DefaultLanguage == nil {
+			if body.Name == nil && body.Context == nil && body.DefaultLanguageId == nil && body.DefaultLanguageCode == nil {
 				return fmt.Errorf("nothing to update — pass at least one of --rename, --context, --default-language")
 			}
 
@@ -250,7 +269,7 @@ because the underlying endpoint accepts the id form. Look up the id via
 	}
 	cmd.Flags().StringVar(&rename, "rename", "", "New name for the namespace (URL slug)")
 	cmd.Flags().StringVar(&context, "context", "", "New context description")
-	cmd.Flags().IntVar(&defaultLanguage, "default-language", 0, "New default-language id (see `namespace list` to look up ids)")
+	cmd.Flags().StringVar(&defaultLanguage, "default-language", "", "New default language — accepts either the code (e.g. en) or the numeric id; codes are resolved to ids client-side")
 	return cmd
 }
 

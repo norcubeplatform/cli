@@ -165,6 +165,7 @@ func (e ConstantsTermImportFormat) Valid() bool {
 const (
 	ErrBackupCodeInvalid          ResponseType = "BACKUP_CODE_INVALID"
 	ErrColumnCountMismatch        ResponseType = "COLUMN_COUNT_MISMATCH"
+	ErrConflict                   ResponseType = "CONFLICT"
 	ErrConnectionAlreadyExists    ResponseType = "CONNECTION_ALREADY_EXISTS"
 	ErrDuplicate                  ResponseType = "DUPLICATE"
 	ErrEmailRequired              ResponseType = "EMAIL_REQUIRED"
@@ -213,6 +214,8 @@ func (e ResponseType) Valid() bool {
 	case ErrBackupCodeInvalid:
 		return true
 	case ErrColumnCountMismatch:
+		return true
+	case ErrConflict:
 		return true
 	case ErrConnectionAlreadyExists:
 		return true
@@ -357,7 +360,19 @@ type DtoCustomPrompt struct {
 type DtoDTOLanguage struct {
 	Code *string `json:"code,omitempty"`
 	Id   *int    `json:"id,omitempty"`
-	Name *string `json:"name,omitempty"`
+
+	// IsCustom IsCustom flags a language created by an organization (not part of
+	// the platform's shared set). For shared languages this is false and
+	// OrganizationID is nil. Mirrors the (shared, organization_id) shape
+	// on the language row with the orphan combination excluded by a
+	// CHECK constraint.
+	IsCustom *bool   `json:"isCustom,omitempty"`
+	Name     *string `json:"name,omitempty"`
+
+	// OrganizationId OrganizationID is the owner organization for a custom language;
+	// nil for shared languages. Useful for callers that need to display
+	// the source of the language ("from this org" vs "global").
+	OrganizationId *string `json:"organizationId,omitempty"`
 }
 
 // DtoDTONamespace defines model for dto.DTONamespace.
@@ -516,6 +531,12 @@ type HelpjuiceUpdateSettingRequestBody struct {
 	WatchedLanguages            []int  `json:"watchedLanguages"`
 }
 
+// LanguagePayloadCreateLanguageRequest defines model for language.payloadCreateLanguageRequest.
+type LanguagePayloadCreateLanguageRequest struct {
+	Code string `json:"code"`
+	Name string `json:"name"`
+}
+
 // MigratorPayloadGetProjectsRequest defines model for migrator.payloadGetProjectsRequest.
 type MigratorPayloadGetProjectsRequest struct {
 	ApiKey *string `json:"api_key,omitempty"`
@@ -539,7 +560,10 @@ type MigratorPayloadMigrateResponse struct {
 
 // NamespacePayloadAddLanguageRequest defines model for namespace.payloadAddLanguageRequest.
 type NamespacePayloadAddLanguageRequest struct {
-	LanguageId *int `json:"language_id,omitempty"`
+	LanguageCode *string `json:"languageCode,omitempty"`
+
+	// LanguageId Preferred new fields — pass exactly one.
+	LanguageId *int `json:"languageId,omitempty"`
 }
 
 // NamespacePayloadAddLanguageResponse defines model for namespace.payloadAddLanguageResponse.
@@ -549,16 +573,33 @@ type NamespacePayloadAddLanguageResponse struct {
 
 // NamespacePayloadCreateNamespaceRequest defines model for namespace.payloadCreateNamespaceRequest.
 type NamespacePayloadCreateNamespaceRequest struct {
-	Context         string `json:"context"`
-	DefaultLanguage string `json:"defaultLanguage"`
-	Name            string `json:"name"`
+	Context string `json:"context"`
+
+	// DefaultLanguage Deprecated: kept for one release. Used to be `defaultLanguage` (string
+	// code only); now accepts either string or int via LanguageRef.
+	DefaultLanguage     *TypesLanguageRef `json:"defaultLanguage,omitempty"`
+	DefaultLanguageCode *string           `json:"defaultLanguageCode,omitempty"`
+
+	// DefaultLanguageId Preferred new fields — pass exactly one. The CLI/frontend should
+	// emit these going forward.
+	DefaultLanguageId *int   `json:"defaultLanguageId,omitempty"`
+	Name              string `json:"name"`
 }
 
 // NamespacePayloadUpdateNamespaceRequest defines model for namespace.payloadUpdateNamespaceRequest.
 type NamespacePayloadUpdateNamespaceRequest struct {
-	Context         *string `json:"context,omitempty"`
-	DefaultLanguage *int    `json:"default_language,omitempty"`
-	Name            *string `json:"name,omitempty"`
+	Context             *string `json:"context,omitempty"`
+	DefaultLanguageCode *string `json:"defaultLanguageCode,omitempty"`
+
+	// DefaultLanguageId Preferred new fields — pass exactly one. The CLI/frontend should
+	// emit these going forward.
+	DefaultLanguageId *int `json:"defaultLanguageId,omitempty"`
+
+	// DefaultLanguage Deprecated: kept for one release. Used to be `default_language` (int);
+	// now accepts either int or string via LanguageRef. Prefer the explicit
+	// fields above.
+	DefaultLanguage *TypesLanguageRef `json:"default_language,omitempty"`
+	Name            *string           `json:"name,omitempty"`
 }
 
 // PoeditorPOEditorTime defines model for poeditor.POEditorTime.
@@ -732,16 +773,38 @@ type TranslationCreateCustomPromptResponse struct {
 
 // TranslationTranslateTextBody defines model for translation.translateTextBody.
 type TranslationTranslateTextBody struct {
-	CustomPromptId   *string `json:"customPromptId,omitempty"`
-	SourceLanguageId int     `json:"sourceLanguageId"`
-	TargetLanguageId int     `json:"targetLanguageId"`
-	Text             string  `json:"text"`
-	UseGlossary      bool    `json:"useGlossary"`
+	CustomPromptId *string `json:"customPromptId,omitempty"`
+
+	// SourceLanguageCode language code (e.g. "en")
+	SourceLanguageCode *string `json:"sourceLanguageCode,omitempty"`
+
+	// SourceLanguageId Deprecated: the original int-only fields. Kept for backwards-compat
+	// for one release; new callers should use the explicit *Id / *Code
+	// pair above. We keep the original field names (sourceLanguageId /
+	// targetLanguageId) so existing TS/CLI clients aren't broken.
+	SourceLanguageId *int `json:"sourceLanguageId,omitempty"`
+
+	// SourceLanguageIdNew Preferred new fields — pass exactly one pair.
+	SourceLanguageIdNew *int    `json:"sourceLanguageIdNew,omitempty"`
+	TargetLanguageCode  *string `json:"targetLanguageCode,omitempty"`
+	TargetLanguageId    *int    `json:"targetLanguageId,omitempty"`
+	TargetLanguageIdNew *int    `json:"targetLanguageIdNew,omitempty"`
+	Text                string  `json:"text"`
+	UseGlossary         bool    `json:"useGlossary"`
 }
 
 // TranslationTranslateTextResponse defines model for translation.translateTextResponse.
 type TranslationTranslateTextResponse struct {
 	TranslatedText string `json:"translatedText"`
+}
+
+// TypesLanguageRef defines model for types.LanguageRef.
+type TypesLanguageRef struct {
+	// Code language code, e.g. "en" (case-insensitive)
+	Code *string `json:"code,omitempty"`
+
+	// Id numeric language id, e.g. 17
+	Id *int `json:"id,omitempty"`
 }
 
 // ListGlossaryItemsParams defines parameters for ListGlossaryItems.
@@ -785,6 +848,9 @@ type CreateHelpjuiceIntegrationJSONRequestBody = HelpjuiceCreateRequestBody
 
 // UpdateHelpjuiceSettingsJSONRequestBody defines body for UpdateHelpjuiceSettings for application/json ContentType.
 type UpdateHelpjuiceSettingsJSONRequestBody = HelpjuiceUpdateSettingRequestBody
+
+// CreateCustomLanguageJSONRequestBody defines body for CreateCustomLanguage for application/json ContentType.
+type CreateCustomLanguageJSONRequestBody = LanguagePayloadCreateLanguageRequest
 
 // GetProjectsJSONRequestBody defines body for GetProjects for application/json ContentType.
 type GetProjectsJSONRequestBody = MigratorPayloadGetProjectsRequest
@@ -966,8 +1032,16 @@ type ClientInterface interface {
 
 	UpdateHelpjuiceSettings(ctx context.Context, setupId string, body UpdateHelpjuiceSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// List request
-	List(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// ListLanguagesForOrg request
+	ListLanguagesForOrg(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateCustomLanguageWithBody request with any body
+	CreateCustomLanguageWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateCustomLanguage(ctx context.Context, body CreateCustomLanguageJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteCustomLanguage request
+	DeleteCustomLanguage(ctx context.Context, id int, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetProjectsWithBody request with any body
 	GetProjectsWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -1346,8 +1420,44 @@ func (c *Client) UpdateHelpjuiceSettings(ctx context.Context, setupId string, bo
 	return c.Client.Do(req)
 }
 
-func (c *Client) List(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewListRequest(c.Server)
+func (c *Client) ListLanguagesForOrg(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListLanguagesForOrgRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateCustomLanguageWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateCustomLanguageRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateCustomLanguage(ctx context.Context, body CreateCustomLanguageJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateCustomLanguageRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteCustomLanguage(ctx context.Context, id int, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteCustomLanguageRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
@@ -2432,8 +2542,8 @@ func NewUpdateHelpjuiceSettingsRequestWithBody(server string, setupId string, co
 	return req, nil
 }
 
-// NewListRequest generates requests for List
-func NewListRequest(server string) (*http.Request, error) {
+// NewListLanguagesForOrgRequest generates requests for ListLanguagesForOrg
+func NewListLanguagesForOrgRequest(server string) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -2452,6 +2562,80 @@ func NewListRequest(server string) (*http.Request, error) {
 	}
 
 	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewCreateCustomLanguageRequest calls the generic CreateCustomLanguage builder with application/json body
+func NewCreateCustomLanguageRequest(server string, body CreateCustomLanguageJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateCustomLanguageRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewCreateCustomLanguageRequestWithBody generates requests for CreateCustomLanguage with any type of body
+func NewCreateCustomLanguageRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/languages")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteCustomLanguageRequest generates requests for DeleteCustomLanguage
+func NewDeleteCustomLanguageRequest(server string, id int) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "integer", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/languages/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodDelete, queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -3634,8 +3818,16 @@ type ClientWithResponsesInterface interface {
 
 	UpdateHelpjuiceSettingsWithResponse(ctx context.Context, setupId string, body UpdateHelpjuiceSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateHelpjuiceSettingsResponse, error)
 
-	// ListWithResponse request
-	ListWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListResponse, error)
+	// ListLanguagesForOrgWithResponse request
+	ListLanguagesForOrgWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListLanguagesForOrgResponse, error)
+
+	// CreateCustomLanguageWithBodyWithResponse request with any body
+	CreateCustomLanguageWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateCustomLanguageResponse, error)
+
+	CreateCustomLanguageWithResponse(ctx context.Context, body CreateCustomLanguageJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateCustomLanguageResponse, error)
+
+	// DeleteCustomLanguageWithResponse request
+	DeleteCustomLanguageWithResponse(ctx context.Context, id int, reqEditors ...RequestEditorFn) (*DeleteCustomLanguageResponse, error)
 
 	// GetProjectsWithBodyWithResponse request with any body
 	GetProjectsWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetProjectsResponse, error)
@@ -4280,15 +4472,16 @@ func (r UpdateHelpjuiceSettingsResponse) ContentType() string {
 	return ""
 }
 
-type ListResponse struct {
+type ListLanguagesForOrgResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *[]DtoDTOLanguage
+	JSON401      *ResponseAPIError
 	JSON500      *ResponseAPIError
 }
 
 // Status returns HTTPResponse.Status
-func (r ListResponse) Status() string {
+func (r ListLanguagesForOrgResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -4296,7 +4489,7 @@ func (r ListResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r ListResponse) StatusCode() int {
+func (r ListLanguagesForOrgResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -4304,7 +4497,75 @@ func (r ListResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r ListResponse) ContentType() string {
+func (r ListLanguagesForOrgResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type CreateCustomLanguageResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *DtoDTOLanguage
+	JSON400      *ResponseAPIError
+	JSON401      *ResponseAPIError
+	JSON409      *ResponseAPIError
+	JSON500      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateCustomLanguageResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateCustomLanguageResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r CreateCustomLanguageResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type DeleteCustomLanguageResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON400      *ResponseAPIError
+	JSON401      *ResponseAPIError
+	JSON404      *ResponseAPIError
+	JSON409      *ResponseAPIError
+	JSON500      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteCustomLanguageResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteCustomLanguageResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r DeleteCustomLanguageResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
@@ -5342,13 +5603,39 @@ func (c *ClientWithResponses) UpdateHelpjuiceSettingsWithResponse(ctx context.Co
 	return ParseUpdateHelpjuiceSettingsResponse(rsp)
 }
 
-// ListWithResponse request returning *ListResponse
-func (c *ClientWithResponses) ListWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListResponse, error) {
-	rsp, err := c.List(ctx, reqEditors...)
+// ListLanguagesForOrgWithResponse request returning *ListLanguagesForOrgResponse
+func (c *ClientWithResponses) ListLanguagesForOrgWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListLanguagesForOrgResponse, error) {
+	rsp, err := c.ListLanguagesForOrg(ctx, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseListResponse(rsp)
+	return ParseListLanguagesForOrgResponse(rsp)
+}
+
+// CreateCustomLanguageWithBodyWithResponse request with arbitrary body returning *CreateCustomLanguageResponse
+func (c *ClientWithResponses) CreateCustomLanguageWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateCustomLanguageResponse, error) {
+	rsp, err := c.CreateCustomLanguageWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateCustomLanguageResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateCustomLanguageWithResponse(ctx context.Context, body CreateCustomLanguageJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateCustomLanguageResponse, error) {
+	rsp, err := c.CreateCustomLanguage(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateCustomLanguageResponse(rsp)
+}
+
+// DeleteCustomLanguageWithResponse request returning *DeleteCustomLanguageResponse
+func (c *ClientWithResponses) DeleteCustomLanguageWithResponse(ctx context.Context, id int, reqEditors ...RequestEditorFn) (*DeleteCustomLanguageResponse, error) {
+	rsp, err := c.DeleteCustomLanguage(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteCustomLanguageResponse(rsp)
 }
 
 // GetProjectsWithBodyWithResponse request with arbitrary body returning *GetProjectsResponse
@@ -6457,15 +6744,15 @@ func ParseUpdateHelpjuiceSettingsResponse(rsp *http.Response) (*UpdateHelpjuiceS
 	return response, nil
 }
 
-// ParseListResponse parses an HTTP response from a ListWithResponse call
-func ParseListResponse(rsp *http.Response) (*ListResponse, error) {
+// ParseListLanguagesForOrgResponse parses an HTTP response from a ListLanguagesForOrgWithResponse call
+func ParseListLanguagesForOrgResponse(rsp *http.Response) (*ListLanguagesForOrgResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &ListResponse{
+	response := &ListLanguagesForOrgResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -6477,6 +6764,121 @@ func ParseListResponse(rsp *http.Response) (*ListResponse, error) {
 			return nil, err
 		}
 		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCreateCustomLanguageResponse parses an HTTP response from a CreateCustomLanguageWithResponse call
+func ParseCreateCustomLanguageResponse(rsp *http.Response) (*CreateCustomLanguageResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateCustomLanguageResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest DtoDTOLanguage
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDeleteCustomLanguageResponse parses an HTTP response from a DeleteCustomLanguageWithResponse call
+func ParseDeleteCustomLanguageResponse(rsp *http.Response) (*DeleteCustomLanguageResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteCustomLanguageResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest ResponseAPIError

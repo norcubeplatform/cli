@@ -207,7 +207,15 @@
           "id": {
             "type": "integer"
           },
+          "isCustom": {
+            "description": "IsCustom flags a language created by an organization (not part of\nthe platform's shared set). For shared languages this is false and\nOrganizationID is nil. Mirrors the (shared, organization_id) shape\non the language row with the orphan combination excluded by a\nCHECK constraint.",
+            "type": "boolean"
+          },
           "name": {
+            "type": "string"
+          },
+          "organizationId": {
+            "description": "OrganizationID is the owner organization for a custom language;\nnil for shared languages. Useful for callers that need to display\nthe source of the language (\"from this org\" vs \"global\").",
             "type": "string"
           }
         },
@@ -653,6 +661,23 @@
         ],
         "type": "object"
       },
+      "language.payloadCreateLanguageRequest": {
+        "properties": {
+          "code": {
+            "example": "internal-en",
+            "type": "string"
+          },
+          "name": {
+            "example": "Internal English",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "name"
+        ],
+        "type": "object"
+      },
       "migrator.payloadGetProjectsRequest": {
         "properties": {
           "api_key": {
@@ -696,7 +721,11 @@
       },
       "namespace.payloadAddLanguageRequest": {
         "properties": {
-          "language_id": {
+          "languageCode": {
+            "type": "string"
+          },
+          "languageId": {
+            "description": "Preferred new fields — pass exactly one.",
             "type": "integer"
           }
         },
@@ -716,7 +745,19 @@
             "type": "string"
           },
           "defaultLanguage": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/types.LanguageRef"
+              }
+            ],
+            "description": "Deprecated: kept for one release. Used to be `defaultLanguage` (string\ncode only); now accepts either string or int via LanguageRef."
+          },
+          "defaultLanguageCode": {
             "type": "string"
+          },
+          "defaultLanguageId": {
+            "description": "Preferred new fields — pass exactly one. The CLI/frontend should\nemit these going forward.",
+            "type": "integer"
           },
           "name": {
             "type": "string"
@@ -724,7 +765,6 @@
         },
         "required": [
           "context",
-          "defaultLanguage",
           "name"
         ],
         "type": "object"
@@ -734,8 +774,20 @@
           "context": {
             "type": "string"
           },
-          "default_language": {
+          "defaultLanguageCode": {
+            "type": "string"
+          },
+          "defaultLanguageId": {
+            "description": "Preferred new fields — pass exactly one. The CLI/frontend should\nemit these going forward.",
             "type": "integer"
+          },
+          "default_language": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/types.LanguageRef"
+              }
+            ],
+            "description": "Deprecated: kept for one release. Used to be `default_language` (int);\nnow accepts either int or string via LanguageRef. Prefer the explicit\nfields above."
           },
           "name": {
             "type": "string"
@@ -851,6 +903,7 @@
           "EMPTY_VALUE",
           "NO_CONNECTIONS",
           "CONNECTION_ALREADY_EXISTS",
+          "CONFLICT",
           "EMAIL_REQUIRED",
           "MISSING_NEW_PASSWORD",
           "USER_NOT_FOUND",
@@ -896,6 +949,7 @@
           "ErrEmptyValue",
           "ErrNoConnections",
           "ErrConnectionAlreadyExists",
+          "ErrConflict",
           "ErrEmailRequired",
           "ErrMissingNewPassword",
           "ErrUserNotFound",
@@ -1202,10 +1256,25 @@
           "customPromptId": {
             "type": "string"
           },
+          "sourceLanguageCode": {
+            "description": "language code (e.g. \"en\")",
+            "type": "string"
+          },
           "sourceLanguageId": {
+            "description": "Deprecated: the original int-only fields. Kept for backwards-compat\nfor one release; new callers should use the explicit *Id / *Code\npair above. We keep the original field names (sourceLanguageId /\ntargetLanguageId) so existing TS/CLI clients aren't broken.",
             "type": "integer"
           },
+          "sourceLanguageIdNew": {
+            "description": "Preferred new fields — pass exactly one pair.",
+            "type": "integer"
+          },
+          "targetLanguageCode": {
+            "type": "string"
+          },
           "targetLanguageId": {
+            "type": "integer"
+          },
+          "targetLanguageIdNew": {
             "type": "integer"
           },
           "text": {
@@ -1216,8 +1285,6 @@
           }
         },
         "required": [
-          "sourceLanguageId",
-          "targetLanguageId",
           "text",
           "useGlossary"
         ],
@@ -1232,6 +1299,19 @@
         "required": [
           "translatedText"
         ],
+        "type": "object"
+      },
+      "types.LanguageRef": {
+        "properties": {
+          "code": {
+            "description": "language code, e.g. \"en\" (case-insensitive)",
+            "type": "string"
+          },
+          "id": {
+            "description": "numeric language id, e.g. 17",
+            "type": "integer"
+          }
+        },
         "type": "object"
       }
     }
@@ -2327,7 +2407,8 @@
     },
     "/languages": {
       "get": {
-        "operationId": "list",
+        "description": "Lists every language available to the calling organization — all shared languages plus any custom languages this org has created. Each item carries an `isCustom` flag and (for custom langs) the owner `organizationId`.",
+        "operationId": "listLanguagesForOrg",
         "responses": {
           "200": {
             "content": {
@@ -2342,6 +2423,16 @@
             },
             "description": "OK"
           },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
           "500": {
             "content": {
               "application/json": {
@@ -2353,7 +2444,155 @@
             "description": "Internal Server Error"
           }
         },
-        "summary": "List all languages",
+        "summary": "List languages (shared + this org's custom)",
+        "tags": [
+          "languages"
+        ]
+      },
+      "post": {
+        "description": "Creates a custom language scoped to the calling organization. The code must start with a letter and contain only lowercase letters, digits, hyphens, or underscores (1-32 chars). Codes are unique within the org; coexistence with shared codes is allowed and the resolver prefers the org's custom code when both exist.",
+        "operationId": "createCustomLanguage",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/language.payloadCreateLanguageRequest"
+              }
+            }
+          },
+          "description": "Code + name",
+          "required": true,
+          "x-originalParamName": "body"
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.DTOLanguage"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Create a custom language",
+        "tags": [
+          "languages"
+        ]
+      }
+    },
+    "/languages/{id}": {
+      "delete": {
+        "description": "Permanently deletes a custom language. Shared languages are never deletable through this endpoint. If the language is still attached to any namespace, the request fails with 409 — detach it from those namespaces first.",
+        "operationId": "deleteCustomLanguage",
+        "parameters": [
+          {
+            "description": "Language ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Delete a custom language",
         "tags": [
           "languages"
         ]

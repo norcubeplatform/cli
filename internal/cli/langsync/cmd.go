@@ -23,7 +23,7 @@ func NewCmd() *cobra.Command {
 		Use:   "langsync",
 		Short: "Manage Langsync namespaces, marks (terms), and translations",
 	}
-	cmd.AddCommand(newMarkCmd(), newNamespaceCmd())
+	cmd.AddCommand(newMarkCmd(), newNamespaceCmd(), newLangCmd())
 	return cmd
 }
 
