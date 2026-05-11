@@ -26,10 +26,12 @@ func namespaceAccessError(activeOrg, ns string) error {
 
 This usually means one of:
   1. You're signed into the wrong org. Check with %s, then switch via %s.
-  2. The namespace doesn't exist yet — create it from the Norcube web app.
+  2. The namespace doesn't exist yet — create it with %s, or list what's available with %s.
   3. The namespace name is misspelled (it's the slug, case-sensitive).`,
 		ns, orgClause,
-		"`norcube whoami`", "`norcube org switch`")
+		"`norcube whoami`", "`norcube org switch`",
+		"`norcube langsync namespace create <name> --default-language <code>`",
+		"`norcube langsync namespace list`")
 }
 
 // isNamespaceForbidden returns true when the server's typed error looks
