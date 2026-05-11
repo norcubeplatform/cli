@@ -1057,8 +1057,7 @@
     },
     "/backups": {
       "get": {
-        "deprecated": true,
-        "description": "List backups",
+        "description": "Cross-datasource listing of backup jobs in the calling user's organization, sorted by created_at descending. Pass datasourceIds[] to filter to a subset of data sources. Org scoping is enforced at the SQL level — datasource ids belonging to other organizations are silently ignored.",
         "parameters": [
           {
             "in": "query",
@@ -1132,7 +1131,7 @@
             "description": "Internal Server Error"
           }
         },
-        "summary": "List backups",
+        "summary": "List backups across the organization",
         "tags": [
           "Backups"
         ]

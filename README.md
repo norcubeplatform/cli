@@ -123,8 +123,8 @@ State lives in two places:
 | `norcube snapdb policy pause --datasource <id> --policy <id>` | Pause one policy on one data source |
 | `norcube snapdb policy resume --datasource <id> --policy <id>` | Re-enable a paused attachment |
 | `norcube snapdb policy detach --datasource <id> --policy <id> [--yes]` | Remove an attachment (destructive; confirms unless `--yes`) |
-| `norcube snapdb backup list --datasource <id>` | List backup jobs for a data source |
-| `norcube snapdb backup list --all` | Fan out and list backup jobs across every data source |
+| `norcube snapdb backup list` | List backup jobs across the org, newest first |
+| `norcube snapdb backup list --datasource <id>` | Filter the list to one (or more) data sources |
 
 > Backup detail / download and restore commands will land once the SnapDB backend ships those endpoints (currently stubbed at 501).
 
