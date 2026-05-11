@@ -410,8 +410,18 @@ func submitSyncJob(ctx context.Context, c *langsyncContext, ns projectcfg.Namesp
 		serverStrategy = "server"
 	}
 	mpl := marksPerLang
+	// The wire's default_language_code is the SERVER-side language
+	// code (used by the backend's resolveSourceLanguageOverride to
+	// look up the attached language by code). If the project's
+	// local default is aliased to a different server-side code
+	// (e.g. "czech" on disk → "cs" on the server), apply the alias
+	// here so the backend gets the code it actually knows. Without
+	// this, a non-aliased local code like "czech" reaches the
+	// server and the source-override lookup fails with "isn't
+	// attached".
+	defaultCode := serverLangCode(ns.DefaultLocalLanguage, ns.LanguageAliases)
 	body := langsync.SyncjobCreateSyncRequest{
-		DefaultLanguageCode:  ptrStr(ns.DefaultLocalLanguage),
+		DefaultLanguageCode:  ptrStr(defaultCode),
 		DryRun:               ptrBool(opts.dryRun),
 		MarksPerLanguage:     &mpl,
 		Prune:                ptrBool(opts.prune),

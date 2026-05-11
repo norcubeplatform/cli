@@ -195,6 +195,8 @@ By default, server marks missing from the local default-language file are left a
 
 By default sync **waits** for autotranslate to finish before writing the per-language files, so one `sync` run gives you complete on-disk state. The wait is capped by `--wait-timeout` (default 2m); on timeout, sync writes whatever the server has so far and notes the remaining gap in the summary. Pass `--wait=false` to skip the wait entirely (useful for big initial syncs where you'd rather come back later for the translations).
 
+**Your local source-of-truth language can differ from the namespace's default.** Set `default_local_language` in `.langsync.json` to whatever language you write in (e.g. `cs` for a Czech-speaking dev) — the namespace can stay configured with its team-wide default (e.g. `en-US`). When the two differ, sync uploads from your local file and the LLM translates **from your language** into every attached language including the namespace default. Each dev on a team can run with their own source lang in their own `.langsync.json` without affecting anyone else. Full design notes in the backend repo at [`apps/langsync/docs/sync-source-language.md`](../norcube-platform-backend-mono/apps/langsync/docs/sync-source-language.md).
+
 ### Pause vs detach
 
 - **`datasource pause`** — flips the data source's `isActive` flag to `false`. Halts *every* attached policy. One stroke, reversible.

@@ -19,10 +19,11 @@ import (
 
 func newInitCmd() *cobra.Command {
 	var (
-		dirFlag    string
-		nsFlags    []string
-		forceWrite bool
-		seedFlag   string
+		dirFlag        string
+		nsFlags        []string
+		forceWrite     bool
+		seedFlag       string
+		localLangCode  string
 	)
 	cmd := &cobra.Command{
 		Use:   "init",
@@ -157,7 +158,7 @@ Examples:
 				return nil
 			}
 
-			additions, err := buildInitEntries(picked, langByID, existing, dirFlag)
+			additions, err := buildInitEntries(picked, langByID, existing, dirFlag, localLangCode)
 			if err != nil {
 				if errors.Is(err, ErrCancelled) {
 					fmt.Fprintln(cmd.OutOrStdout(), "Cancelled.")
@@ -229,6 +230,7 @@ Examples:
 	cmd.Flags().StringSliceVarP(&nsFlags, "namespace", "n", nil, "Namespace name to include (repeat for multiple); skips the picker")
 	cmd.Flags().BoolVar(&forceWrite, "force", false, "Overwrite an existing .langsync.json instead of merging")
 	cmd.Flags().StringVar(&seedFlag, "seed", string(seedModePull), "After writing the config: pull | push-all | push-default | none")
+	cmd.Flags().StringVar(&localLangCode, "local-lang", "", "Language code you write source-of-truth values in. Defaults to the namespace's server-side default. Pass e.g. --local-lang cs to write in Czech even if the namespace default is en-US (see apps/langsync/docs/sync-source-language.md).")
 	return cmd
 }
 
@@ -497,7 +499,15 @@ func optionValue(opt huh.Option[string]) string {
 // buildInitEntries fills in the per-namespace fields (dir, format,
 // default_local_language). Pre-existing entries supply their dir as
 // the default suggestion so a re-run doesn't shuffle paths around.
-func buildInitEntries(picked []langsync.DtoDTONamespace, langByID map[int]string, existing *projectcfg.File, dirFlag string) ([]projectcfg.Namespace, error) {
+//
+// localLangOverride (from --local-lang) lets the dev pick a
+// source-of-truth language that differs from the namespace's
+// server-side default. The override applies to EVERY picked
+// namespace this init writes — different namespaces in the same
+// project usually share the same dev's language. Per-namespace
+// override is available by editing .langsync.json directly.
+// Background: apps/langsync/docs/sync-source-language.md.
+func buildInitEntries(picked []langsync.DtoDTONamespace, langByID map[int]string, existing *projectcfg.File, dirFlag, localLangOverride string) ([]projectcfg.Namespace, error) {
 	existingByName := map[string]projectcfg.Namespace{}
 	if existing != nil {
 		for _, ns := range existing.Namespaces {
@@ -521,6 +531,16 @@ func buildInitEntries(picked []langsync.DtoDTONamespace, langByID map[int]string
 		}
 		if defaultCode == "" {
 			return nil, fmt.Errorf("namespace %q has no default language attached on the server — set one in the web app first", name)
+		}
+		// --local-lang lets the user write source-of-truth values
+		// in a language different from the namespace's server-side
+		// default. The override is the value baked into the
+		// project config; sync uses it when deciding which file
+		// to read as source and tells the backend to AI-translate
+		// FROM it. Falls through to the server's default when
+		// the flag isn't passed.
+		if strings.TrimSpace(localLangOverride) != "" {
+			defaultCode = strings.TrimSpace(localLangOverride)
 		}
 
 		dir := suggestNamespaceDir(name, dirFlag, existingByName[name])
