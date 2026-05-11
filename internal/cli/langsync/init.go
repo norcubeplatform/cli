@@ -396,12 +396,121 @@ func resolveInitNamespaceSelection(ctx context.Context, c *langsyncContext, all 
 		}
 	}
 
+	// Primary picker: single Select.
+	//
+	// The common case is "I want one namespace for this project."
+	// Single Select means Enter on the highlighted row picks it —
+	// no Space + Enter dance, no fallback ambiguity. Two sentinel
+	// rows at the bottom open the two less-common paths:
+	//
+	//   - "+ Pick multiple namespaces…" — expands to a MultiSelect
+	//     for users who want bulk pick.
+	//   - "+ Create a new namespace…" — runs the inline create
+	//     wizard and returns the new namespace as the sole pick.
+	//
+	// Bottom placement matters: hitting Enter on the top row
+	// (existing namespace) is the most common action, and Enter
+	// must not accidentally pick a sentinel.
+	const (
+		multiSentinel  = "__norcube_pick_multiple__"
+		createSentinel = "__norcube_create_namespace__"
+	)
+
+	opts := make([]huh.Option[string], 0, len(all)+2)
+	addNS := func(ns langsync.DtoDTONamespace) {
+		name := ""
+		if ns.Name != nil {
+			name = *ns.Name
+		}
+		if name == "" {
+			return
+		}
+		label := name
+		if ns.Context != nil && *ns.Context != "" {
+			label = fmt.Sprintf("%s — %s", name, *ns.Context)
+		}
+		if alreadyConfigured[name] {
+			label += "  (already configured)"
+		}
+		opts = append(opts, huh.NewOption(label, name))
+	}
+	// Active / already-configured namespaces sit at the top so
+	// the default cursor lands on the entry the user is most
+	// likely to want.
+	for _, ns := range all {
+		if ns.Name != nil && alreadyConfigured[*ns.Name] {
+			addNS(ns)
+		}
+	}
+	for _, ns := range all {
+		if ns.Name == nil || !alreadyConfigured[*ns.Name] {
+			addNS(ns)
+		}
+	}
+	if len(opts) == 0 {
+		// No existing namespaces — caller (init RunE) handles
+		// this upstream by going straight to createNamespace-
+		// Interactive. Defensive guard so we don't show an
+		// empty picker.
+		return nil, fmt.Errorf("no namespaces available to pick")
+	}
+	opts = append(opts,
+		huh.NewOption("+ Pick multiple namespaces…", multiSentinel),
+		huh.NewOption("+ Create a new namespace…", createSentinel),
+	)
+
+	var picked string
+	err := newWizard(huh.NewGroup(
+		huh.NewSelect[string]().
+			Title("Pick a namespace for this project").
+			Description("Enter to pick the highlighted row. Use the rows at the bottom to pick multiple namespaces or create a new one.").
+			Options(opts...).
+			Value(&picked),
+	)).Run()
+	if err != nil {
+		if errors.Is(err, huh.ErrUserAborted) {
+			return nil, ErrCancelled
+		}
+		return nil, err
+	}
+
+	switch picked {
+	case createSentinel:
+		newNS, err := createNamespaceInteractive(ctx, c)
+		if err != nil {
+			if errors.Is(err, ErrCancelled) {
+				return nil, nil
+			}
+			return nil, err
+		}
+		if newNS.Name == nil || *newNS.Name == "" {
+			return nil, fmt.Errorf("backend returned a namespace without a name")
+		}
+		return []langsync.DtoDTONamespace{*newNS}, nil
+
+	case multiSentinel:
+		return pickNamespacesMulti(all, alreadyConfigured, byName)
+
+	default:
+		ns, ok := byName[picked]
+		if !ok {
+			return nil, fmt.Errorf("internal: picked namespace %q not in list", picked)
+		}
+		return []langsync.DtoDTONamespace{ns}, nil
+	}
+}
+
+// pickNamespacesMulti is the bulk-pick branch reached via the
+// "+ Pick multiple namespaces…" option on the primary picker. Uses
+// huh.MultiSelect with Space-to-toggle + Enter-to-confirm.
+// Already-configured entries are pre-checked and pinned at the top
+// (huh viewport quirk #628). No "+ Create" sentinel here — the
+// primary picker covers that path; merging both into one screen
+// reintroduces the Enter-ambiguity bug we fixed by splitting out
+// the primary picker.
+func pickNamespacesMulti(all []langsync.DtoDTONamespace, alreadyConfigured map[string]bool, byName map[string]langsync.DtoDTONamespace) ([]langsync.DtoDTONamespace, error) {
 	opts := make([]huh.Option[string], 0, len(all))
 	preselected := []string{}
-
-	// Pre-checked entries first so huh's viewport doesn't have to
-	// scroll past them on initial render (huh #628). Same idea as
-	// the org picker — first row matters.
 	addNS := func(ns langsync.DtoDTONamespace) {
 		name := ""
 		if ns.Name != nil {
@@ -432,39 +541,12 @@ func resolveInitNamespaceSelection(ctx context.Context, c *langsyncContext, all 
 			addNS(ns)
 		}
 	}
-	if len(opts) == 0 {
-		// No existing namespaces — the caller (init RunE) handles
-		// this upstream by going straight to createNamespace-
-		// Interactive. A defensive guard so we don't show an
-		// empty picker.
-		return nil, fmt.Errorf("no namespaces available to pick")
-	}
-
-	// The "+ Create new namespace…" option does NOT live inside
-	// the multi-select. huh.MultiSelect requires Space-to-toggle
-	// + Enter-to-confirm, and there's no way to detect "user hit
-	// Enter while highlighting THIS row" — so an in-list create
-	// row gets silently treated as "no toggles, fall back to top
-	// entry". We instead present an explicit Confirm immediately
-	// AFTER the multi-select. Two prompts, both with
-	// unambiguous semantics, beats one prompt where Enter does
-	// the wrong thing.
 
 	selected := preselected
-	// No Height() — see init_org.go for the huh viewport bug
-	// workaround note. Short lists render in full without the
-	// cursor-anchored-at-top scrolling glitch.
-	//
-	// Note on UX: MultiSelect requires Space to toggle + Enter to
-	// confirm. A first-time user can hit Enter expecting it to
-	// confirm the highlighted row (single-Select muscle memory)
-	// and end up with zero picks. We handle that below by falling
-	// back to the top row (which is the active/preselected one,
-	// pinned earlier).
 	err := newWizard(huh.NewGroup(
 		huh.NewMultiSelect[string]().
-			Title("Which namespaces should this project sync?").
-			Description("[Space] toggles a row, [Enter] confirms. Hit Enter with no toggles to just take the top row. Pre-checked entries are already in .langsync.json.").
+			Title("Pick the namespaces this project should sync").
+			Description("[Space] toggles a row, [Enter] confirms. Pre-checked entries are already in .langsync.json.").
 			Options(opts...).
 			Value(&selected),
 	)).Run()
@@ -475,52 +557,11 @@ func resolveInitNamespaceSelection(ctx context.Context, c *langsyncContext, all 
 		return nil, err
 	}
 
-	// Empty selection fallback: huh.MultiSelect returns an empty
-	// slice when the user hits Enter without ever pressing Space.
-	// Fall back to the top row (the active/preselected one,
-	// pinned earlier) so a single Enter still picks something
-	// useful.
 	if len(selected) == 0 && len(opts) > 0 {
 		topValue := optionValue(opts[0])
 		if topValue != "" {
 			fmt.Fprintf(os.Stderr, "No rows toggled — using the top entry %q.\n", topValue)
 			selected = []string{topValue}
-		}
-	}
-
-	// Separate Confirm prompt for "also create a new namespace?".
-	// Default No so Enter alone advances; choosing Yes runs the
-	// create flow and appends the new namespace to the pick list.
-	// This is the explicit path that replaces the in-list
-	// "+ Create new namespace…" option — it puts the create
-	// decision on its own screen where Enter's meaning is
-	// unambiguous (advance with current choice, default No).
-	var wantCreate bool
-	if err := newWizard(huh.NewGroup(
-		huh.NewConfirm().
-			Title("Also create a new namespace for this project?").
-			Description("Pick Yes to run the create wizard right after this. Picks above stay selected.").
-			Affirmative("Yes, create one").
-			Negative("No, skip").
-			Value(&wantCreate),
-	)).Run(); err != nil {
-		if errors.Is(err, huh.ErrUserAborted) {
-			return nil, ErrCancelled
-		}
-		return nil, err
-	}
-
-	if wantCreate {
-		newNS, err := createNamespaceInteractive(ctx, c)
-		if err != nil {
-			if errors.Is(err, ErrCancelled) {
-				fmt.Fprintln(os.Stderr, "Namespace creation cancelled; continuing with the picks above.")
-			} else {
-				return nil, err
-			}
-		} else if newNS.Name != nil && *newNS.Name != "" {
-			byName[*newNS.Name] = *newNS
-			selected = append(selected, *newNS.Name)
 		}
 	}
 
