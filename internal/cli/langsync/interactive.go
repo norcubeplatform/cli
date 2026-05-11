@@ -83,6 +83,33 @@ func resolveNamespace(ctx context.Context, c *langsyncContext, flagValue, picker
 	return pickNamespace(ctx, c, pickerTitle)
 }
 
+// confirm prompts the user with a yes/no question. When stdin is not
+// interactive or --yes was already passed, returns true without prompting
+// so scripts work without surprise. Identical contract to the snapdb
+// package's helper.
+func confirm(prompt string, yesFlag bool) (bool, error) {
+	if yesFlag {
+		return true, nil
+	}
+	if !stdinIsInteractive() {
+		return false, fmt.Errorf("%s — pass --yes to confirm non-interactively", prompt)
+	}
+	var ok bool
+	err := huh.NewConfirm().
+		Title(prompt).
+		Affirmative("Yes").
+		Negative("Cancel").
+		Value(&ok).
+		Run()
+	if err != nil {
+		if errors.Is(err, huh.ErrUserAborted) {
+			return false, ErrCancelled
+		}
+		return false, err
+	}
+	return ok, nil
+}
+
 // silence unused-import lint when we only need types from the langsync
 // package via the rest of the file's references.
 var _ = langsync.DtoDTONamespace{}
