@@ -1,0 +1,7 @@
+package: langsync
+generate:
+  models: true
+  client: true
+output: internal/api/langsync/langsync.gen.go
+output-options:
+  skip-prune: true

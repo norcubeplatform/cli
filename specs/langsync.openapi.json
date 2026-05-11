@@ -1,0 +1,4448 @@
+{
+  "components": {
+    "schemas": {
+      "apikey.payloadCreateRequest": {
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "apikey.payloadCreateResponse": {
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "constants.GlossaryItemType": {
+        "enum": [
+          "noun",
+          "verb",
+          "adjective",
+          "adverb",
+          "pronoun",
+          "preposition",
+          "conjunction",
+          "interjection",
+          "phrase",
+          "idiom",
+          "n/a"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "GlossaryItemTypeNoun",
+          "GlossaryItemTypeVerb",
+          "GlossaryItemTypeAdj",
+          "GlossaryItemTypeAdv",
+          "GlossaryItemTypePronoun",
+          "GlossaryItemTypePreposition",
+          "GlossaryItemTypeConjunction",
+          "GlossaryItemTypeInterjection",
+          "GlosasryItemTypePhrase",
+          "GlossaryItemTypeIdiom",
+          "GlossaryItemTypeNotApplicable"
+        ]
+      },
+      "constants.IntegrationHelpjuiceChangeTranslationStatus": {
+        "enum": [
+          "new",
+          "pending",
+          "in_progress",
+          "completed",
+          "failed"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "IntegrationHelpjuiceChangeTranslationStatusNew",
+          "IntegrationHelpjuiceChangeTranslationStatusPending",
+          "IntegrationHelpjuiceChangeTranslationStatusInProgress",
+          "IntegrationHelpjuiceChangeTranslationStatusCompleted",
+          "IntegrationHelpjuiceChangeTranslationStatusFailed"
+        ]
+      },
+      "constants.TermBulkImportStatus": {
+        "enum": [
+          "prechecked",
+          "processing",
+          "completed",
+          "failed"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "TermBulkImportStatusPrechecked",
+          "TermBulkImportStatusProcessing",
+          "TermBulkImportStatusCompleted",
+          "TermBulkImportStatusFailed"
+        ]
+      },
+      "constants.TermImportCSVColumnSetupType": {
+        "enum": [
+          "ignore",
+          "mark",
+          "context",
+          "translation"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "TermImportCSVColumnSetupTypeIgnore",
+          "TermImportCSVColumnSetupTypeMark",
+          "TermImportCSVColumnSetupTypeContext",
+          "TermImportCSVColumnSetupTypeTranslation"
+        ]
+      },
+      "constants.TermImportFormat": {
+        "enum": [
+          "csv",
+          "tsv",
+          "xlsx",
+          "xls"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "TermImportFormatCSV",
+          "TermImportFormatTSV",
+          "TermImportFormatXLSX",
+          "TermImportFormatXLS"
+        ]
+      },
+      "dto.APIKey": {
+        "properties": {
+          "createdAt": {
+            "type": "string"
+          },
+          "createdBy": {
+            "type": "string"
+          },
+          "hash": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "lastUsedAt": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "preview": {
+            "type": "string"
+          },
+          "revokedAt": {
+            "type": "string"
+          },
+          "revokedBy": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "updatedBy": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "createdAt",
+          "createdBy",
+          "hash",
+          "id",
+          "name",
+          "organizationId"
+        ],
+        "type": "object"
+      },
+      "dto.CustomPrompt": {
+        "properties": {
+          "createdAt": {
+            "type": "string"
+          },
+          "createdBy": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "isPrivate": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "prompt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "createdAt",
+          "createdBy",
+          "id",
+          "isPrivate",
+          "name",
+          "organizationId",
+          "prompt",
+          "updatedAt"
+        ],
+        "type": "object"
+      },
+      "dto.DTOLanguage": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "dto.DTONamespace": {
+        "properties": {
+          "context": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "created_by": {
+            "type": "string"
+          },
+          "defaultLanguageId": {
+            "type": "integer"
+          },
+          "id": {
+            "type": "string"
+          },
+          "languages": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "name": {
+            "type": "string"
+          },
+          "organization_id": {
+            "type": "string"
+          },
+          "progress": {
+            "type": "number"
+          },
+          "total_terms": {
+            "type": "integer"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "dto.DTOTerm": {
+        "properties": {
+          "term": {
+            "$ref": "#/components/schemas/dto.DTOTermDetail"
+          },
+          "translations": {
+            "items": {
+              "$ref": "#/components/schemas/dto.TranslationInfo"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "term",
+          "translations"
+        ],
+        "type": "object"
+      },
+      "dto.DTOTermDetail": {
+        "properties": {
+          "context": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "mark": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "context",
+          "created_at",
+          "id",
+          "mark"
+        ],
+        "type": "object"
+      },
+      "dto.Glossary": {
+        "properties": {
+          "defaultLanguageId": {
+            "type": "integer"
+          },
+          "id": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "dto.GlossaryItem": {
+        "properties": {
+          "context": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "defaultLanguageValue": {
+            "type": "string"
+          },
+          "enabledLanguagesCount": {
+            "type": "integer"
+          },
+          "glossaryId": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "isCaseSensitive": {
+            "type": "boolean"
+          },
+          "isTranslatable": {
+            "type": "boolean"
+          },
+          "translatedCount": {
+            "type": "integer"
+          },
+          "translationPercentage": {
+            "type": "number"
+          },
+          "type": {
+            "$ref": "#/components/schemas/constants.GlossaryItemType"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "context",
+          "createdAt",
+          "defaultLanguageValue",
+          "enabledLanguagesCount",
+          "glossaryId",
+          "id",
+          "isCaseSensitive",
+          "isTranslatable",
+          "translatedCount",
+          "translationPercentage",
+          "type"
+        ],
+        "type": "object"
+      },
+      "dto.GlossaryItemTranslation": {
+        "properties": {
+          "approvedAt": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "glossaryItemId": {
+            "type": "string"
+          },
+          "languageCode": {
+            "type": "string"
+          },
+          "languageId": {
+            "type": "integer"
+          },
+          "languageName": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "createdAt",
+          "glossaryItemId",
+          "languageCode",
+          "languageId",
+          "languageName",
+          "value"
+        ],
+        "type": "object"
+      },
+      "dto.IntegrationHelpjuiceChange": {
+        "properties": {
+          "articleId": {
+            "type": "string"
+          },
+          "articleTitle": {
+            "type": "string"
+          },
+          "changeType": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "setupId": {
+            "type": "string"
+          },
+          "translationCompletedAt": {
+            "type": "string"
+          },
+          "translationStartedAt": {
+            "type": "string"
+          },
+          "translationStartedBy": {
+            "type": "string"
+          },
+          "translationStatus": {
+            "$ref": "#/components/schemas/constants.IntegrationHelpjuiceChangeTranslationStatus"
+          }
+        },
+        "required": [
+          "articleId",
+          "articleTitle",
+          "changeType",
+          "createdAt",
+          "id",
+          "setupId",
+          "translationStatus"
+        ],
+        "type": "object"
+      },
+      "dto.LangInfo": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "code",
+          "id"
+        ],
+        "type": "object"
+      },
+      "dto.TranslationInfo": {
+        "properties": {
+          "created_at": {
+            "type": "string"
+          },
+          "lang": {
+            "$ref": "#/components/schemas/dto.LangInfo"
+          },
+          "language_to_namespace_id": {
+            "type": "integer"
+          },
+          "updated_at": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "lang",
+          "language_to_namespace_id",
+          "value"
+        ],
+        "type": "object"
+      },
+      "glossary.addTranslationRequest": {
+        "properties": {
+          "languageId": {
+            "type": "integer"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "languageId",
+          "value"
+        ],
+        "type": "object"
+      },
+      "glossary.createGlossaryRequest": {
+        "properties": {
+          "defaultLanguageId": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "defaultLanguageId"
+        ],
+        "type": "object"
+      },
+      "glossary.createGlossaryResponse": {
+        "properties": {
+          "glossaryId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "glossaryId"
+        ],
+        "type": "object"
+      },
+      "glossary.createItemRequest": {
+        "properties": {
+          "context": {
+            "type": "string"
+          },
+          "defaultLanguageValue": {
+            "type": "string"
+          },
+          "isCaseSensitive": {
+            "type": "boolean"
+          },
+          "isTranslatable": {
+            "type": "boolean"
+          },
+          "type": {
+            "$ref": "#/components/schemas/constants.GlossaryItemType"
+          }
+        },
+        "required": [
+          "defaultLanguageValue",
+          "isCaseSensitive",
+          "isTranslatable",
+          "type"
+        ],
+        "type": "object"
+      },
+      "glossary.createItemResponse": {
+        "properties": {
+          "itemId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "itemId"
+        ],
+        "type": "object"
+      },
+      "glossary.payloadGetItemResponse": {
+        "properties": {
+          "glossaryItem": {
+            "$ref": "#/components/schemas/dto.GlossaryItem"
+          },
+          "glossaryItemTranslations": {
+            "items": {
+              "$ref": "#/components/schemas/dto.GlossaryItemTranslation"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "glossaryItem"
+        ],
+        "type": "object"
+      },
+      "glossary.updateTranslationRequest": {
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value"
+        ],
+        "type": "object"
+      },
+      "helpjuice.createRequestBody": {
+        "properties": {
+          "helpjuiceApiKey": {
+            "type": "string"
+          },
+          "helpjuiceSubdomain": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "helpjuiceApiKey",
+          "helpjuiceSubdomain",
+          "title"
+        ],
+        "type": "object"
+      },
+      "helpjuice.createResponseBody": {
+        "properties": {
+          "createId": {
+            "type": "string"
+          },
+          "webhookUrl": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "createId",
+          "webhookUrl"
+        ],
+        "type": "object"
+      },
+      "helpjuice.updateSettingRequestBody": {
+        "properties": {
+          "customPrompt": {
+            "type": "string"
+          },
+          "enableAutomaticTranslations": {
+            "type": "boolean"
+          },
+          "targetLanguages": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "title": {
+            "type": "string"
+          },
+          "watchedLanguages": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "customPrompt",
+          "enableAutomaticTranslations",
+          "targetLanguages",
+          "title",
+          "watchedLanguages"
+        ],
+        "type": "object"
+      },
+      "migrator.payloadGetProjectsRequest": {
+        "properties": {
+          "api_key": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "migrator.payloadGetProjectsResponse": {
+        "properties": {
+          "projects": {
+            "items": {
+              "$ref": "#/components/schemas/poeditor.Project"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "migrator.payloadMigrateRequest": {
+        "properties": {
+          "api_key": {
+            "type": "string"
+          },
+          "project_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "migrator.payloadMigrateResponse": {
+        "properties": {
+          "migrated_count": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "namespace.payloadAddLanguageRequest": {
+        "properties": {
+          "language_id": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "namespace.payloadAddLanguageResponse": {
+        "properties": {
+          "connection_id": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "namespace.payloadCreateNamespaceRequest": {
+        "properties": {
+          "context": {
+            "type": "string"
+          },
+          "defaultLanguage": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "context",
+          "defaultLanguage",
+          "name"
+        ],
+        "type": "object"
+      },
+      "namespace.payloadUpdateNamespaceRequest": {
+        "properties": {
+          "context": {
+            "type": "string"
+          },
+          "default_language": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "poeditor.POEditorTime": {
+        "properties": {
+          "time.Time": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "poeditor.Project": {
+        "properties": {
+          "created": {
+            "$ref": "#/components/schemas/poeditor.POEditorTime"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "open": {
+            "type": "integer"
+          },
+          "public": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "response.APIError": {
+        "properties": {
+          "data": {},
+          "msg": {
+            "example": "The payload is invalid.",
+            "type": "string"
+          },
+          "type": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/response.Type"
+              }
+            ],
+            "example": "INVALID_PAYLOAD"
+          }
+        },
+        "required": [
+          "msg",
+          "type"
+        ],
+        "type": "object"
+      },
+      "response.APIResponseEmpty": {
+        "type": "object"
+      },
+      "response.APIResponsePaginationCursors": {
+        "properties": {
+          "next": {
+            "example": "eyJpZCI6MzI3LCJjcmVhdGVkX2F0IjoiMjAyNS0wMS0wOFQxNzoyOTozMC42MzMxMTRaIn0=",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "response.APIResponsePaginationMeta": {
+        "properties": {
+          "timestamp": {
+            "example": "2021-01-08T17:29:30.663Z",
+            "type": "string"
+          }
+        },
+        "required": [
+          "timestamp"
+        ],
+        "type": "object"
+      },
+      "response.APIResponseWithPagination": {
+        "properties": {
+          "cursors": {
+            "$ref": "#/components/schemas/response.APIResponsePaginationCursors"
+          },
+          "list": {},
+          "meta": {
+            "$ref": "#/components/schemas/response.APIResponsePaginationMeta"
+          }
+        },
+        "required": [
+          "cursors",
+          "list",
+          "meta"
+        ],
+        "type": "object"
+      },
+      "response.Type": {
+        "enum": [
+          "INTERNAL_SERVER_ERROR",
+          "NOT_FOUND",
+          "NOT_IMPLEMENTED",
+          "INVALID_TOKEN",
+          "INVALID_REQUEST",
+          "INVALID_NAME",
+          "OTP_INVALID",
+          "UNAUTHORIZED",
+          "FORBIDDEN",
+          "INSUFFICIENT_PERMISSIONS",
+          "INVALID_PAYLOAD",
+          "EMPTY",
+          "EMPTY_VALUE",
+          "NO_CONNECTIONS",
+          "CONNECTION_ALREADY_EXISTS",
+          "EMAIL_REQUIRED",
+          "MISSING_NEW_PASSWORD",
+          "USER_NOT_FOUND",
+          "SECRET_NOT_FOUND",
+          "SECRET_EXPIRED",
+          "MISSING_RESET_PASSWORD_SECRET",
+          "OLD_PASSWORD_REQUIRED",
+          "NEW_PASSWORD_REQUIRED",
+          "INVALID_OLD_PASSWORD",
+          "MISSING_BACKUP_CODE",
+          "BACKUP_CODE_INVALID",
+          "LOGIN_INTENT_TOKEN",
+          "NAME_REQUIRED",
+          "INNOVATION_AGENCY_ID_REQUIRED",
+          "INVALID_ROLE",
+          "PASSWORD_REQUIRED",
+          "USER_ALREADY_EXISTS",
+          "MISSING_PERMISSIONS",
+          "ORGANIZATION_MISSING",
+          "NAMESPACE_MISSING",
+          "TERM_ALREADY_EXISTS",
+          "TERM_IS_REQUIRED",
+          "SETUP_REQUIRED",
+          "COLUMN_COUNT_MISMATCH",
+          "LANGUAGE_NOT_IN_NAMESPACE",
+          "INVALID_IMPORT_STATUS",
+          "DUPLICATE"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "ErrInternalServer",
+          "ErrNotFound",
+          "ErrNotImplemented",
+          "ErrInvalidToken",
+          "ErrInvalidRequest",
+          "ErrInvalidName",
+          "ErrOTPInvalid",
+          "ErrUnauthorized",
+          "ErrForbidden",
+          "ErrInsufficientPermissions",
+          "ErrPayloadInvalid",
+          "ErrEmpty",
+          "ErrEmptyValue",
+          "ErrNoConnections",
+          "ErrConnectionAlreadyExists",
+          "ErrEmailRequired",
+          "ErrMissingNewPassword",
+          "ErrUserNotFound",
+          "ErrSecretNotFound",
+          "ErrSecretExpired",
+          "ErrMissingResetPasswordSecret",
+          "ErrOldPasswordRequired",
+          "ErrNewPasswordRequired",
+          "ErrInvalidOldPassword",
+          "ErrMissingBackupCode",
+          "ErrBackupCodeInvalid",
+          "ErrLoginIntentToken",
+          "ErrNameRequired",
+          "ErrInnovationAgencyIDRequired",
+          "ErrInvalidRole",
+          "ErrPasswordRequired",
+          "ErrUserAlreadyExists",
+          "ErrMissingPermissions",
+          "ErrOrganizationMissing",
+          "ErrNamespaceMissing",
+          "ErrTermAlreadyExists",
+          "ErrTermIsRequired",
+          "ErrSetupRequired",
+          "ErrColumnCountMismatch",
+          "ErrLanguageNotInNamespace",
+          "ErrInvalidImportStatus",
+          "ErrDuplicate"
+        ]
+      },
+      "shared.TermBulkImportPrecheckData": {
+        "properties": {
+          "csv": {
+            "$ref": "#/components/schemas/shared.TermBulkImportPrecheckDataCSV"
+          }
+        },
+        "type": "object"
+      },
+      "shared.TermBulkImportPrecheckDataCSV": {
+        "properties": {
+          "columnNames": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "shared.TermImportCSVColumnSetup": {
+        "properties": {
+          "translation": {
+            "$ref": "#/components/schemas/shared.TermImportCSVColumnSetupTranslation"
+          },
+          "type": {
+            "$ref": "#/components/schemas/constants.TermImportCSVColumnSetupType"
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "type": "object"
+      },
+      "shared.TermImportCSVColumnSetupTranslation": {
+        "properties": {
+          "languageId": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "languageId"
+        ],
+        "type": "object"
+      },
+      "shared.TermImportCSVSetup": {
+        "properties": {
+          "columnSetup": {
+            "items": {
+              "$ref": "#/components/schemas/shared.TermImportCSVColumnSetup"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "columnSetup"
+        ],
+        "type": "object"
+      },
+      "shared.TermImportSetup": {
+        "properties": {
+          "csv": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/shared.TermImportCSVSetup"
+              }
+            ],
+            "description": "CSV specific setup"
+          },
+          "overwriteExisting": {
+            "description": "Whether to overwrite existing terms with the same mark in the namespace",
+            "type": "boolean"
+          },
+          "translateAutomatically": {
+            "description": "Whether to automatically translate terms into all languages in the namespace",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "overwriteExisting",
+          "translateAutomatically"
+        ],
+        "type": "object"
+      },
+      "term.importFinishRequest": {
+        "properties": {
+          "setup": {
+            "$ref": "#/components/schemas/shared.TermImportSetup"
+          }
+        },
+        "required": [
+          "setup"
+        ],
+        "type": "object"
+      },
+      "term.importFinishResponse": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/constants.TermBulkImportStatus"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "type": "object"
+      },
+      "term.importPrecheckResponse": {
+        "properties": {
+          "details": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/shared.TermBulkImportPrecheckData"
+              }
+            ],
+            "description": "Details specific to the format"
+          },
+          "format": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/constants.TermImportFormat"
+              }
+            ],
+            "description": "Format of the import",
+            "example": "csv"
+          },
+          "importId": {
+            "description": "ID of the import session",
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "type": "string"
+          },
+          "totalRows": {
+            "description": "TotalRows is the total number of rows in the import file",
+            "example": 100,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "details",
+          "format",
+          "importId",
+          "totalRows"
+        ],
+        "type": "object"
+      },
+      "term.payloadAddRequest": {
+        "properties": {
+          "context": {
+            "type": "string"
+          },
+          "defaultLanguageValue": {
+            "type": "string"
+          },
+          "mark": {
+            "type": "string"
+          },
+          "translateAutomatically": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "context",
+          "defaultLanguageValue",
+          "mark",
+          "translateAutomatically"
+        ],
+        "type": "object"
+      },
+      "term.payloadRecommendMagicTranslationRequest": {
+        "properties": {
+          "prompt": {
+            "type": "string"
+          },
+          "sourceLangId": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "prompt"
+        ],
+        "type": "object"
+      },
+      "term.payloadRecommendMagicTranslationResponse": {
+        "properties": {
+          "translation": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "translation"
+        ],
+        "type": "object"
+      },
+      "term.payloadUpdateRequest": {
+        "properties": {
+          "context": {
+            "type": "string"
+          },
+          "mark": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "term.payloadUpdateResponse": {
+        "type": "object"
+      },
+      "term.payloadUpdateTranslationRequest": {
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "term.translateMissingTranslationsRequest": {
+        "properties": {
+          "languageIds": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "term.translateMissingTranslationsResponse": {
+        "type": "object"
+      },
+      "translation.CreateCustomPromptInput": {
+        "properties": {
+          "createdBy": {
+            "type": "string"
+          },
+          "isPrivate": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "organizationID": {
+            "type": "string"
+          },
+          "prompt": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "translation.PatchCustomPromptInput": {
+        "properties": {
+          "isPrivate": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "prompt": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "translation.createCustomPromptResponse": {
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "translation.translateTextBody": {
+        "properties": {
+          "customPromptId": {
+            "type": "string"
+          },
+          "sourceLanguageId": {
+            "type": "integer"
+          },
+          "targetLanguageId": {
+            "type": "integer"
+          },
+          "text": {
+            "type": "string"
+          },
+          "useGlossary": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "sourceLanguageId",
+          "targetLanguageId",
+          "text",
+          "useGlossary"
+        ],
+        "type": "object"
+      },
+      "translation.translateTextResponse": {
+        "properties": {
+          "translatedText": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "translatedText"
+        ],
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "contact": {
+      "email": "jan@jetlio.com",
+      "name": "Jan Švábík"
+    },
+    "description": "This is the API for JDS LangSync service.",
+    "title": "JDS LangSync API",
+    "version": ""
+  },
+  "openapi": "3.0.3",
+  "paths": {
+    "/apikeys": {
+      "get": {
+        "description": "List API keys",
+        "operationId": "listAPIKeys",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/response.APIResponseWithPagination"
+                    },
+                    {
+                      "properties": {
+                        "list": {
+                          "items": {
+                            "$ref": "#/components/schemas/dto.APIKey"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "List API keys",
+        "tags": [
+          "API keys"
+        ]
+      },
+      "post": {
+        "description": "Create API key",
+        "operationId": "createAPIKey",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/apikey.payloadCreateRequest"
+              }
+            }
+          },
+          "description": "API key data",
+          "required": true,
+          "x-originalParamName": "body"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/apikey.payloadCreateResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Create API key",
+        "tags": [
+          "API keys"
+        ]
+      }
+    },
+    "/apikeys/{id}": {
+      "delete": {
+        "description": "Delete API key",
+        "operationId": "deleteAPIKey",
+        "parameters": [
+          {
+            "description": "API key ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Delete API key",
+        "tags": [
+          "API keys"
+        ]
+      }
+    },
+    "/glossary": {
+      "get": {
+        "description": "Retrieve the organization's glossary",
+        "operationId": "getGlossary",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.Glossary"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Get Glossary",
+        "tags": [
+          "Glossary"
+        ]
+      },
+      "post": {
+        "description": "Create a new glossary for the organization",
+        "operationId": "createGlossary",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/glossary.createGlossaryRequest"
+              }
+            }
+          },
+          "description": "Create Glossary Request",
+          "required": true,
+          "x-originalParamName": "request"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/glossary.createGlossaryResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Create Glossary",
+        "tags": [
+          "Glossary"
+        ]
+      }
+    },
+    "/glossary/items": {
+      "get": {
+        "description": "List all glossary items",
+        "operationId": "listGlossaryItems",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/response.APIResponseWithPagination"
+                    },
+                    {
+                      "properties": {
+                        "list": {
+                          "items": {
+                            "$ref": "#/components/schemas/dto.GlossaryItem"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "List Glossary Items",
+        "tags": [
+          "Glossary"
+        ]
+      },
+      "post": {
+        "description": "Create a new glossary item",
+        "operationId": "createGlossaryItem",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/glossary.createItemRequest"
+              }
+            }
+          },
+          "description": "Create Glossary Item Request",
+          "required": true,
+          "x-originalParamName": "request"
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/glossary.createItemResponse"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Create Glossary Item",
+        "tags": [
+          "Glossary"
+        ]
+      }
+    },
+    "/glossary/items/{itemId}": {
+      "delete": {
+        "description": "Delete a glossary item",
+        "operationId": "deleteGlossaryItem",
+        "parameters": [
+          {
+            "description": "Glossary Item ID",
+            "in": "path",
+            "name": "itemId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIResponseEmpty"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Delete Glossary Item",
+        "tags": [
+          "Glossary"
+        ]
+      },
+      "get": {
+        "description": "Retrieve a glossary item by ID",
+        "operationId": "getGlossaryItem",
+        "parameters": [
+          {
+            "description": "Glossary Item ID",
+            "in": "path",
+            "name": "itemId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/glossary.payloadGetItemResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Get Glossary Item",
+        "tags": [
+          "Glossary"
+        ]
+      }
+    },
+    "/glossary/items/{itemId}/translations": {
+      "post": {
+        "description": "Add a translation to a glossary item",
+        "operationId": "addTranslationToGlossaryItem",
+        "parameters": [
+          {
+            "description": "Glossary Item ID",
+            "in": "path",
+            "name": "itemId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/glossary.addTranslationRequest"
+              }
+            }
+          },
+          "description": "Add Translation Request",
+          "required": true,
+          "x-originalParamName": "request"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIResponseEmpty"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Add Translation to Glossary Item",
+        "tags": [
+          "Glossary"
+        ]
+      }
+    },
+    "/glossary/items/{itemId}/translations/{languageId}": {
+      "patch": {
+        "description": "Update a translation of a glossary item",
+        "operationId": "updateGlossaryItemTranslation",
+        "parameters": [
+          {
+            "description": "Glossary Item ID",
+            "in": "path",
+            "name": "itemId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Language ID",
+            "in": "path",
+            "name": "languageId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/glossary.updateTranslationRequest"
+              }
+            }
+          },
+          "description": "Update Translation Request",
+          "required": true,
+          "x-originalParamName": "request"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIResponseEmpty"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Update Glossary Item Translation",
+        "tags": [
+          "Glossary"
+        ]
+      }
+    },
+    "/glossary/languages": {
+      "post": {
+        "description": "Attach a language to the organization's glossary",
+        "operationId": "attachLanguageToGlossary",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIResponseEmpty"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Attach Language to Glossary",
+        "tags": [
+          "Glossary"
+        ]
+      }
+    },
+    "/integrations/helpjuice/changes": {
+      "get": {
+        "description": "Retrieves a list of changes from the Helpjuice integration.",
+        "operationId": "listHelpjuiceChanges",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/response.APIResponseWithPagination"
+                    },
+                    {
+                      "properties": {
+                        "list": {
+                          "items": {
+                            "$ref": "#/components/schemas/dto.IntegrationHelpjuiceChange"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Lists Helpjuice Changes",
+        "tags": [
+          "Helpjuice"
+        ]
+      }
+    },
+    "/integrations/helpjuice/changes/{changeId}/translate": {
+      "post": {
+        "description": "Initiates translation for a specific change in the Helpjuice integration.",
+        "operationId": "translateHelpjuiceChange",
+        "parameters": [
+          {
+            "description": "Change ID",
+            "in": "path",
+            "name": "changeId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIResponseEmpty"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Translates a Helpjuice Change",
+        "tags": [
+          "Helpjuice"
+        ]
+      }
+    },
+    "/integrations/helpjuice/create": {
+      "post": {
+        "description": "Sets up the Helpjuice integration with the provided API key and subdomain.",
+        "operationId": "createHelpjuiceIntegration",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/helpjuice.createRequestBody"
+              }
+            }
+          },
+          "description": "Helpjuice Setup Request Body",
+          "required": true,
+          "x-originalParamName": "createRequestBody"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/helpjuice.createResponseBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Creates Helpjuice Integration",
+        "tags": [
+          "Helpjuice"
+        ]
+      }
+    },
+    "/integrations/helpjuice/{setupId}/settings": {
+      "put": {
+        "description": "Updates the settings of an existing Helpjuice integration.",
+        "operationId": "updateHelpjuiceSettings",
+        "parameters": [
+          {
+            "description": "Setup ID",
+            "in": "path",
+            "name": "setupId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/helpjuice.updateSettingRequestBody"
+              }
+            }
+          },
+          "description": "Helpjuice Update Settings Request Body",
+          "required": true,
+          "x-originalParamName": "updateSettingRequestBody"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIResponseEmpty"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Updates Helpjuice Integration Settings",
+        "tags": [
+          "Helpjuice"
+        ]
+      }
+    },
+    "/languages": {
+      "get": {
+        "operationId": "list",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/dto.DTOLanguage"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "List all languages",
+        "tags": [
+          "languages"
+        ]
+      }
+    },
+    "/migrators/poeditor/projects": {
+      "post": {
+        "operationId": "getProjects",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/migrator.payloadGetProjectsRequest"
+              }
+            }
+          },
+          "description": "Get projects request",
+          "required": true,
+          "x-originalParamName": "body"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/migrator.payloadGetProjectsResponse"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Get projects from POEditor",
+        "tags": [
+          "Migrator"
+        ]
+      }
+    },
+    "/migrators/poeditor/start": {
+      "post": {
+        "operationId": "migrate",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/migrator.payloadMigrateRequest"
+              }
+            }
+          },
+          "description": "Migrate request",
+          "required": true,
+          "x-originalParamName": "body"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/migrator.payloadMigrateResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Migrate terms from POEditor",
+        "tags": [
+          "Migrator"
+        ]
+      }
+    },
+    "/namespaces": {
+      "get": {
+        "description": "List all namespaces",
+        "operationId": "listNamespaces",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/dto.DTONamespace"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "List all namespaces",
+        "tags": [
+          "Namespace"
+        ]
+      },
+      "post": {
+        "description": "Create a namespace",
+        "operationId": "createNamespace",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/namespace.payloadCreateNamespaceRequest"
+              }
+            }
+          },
+          "description": "Create namespace request",
+          "required": true,
+          "x-originalParamName": "body"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIResponseEmpty"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Create a namespace",
+        "tags": [
+          "Namespace"
+        ]
+      }
+    },
+    "/namespaces/{namespaceName}": {
+      "delete": {
+        "description": "Delete a namespace",
+        "operationId": "deleteNamespace",
+        "parameters": [
+          {
+            "description": "Namespace name",
+            "in": "path",
+            "name": "namespaceName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIResponseEmpty"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Delete a namespace",
+        "tags": [
+          "Namespace"
+        ]
+      },
+      "get": {
+        "description": "Get a namespace by name",
+        "operationId": "getNamespaceByNameAndOrg",
+        "parameters": [
+          {
+            "description": "Namespace name",
+            "in": "path",
+            "name": "namespaceName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.DTONamespace"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Get a namespace by name",
+        "tags": [
+          "Namespace"
+        ]
+      },
+      "patch": {
+        "description": "Update a namespace",
+        "operationId": "updateNamespace",
+        "parameters": [
+          {
+            "description": "Namespace name",
+            "in": "path",
+            "name": "namespaceName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/namespace.payloadUpdateNamespaceRequest"
+              }
+            }
+          },
+          "description": "Update namespace request",
+          "required": true,
+          "x-originalParamName": "body"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIResponseEmpty"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Update a namespace",
+        "tags": [
+          "Namespace"
+        ]
+      }
+    },
+    "/namespaces/{namespaceName}/languages": {
+      "get": {
+        "description": "Get languages by namespace",
+        "operationId": "getLanguagesByNamespace",
+        "parameters": [
+          {
+            "description": "Namespace name",
+            "in": "path",
+            "name": "namespaceName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/dto.DTOLanguage"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Get languages by namespace",
+        "tags": [
+          "Namespace"
+        ]
+      },
+      "post": {
+        "description": "Add a language to a namespace",
+        "operationId": "addLanguage",
+        "parameters": [
+          {
+            "description": "Namespace name",
+            "in": "path",
+            "name": "namespaceName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/namespace.payloadAddLanguageRequest"
+              }
+            }
+          },
+          "description": "Language ID",
+          "required": true,
+          "x-originalParamName": "body"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/namespace.payloadAddLanguageResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Add a language to a namespace",
+        "tags": [
+          "Namespace"
+        ]
+      }
+    },
+    "/namespaces/{namespaceName}/languages/{languageId}": {
+      "delete": {
+        "description": "Remove a language from a namespace",
+        "operationId": "removeLanguage",
+        "parameters": [
+          {
+            "description": "Namespace name",
+            "in": "path",
+            "name": "namespaceName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Language ID",
+            "in": "path",
+            "name": "languageId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIResponseEmpty"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Remove a language from a namespace",
+        "tags": [
+          "Namespace"
+        ]
+      }
+    },
+    "/namespaces/{namespaceName}/terms": {
+      "get": {
+        "description": "Get terms by namespace name",
+        "operationId": "listByNamespace",
+        "parameters": [
+          {
+            "description": "Namespace name",
+            "in": "path",
+            "name": "namespaceName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "hasAnyUntranslated",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "untranslatedLangId",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/response.APIResponseWithPagination"
+                    },
+                    {
+                      "properties": {
+                        "list": {
+                          "items": {
+                            "$ref": "#/components/schemas/dto.DTOTerm"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Get terms by namespace name",
+        "tags": [
+          "Terms"
+        ]
+      },
+      "post": {
+        "operationId": "addTerm",
+        "parameters": [
+          {
+            "description": "Namespace name",
+            "in": "path",
+            "name": "namespaceName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/term.payloadAddRequest"
+              }
+            }
+          },
+          "description": "Payload",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.DTOTerm"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Add term",
+        "tags": [
+          "Terms"
+        ]
+      }
+    },
+    "/namespaces/{namespaceName}/terms/imports": {
+      "post": {
+        "operationId": "createImport",
+        "parameters": [
+          {
+            "description": "Namespace name",
+            "in": "path",
+            "name": "namespaceName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "file": {
+                    "description": "File to import",
+                    "format": "binary",
+                    "type": "string",
+                    "x-formData-name": "file"
+                  }
+                },
+                "required": [
+                  "file"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/term.importPrecheckResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Import creation and precheck",
+        "tags": [
+          "Terms"
+        ]
+      }
+    },
+    "/namespaces/{namespaceName}/terms/imports/{importId}/finish": {
+      "post": {
+        "operationId": "importFinish",
+        "parameters": [
+          {
+            "description": "Namespace name",
+            "in": "path",
+            "name": "namespaceName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "importId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/term.importFinishRequest"
+              }
+            }
+          },
+          "description": "Payload",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/term.importFinishResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Import finish",
+        "tags": [
+          "Terms"
+        ]
+      }
+    },
+    "/namespaces/{namespaceName}/terms/translate-missing": {
+      "post": {
+        "operationId": "translateMissingTranslations",
+        "parameters": [
+          {
+            "description": "Namespace name",
+            "in": "path",
+            "name": "namespaceName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/term.translateMissingTranslationsRequest"
+              }
+            }
+          },
+          "description": "Payload",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/term.translateMissingTranslationsResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Translate missing translations",
+        "tags": [
+          "Terms"
+        ]
+      }
+    },
+    "/namespaces/{namespaceName}/terms/{termId}": {
+      "delete": {
+        "operationId": "deleteTerm",
+        "parameters": [
+          {
+            "description": "Namespace name",
+            "in": "path",
+            "name": "namespaceName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Term ID",
+            "in": "path",
+            "name": "termId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Delete term",
+        "tags": [
+          "Terms"
+        ]
+      },
+      "patch": {
+        "operationId": "updateTerm",
+        "parameters": [
+          {
+            "description": "Namespace name",
+            "in": "path",
+            "name": "namespaceName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Term ID",
+            "in": "path",
+            "name": "termId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/term.payloadUpdateRequest"
+              }
+            }
+          },
+          "description": "Payload",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/term.payloadUpdateResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Update term",
+        "tags": [
+          "Terms"
+        ]
+      }
+    },
+    "/namespaces/{namespaceName}/terms/{termId}/translations/{languageId}/recommend": {
+      "post": {
+        "operationId": "recommendMagicTranslation",
+        "parameters": [
+          {
+            "description": "Namespace name",
+            "in": "path",
+            "name": "namespaceName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Term ID",
+            "in": "path",
+            "name": "termId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Language ID",
+            "in": "path",
+            "name": "languageId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/term.payloadRecommendMagicTranslationRequest"
+              }
+            }
+          },
+          "description": "Payload",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/term.payloadRecommendMagicTranslationResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Recommend magic translation",
+        "tags": [
+          "Terms"
+        ]
+      }
+    },
+    "/namespaces/{namespaceName}/terms/{termId}/translations/{languageToNamespaceId}": {
+      "patch": {
+        "operationId": "updateTermTranslation",
+        "parameters": [
+          {
+            "description": "Namespace name",
+            "in": "path",
+            "name": "namespaceName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Term ID",
+            "in": "path",
+            "name": "termId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Language to Namespace ID",
+            "in": "path",
+            "name": "languageToNamespaceId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/term.payloadUpdateTranslationRequest"
+              }
+            }
+          },
+          "description": "Payload",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.DTOTerm"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Update translation",
+        "tags": [
+          "Terms"
+        ]
+      }
+    },
+    "/translations/custom-prompts": {
+      "get": {
+        "description": "Retrieves a list of custom prompts for the organization.",
+        "operationId": "listCustomPrompts",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/dto.CustomPrompt"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "List Custom Prompts",
+        "tags": [
+          "CustomPrompts"
+        ]
+      },
+      "post": {
+        "description": "Creates a new custom prompt for the organization.",
+        "operationId": "createCustomPrompt",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/translation.CreateCustomPromptInput"
+              }
+            }
+          },
+          "description": "Create Custom Prompt Request Body",
+          "required": true,
+          "x-originalParamName": "createCustomPromptBody"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/translation.createCustomPromptResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Create Custom Prompt",
+        "tags": [
+          "CustomPrompts"
+        ]
+      }
+    },
+    "/translations/custom-prompts/{promptId}": {
+      "delete": {
+        "description": "Deletes an existing custom prompt for the organization.",
+        "operationId": "deleteCustomPrompt",
+        "parameters": [
+          {
+            "description": "Custom Prompt ID",
+            "in": "path",
+            "name": "promptId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIResponseEmpty"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Delete Custom Prompt",
+        "tags": [
+          "CustomPrompts"
+        ]
+      },
+      "patch": {
+        "description": "Updates an existing custom prompt for the organization.",
+        "operationId": "updateCustomPrompt",
+        "parameters": [
+          {
+            "description": "Custom Prompt ID",
+            "in": "path",
+            "name": "promptId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/translation.PatchCustomPromptInput"
+              }
+            }
+          },
+          "description": "Update Custom Prompt Request Body",
+          "required": true,
+          "x-originalParamName": "patchCustomPromptBody"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIResponseEmpty"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Update Custom Prompt",
+        "tags": [
+          "CustomPrompts"
+        ]
+      }
+    },
+    "/translations/translate": {
+      "post": {
+        "description": "Translates text from a source language to a target language.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/translation.translateTextBody"
+              }
+            }
+          },
+          "description": "Translation Request Body",
+          "required": true,
+          "x-originalParamName": "translateTextBody"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/translation.translateTextResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Translate Text",
+        "tags": [
+          "Translation"
+        ]
+      }
+    }
+  }
+}

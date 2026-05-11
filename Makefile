@@ -33,10 +33,16 @@ clean:
 # keep it elsewhere.
 MONO ?= ../norcube-platform-backend-mono
 
-codegen: codegen-snapdb
+codegen: codegen-snapdb codegen-langsync
 
 codegen-snapdb:
 	@echo ">> snapdb: converting swagger 2.0 → OpenAPI 3.0"
 	@go run ./tools/swagger2openapi $(MONO)/apps/snapdb/docs/app_swagger.json > specs/snapdb.openapi.json
 	@echo ">> snapdb: generating client"
 	@oapi-codegen --config internal/api/snapdb/oapi-codegen.yaml specs/snapdb.openapi.json
+
+codegen-langsync:
+	@echo ">> langsync: converting swagger 2.0 → OpenAPI 3.0"
+	@go run ./tools/swagger2openapi $(MONO)/apps/langsync/docs/backend_swagger.json > specs/langsync.openapi.json
+	@echo ">> langsync: generating client"
+	@oapi-codegen --config internal/api/langsync/oapi-codegen.yaml specs/langsync.openapi.json

@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/norcubeplatform/cli/internal/buildinfo"
+	"github.com/norcubeplatform/cli/internal/cli/langsync"
 	"github.com/norcubeplatform/cli/internal/cli/snapdb"
 	"github.com/norcubeplatform/cli/internal/clictx"
 )
@@ -45,6 +46,7 @@ func NewRootCmd() *cobra.Command {
 		newConfigCmd(),
 		newUpgradeCmd(),
 		snapdb.NewCmd(),
+		langsync.NewCmd(),
 	)
 
 	return cmd

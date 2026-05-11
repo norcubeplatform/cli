@@ -38,6 +38,7 @@ func main() {
 
 	normalizeFiberPathParams(v3)
 	stripOperationSecurity(v3)
+	ensurePathParameters(v3)
 
 	out, err := json.MarshalIndent(v3, "", "  ")
 	must(err)
@@ -57,7 +58,59 @@ func must(err error) {
 // OpenAPI-style placeholders (`{name}`) in the spec's path keys. Some Norcube
 // services use Fiber's syntax in their @Router annotations, which `swag`
 // passes through unchanged, but oapi-codegen requires OpenAPI syntax.
-var fiberParamRE = regexp.MustCompile(`:([A-Za-z_][A-Za-z0-9_]*)`)
+var (
+	fiberParamRE   = regexp.MustCompile(`:([A-Za-z_][A-Za-z0-9_]*)`)
+	pathParamRE    = regexp.MustCompile(`\{([A-Za-z_][A-Za-z0-9_]*)\}`)
+)
+
+// ensurePathParameters walks every operation and adds a declaration for any
+// path placeholder ({foo}) that's missing from the operation's Parameters
+// list. Norcube's `swag` annotations sometimes only `@Param` the last
+// placeholder, which trips oapi-codegen with "N positional parameters but
+// spec has M declared". Filling in the missing ones unblocks codegen
+// without losing type information for the params that *were* declared.
+func ensurePathParameters(doc *openapi3.T) {
+	if doc == nil || doc.Paths == nil {
+		return
+	}
+	for pathKey, item := range doc.Paths.Map() {
+		if item == nil {
+			continue
+		}
+		needed := pathParamRE.FindAllStringSubmatch(pathKey, -1)
+		if len(needed) == 0 {
+			continue
+		}
+		for _, op := range item.Operations() {
+			if op == nil {
+				continue
+			}
+			have := map[string]bool{}
+			for _, p := range op.Parameters {
+				if p == nil || p.Value == nil {
+					continue
+				}
+				if p.Value.In == "path" {
+					have[p.Value.Name] = true
+				}
+			}
+			for _, m := range needed {
+				name := m[1]
+				if have[name] {
+					continue
+				}
+				op.Parameters = append(op.Parameters, &openapi3.ParameterRef{
+					Value: &openapi3.Parameter{
+						Name:     name,
+						In:       "path",
+						Required: true,
+						Schema:   &openapi3.SchemaRef{Value: &openapi3.Schema{Type: &openapi3.Types{"string"}}},
+					},
+				})
+			}
+		}
+	}
+}
 
 // stripOperationSecurity removes per-operation `security` blocks. Norcube
 // services aren't consistent about security-scheme names across @Security
