@@ -45,8 +45,32 @@ const (
 
 // File is the on-disk root document.
 type File struct {
-	Version    int         `json:"version"`
-	Namespaces []Namespace `json:"namespaces"`
+	Version int `json:"version"`
+	// Organization scopes the entire project to a specific Norcube
+	// org regardless of what the CLI's persisted active_org happens
+	// to be at the moment a command runs. Without it, sync would
+	// silently hit whichever org the developer last ran `nrc org use`
+	// against — too easy to operate on the wrong project. With it,
+	// the project is self-describing.
+	//
+	// Optional for backwards compatibility (old configs predate
+	// this field). When omitted, the CLI falls back to active_org
+	// or whatever --org passes in.
+	Organization *Organization `json:"organization,omitempty"`
+	Namespaces   []Namespace   `json:"namespaces"`
+}
+
+// Organization is the project-pinned org identity. id is the
+// authoritative key (immutable). slug + name are stored alongside
+// for human display in init prompts, error messages, and code review
+// of the JSON file — nobody wants to eyeball a UUID to know which
+// org a project belongs to.
+type Organization struct {
+	ID   string `json:"id"`
+	Slug string `json:"slug"`
+	// Name is optional — kept only for display. The CLI never
+	// trusts it for auth decisions.
+	Name string `json:"name,omitempty"`
 }
 
 // Namespace ties one backend Langsync namespace to one local directory
@@ -160,6 +184,14 @@ func (f *File) Validate() error {
 	}
 	if f.Version > CurrentVersion {
 		return fmt.Errorf("config version %d is newer than this CLI supports (max %d) — upgrade with `norcube upgrade`", f.Version, CurrentVersion)
+	}
+	if f.Organization != nil {
+		if strings.TrimSpace(f.Organization.ID) == "" {
+			return fmt.Errorf("organization.id must not be empty when the organization block is present")
+		}
+		if strings.TrimSpace(f.Organization.Slug) == "" {
+			return fmt.Errorf("organization.slug must not be empty when the organization block is present")
+		}
 	}
 	if len(f.Namespaces) == 0 {
 		return fmt.Errorf("namespaces array must not be empty — rerun `norcube langsync init` to add one")

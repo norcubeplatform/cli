@@ -47,6 +47,15 @@ func (g *Flags) ResolveOrg(cfg *config.Config) (id, slug string) {
 	return cfg.ActiveOrg.ID, cfg.ActiveOrg.Slug
 }
 
+// HasOrgFlag reports whether --org was explicitly set on the command
+// line. Used by callers that need to know the difference between
+// "user said --org=foo" and "fell back to active org" — for
+// example, langsync's project-config override should only kick in
+// when --org is NOT set.
+func (g *Flags) HasOrgFlag() bool {
+	return g.OrgOverride != ""
+}
+
 type ctxKey struct{}
 
 // Attach installs flags on cmd's context. Call from the root command's

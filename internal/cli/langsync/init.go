@@ -32,12 +32,19 @@ source so every dev (and CI) syncs against the same backend
 namespaces.
 
 The wizard:
-  1. lists every namespace in the active organization,
-  2. lets you pick one or more,
-  3. for each pick, asks where its translation files live on disk
+  1. resolves which org this project belongs to (--org flag, or the
+     existing org block in .langsync.json, or — for a fresh init —
+     a picker when you can access more than one org),
+  2. lists every namespace in that organization,
+  3. lets you pick one or more,
+  4. for each pick, asks where its translation files live on disk
      (default: i18n/<namespace>), and
-  4. fetches the namespace's backend default language so sync knows
+  5. fetches the namespace's backend default language so sync knows
      which local file to push from.
+
+The org choice is baked into .langsync.json so every sync, pull, or
+init re-run targets that org regardless of what "nrc org use" is
+set to globally. Override at any time with the --org flag.
 
 Re-run any time to add a new namespace; existing entries are kept
 untouched (use --force to overwrite the file from scratch).
@@ -65,11 +72,6 @@ Examples:
   norcube langsync init --seed push          # use my local JSON files as the source of truth
   norcube langsync init --seed none          # config only, do nothing else`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			c, err := newLangsyncContext(cmd)
-			if err != nil {
-				return err
-			}
-
 			// We always write the config to the current working
 			// directory. Walking up to find an existing one would
 			// surprise users who run `init` from a subdir expecting
@@ -83,6 +85,25 @@ Examples:
 			existing, existingErr := loadExistingForInit(cfgPath, forceWrite)
 			if existingErr != nil {
 				return existingErr
+			}
+
+			// Resolve the target org BEFORE building the langsync
+			// client — every subsequent API call (namespaces list,
+			// sync submission, etc.) needs to hit the right org's
+			// data. Precedence inside resolveInitOrg matches the
+			// expectations: --org flag > existing project config >
+			// active_org / interactive picker on fresh init.
+			org, err := resolveInitOrg(cmd, existing)
+			if err != nil {
+				if errors.Is(err, ErrCancelled) {
+					fmt.Fprintln(cmd.OutOrStdout(), "Cancelled.")
+					return nil
+				}
+				return err
+			}
+			c, err := newLangsyncContextForOrg(cmd, org.ID)
+			if err != nil {
+				return err
 			}
 
 			// Fetch namespaces + the org-wide language list once so we
@@ -123,6 +144,11 @@ Examples:
 
 			final := mergeInitEntries(existing, additions, forceWrite)
 			final.Version = projectcfg.CurrentVersion
+			final.Organization = &projectcfg.Organization{
+				ID:   org.ID,
+				Slug: org.Slug,
+				Name: org.Name,
+			}
 
 			if err := projectcfg.Save(cfgPath, final); err != nil {
 				return err
