@@ -191,6 +191,7 @@ const (
 	ErrNamespaceMissing           ResponseType = "NAMESPACE_MISSING"
 	ErrNewPasswordRequired        ResponseType = "NEW_PASSWORD_REQUIRED"
 	ErrNoConnections              ResponseType = "NO_CONNECTIONS"
+	ErrNoTranslationSource        ResponseType = "NO_TRANSLATION_SOURCE"
 	ErrNotFound                   ResponseType = "NOT_FOUND"
 	ErrNotImplemented             ResponseType = "NOT_IMPLEMENTED"
 	ErrOTPInvalid                 ResponseType = "OTP_INVALID"
@@ -266,6 +267,8 @@ func (e ResponseType) Valid() bool {
 	case ErrNewPasswordRequired:
 		return true
 	case ErrNoConnections:
+		return true
+	case ErrNoTranslationSource:
 		return true
 	case ErrNotFound:
 		return true
@@ -373,6 +376,16 @@ type DtoDTOLanguage struct {
 	// nil for shared languages. Useful for callers that need to display
 	// the source of the language ("from this org" vs "global").
 	OrganizationId *string `json:"organizationId,omitempty"`
+}
+
+// DtoDTOLanguageConnection defines model for dto.DTOLanguageConnection.
+type DtoDTOLanguageConnection struct {
+	ConnectionId   *int    `json:"connection_id,omitempty"`
+	IsDefault      *bool   `json:"is_default,omitempty"`
+	LanguageCode   *string `json:"language_code,omitempty"`
+	LanguageId     *int    `json:"language_id,omitempty"`
+	LanguageName   *string `json:"language_name,omitempty"`
+	LanguageShared *bool   `json:"language_shared,omitempty"`
 }
 
 // DtoDTONamespace defines model for dto.DTONamespace.
@@ -4820,7 +4833,7 @@ func (r UpdateNamespaceResponse) ContentType() string {
 type GetLanguagesByNamespaceResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *[]DtoDTOLanguage
+	JSON200      *[]DtoDTOLanguageConnection
 	JSON400      *ResponseAPIError
 	JSON401      *ResponseAPIError
 	JSON403      *ResponseAPIError
@@ -7334,7 +7347,7 @@ func ParseGetLanguagesByNamespaceResponse(rsp *http.Response) (*GetLanguagesByNa
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []DtoDTOLanguage
+		var dest []DtoDTOLanguageConnection
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

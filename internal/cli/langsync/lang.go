@@ -37,15 +37,15 @@ languages on a given namespace.`,
 
 func newLangListCmd() *cobra.Command {
 	var namespaceName string
-	var all bool
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "List languages — by default the ones attached to a namespace; --all lists every language available to the org",
-		Long: `Without --all, lists languages attached to one namespace (asks via
-picker when --namespace is omitted and stdin is a TTY).
+		Short: "List languages — every language available to the active org by default; pass -n <namespace> for the namespace's attached subset",
+		Long: `Without --namespace, lists every language visible to the active org:
+every shared ("global") language plus every custom language this org
+has created.
 
-With --all, lists every language visible to the active org: every shared
-("global") language plus every custom language this org has created.`,
+With --namespace <name>, lists only the languages attached to that one
+namespace (the subset that translations can target inside it).`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			c, err := newLangsyncContext(cmd)
 			if err != nil {
@@ -53,21 +53,13 @@ With --all, lists every language visible to the active org: every shared
 			}
 
 			var items []langsync.DtoDTOLanguage
-			if all {
-				items, err = listAllLanguages(cmd.Context(), c)
+			if namespaceName != "" {
+				items, err = listAttachedLanguages(cmd.Context(), c, namespaceName)
 				if err != nil {
 					return err
 				}
 			} else {
-				ns, err := resolveNamespace(cmd.Context(), c, namespaceName, "List languages from which namespace?")
-				if err != nil {
-					if errors.Is(err, ErrCancelled) {
-						fmt.Fprintln(cmd.OutOrStdout(), "Cancelled.")
-						return nil
-					}
-					return err
-				}
-				items, err = listAttachedLanguages(cmd.Context(), c, ns)
+				items, err = listAllLanguages(cmd.Context(), c)
 				if err != nil {
 					return err
 				}
@@ -83,8 +75,7 @@ With --all, lists every language visible to the active org: every shared
 			})
 		},
 	}
-	cmd.Flags().StringVarP(&namespaceName, "namespace", "n", "", "Namespace name; picker opens when omitted and stdin is a TTY (ignored with --all)")
-	cmd.Flags().BoolVar(&all, "all", false, "List every language available to the active org (shared + custom) instead of one namespace's attached set")
+	cmd.Flags().StringVarP(&namespaceName, "namespace", "n", "", "Narrow the list to the languages attached to this namespace (omit to list every language in the active org)")
 	return cmd
 }
 
@@ -525,7 +516,33 @@ func listAttachedLanguages(ctx context.Context, c *langsyncContext, ns string) (
 		}
 		return nil, apiError(res.HTTPResponse, res.Body, res.JSON400, res.JSON401, res.JSON403, res.JSON404, res.JSON500)
 	}
-	return *res.JSON200, nil
+	// The per-namespace endpoint returns Connection DTOs (the join row
+	// between language and namespace). Project the language-specific
+	// fields out so callers can treat both endpoints (org-wide and
+	// per-namespace) uniformly. We lose ConnectionID + IsDefault here
+	// because none of the current commands need them; expose those via
+	// a dedicated listing if a future command does.
+	out := make([]langsync.DtoDTOLanguage, 0, len(*res.JSON200))
+	for _, conn := range *res.JSON200 {
+		out = append(out, langsync.DtoDTOLanguage{
+			Id:       conn.LanguageId,
+			Code:     conn.LanguageCode,
+			Name:     conn.LanguageName,
+			IsCustom: deriveIsCustom(conn.LanguageShared),
+		})
+	}
+	return out, nil
+}
+
+// deriveIsCustom flips a *bool `shared` flag into the inverse `isCustom`
+// flag. Returns nil when shared is unknown so downstream renderers can
+// show "—" rather than guessing.
+func deriveIsCustom(shared *bool) *bool {
+	if shared == nil {
+		return nil
+	}
+	v := !*shared
+	return &v
 }
 
 func languageLabel(l langsync.DtoDTOLanguage) string {

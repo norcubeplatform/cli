@@ -221,6 +221,29 @@
         },
         "type": "object"
       },
+      "dto.DTOLanguageConnection": {
+        "properties": {
+          "connection_id": {
+            "type": "integer"
+          },
+          "is_default": {
+            "type": "boolean"
+          },
+          "language_code": {
+            "type": "string"
+          },
+          "language_id": {
+            "type": "integer"
+          },
+          "language_name": {
+            "type": "string"
+          },
+          "language_shared": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
       "dto.DTONamespace": {
         "properties": {
           "context": {
@@ -904,6 +927,7 @@
           "NO_CONNECTIONS",
           "CONNECTION_ALREADY_EXISTS",
           "CONFLICT",
+          "NO_TRANSLATION_SOURCE",
           "EMAIL_REQUIRED",
           "MISSING_NEW_PASSWORD",
           "USER_NOT_FOUND",
@@ -950,6 +974,7 @@
           "ErrNoConnections",
           "ErrConnectionAlreadyExists",
           "ErrConflict",
+          "ErrNoTranslationSource",
           "ErrEmailRequired",
           "ErrMissingNewPassword",
           "ErrUserNotFound",
@@ -3183,7 +3208,7 @@
     },
     "/namespaces/{namespaceName}/languages": {
       "get": {
-        "description": "Get languages by namespace",
+        "description": "List the language↔namespace connections for one namespace, including the connection id translation endpoints address.",
         "operationId": "getLanguagesByNamespace",
         "parameters": [
           {
@@ -3202,7 +3227,7 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/dto.DTOLanguage"
+                    "$ref": "#/components/schemas/dto.DTOLanguageConnection"
                   },
                   "type": "array"
                 }
@@ -3261,7 +3286,7 @@
             "description": "Internal Server Error"
           }
         },
-        "summary": "Get languages by namespace",
+        "summary": "Get languages attached to a namespace",
         "tags": [
           "Namespace"
         ]
