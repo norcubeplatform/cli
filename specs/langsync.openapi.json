@@ -1067,6 +1067,7 @@
           "OTP_INVALID",
           "UNAUTHORIZED",
           "FORBIDDEN",
+          "TOO_MANY_REQUESTS",
           "INSUFFICIENT_PERMISSIONS",
           "INVALID_PAYLOAD",
           "EMPTY",
@@ -1114,6 +1115,7 @@
           "ErrOTPInvalid",
           "ErrUnauthorized",
           "ErrForbidden",
+          "ErrTooManyRequests",
           "ErrInsufficientPermissions",
           "ErrPayloadInvalid",
           "ErrEmpty",
@@ -1260,6 +1262,10 @@
             "type": "object"
           },
           "prune": {
+            "type": "boolean"
+          },
+          "retranslateOnSourceChange": {
+            "description": "RetranslateOnSourceChange, when true, causes the server to\ninvalidate (empty) all existing non-source-language translations\nof any term whose source value was changed in this sync. The\nautotranslate phase then refills them via the LLM. Default false\npreserves historical behavior. Opt-in via CLI flag\n--retranslate-on-source-change.",
             "type": "boolean"
           },
           "strategy": {

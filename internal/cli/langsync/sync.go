@@ -33,14 +33,15 @@ const (
 
 func newSyncCmd() *cobra.Command {
 	var (
-		dryRun      bool
-		strategy    string
-		nsFilters   []string
-		configPath  string
-		prune       bool
-		wait        bool
-		waitTimeout time.Duration
-		pollEvery   time.Duration
+		dryRun                    bool
+		strategy                  string
+		nsFilters                 []string
+		configPath                string
+		prune                     bool
+		wait                      bool
+		waitTimeout               time.Duration
+		pollEvery                 time.Duration
+		retranslateOnSourceChange bool
 	)
 	cmd := &cobra.Command{
 		Use:   "sync",
@@ -64,6 +65,11 @@ Flags:
   --prune              delete server-side marks missing locally
   --wait               (default) block until autotranslate has drained
   --wait=false         submit and return; translations finish in the background
+  --retranslate-on-source-change
+                       when a term's source-language value has changed,
+                       empty its existing non-source-language translations
+                       so the server re-translates them via the LLM
+                       (default off: stale translations stay as-is)
 
 Examples:
   norcube langsync sync
@@ -91,12 +97,13 @@ Examples:
 				return err
 			}
 			opts := syncOptions{
-				strategy:    strat,
-				dryRun:      dryRun,
-				prune:       prune,
-				wait:        wait,
-				waitTimeout: waitTimeout,
-				pollEvery:   pollEvery,
+				strategy:                  strat,
+				dryRun:                    dryRun,
+				prune:                     prune,
+				wait:                      wait,
+				waitTimeout:               waitTimeout,
+				pollEvery:                 pollEvery,
+				retranslateOnSourceChange: retranslateOnSourceChange,
 			}
 			return runParallelSync(cmd, c, cfg, path, targets, opts)
 		},
@@ -109,6 +116,7 @@ Examples:
 	cmd.Flags().BoolVar(&wait, "wait", true, "Block until autotranslate has filled every gap (pass --wait=false to skip)")
 	cmd.Flags().DurationVar(&waitTimeout, "wait-timeout", 5*time.Minute, "Client-side timeout for the polling loop")
 	cmd.Flags().DurationVar(&pollEvery, "poll-every", 1*time.Second, "How often to poll the job's state")
+	cmd.Flags().BoolVar(&retranslateOnSourceChange, "retranslate-on-source-change", false, "Re-translate non-source values when a term's source-language value has changed (overwrites stale translations; preserves the source-of-truth-is-source-lang invariant)")
 	return cmd
 }
 
@@ -128,6 +136,15 @@ type syncOptions struct {
 	// human-edited translations in non-default langs are preserved
 	// instead of getting blasted by autotranslate.
 	pushDefaultOnly bool
+
+	// retranslateOnSourceChange tells the server to invalidate
+	// existing non-source-language translations whose source-lang
+	// value changed in this sync, so the autotranslate phase refills
+	// them via the LLM. Without this, a source-value edit leaves the
+	// other languages' translations stale (semantically out of date
+	// vs the new source). Opt-in to avoid blasting hand-curated
+	// translations on a casual sync.
+	retranslateOnSourceChange bool
 }
 
 // runParallelSync is the shared entry point for both `sync` and the
@@ -421,12 +438,13 @@ func submitSyncJob(ctx context.Context, c *langsyncContext, ns projectcfg.Namesp
 	// attached".
 	defaultCode := serverLangCode(ns.DefaultLocalLanguage, ns.LanguageAliases)
 	body := langsync.SyncjobCreateSyncRequest{
-		DefaultLanguageCode:  ptrStr(defaultCode),
-		DryRun:               ptrBool(opts.dryRun),
-		MarksPerLanguage:     &mpl,
-		Prune:                ptrBool(opts.prune),
-		Strategy:             ptrStr(serverStrategy),
-		WaitForAutotranslate: ptrBool(opts.wait),
+		DefaultLanguageCode:       ptrStr(defaultCode),
+		DryRun:                    ptrBool(opts.dryRun),
+		MarksPerLanguage:          &mpl,
+		Prune:                     ptrBool(opts.prune),
+		Strategy:                  ptrStr(serverStrategy),
+		WaitForAutotranslate:      ptrBool(opts.wait),
+		RetranslateOnSourceChange: ptrBool(opts.retranslateOnSourceChange),
 	}
 	res, err := c.client.PostNamespacesNamespaceNameSyncWithResponse(ctx, ns.Namespace, body)
 	if err != nil {

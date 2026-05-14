@@ -204,6 +204,7 @@ const (
 	ErrSetupRequired              ResponseType = "SETUP_REQUIRED"
 	ErrTermAlreadyExists          ResponseType = "TERM_ALREADY_EXISTS"
 	ErrTermIsRequired             ResponseType = "TERM_IS_REQUIRED"
+	ErrTooManyRequests            ResponseType = "TOO_MANY_REQUESTS"
 	ErrUnauthorized               ResponseType = "UNAUTHORIZED"
 	ErrUserAlreadyExists          ResponseType = "USER_ALREADY_EXISTS"
 	ErrUserNotFound               ResponseType = "USER_NOT_FOUND"
@@ -293,6 +294,8 @@ func (e ResponseType) Valid() bool {
 	case ErrTermAlreadyExists:
 		return true
 	case ErrTermIsRequired:
+		return true
+	case ErrTooManyRequests:
 		return true
 	case ErrUnauthorized:
 		return true
@@ -780,11 +783,19 @@ type SyncjobCreateSyncRequest struct {
 
 	// MarksPerLanguage MarksPerLanguage is the preferred shape — one inner map per
 	// language code (including the default one).
-	MarksPerLanguage     *map[string]map[string]string `json:"marksPerLanguage,omitempty"`
-	Prune                *bool                         `json:"prune,omitempty"`
-	Strategy             *string                       `json:"strategy,omitempty"`
-	WaitForAutotranslate *bool                         `json:"waitForAutotranslate,omitempty"`
-	WaitTimeoutSeconds   *int                          `json:"waitTimeoutSeconds,omitempty"`
+	MarksPerLanguage *map[string]map[string]string `json:"marksPerLanguage,omitempty"`
+	Prune            *bool                         `json:"prune,omitempty"`
+
+	// RetranslateOnSourceChange RetranslateOnSourceChange, when true, causes the server to
+	// invalidate (empty) all existing non-source-language translations
+	// of any term whose source value was changed in this sync. The
+	// autotranslate phase then refills them via the LLM. Default false
+	// preserves historical behavior. Opt-in via CLI flag
+	// --retranslate-on-source-change.
+	RetranslateOnSourceChange *bool   `json:"retranslateOnSourceChange,omitempty"`
+	Strategy                  *string `json:"strategy,omitempty"`
+	WaitForAutotranslate      *bool   `json:"waitForAutotranslate,omitempty"`
+	WaitTimeoutSeconds        *int    `json:"waitTimeoutSeconds,omitempty"`
 }
 
 // TermImportFinishRequest defines model for term.importFinishRequest.
