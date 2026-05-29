@@ -28,6 +28,7 @@ func NewRootCmd() *cobra.Command {
 			ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 			clictx.Attach(cmd, ctx, flags)
 			cobra.OnFinalize(stop)
+			StartUpdateCheck(ctx, cmd.Name())
 			return nil
 		},
 	}
