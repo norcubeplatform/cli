@@ -4,9 +4,7 @@
 package snapdb
 
 import (
-	"context"
 	"fmt"
-	"net/http"
 
 	"github.com/spf13/cobra"
 
@@ -54,18 +52,9 @@ func newSnapdbContext(cmd *cobra.Command) (*snapdbContext, error) {
 
 	ts := auth.NewTokenSource(apiURL, auth.AudienceSnapDB, orgID)
 
-	bearerInjector := func(ctx context.Context, req *http.Request) error {
-		token, err := ts.Token(ctx)
-		if err != nil {
-			return err
-		}
-		req.Header.Set("Authorization", "Bearer "+token)
-		return nil
-	}
-
 	client, err := snapdb.NewClientWithResponses(
 		cfg.SnapDB,
-		snapdb.WithRequestEditorFn(bearerInjector),
+		snapdb.WithRequestEditorFn(ts.BearerInjector()),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("snapdb client: %w", err)

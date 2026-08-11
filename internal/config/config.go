@@ -144,7 +144,28 @@ func Save(cfg *Config) error {
 	if err != nil {
 		return fmt.Errorf("marshal config: %w", err)
 	}
-	return os.WriteFile(path, out, 0o600)
+	// Atomic write: temp file in the same directory, then rename. Two
+	// concurrent CLI invocations can otherwise interleave WriteFile and
+	// leave a half-written TOML behind (rename on the same filesystem is
+	// atomic on POSIX; on Windows os.Rename replaces the target too).
+	tmp, err := os.CreateTemp(filepath.Dir(path), ".config-*.toml")
+	if err != nil {
+		return fmt.Errorf("create temp config: %w", err)
+	}
+	tmpName := tmp.Name()
+	defer os.Remove(tmpName) // no-op after a successful rename
+	if err := tmp.Chmod(0o600); err != nil {
+		tmp.Close()
+		return fmt.Errorf("chmod temp config: %w", err)
+	}
+	if _, err := tmp.Write(out); err != nil {
+		tmp.Close()
+		return fmt.Errorf("write temp config: %w", err)
+	}
+	if err := tmp.Close(); err != nil {
+		return fmt.Errorf("close temp config: %w", err)
+	}
+	return os.Rename(tmpName, path)
 }
 
 // applyEnvURL overwrites *target with the value of envvar when the latter is

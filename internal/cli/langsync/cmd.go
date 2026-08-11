@@ -5,10 +5,8 @@
 package langsync
 
 import (
-	"context"
 	"errors"
 	"fmt"
-	"net/http"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -80,18 +78,9 @@ func newLangsyncContext(cmd *cobra.Command) (*langsyncContext, error) {
 
 	ts := auth.NewTokenSource(authURL, auth.AudienceLangsync, orgID)
 
-	bearerInjector := func(ctx context.Context, req *http.Request) error {
-		token, err := ts.Token(ctx)
-		if err != nil {
-			return err
-		}
-		req.Header.Set("Authorization", "Bearer "+token)
-		return nil
-	}
-
 	client, err := langsync.NewClientWithResponses(
 		cfg.Langsync,
-		langsync.WithRequestEditorFn(bearerInjector),
+		langsync.WithRequestEditorFn(ts.BearerInjector()),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("langsync client: %w", err)
@@ -123,18 +112,9 @@ func newLangsyncContextForOrg(cmd *cobra.Command, orgID string) (*langsyncContex
 
 	ts := auth.NewTokenSource(authURL, auth.AudienceLangsync, orgID)
 
-	bearerInjector := func(ctx context.Context, req *http.Request) error {
-		token, err := ts.Token(ctx)
-		if err != nil {
-			return err
-		}
-		req.Header.Set("Authorization", "Bearer "+token)
-		return nil
-	}
-
 	client, err := langsync.NewClientWithResponses(
 		cfg.Langsync,
-		langsync.WithRequestEditorFn(bearerInjector),
+		langsync.WithRequestEditorFn(ts.BearerInjector()),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("langsync client: %w", err)

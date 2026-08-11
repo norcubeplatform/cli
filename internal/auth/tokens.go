@@ -43,6 +43,26 @@ func NewTokenSource(apiBase, audience, orgID string) *TokenSource {
 	}
 }
 
+// ErrLoginRequired marks auth failures that a fresh `norcube login` fixes:
+// no refresh token in the keyring, or the server rejecting the one we have
+// (revoked / fully expired). main() detects it with errors.Is and prints
+// the re-login hint once, instead of every command growing its own.
+var ErrLoginRequired = errors.New("not signed in or session expired")
+
+// BearerInjector returns a request editor that injects a fresh access
+// token into each outgoing request. Every generated API client shares
+// this, so token acquisition lives in exactly one place.
+func (t *TokenSource) BearerInjector() func(ctx context.Context, req *http.Request) error {
+	return func(ctx context.Context, req *http.Request) error {
+		token, err := t.Token(ctx)
+		if err != nil {
+			return err
+		}
+		req.Header.Set("Authorization", "Bearer "+token)
+		return nil
+	}
+}
+
 // Token returns a valid access token, minting one via /oauth/token if no
 // cached token exists or the cached token is close to expiring.
 //
@@ -60,7 +80,7 @@ func (t *TokenSource) Token(ctx context.Context) (string, error) {
 
 	refresh, err := LoadRefreshToken(t.APIBase)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("%w: %v", ErrLoginRequired, err)
 	}
 
 	access, rotated, err := t.exchangeRefresh(ctx, refresh)
@@ -137,10 +157,16 @@ func (t *TokenSource) exchangeRefresh(ctx context.Context, refresh string) (stri
 	if resp.StatusCode != http.StatusOK {
 		var apiErr apiError
 		_ = json.Unmarshal(body, &apiErr)
-		if apiErr.Msg != "" {
-			return "", "", fmt.Errorf("oauth/token failed (%d): %s", resp.StatusCode, apiErr.Msg)
+		// 401/403 mean the refresh token itself was rejected — that is a
+		// re-login situation, not a transient failure.
+		base := fmt.Errorf("oauth/token failed (%d)", resp.StatusCode)
+		if resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden {
+			base = fmt.Errorf("%w: oauth/token rejected the stored session (%d)", ErrLoginRequired, resp.StatusCode)
 		}
-		return "", "", fmt.Errorf("oauth/token failed (%d)", resp.StatusCode)
+		if apiErr.Msg != "" {
+			return "", "", fmt.Errorf("%w: %s", base, apiErr.Msg)
+		}
+		return "", "", base
 	}
 
 	var tr tokenResponse

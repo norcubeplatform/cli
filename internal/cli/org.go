@@ -29,8 +29,8 @@ func newOrgCmd() *cobra.Command {
 
 func newOrgCreateCmd() *cobra.Command {
 	var (
-		slug      string
-		setActive bool
+		slug              string
+		setActive         bool
 		setActiveExplicit bool
 	)
 	cmd := &cobra.Command{

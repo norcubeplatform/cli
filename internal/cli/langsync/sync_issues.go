@@ -31,10 +31,10 @@ type syncResult struct {
 // source value is blank, so the LLM had nothing to translate from.
 // We can detect that client-side without backend changes by:
 //
-//   1. asking the backend which marks still have untranslated cells
-//   2. checking the local default-lang file for those marks
-//   3. labelling each: "no source value (add it to <lang>.json)"
-//      or "LLM skipped — try rerun later".
+//  1. asking the backend which marks still have untranslated cells
+//  2. checking the local default-lang file for those marks
+//  3. labelling each: "no source value (add it to <lang>.json)"
+//     or "LLM skipped — try rerun later".
 //
 // This gives the user an actionable next step today; a future
 // backend pass to surface per-cell skip reasons into the failures
@@ -101,7 +101,7 @@ func collectIssues(ctx context.Context, c *langsyncContext, cfg *projectcfg.File
 // namespace doesn't trigger a long blocking diagnostic.
 func diagnoseEmptyCells(ctx context.Context, c *langsyncContext, ns projectcfg.Namespace, configPath string) []string {
 	const (
-		pageLimit       = 100
+		pageLimit        = 100
 		maxDiagnosePages = 5 // 500 untranslated marks max
 	)
 

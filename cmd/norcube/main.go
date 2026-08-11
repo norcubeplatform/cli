@@ -1,10 +1,19 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
+	"github.com/norcubeplatform/cli/internal/auth"
 	"github.com/norcubeplatform/cli/internal/cli"
+)
+
+// Exit codes follow the convention popularized by gh: 0 success, 1 error,
+// 4 authentication required. Scripts can branch on them.
+const (
+	exitError = 1
+	exitAuth  = 4
 )
 
 func main() {
@@ -17,6 +26,10 @@ func main() {
 	cli.MaybePrintUpdateNudge(os.Stderr)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		if errors.Is(err, auth.ErrLoginRequired) {
+			fmt.Fprintln(os.Stderr, "\nRun `norcube login` to sign in again.")
+			os.Exit(exitAuth)
+		}
+		os.Exit(exitError)
 	}
 }

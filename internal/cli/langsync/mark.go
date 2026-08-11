@@ -123,14 +123,14 @@ const defaultMarkPageLimit = 50
 
 func newMarkListCmd() *cobra.Command {
 	var (
-		namespaceName     string
-		search            string
-		limit             int
-		cursor            string
-		allPages          bool
-		maxItems          int
-		hasUntranslated   bool
-		untranslatedLang  int
+		namespaceName    string
+		search           string
+		limit            int
+		cursor           string
+		allPages         bool
+		maxItems         int
+		hasUntranslated  bool
+		untranslatedLang int
 	)
 	cmd := &cobra.Command{
 		Use:   "list",

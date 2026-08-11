@@ -19,11 +19,11 @@ import (
 
 func newInitCmd() *cobra.Command {
 	var (
-		dirFlag        string
-		nsFlags        []string
-		forceWrite     bool
-		seedFlag       string
-		localLangCode  string
+		dirFlag       string
+		nsFlags       []string
+		forceWrite    bool
+		seedFlag      string
+		localLangCode string
 	)
 	cmd := &cobra.Command{
 		Use:   "init",
@@ -257,12 +257,12 @@ func newlyAddedNamespaces(additions []projectcfg.Namespace, existing *projectcfg
 
 // seedMode controls what init does AFTER writing the config:
 //
-//   pull         — server → disk (default)
-//   push-all     — disk (every <lang>.json) → server; autotranslate
-//                  only fills cells the client didn't provide
-//   push-default — disk (default-lang file only) → server; AI
-//                  translates all other languages from scratch
-//   none         — write the config and stop
+//	pull         — server → disk (default)
+//	push-all     — disk (every <lang>.json) → server; autotranslate
+//	               only fills cells the client didn't provide
+//	push-default — disk (default-lang file only) → server; AI
+//	               translates all other languages from scratch
+//	none         — write the config and stop
 type seedMode string
 
 const (
@@ -571,7 +571,6 @@ func pickNamespacesMulti(all []langsync.DtoDTONamespace, alreadyConfigured map[s
 	}
 	return picked, nil
 }
-
 
 // optionValue extracts the underlying value from a huh.Option. The
 // library doesn't expose a public getter (the value is unexported),
