@@ -254,3 +254,12 @@ The codebase is a small Go module with three internal packages worth knowing:
 - v0.2 — Personal Access Tokens for CI (paired with a backend `cli_sessions` table for revocation).
 - v0.3 — backup download / restore commands once the SnapDB backend ships those endpoints.
 - v0.4 — shell completion of dynamic resources (org slugs, datasource ids), background "new version available" nudge.
+
+## License
+
+Apache License 2.0 — see [LICENSE](LICENSE). Use it, fork it, ship it,
+including commercially.
+
+"Norcube" and the Norcube logo are trademarks of Norcube; the license does
+not grant trademark rights. A fork is welcome to exist, just not to call
+itself Norcube.
