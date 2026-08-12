@@ -10,6 +10,9 @@ project_name: norcube
 before:
   hooks:
     - go mod tidy
+    # Shell completions (bash/zsh/fish) + man pages, shipped in every
+    # archive and installed by the Homebrew formula.
+    - go run ./tools/gendocs
 
 builds:
   - id: norcube
@@ -46,6 +49,9 @@ archives:
     files:
       - README.md
       - LICENSE*
+      - NOTICE
+      - completions/*
+      - manpages/*
 
 checksum:
   # GoReleaser emits a single checksums.txt with SHA-256 for every archive.
@@ -74,3 +80,34 @@ release:
     name: cli
   draft: false
   prerelease: auto
+
+homebrew_casks:
+  - name: norcube
+    repository:
+      owner: norcubeplatform
+      name: homebrew-tap
+      # A classic PAT with repo scope on the tap repository; the workflow's
+      # default GITHUB_TOKEN can only write to the cli repo itself.
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    homepage: https://norcube.com
+    description: Command-line interface for the Norcube platform
+    binaries:
+      - norcube
+    completions:
+      bash: completions/norcube.bash
+      zsh: completions/_norcube
+      fish: completions/norcube.fish
+    commit_author:
+      name: norcube-releases
+      email: releases@norcube.com
+    caveats: |
+      The short alias `nrc` is not installed by Homebrew; add your own with
+        ln -s "$(brew --prefix)/bin/norcube" "$(brew --prefix)/bin/nrc"
+    hooks:
+      post:
+        # The binaries are not signed/notarized (yet), so clear the
+        # quarantine attribute Gatekeeper puts on downloaded files.
+        install: |
+          if OS.mac?
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/norcube"]
+          end
