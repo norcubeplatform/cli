@@ -40,6 +40,27 @@ case "$*" in
   echo "Restore test queued (restore job 4f2a9c1e-8b3d-4e67-a012-6c5d9e8f7a3b)."
   echo "Track it with \`norcube backup list\`; the verdict appears in the TEST column." >&2
   ;;
+"langsync sync")
+  B=$'\033[1m'    # bold
+  C=$'\033[36m'   # cyan
+  # One dashboard row updated in place, like the real sync renderer.
+  row() { printf '▸ %s%-8s%s  %s  %s\n' "$B" "webapp" "$R" "$1" "$2"; }
+  up() { printf '\033[1A\r\033[J'; }
+  row "${C}reading        ${R}" "42 local marks across 3 language file(s) in i18n/webapp"
+  sleep 0.9; up
+  row "${C}planning       ${R}" "computing diff"
+  sleep 0.8; up
+  for done_n in 9 23 31 38; do
+    filled=$((done_n * 18 / 38))
+    bar=""
+    for ((i = 0; i < 18; i++)); do
+      if ((i < filled)); then bar+="█"; else bar+="░"; fi
+    done
+    row "${C}autotranslating${R}" "$bar  ${done_n}/38  translating cells"
+    sleep 0.55; up
+  done
+  row "${G}done           ${R}" "4 created, 2 updated, 38 cells translated, 3 files written  ${D}(6.2s)${R}"
+  ;;
 *)
   echo "demo stub: no canned output for: $*" >&2
   exit 1

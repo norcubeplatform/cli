@@ -171,6 +171,8 @@ State lives in two places:
 
 For repos that ship i18n JSON files alongside source (`i18n/<namespace>/<lang>.json`), `langsync init` creates a `.langsync.json` describing which directories sync against which Langsync namespaces. `langsync sync` then keeps server and disk in step.
 
+![norcube langsync sync demo](demo/demo-langsync.gif)
+
 ```bash
 # one-time setup in a project root
 norcube langsync init
