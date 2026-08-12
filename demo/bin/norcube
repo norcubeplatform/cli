@@ -9,6 +9,14 @@ D=$'\033[2m'    # dim
 R=$'\033[0m'    # reset
 
 case "$*" in
+"whoami")
+  sleep 0.4
+  printf '%s\n' \
+"User:         Ada Deven <ada@acme.dev>" \
+"User ID:      7c1f3b2a-9e4d-4f68-b350-2a8d61c94e07" \
+"Active org:   acme (d94a7e12-3c56-48b9-a1f0-8b72c65d30e4)" \
+"API:          https://auth.api.norcube.com"
+  ;;
 "backup health")
   sleep 0.6
   printf '%s\n' \
