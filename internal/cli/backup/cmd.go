@@ -1,7 +1,8 @@
-// Package snapdb implements the `norcube snapdb ...` command tree. It owns
-// the wiring between the CLI's TokenSource (audience: snapdb-api) and the
-// generated snapdb HTTP client.
-package snapdb
+// Package backup implements the `norcube backup ...` command tree (snapdb is
+// the backend service behind the Norcube Backup product). It owns the wiring
+// between the CLI's TokenSource (audience: snapdb-api) and the generated
+// snapdb HTTP client.
+package backup
 
 import (
 	"fmt"
@@ -14,16 +15,22 @@ import (
 	"github.com/norcubeplatform/cli/internal/config"
 )
 
-// NewCmd returns the `snapdb` parent command with all subcommands wired up.
+// NewCmd returns the `backup` parent command with all subcommands wired up.
+// The command is named after the product (Norcube Backup); "snapdb" is the
+// internal service name and survives only as a compatibility alias.
 func NewCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "snapdb",
-		Short: "Manage SnapDB data sources, backups, policies, and storage",
+		Use:     "backup",
+		Aliases: []string{"snapdb"},
+		Short:   "Manage Norcube Backup: data sources, backup jobs, policies, restore tests",
 	}
 	cmd.AddCommand(
+		newBackupListCmd(),
+		newBackupDownloadCmd(),
 		newDataSourceCmd(),
-		newBackupCmd(),
 		newPolicyCmd(),
+		newHealthCmd(),
+		newRestoreTestCmd(),
 	)
 	return cmd
 }

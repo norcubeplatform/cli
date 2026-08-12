@@ -1,5 +1,5 @@
 // Package langsync implements the `norcube langsync ...` command tree.
-// Mirrors the structure of internal/cli/snapdb — owns the wiring between
+// Mirrors the structure of internal/cli/backup — owns the wiring between
 // the CLI's TokenSource (audience: langsync-api) and the generated
 // langsync HTTP client.
 package langsync

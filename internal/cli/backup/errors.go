@@ -1,4 +1,4 @@
-package snapdb
+package backup
 
 import (
 	"net/http"
@@ -14,7 +14,7 @@ func apiError(resp *http.Response, body []byte, typed ...*snapdb.ResponseAPIErro
 	for _, t := range typed {
 		conv = append(conv, typedOf(t))
 	}
-	return apierror.Format("snapdb", resp, body, conv...)
+	return apierror.Format("backup", resp, body, conv...)
 }
 
 func typedOf(e *snapdb.ResponseAPIError) *apierror.Typed {

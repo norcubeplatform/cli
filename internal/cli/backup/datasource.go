@@ -1,4 +1,4 @@
-package snapdb
+package backup
 
 import (
 	"fmt"
@@ -14,7 +14,7 @@ func newDataSourceCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "datasource",
 		Aliases: []string{"datasources", "ds"},
-		Short:   "Manage SnapDB data sources",
+		Short:   "Manage Norcube Backup data sources",
 	}
 	cmd.AddCommand(
 		newDataSourceListCmd(),
@@ -163,7 +163,7 @@ func newDataSourceGetCmd() *cobra.Command {
 			// this generation pass (the swagger response schema is empty).
 			// Fall back to printing the body verbatim.
 			if res.HTTPResponse.StatusCode != 200 {
-				return fmt.Errorf("snapdb returned %d: %s", res.HTTPResponse.StatusCode, string(res.Body))
+				return fmt.Errorf("backup service returned %d: %s", res.HTTPResponse.StatusCode, string(res.Body))
 			}
 			fmt.Fprintln(cmd.OutOrStdout(), string(res.Body))
 			return nil

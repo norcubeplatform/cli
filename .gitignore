@@ -4,3 +4,7 @@
 *.test
 *.out
 .DS_Store
+
+# backup artifacts downloaded during testing
+*.dump.gz
+*.archive.gz

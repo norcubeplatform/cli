@@ -1,4 +1,4 @@
-package snapdb
+package backup
 
 import (
 	"context"

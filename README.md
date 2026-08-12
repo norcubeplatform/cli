@@ -2,7 +2,7 @@
 
 Command-line interface for the [Norcube platform](https://norcube.com). Manage backups, namespaces, organizations, and more from the terminal.
 
-> **Status**: v0 — login + organization management, SnapDB browse/pause/resume, full Langsync CRUD, and project-level `langsync init` / `langsync sync` for repo-side translation files.
+> **Status**: v0 — login + organization management, Norcube Backup (browse, pause/resume, download, restore tests, health), full Langsync CRUD, and project-level `langsync init` / `langsync sync` for repo-side translation files.
 
 ## Install
 
@@ -64,7 +64,7 @@ detects that and tells you to use the package manager instead — pass
 Both `norcube` and `nrc` are installed pointing to the same binary, so:
 
 ```bash
-nrc snapdb backup list --all
+nrc backup list --all-pages
 nrc whoami
 nrc upgrade
 ```
@@ -124,16 +124,19 @@ State lives in two places:
 | `norcube org switch` | Interactive picker (arrow keys / `j`,`k` to navigate, enter to select) |
 | `norcube org use <slug-or-id>` | Set the active organization without prompting |
 | `norcube org current` | Print the active organization |
-| `norcube snapdb datasource list` | List SnapDB data sources in the active org |
-| `norcube snapdb datasource get <id>` | Show one data source |
-| `norcube snapdb datasource pause [id]` | Halt every policy attached to a data source (master switch). Picker when interactive. |
-| `norcube snapdb datasource resume [id]` | Re-enable a previously paused data source. |
-| `norcube snapdb policy list --datasource <id>` | List policy attachments on a data source |
-| `norcube snapdb policy pause --datasource <id> --policy <id>` | Pause one policy on one data source |
-| `norcube snapdb policy resume --datasource <id> --policy <id>` | Re-enable a paused attachment |
-| `norcube snapdb policy detach --datasource <id> --policy <id> [--yes]` | Remove an attachment (destructive; confirms unless `--yes`) |
-| `norcube snapdb backup list` | List backup jobs across the org, newest first |
-| `norcube snapdb backup list --datasource <id>` | Filter the list to one (or more) data sources |
+| `norcube backup list` | List backup jobs across the org, newest first (incl. restore-test verdicts) |
+| `norcube backup list --datasource <id>` | Filter the list to one (or more) data sources |
+| `norcube backup download <job-id> -d <id>` | Download a backup artifact (or `--file -` to pipe into a restore) |
+| `norcube backup health` | Restore-test health per datasource |
+| `norcube backup restore-test run <job-id> -d <id>` | Restore-test one backup into a throwaway database, now |
+| `norcube backup datasource list` | List data sources in the active org |
+| `norcube backup datasource get <id>` | Show one data source |
+| `norcube backup datasource pause [id]` | Halt every policy attached to a data source (master switch). Picker when interactive. |
+| `norcube backup datasource resume [id]` | Re-enable a previously paused data source. |
+| `norcube backup policy list --datasource <id>` | List policy attachments on a data source |
+| `norcube backup policy pause --datasource <id> --policy <id>` | Pause one policy on one data source |
+| `norcube backup policy resume --datasource <id> --policy <id>` | Re-enable a paused attachment |
+| `norcube backup policy detach --datasource <id> --policy <id> [--yes]` | Remove an attachment (destructive; confirms unless `--yes`) |
 | `norcube langsync namespace list` | List Langsync namespaces in the active organization |
 | `norcube langsync namespace create <name> --default-language <code>` | Create a namespace |
 | `norcube langsync namespace update <name> [--rename …] [--default-language …]` | Edit a namespace |
@@ -145,7 +148,7 @@ State lives in two places:
 | `norcube langsync init` | Set up `.langsync.json` in a project (see below) |
 | `norcube langsync sync [--dry-run] [-n <ns>] [--strategy local\|server]` | Sync local translation files with Langsync |
 
-> Backup detail / download and restore commands will land once the SnapDB backend ships those endpoints (currently stubbed at 501).
+> `snapdb` still works as an alias of `backup` (it's the internal service name behind the product).
 
 ### Langsync in a project (`init` + `sync`)
 
@@ -236,7 +239,7 @@ To add a new service (e.g. langsync):
 1. Create `internal/api/langsync/oapi-codegen.yaml` (copy from snapdb's).
 2. Add a `codegen-langsync` target to the Makefile that runs the converter
    against `apps/langsync/docs/<spec>.json` and feeds it to oapi-codegen.
-3. Build a `internal/cli/langsync/` package mirroring the snapdb structure:
+3. Build a `internal/cli/langsync/` package mirroring `internal/cli/backup/`:
    `cmd.go` builds the typed client + a context struct, individual files per
    resource (`namespace.go`, `term.go`, ...).
 4. Wire `langsync.NewCmd()` into `internal/cli/root.go`.
@@ -245,15 +248,14 @@ The codebase is a small Go module with three internal packages worth knowing:
 
 - `internal/cli/` — cobra command tree.
 - `internal/auth/` — browser handshake (`browser.go`), OS keyring (`keyring.go`), and the per-(audience, org) token cache (`tokens.go`).
-- `internal/api/` — typed clients for the Norcube HTTP services (currently only `auth`).
+- `internal/api/` — typed clients for the Norcube HTTP services (`auth`, `snapdb`, `langsync`), generated by oapi-codegen. Client packages are named after the backend service they talk to (the Backup product's service is `snapdb`), while `internal/cli/` packages are named after the user-facing command.
 
 ## Roadmap
 
-- v0 (this) — login, whoami, org switching, snapdb data sources + backup listing + policy management.
-- v0.1 — Homebrew tap (auto-generated by GoReleaser); `langsync` + `domainradar` commands.
+- v0 (this) — login, whoami, org switching, Norcube Backup (datasources, job history, downloads, restore tests, health, policies), full Langsync.
+- v0.1 — Homebrew tap (auto-generated by GoReleaser); `domainradar` commands.
 - v0.2 — Personal Access Tokens for CI (paired with a backend `cli_sessions` table for revocation).
-- v0.3 — backup download / restore commands once the SnapDB backend ships those endpoints.
-- v0.4 — shell completion of dynamic resources (org slugs, datasource ids), background "new version available" nudge.
+- v0.3 — shell completion of dynamic resources (org slugs, datasource ids).
 
 ## License
 

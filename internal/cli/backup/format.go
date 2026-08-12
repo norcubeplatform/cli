@@ -1,8 +1,10 @@
-package snapdb
+package backup
 
 import (
 	"fmt"
 	"time"
+
+	"github.com/norcubeplatform/cli/internal/api/snapdb"
 )
 
 // formatTimestamp renders a nullable RFC3339 string as a compact "YYYY-MM-DD
@@ -38,6 +40,32 @@ func formatBytes(n int) string {
 		exp++
 	}
 	return fmt.Sprintf("%.1f %ciB", float64(n)/float64(div), "KMGTPE"[exp])
+}
+
+// formatVerify renders the latest restore-test verdict of a backup job.
+// "—" means the backup was never tested; that must never look like a
+// failure. While the test's restore is still queued/running we show
+// "testing…" regardless of any earlier verdict fields.
+func formatVerify(j snapdb.DtoBackupJob) string {
+	if j.VerifyStatus == nil {
+		return "—"
+	}
+	switch *j.VerifyStatus {
+	case snapdb.JobStatusQueued, snapdb.JobStatusRunning:
+		return "testing…"
+	case snapdb.JobStatusSuccess:
+		if j.VerifyPassed != nil && *j.VerifyPassed {
+			if j.VerifyWarnings != nil && *j.VerifyWarnings != "" {
+				return "passed (warnings)"
+			}
+			return "passed"
+		}
+		return "failed"
+	default:
+		// failed / partial / canceled — the restore itself didn't finish,
+		// which is a verdict of its own.
+		return string(*j.VerifyStatus)
+	}
 }
 
 // formatDurationMs renders a duration in milliseconds as a human-readable

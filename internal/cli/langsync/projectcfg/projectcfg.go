@@ -5,7 +5,7 @@
 //
 // This package is scoped to the langsync service. Other services that
 // later need their own project-level config should live under their
-// own CLI subtree (e.g. `internal/cli/snapdb/projectcfg/`) so each
+// own CLI subtree (e.g. `internal/cli/backup/projectcfg/`) so each
 // service owns its own schema and dotfile name. There is deliberately
 // no shared umbrella package — services stay decoupled, and one
 // service's schema churn never touches another's file on disk.

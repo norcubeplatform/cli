@@ -16,6 +16,156 @@ import (
 	"github.com/oapi-codegen/runtime"
 )
 
+// Defines values for ConstantsAuditAction.
+const (
+	AuditActionBackupDeleted                ConstantsAuditAction = "backup_job.deleted"
+	AuditActionBackupDownloadLinkGenerated  ConstantsAuditAction = "backup_job.download_link_generated"
+	AuditActionBackupJobCompleted           ConstantsAuditAction = "backup_job.completed"
+	AuditActionBackupJobFailed              ConstantsAuditAction = "backup_job.failed"
+	AuditActionBackupJobQueued              ConstantsAuditAction = "backup_job.queued"
+	AuditActionBackupJobStarted             ConstantsAuditAction = "backup_job.started"
+	AuditActionBackupManualRun              ConstantsAuditAction = "backup_job.manual_run"
+	AuditActionBackupReapedHealed           ConstantsAuditAction = "backup_job.reaped_healed"
+	AuditActionBackupReapedNoArn            ConstantsAuditAction = "backup_job.reaped_no_arn"
+	AuditActionBackupReapedOrphanCleaned    ConstantsAuditAction = "backup_job.reaped_orphan_cleaned"
+	AuditActionBackupReapedStuck            ConstantsAuditAction = "backup_job.reaped_stuck"
+	AuditActionDatasourceActivated          ConstantsAuditAction = "datasource.activated"
+	AuditActionDatasourceCreated            ConstantsAuditAction = "datasource.created"
+	AuditActionDatasourceCredentialsSet     ConstantsAuditAction = "datasource.credentials_set"
+	AuditActionDatasourceDeactivated        ConstantsAuditAction = "datasource.deactivated"
+	AuditActionDatasourceDeleted            ConstantsAuditAction = "datasource.deleted"
+	AuditActionDatasourceUpdated            ConstantsAuditAction = "datasource.updated"
+	AuditActionDatasourceVerified           ConstantsAuditAction = "datasource.verify_attempted"
+	AuditActionNotificationSettingsUpdated  ConstantsAuditAction = "notification_settings.updated"
+	AuditActionPolicyAttached               ConstantsAuditAction = "policy.attached"
+	AuditActionPolicyCreated                ConstantsAuditAction = "policy.created"
+	AuditActionPolicyDeleted                ConstantsAuditAction = "policy.deleted"
+	AuditActionPolicyDetached               ConstantsAuditAction = "policy.detached"
+	AuditActionPolicyUpdated                ConstantsAuditAction = "policy.updated"
+	AuditActionRestoreCheckUpdated          ConstantsAuditAction = "datasource.restore_check_updated"
+	AuditActionRestoreJobCompleted          ConstantsAuditAction = "restore_job.completed"
+	AuditActionRestoreJobCreated            ConstantsAuditAction = "restore_job.created"
+	AuditActionRestoreJobFailed             ConstantsAuditAction = "restore_job.failed"
+	AuditActionRestoreJobReapedStuck        ConstantsAuditAction = "restore_job.reaped_stuck"
+	AuditActionRestoreJobStarted            ConstantsAuditAction = "restore_job.started"
+	AuditActionRestoreLogLinkGenerated      ConstantsAuditAction = "restore_job.log_link_generated"
+	AuditActionStorageDestinationCreated    ConstantsAuditAction = "storage_destination.created"
+	AuditActionStorageDestinationDeleted    ConstantsAuditAction = "storage_destination.deleted"
+	AuditActionStorageDestinationReverified ConstantsAuditAction = "storage_destination.reverified"
+	AuditActionStorageDestinationUpdated    ConstantsAuditAction = "storage_destination.updated"
+)
+
+// Valid indicates whether the value is a known member of the ConstantsAuditAction enum.
+func (e ConstantsAuditAction) Valid() bool {
+	switch e {
+	case AuditActionBackupDeleted:
+		return true
+	case AuditActionBackupDownloadLinkGenerated:
+		return true
+	case AuditActionBackupJobCompleted:
+		return true
+	case AuditActionBackupJobFailed:
+		return true
+	case AuditActionBackupJobQueued:
+		return true
+	case AuditActionBackupJobStarted:
+		return true
+	case AuditActionBackupManualRun:
+		return true
+	case AuditActionBackupReapedHealed:
+		return true
+	case AuditActionBackupReapedNoArn:
+		return true
+	case AuditActionBackupReapedOrphanCleaned:
+		return true
+	case AuditActionBackupReapedStuck:
+		return true
+	case AuditActionDatasourceActivated:
+		return true
+	case AuditActionDatasourceCreated:
+		return true
+	case AuditActionDatasourceCredentialsSet:
+		return true
+	case AuditActionDatasourceDeactivated:
+		return true
+	case AuditActionDatasourceDeleted:
+		return true
+	case AuditActionDatasourceUpdated:
+		return true
+	case AuditActionDatasourceVerified:
+		return true
+	case AuditActionNotificationSettingsUpdated:
+		return true
+	case AuditActionPolicyAttached:
+		return true
+	case AuditActionPolicyCreated:
+		return true
+	case AuditActionPolicyDeleted:
+		return true
+	case AuditActionPolicyDetached:
+		return true
+	case AuditActionPolicyUpdated:
+		return true
+	case AuditActionRestoreCheckUpdated:
+		return true
+	case AuditActionRestoreJobCompleted:
+		return true
+	case AuditActionRestoreJobCreated:
+		return true
+	case AuditActionRestoreJobFailed:
+		return true
+	case AuditActionRestoreJobReapedStuck:
+		return true
+	case AuditActionRestoreJobStarted:
+		return true
+	case AuditActionRestoreLogLinkGenerated:
+		return true
+	case AuditActionStorageDestinationCreated:
+		return true
+	case AuditActionStorageDestinationDeleted:
+		return true
+	case AuditActionStorageDestinationReverified:
+		return true
+	case AuditActionStorageDestinationUpdated:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ConstantsAuditTargetType.
+const (
+	AuditTargetBackupJob          ConstantsAuditTargetType = "backup_job"
+	AuditTargetDataSourcePolicy   ConstantsAuditTargetType = "data_source_policy"
+	AuditTargetDatasource         ConstantsAuditTargetType = "datasource"
+	AuditTargetOrganization       ConstantsAuditTargetType = "organization"
+	AuditTargetPolicy             ConstantsAuditTargetType = "backup_policy"
+	AuditTargetRestoreJob         ConstantsAuditTargetType = "restore_job"
+	AuditTargetStorageDestination ConstantsAuditTargetType = "storage_destination"
+)
+
+// Valid indicates whether the value is a known member of the ConstantsAuditTargetType enum.
+func (e ConstantsAuditTargetType) Valid() bool {
+	switch e {
+	case AuditTargetBackupJob:
+		return true
+	case AuditTargetDataSourcePolicy:
+		return true
+	case AuditTargetDatasource:
+		return true
+	case AuditTargetOrganization:
+		return true
+	case AuditTargetPolicy:
+		return true
+	case AuditTargetRestoreJob:
+		return true
+	case AuditTargetStorageDestination:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ConstantsBackupJobStatus.
 const (
 	JobStatusCanceled ConstantsBackupJobStatus = "canceled"
@@ -205,6 +355,27 @@ func (e ConstantsDatasourceRegion) Valid() bool {
 	}
 }
 
+// Defines values for ConstantsRestoreMode.
+const (
+	RestoreModeNewDatabase ConstantsRestoreMode = "new_database"
+	RestoreModeNewServer   ConstantsRestoreMode = "new_server"
+	RestoreModeOverwrite   ConstantsRestoreMode = "overwrite"
+)
+
+// Valid indicates whether the value is a known member of the ConstantsRestoreMode enum.
+func (e ConstantsRestoreMode) Valid() bool {
+	switch e {
+	case RestoreModeNewDatabase:
+		return true
+	case RestoreModeNewServer:
+		return true
+	case RestoreModeOverwrite:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ConstantsStorageDestinationRegion.
 const (
 	StorageDestinationRegionEUCentral1 ConstantsStorageDestinationRegion = "eu-central-1"
@@ -243,10 +414,12 @@ const (
 	ErrConflict              ResponseType = "CONFLICT"
 	ErrForbidden             ResponseType = "FORBIDDEN"
 	ErrInternal              ResponseType = "INTERNAL_ERROR"
+	ErrInternalServer        ResponseType = "INTERNAL_SERVER_ERROR"
 	ErrInvalidPayload        ResponseType = "INVALID_PAYLOAD"
 	ErrMissingOrganizationID ResponseType = "MISSING_ORGANIZATION_ID"
 	ErrMissingUserID         ResponseType = "MISSING_USER_ID"
 	ErrNotFound              ResponseType = "NOT_FOUND"
+	ErrOrgBlocked            ResponseType = "ORG_BLOCKED"
 	ErrUnauthorized          ResponseType = "UNAUTHORIZED"
 	ErrValidationFailed      ResponseType = "VALIDATION_FAILED"
 )
@@ -260,6 +433,8 @@ func (e ResponseType) Valid() bool {
 		return true
 	case ErrInternal:
 		return true
+	case ErrInternalServer:
+		return true
 	case ErrInvalidPayload:
 		return true
 	case ErrMissingOrganizationID:
@@ -267,6 +442,8 @@ func (e ResponseType) Valid() bool {
 	case ErrMissingUserID:
 		return true
 	case ErrNotFound:
+		return true
+	case ErrOrgBlocked:
 		return true
 	case ErrUnauthorized:
 		return true
@@ -276,6 +453,64 @@ func (e ResponseType) Valid() bool {
 		return false
 	}
 }
+
+// Defines values for GetStorageDestinationsParamsOwnership.
+const (
+	All     GetStorageDestinationsParamsOwnership = "all"
+	Byo     GetStorageDestinationsParamsOwnership = "byo"
+	Managed GetStorageDestinationsParamsOwnership = "managed"
+)
+
+// Valid indicates whether the value is a known member of the GetStorageDestinationsParamsOwnership enum.
+func (e GetStorageDestinationsParamsOwnership) Valid() bool {
+	switch e {
+	case All:
+		return true
+	case Byo:
+		return true
+	case Managed:
+		return true
+	default:
+		return false
+	}
+}
+
+// AudithandlerPayloadActor defines model for audithandler.payloadActor.
+type AudithandlerPayloadActor struct {
+	Email *string `json:"email,omitempty"`
+	Id    *string `json:"id,omitempty"`
+	Name  *string `json:"name,omitempty"`
+}
+
+// AudithandlerPayloadAuditLogEntry defines model for audithandler.payloadAuditLogEntry.
+type AudithandlerPayloadAuditLogEntry struct {
+	Action         *ConstantsAuditAction     `json:"action,omitempty"`
+	ActorEmail     *string                   `json:"actorEmail,omitempty"`
+	ActorId        *string                   `json:"actorId,omitempty"`
+	ActorName      *string                   `json:"actorName,omitempty"`
+	ActorType      *string                   `json:"actorType,omitempty"`
+	CreatedAt      *string                   `json:"createdAt,omitempty"`
+	Id             *string                   `json:"id,omitempty"`
+	Ip             *string                   `json:"ip,omitempty"`
+	Metadata       *map[string]interface{}   `json:"metadata,omitempty"`
+	OrganizationId *string                   `json:"organizationId,omitempty"`
+	TargetId       *string                   `json:"targetId,omitempty"`
+	TargetType     *ConstantsAuditTargetType `json:"targetType,omitempty"`
+	UserAgent      *string                   `json:"userAgent,omitempty"`
+}
+
+// AudithandlerPayloadListResponse defines model for audithandler.payloadListResponse.
+type AudithandlerPayloadListResponse struct {
+	List                *[]AudithandlerPayloadAuditLogEntry `json:"list,omitempty"`
+	NextCursorCreatedAt *string                             `json:"nextCursorCreatedAt,omitempty"`
+	NextCursorId        *string                             `json:"nextCursorId,omitempty"`
+}
+
+// ConstantsAuditAction defines model for constants.AuditAction.
+type ConstantsAuditAction string
+
+// ConstantsAuditTargetType defines model for constants.AuditTargetType.
+type ConstantsAuditTargetType string
 
 // ConstantsBackupJobStatus defines model for constants.BackupJobStatus.
 type ConstantsBackupJobStatus string
@@ -304,8 +539,27 @@ type ConstantsDatasourceEnvironment string
 // ConstantsDatasourceRegion defines model for constants.DatasourceRegion.
 type ConstantsDatasourceRegion string
 
+// ConstantsRestoreMode defines model for constants.RestoreMode.
+type ConstantsRestoreMode string
+
 // ConstantsStorageDestinationRegion defines model for constants.StorageDestinationRegion.
 type ConstantsStorageDestinationRegion string
+
+// DatasourcehandlerDeleteDatasourcePayload defines model for datasourcehandler.deleteDatasourcePayload.
+type DatasourcehandlerDeleteDatasourcePayload struct {
+	// Confirmation Confirmation must equal the datasource's name. Same defensive
+	// shape the close-org dialog uses: it doesn't gate anything new
+	// (the JWT + middleware already authorise the action) but stops
+	// a curl-typo from wiping a live datasource and all its backup
+	// history.
+	Confirmation *string `json:"confirmation,omitempty"`
+}
+
+// DatasourcehandlerDeleteDatasourceResponse defines model for datasourcehandler.deleteDatasourceResponse.
+type DatasourcehandlerDeleteDatasourceResponse struct {
+	DeletedResourcesCount *int `json:"deletedResourcesCount,omitempty"`
+	EnqueuedS3Blobs       *int `json:"enqueuedS3Blobs,omitempty"`
+}
 
 // DatasourcehandlerPayloadCreateRequest defines model for datasourcehandler.payloadCreateRequest.
 type DatasourcehandlerPayloadCreateRequest struct {
@@ -328,10 +582,9 @@ type DatasourcehandlerPayloadCredentialFieldsDTO struct {
 
 // DatasourcehandlerPayloadDataSourcePolicyAttachRequest defines model for datasourcehandler.payloadDataSourcePolicyAttachRequest.
 type DatasourcehandlerPayloadDataSourcePolicyAttachRequest struct {
-	DestinationId string `json:"destinationId"`
-	Enabled       bool   `json:"enabled"`
-	PolicyId      string `json:"policyId"`
-	Priority      *int   `json:"priority,omitempty"`
+	Enabled  bool   `json:"enabled"`
+	PolicyId string `json:"policyId"`
+	Priority *int   `json:"priority,omitempty"`
 }
 
 // DatasourcehandlerPayloadDataSourcePolicyAttachResponse defines model for datasourcehandler.payloadDataSourcePolicyAttachResponse.
@@ -364,6 +617,90 @@ type DatasourcehandlerPayloadDatasourceUpdateRequest struct {
 	Region   *string `json:"region,omitempty"`
 }
 
+// DatasourcehandlerPayloadDeleteBackupResponse defines model for datasourcehandler.payloadDeleteBackupResponse.
+type DatasourcehandlerPayloadDeleteBackupResponse struct {
+	EnqueuedS3Blobs *int `json:"enqueuedS3Blobs,omitempty"`
+}
+
+// DatasourcehandlerPayloadGenerateDownloadLinkResponse defines model for datasourcehandler.payloadGenerateDownloadLinkResponse.
+type DatasourcehandlerPayloadGenerateDownloadLinkResponse struct {
+	ContentEncoding *string `json:"contentEncoding,omitempty"`
+
+	// ErrorCode ErrorCode enum: not_found, not_succeeded, missing_artifact,
+	// customer_managed_storage, presign_failed.
+	ErrorCode    *string `json:"errorCode,omitempty"`
+	ErrorMessage *string `json:"errorMessage,omitempty"`
+	ExpiresAt    *string `json:"expiresAt,omitempty"`
+
+	// Ok OK=true means url is a working presigned URL the client can
+	// open directly. OK=false carries a structured ErrorCode +
+	// ErrorMessage explaining why (job not finished, customer-
+	// managed bucket, etc.); the response is still HTTP 200 so the
+	// frontend can render the domain failure without hitting the
+	// generic-transport-error path.
+	Ok        *bool   `json:"ok,omitempty"`
+	SizeBytes *int    `json:"sizeBytes,omitempty"`
+	Url       *string `json:"url,omitempty"`
+}
+
+// DatasourcehandlerPayloadProtectRequest defines model for datasourcehandler.payloadProtectRequest.
+type DatasourcehandlerPayloadProtectRequest struct {
+	Credential    DatasourcehandlerPayloadSetCredentialsRequest `json:"credential"`
+	Engine        ConstantsDatasourceEngine                     `json:"engine"`
+	Environment   *ConstantsDatasourceEnvironment               `json:"environment,omitempty"`
+	KeepLastN     int                                           `json:"keepLastN"`
+	Name          string                                        `json:"name"`
+	Region        *ConstantsDatasourceRegion                    `json:"region,omitempty"`
+	RetentionDays int                                           `json:"retentionDays"`
+	ScheduleCron  string                                        `json:"scheduleCron"`
+	Timezone      string                                        `json:"timezone"`
+}
+
+// DatasourcehandlerPayloadProtectResponse defines model for datasourcehandler.payloadProtectResponse.
+type DatasourcehandlerPayloadProtectResponse struct {
+	DataSourceId    *string `json:"dataSourceId,omitempty"`
+	PolicyId        *string `json:"policyId,omitempty"`
+	VerifyErrorCode *string `json:"verifyErrorCode,omitempty"`
+	VerifyMessage   *string `json:"verifyMessage,omitempty"`
+
+	// VerifyOk Post-setup connection test (non-fatal — the setup is created either
+	// way; verifyOk=false means the credentials need fixing before the
+	// first backup will connect).
+	VerifyOk *bool `json:"verifyOk,omitempty"`
+}
+
+// DatasourcehandlerPayloadRestoreCheckRequest defines model for datasourcehandler.payloadRestoreCheckRequest.
+type DatasourcehandlerPayloadRestoreCheckRequest struct {
+	Enabled           *bool    `json:"enabled,omitempty"`
+	Mode              *string  `json:"mode,omitempty"`
+	Nth               *int     `json:"nth,omitempty"`
+	SampleProbability *float32 `json:"sampleProbability,omitempty"`
+	ScheduleCron      *string  `json:"scheduleCron,omitempty"`
+	ScheduleTimezone  *string  `json:"scheduleTimezone,omitempty"`
+
+	// ScratchConnectionString ScratchConnectionString is stored (KMS-enveloped) for a
+	// customer_scratch target; empty leaves any existing creds in place.
+	ScratchConnectionString *string `json:"scratchConnectionString,omitempty"`
+	Target                  *string `json:"target,omitempty"`
+	ValidationLevel         *string `json:"validationLevel,omitempty"`
+	ValidationQuery         *string `json:"validationQuery,omitempty"`
+}
+
+// DatasourcehandlerPayloadRunBackupNowRequest defines model for datasourcehandler.payloadRunBackupNowRequest.
+type DatasourcehandlerPayloadRunBackupNowRequest struct {
+	// PolicyId PolicyID is optional. Empty means "pick the highest-priority
+	// enabled attachment on this datasource". Send a value when the
+	// dialog's selector is changed away from the preselected one.
+	PolicyId *string `json:"policyId,omitempty"`
+}
+
+// DatasourcehandlerPayloadRunBackupNowResponse defines model for datasourcehandler.payloadRunBackupNowResponse.
+type DatasourcehandlerPayloadRunBackupNowResponse struct {
+	DestinationId *string `json:"destinationId,omitempty"`
+	JobId         *string `json:"jobId,omitempty"`
+	PolicyId      *string `json:"policyId,omitempty"`
+}
+
 // DatasourcehandlerPayloadSetCredentialsRequest defines model for datasourcehandler.payloadSetCredentialsRequest.
 type DatasourcehandlerPayloadSetCredentialsRequest struct {
 	Fields *DatasourcehandlerPayloadCredentialFieldsDTO `json:"fields,omitempty"`
@@ -374,6 +711,41 @@ type DatasourcehandlerPayloadSetCredentialsRequest struct {
 // DatasourcehandlerPayloadSetCredentialsResponse defines model for datasourcehandler.payloadSetCredentialsResponse.
 type DatasourcehandlerPayloadSetCredentialsResponse struct {
 	UpdatedAt *string `json:"updatedAt,omitempty"`
+}
+
+// DatasourcehandlerPayloadVerifyBackupResponse defines model for datasourcehandler.payloadVerifyBackupResponse.
+type DatasourcehandlerPayloadVerifyBackupResponse struct {
+	RestoreJobId *string `json:"restoreJobId,omitempty"`
+}
+
+// DatasourcehandlerPayloadVerifyResponse defines model for datasourcehandler.payloadVerifyResponse.
+type DatasourcehandlerPayloadVerifyResponse struct {
+	// DetectedVersion DetectedVersion is the server version read during the probe (e.g.
+	// "17.4"), empty if the connection failed before it could be read.
+	// DetectedVersionMajor is its major (17) — 0 if unknown. When the
+	// major is outside what our dump tools support, ok is false and
+	// errorCode is server_version_unsupported.
+	DetectedVersion      *string `json:"detectedVersion,omitempty"`
+	DetectedVersionMajor *int    `json:"detectedVersionMajor,omitempty"`
+	Engine               *string `json:"engine,omitempty"`
+
+	// ErrorCode ErrorCode is empty on success; otherwise one of:
+	// no_credentials, decrypt_failed, unsupported_engine, invalid_uri,
+	// network_unreachable, auth_failed, timeout,
+	// server_version_unsupported, unknown. Stable enum so the frontend
+	// can branch without parsing text.
+	ErrorCode *string `json:"errorCode,omitempty"`
+
+	// ErrorMessage ErrorMessage is a sanitised, human-readable explanation. Never
+	// includes the connection string or credentials.
+	ErrorMessage *string `json:"errorMessage,omitempty"`
+	LatencyMs    *int    `json:"latencyMs,omitempty"`
+	Ok           *bool   `json:"ok,omitempty"`
+
+	// ReachabilityOnly ReachabilityOnly = true means the probe confirmed the host is
+	// reachable but didn't verify authentication. Reserved for a future
+	// fast-path probe; both engines do full auth-aware pings today.
+	ReachabilityOnly *bool `json:"reachabilityOnly,omitempty"`
 }
 
 // DsnMongoFields defines model for dsn.MongoFields.
@@ -412,6 +784,18 @@ type DsnPostgresFields struct {
 	User    string  `json:"user"`
 }
 
+// DtoBackupHistoryPoint defines model for dto.BackupHistoryPoint.
+type DtoBackupHistoryPoint struct {
+	Bytes      *int    `json:"bytes,omitempty"`
+	DurationMs *int    `json:"durationMs,omitempty"`
+	FinishedAt *string `json:"finishedAt,omitempty"`
+}
+
+// DtoBackupHistoryResponse defines model for dto.BackupHistoryResponse.
+type DtoBackupHistoryResponse struct {
+	Points *[]DtoBackupHistoryPoint `json:"points,omitempty"`
+}
+
 // DtoBackupJob defines model for dto.BackupJob.
 type DtoBackupJob struct {
 	DatasourceEngine     ConstantsDatasourceEngine `json:"datasourceEngine"`
@@ -442,40 +826,97 @@ type DtoBackupJob struct {
 	PolicyMethod        ConstantsBackupPolicyMethod     `json:"policyMethod"`
 	PolicyName          string                          `json:"policyName"`
 	PolicyRetentionDays int                             `json:"policyRetentionDays"`
+	VerifiedAt          *string                         `json:"verifiedAt,omitempty"`
+	VerifyHasLog        *bool                           `json:"verifyHasLog,omitempty"`
+	VerifyPassed        *bool                           `json:"verifyPassed,omitempty"`
+
+	// VerifyRestoreJobId VerifyRestoreJobID / VerifyHasLog point at the latest restore test's
+	// job + whether its log is uploaded, so the row can open that log directly.
+	VerifyRestoreJobId *string `json:"verifyRestoreJobId,omitempty"`
+
+	// VerifyStatus Latest restore-check of this backup. All null when it was never
+	// verified. VerifyStatus is the verification restore's lifecycle status
+	// (queued/running/success/failed); VerifyPassed is the pass/fail of the
+	// validation ladder, meaningful once VerifyStatus is success; VerifiedAt
+	// is when the check finished.
+	VerifyStatus *ConstantsBackupJobStatus `json:"verifyStatus,omitempty"`
+
+	// VerifyWarnings VerifyWarnings is set when the restore test passed but pg_restore skipped
+	// some objects (e.g. an index too large to rebuild) — "passed with warnings".
+	VerifyWarnings *string `json:"verifyWarnings,omitempty"`
 }
 
 // DtoBackupPolicy defines model for dto.BackupPolicy.
 type DtoBackupPolicy struct {
-	Compression    *ConstantsBackupPolicyCompression `json:"compression,omitempty"`
-	Encryption     ConstantsBackupPolicyEncryption   `json:"encryption"`
-	Id             string                            `json:"id"`
-	KeepLastN      int                               `json:"keepLastN"`
-	Method         ConstantsBackupPolicyMethod       `json:"method"`
-	Name           string                            `json:"name"`
-	OrganizationId string                            `json:"organizationId"`
-	Parallelism    int                               `json:"parallelism"`
-	PitrEnabled    bool                              `json:"pitrEnabled"`
-	RetentionDays  int                               `json:"retentionDays"`
-	ScheduleCron   string                            `json:"scheduleCron"`
-	ThrottleMbps   *int                              `json:"throttleMbps,omitempty"`
-	Timezone       string                            `json:"timezone"`
+	Compression *ConstantsBackupPolicyCompression `json:"compression,omitempty"`
+
+	// DestinationId DestinationID — the storage_destination the policy writes to.
+	// Required (NOT NULL on the table); every policy now declares
+	// its destination at create time.
+	DestinationId  string                          `json:"destinationId"`
+	Encryption     ConstantsBackupPolicyEncryption `json:"encryption"`
+	Id             string                          `json:"id"`
+	KeepLastN      int                             `json:"keepLastN"`
+	Method         ConstantsBackupPolicyMethod     `json:"method"`
+	Name           string                          `json:"name"`
+	OrganizationId string                          `json:"organizationId"`
+	Parallelism    int                             `json:"parallelism"`
+	PitrEnabled    bool                            `json:"pitrEnabled"`
+	RetentionDays  int                             `json:"retentionDays"`
+	ScheduleCron   string                          `json:"scheduleCron"`
+	ThrottleMbps   *int                            `json:"throttleMbps,omitempty"`
+	Timezone       string                          `json:"timezone"`
 }
 
 // DtoDataSource defines model for dto.DataSource.
 type DtoDataSource struct {
-	ActiveBackupJobs    *int    `json:"activeBackupJobs,omitempty"`
-	CreatedAt           *string `json:"createdAt,omitempty"`
-	Engine              string  `json:"engine"`
-	Environment         string  `json:"environment"`
-	HasCredentials      *bool   `json:"hasCredentials,omitempty"`
-	Id                  string  `json:"id"`
-	IsActive            bool    `json:"isActive"`
-	LastBackupAt        *string `json:"lastBackupAt,omitempty"`
-	LastBackupSizeBytes *int    `json:"lastBackupSizeBytes,omitempty"`
-	Name                string  `json:"name"`
-	NextRunAt           *string `json:"nextRunAt,omitempty"`
-	OrganizationId      string  `json:"organizationId"`
-	UpdatedAt           *string `json:"updatedAt,omitempty"`
+	ActiveBackupJobs *int    `json:"activeBackupJobs,omitempty"`
+	CreatedAt        *string `json:"createdAt,omitempty"`
+
+	// DetectedEngineVersion DetectedEngineVersion is the server version read at the last
+	// successful verify (e.g. "17.4"), omitted if never verified.
+	// DetectedEngineVersionAt is when it was read.
+	DetectedEngineVersion   *string `json:"detectedEngineVersion,omitempty"`
+	DetectedEngineVersionAt *string `json:"detectedEngineVersionAt,omitempty"`
+	Engine                  string  `json:"engine"`
+	Environment             string  `json:"environment"`
+	HasCredentials          *bool   `json:"hasCredentials,omitempty"`
+	Id                      string  `json:"id"`
+	IsActive                bool    `json:"isActive"`
+	LastBackupAt            *string `json:"lastBackupAt,omitempty"`
+	LastBackupSizeBytes     *int    `json:"lastBackupSizeBytes,omitempty"`
+	Name                    string  `json:"name"`
+	NextRunAt               *string `json:"nextRunAt,omitempty"`
+	OrganizationId          string  `json:"organizationId"`
+	RestoreCheckLastAt      *string `json:"restoreCheckLastAt,omitempty"`
+	RestoreCheckPassed      *int    `json:"restoreCheckPassed,omitempty"`
+
+	// RestoreCheckTotal Restore-check health for the datasource-list health bar, aggregated
+	// over the last few terminal verification checks. RestoreCheckTotal = 0
+	// (or null) means the datasource has no checks yet. Present on list rows,
+	// omitted on the by-ID detail read (which uses the health endpoint).
+	RestoreCheckTotal *int `json:"restoreCheckTotal,omitempty"`
+
+	// RestoreCheckWarnings RestoreCheckWarnings is how many of the passed checks passed with
+	// warnings (data restored but some object skipped) — drawn amber.
+	RestoreCheckWarnings *int `json:"restoreCheckWarnings,omitempty"`
+
+	// RestoreTestingEnabled RestoreTestingEnabled is true when automated restore testing is on for
+	// this datasource (config enabled and a cadence other than "off"). Present
+	// on the by-ID detail read; omitted on list rows.
+	RestoreTestingEnabled *bool `json:"restoreTestingEnabled,omitempty"`
+
+	// TotalBackupJobs TotalBackupJobs counts every backup_job for this datasource
+	// (any status, including retention-expired). Used by the FE
+	// SectionCard count badge — the loaded-page count was misleading
+	// for any datasource with more rows than fit on one page.
+	TotalBackupJobs *int `json:"totalBackupJobs,omitempty"`
+
+	// TotalStoredBytes TotalStoredBytes is the total size still persisted in object
+	// storage across every live backup for this datasource (excludes
+	// retention-deleted backups). Only present on the by-ID detail read.
+	TotalStoredBytes *int    `json:"totalStoredBytes,omitempty"`
+	UpdatedAt        *string `json:"updatedAt,omitempty"`
 }
 
 // DtoDatasourcePolicy defines model for dto.DatasourcePolicy.
@@ -500,10 +941,126 @@ type DtoDestination struct {
 	OrganizationId string `json:"organizationId"`
 }
 
+// DtoNotificationSettings defines model for dto.NotificationSettings.
+type DtoNotificationSettings struct {
+	AlertEmails []string `json:"alertEmails"`
+
+	// HasWebhookSecret HasWebhookSecret reports whether a signing secret is stored for the
+	// webhook (the secret itself is never returned).
+	HasWebhookSecret    bool    `json:"hasWebhookSecret"`
+	OnBackupFailed      bool    `json:"onBackupFailed"`
+	OnMissedSchedule    bool    `json:"onMissedSchedule"`
+	OnRecovered         bool    `json:"onRecovered"`
+	OnRestoreFailed     bool    `json:"onRestoreFailed"`
+	OnRestoreTestFailed bool    `json:"onRestoreTestFailed"`
+	SlackWebhookUrl     *string `json:"slackWebhookUrl,omitempty"`
+	WebhookUrl          *string `json:"webhookUrl,omitempty"`
+}
+
+// DtoNotificationTestResponse defines model for dto.NotificationTestResponse.
+type DtoNotificationTestResponse struct {
+	Results *[]DtoNotificationTestResult `json:"results,omitempty"`
+}
+
+// DtoNotificationTestResult defines model for dto.NotificationTestResult.
+type DtoNotificationTestResult struct {
+	Channel string  `json:"channel"`
+	Error   *string `json:"error,omitempty"`
+	Ok      bool    `json:"ok"`
+}
+
+// DtoRestoreCheck defines model for dto.RestoreCheck.
+type DtoRestoreCheck struct {
+	Enabled               *bool    `json:"enabled,omitempty"`
+	HasScratchCredentials *bool    `json:"hasScratchCredentials,omitempty"`
+	LastRunAt             *string  `json:"lastRunAt,omitempty"`
+	Mode                  string   `json:"mode"`
+	Nth                   *int     `json:"nth,omitempty"`
+	SampleProbability     *float32 `json:"sampleProbability,omitempty"`
+	ScheduleCron          *string  `json:"scheduleCron,omitempty"`
+	ScheduleTimezone      *string  `json:"scheduleTimezone,omitempty"`
+	Target                string   `json:"target"`
+	ValidationLevel       string   `json:"validationLevel"`
+	ValidationQuery       *string  `json:"validationQuery,omitempty"`
+}
+
+// DtoRestoreCheckHealthResponse defines model for dto.RestoreCheckHealthResponse.
+type DtoRestoreCheckHealthResponse struct {
+	Points *[]DtoRestoreCheckPoint `json:"points,omitempty"`
+}
+
+// DtoRestoreCheckPoint defines model for dto.RestoreCheckPoint.
+type DtoRestoreCheckPoint struct {
+	At         *string `json:"at,omitempty"`
+	DurationMs *int    `json:"durationMs,omitempty"`
+	Passed     *bool   `json:"passed,omitempty"`
+
+	// Warnings Warnings is true when the check passed but skipped some object
+	// (passed with warnings) — drawn amber in the status strip.
+	Warnings *bool `json:"warnings,omitempty"`
+}
+
+// DtoRestoreJob defines model for dto.RestoreJob.
+type DtoRestoreJob struct {
+	BytesRead      *int    `json:"bytesRead,omitempty"`
+	BytesRestored  *int    `json:"bytesRestored,omitempty"`
+	CreatedAt      string  `json:"createdAt"`
+	DataSourceId   string  `json:"dataSourceId"`
+	DataSourceName string  `json:"dataSourceName"`
+	DurationMs     *int    `json:"durationMs,omitempty"`
+	Engine         string  `json:"engine"`
+	ErrorSummary   *string `json:"errorSummary,omitempty"`
+	FinishedAt     *string `json:"finishedAt,omitempty"`
+
+	// HasLog HasLog is true once the agent uploaded the restore output — the
+	// logs.presign endpoint will return a link.
+	HasLog         *bool                    `json:"hasLog,omitempty"`
+	Id             string                   `json:"id"`
+	Mode           ConstantsRestoreMode     `json:"mode"`
+	SourceBackupId *string                  `json:"sourceBackupId,omitempty"`
+	StartedAt      *string                  `json:"startedAt,omitempty"`
+	Status         ConstantsBackupJobStatus `json:"status"`
+
+	// TargetConnectionRef TargetConnectionRef is the redacted display form of the restore
+	// target (scheme://…@host:port/db) — never carries credentials.
+	TargetConnectionRef *string `json:"targetConnectionRef,omitempty"`
+	TargetDatabase      *string `json:"targetDatabase,omitempty"`
+	VerifyLevel         *string `json:"verifyLevel,omitempty"`
+
+	// VerifyPassed Verification fields — set only for verification checks
+	// (trigger=verification). VerifyPassed is the validation-ladder outcome
+	// (null until terminal); VerifyLevel is the depth reached (l1/l2/l3).
+	VerifyPassed *bool `json:"verifyPassed,omitempty"`
+
+	// VerifyWarnings VerifyWarnings is set when the restore passed but skipped some objects
+	// (passed with warnings); null for a clean pass.
+	VerifyWarnings *string `json:"verifyWarnings,omitempty"`
+}
+
+// NotificationhandlerPayloadNotificationSettingsRequest defines model for notificationhandler.payloadNotificationSettingsRequest.
+type NotificationhandlerPayloadNotificationSettingsRequest struct {
+	AlertEmails         *[]string `json:"alertEmails,omitempty"`
+	OnBackupFailed      *bool     `json:"onBackupFailed,omitempty"`
+	OnMissedSchedule    *bool     `json:"onMissedSchedule,omitempty"`
+	OnRecovered         *bool     `json:"onRecovered,omitempty"`
+	OnRestoreFailed     *bool     `json:"onRestoreFailed,omitempty"`
+	OnRestoreTestFailed *bool     `json:"onRestoreTestFailed,omitempty"`
+	SlackWebhookUrl     *string   `json:"slackWebhookUrl,omitempty"`
+	WebhookSecret       *string   `json:"webhookSecret,omitempty"`
+	WebhookUrl          *string   `json:"webhookUrl,omitempty"`
+}
+
 // PolicyhandlerPayloadCreateRequest defines model for policyhandler.payloadCreateRequest.
 type PolicyhandlerPayloadCreateRequest struct {
 	// Compression gzip, zstd, none
 	Compression *string `json:"compression,omitempty"`
+
+	// DestinationId DestinationID is required: every policy now declares where its
+	// archives land (migration 20260520121030 moved the column from
+	// the attachment row to the policy itself). Customers picking
+	// "this template uses my R2 bucket" once is cleaner than
+	// re-picking on every datasource attach.
+	DestinationId string `json:"destinationId"`
 
 	// Encryption sse-kms
 	Encryption *string `json:"encryption,omitempty"`
@@ -525,6 +1082,26 @@ type PolicyhandlerPayloadCreateResponse struct {
 	Id string `json:"id"`
 }
 
+// PolicyhandlerPayloadCreateStorageDestinationRequest defines model for policyhandler.payloadCreateStorageDestinationRequest.
+type PolicyhandlerPayloadCreateStorageDestinationRequest struct {
+	AccessKeyId     string  `json:"accessKeyId"`
+	Bucket          string  `json:"bucket"`
+	EncryptionMode  *string `json:"encryptionMode,omitempty"`
+	EndpointUrl     *string `json:"endpointUrl,omitempty"`
+	ForcePathStyle  *bool   `json:"forcePathStyle,omitempty"`
+	Name            string  `json:"name"`
+	Region          *string `json:"region,omitempty"`
+	SecretAccessKey string  `json:"secretAccessKey"`
+	StorageClass    *string `json:"storageClass,omitempty"`
+	Type            string  `json:"type"`
+}
+
+// PolicyhandlerPayloadCreateStorageDestinationResponse defines model for policyhandler.payloadCreateStorageDestinationResponse.
+type PolicyhandlerPayloadCreateStorageDestinationResponse struct {
+	Id             *string `json:"id,omitempty"`
+	LastVerifiedAt *string `json:"lastVerifiedAt,omitempty"`
+}
+
 // PolicyhandlerPayloadEnsureManagedStorageDestinationRequest defines model for policyhandler.payloadEnsureManagedStorageDestinationRequest.
 type PolicyhandlerPayloadEnsureManagedStorageDestinationRequest struct {
 	Region ConstantsStorageDestinationRegion `json:"region"`
@@ -533,6 +1110,56 @@ type PolicyhandlerPayloadEnsureManagedStorageDestinationRequest struct {
 // PolicyhandlerPayloadEnsureManagedStorageDestinationResponse defines model for policyhandler.payloadEnsureManagedStorageDestinationResponse.
 type PolicyhandlerPayloadEnsureManagedStorageDestinationResponse struct {
 	Id string `json:"id"`
+}
+
+// PolicyhandlerPayloadStorageDestinationResponse defines model for policyhandler.payloadStorageDestinationResponse.
+type PolicyhandlerPayloadStorageDestinationResponse struct {
+	Bucket         *string `json:"bucket,omitempty"`
+	CreatedAt      *string `json:"createdAt,omitempty"`
+	EncryptionMode *string `json:"encryptionMode,omitempty"`
+	EndpointUrl    *string `json:"endpointUrl,omitempty"`
+	ForcePathStyle *bool   `json:"forcePathStyle,omitempty"`
+	Id             *string `json:"id,omitempty"`
+	IsActive       *bool   `json:"isActive,omitempty"`
+	IsManaged      *bool   `json:"isManaged,omitempty"`
+	LastVerifiedAt *string `json:"lastVerifiedAt,omitempty"`
+	Name           *string `json:"name,omitempty"`
+	Region         *string `json:"region,omitempty"`
+	StorageClass   *string `json:"storageClass,omitempty"`
+	Type           *string `json:"type,omitempty"`
+	UpdatedAt      *string `json:"updatedAt,omitempty"`
+}
+
+// PolicyhandlerPayloadUpdateRequest defines model for policyhandler.payloadUpdateRequest.
+type PolicyhandlerPayloadUpdateRequest struct {
+	// Compression gzip, zstd, none
+	Compression *string `json:"compression,omitempty"`
+
+	// Encryption sse-kms, sse-s3, client-side, none
+	Encryption *string `json:"encryption,omitempty"`
+	KeepLastN  *int    `json:"keepLastN,omitempty"`
+
+	// Method logical_dump, physical, pitr
+	Method        *string `json:"method,omitempty"`
+	Name          *string `json:"name,omitempty"`
+	Parallelism   *int    `json:"parallelism,omitempty"`
+	PitrEnabled   *bool   `json:"pitrEnabled,omitempty"`
+	RetentionDays *int    `json:"retentionDays,omitempty"`
+	ScheduleCron  *string `json:"scheduleCron,omitempty"`
+	ThrottleMbps  *int    `json:"throttleMbps,omitempty"`
+	Timezone      *string `json:"timezone,omitempty"`
+}
+
+// PolicyhandlerPayloadUpdateStorageDestinationRequest defines model for policyhandler.payloadUpdateStorageDestinationRequest.
+type PolicyhandlerPayloadUpdateStorageDestinationRequest struct {
+	AccessKeyId     *string `json:"accessKeyId,omitempty"`
+	EncryptionMode  *string `json:"encryptionMode,omitempty"`
+	EndpointUrl     *string `json:"endpointUrl,omitempty"`
+	ForcePathStyle  *bool   `json:"forcePathStyle,omitempty"`
+	Name            *string `json:"name,omitempty"`
+	Region          *string `json:"region,omitempty"`
+	SecretAccessKey *string `json:"secretAccessKey,omitempty"`
+	StorageClass    *string `json:"storageClass,omitempty"`
 }
 
 // ResponseAPIError defines model for response.APIError.
@@ -565,6 +1192,97 @@ type ResponseAPIResponseWithPagination struct {
 // ResponseType defines model for response.Type.
 type ResponseType string
 
+// RestorehandlerPayloadCreateRequest defines model for restorehandler.payloadCreateRequest.
+type RestorehandlerPayloadCreateRequest struct {
+	// ConfirmOverwrite ConfirmOverwrite must be true for overwrite mode — the API guard
+	// behind the wizard's confirm step.
+	ConfirmOverwrite *bool  `json:"confirmOverwrite,omitempty"`
+	DataSourceId     string `json:"dataSourceId"`
+
+	// Mode Mode is one of new_database | overwrite | new_server.
+	Mode           string `json:"mode"`
+	SourceBackupId string `json:"sourceBackupId"`
+
+	// TargetDatabase TargetDatabase is the database to create (new_database mode only).
+	TargetDatabase *string `json:"targetDatabase,omitempty"`
+
+	// TargetUri TargetURI is the write-capable connection string for new_database /
+	// new_server modes. Encrypted at rest; never returned by any endpoint.
+	TargetUri *string `json:"targetUri,omitempty"`
+}
+
+// RestorehandlerPayloadCreateResponse defines model for restorehandler.payloadCreateResponse.
+type RestorehandlerPayloadCreateResponse struct {
+	Id string `json:"id"`
+}
+
+// RestorehandlerPayloadLogsPresignResponse defines model for restorehandler.payloadLogsPresignResponse.
+type RestorehandlerPayloadLogsPresignResponse struct {
+	// ErrorCode ErrorCode is one of: not_found | no_log | presign_failed.
+	ErrorCode    *string `json:"errorCode,omitempty"`
+	ErrorMessage *string `json:"errorMessage,omitempty"`
+	ExpiresAt    *string `json:"expiresAt,omitempty"`
+	Ok           bool    `json:"ok"`
+	Url          *string `json:"url,omitempty"`
+}
+
+// RestorehandlerPayloadProbeTargetRequest defines model for restorehandler.payloadProbeTargetRequest.
+type RestorehandlerPayloadProbeTargetRequest struct {
+	DataSourceId string `json:"dataSourceId"`
+
+	// Mode Mode is one of new_database | overwrite | new_server.
+	Mode string `json:"mode"`
+
+	// TargetDatabase TargetDatabase (new_database mode) is probed for prior existence.
+	TargetDatabase *string `json:"targetDatabase,omitempty"`
+
+	// TargetUri TargetURI is required for new_database / new_server; ignored for
+	// overwrite (which probes the stored datasource credentials).
+	TargetUri *string `json:"targetUri,omitempty"`
+}
+
+// RestorehandlerPayloadProbeTargetResponse defines model for restorehandler.payloadProbeTargetResponse.
+type RestorehandlerPayloadProbeTargetResponse struct {
+	Engine *string `json:"engine,omitempty"`
+
+	// ErrorCode ErrorCode mirrors the verify enum plus write-probe codes:
+	// target_not_writable | cannot_create_database | database_already_exists | engine_mismatch | …
+	ErrorCode    *string `json:"errorCode,omitempty"`
+	ErrorMessage *string `json:"errorMessage,omitempty"`
+	LatencyMs    *int    `json:"latencyMs,omitempty"`
+	Ok           bool    `json:"ok"`
+}
+
+// ListAuditLogsParams defines parameters for ListAuditLogs.
+type ListAuditLogsParams struct {
+	// Limit Page size (1-200, default 50)
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// CursorCreatedAt Cursor from prior response — RFC3339 timestamp
+	CursorCreatedAt *string `form:"cursorCreatedAt,omitempty" json:"cursorCreatedAt,omitempty"`
+
+	// CursorId Cursor from prior response — UUID tiebreaker for same-timestamp rows
+	CursorId *string `form:"cursorId,omitempty" json:"cursorId,omitempty"`
+
+	// Since Filter to rows with createdAt >= since (RFC3339)
+	Since *string `form:"since,omitempty" json:"since,omitempty"`
+
+	// Until Filter to rows with createdAt < until (RFC3339)
+	Until *string `form:"until,omitempty" json:"until,omitempty"`
+
+	// Actions Filter to one or more exact actions (repeated)
+	Actions *[]string `form:"actions,omitempty" json:"actions,omitempty"`
+
+	// TargetTypes Filter by one or more exact target_types (repeated)
+	TargetTypes *[]string `form:"targetTypes,omitempty" json:"targetTypes,omitempty"`
+
+	// TargetId Filter by exact target uuid (e.g. one datasource's id)
+	TargetId *string `form:"targetId,omitempty" json:"targetId,omitempty"`
+
+	// ActorIds Filter by one or more actor user ids (repeated)
+	ActorIds *[]string `form:"actorIds,omitempty" json:"actorIds,omitempty"`
+}
+
 // GetBackupsParams defines parameters for GetBackups.
 type GetBackupsParams struct {
 	Cursor        *string   `form:"cursor,omitempty" json:"cursor,omitempty"`
@@ -581,17 +1299,61 @@ type ListParams struct {
 	Query *string `form:"query,omitempty" json:"query,omitempty"`
 }
 
+// GetBackupHistoryParams defines parameters for GetBackupHistory.
+type GetBackupHistoryParams struct {
+	Days *int `form:"days,omitempty" json:"days,omitempty"`
+}
+
 // ListBackupJobsParams defines parameters for ListBackupJobs.
 type ListBackupJobsParams struct {
 	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
 	Limit  *int    `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
+// GetRestoreCheckHistoryParams defines parameters for GetRestoreCheckHistory.
+type GetRestoreCheckHistoryParams struct {
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
+// GetDatasourcesDatasourceIdRestoresParams defines parameters for GetDatasourcesDatasourceIdRestores.
+type GetDatasourcesDatasourceIdRestoresParams struct {
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Limit  *int    `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Trigger Trigger scopes the list: "manual" (user-initiated restore jobs,
+	// default) or "verification" (automated/on-demand restore checks).
+	Trigger *string `form:"trigger,omitempty" json:"trigger,omitempty"`
+}
+
+// GetStorageDestinationsParams defines parameters for GetStorageDestinations.
+type GetStorageDestinationsParams struct {
+	// Search Substring search across name, bucket, endpoint URL, and type
+	Search *string `form:"search,omitempty" json:"search,omitempty"`
+
+	// Ownership Filter by ownership: all | managed | byo
+	Ownership *GetStorageDestinationsParamsOwnership `form:"ownership,omitempty" json:"ownership,omitempty"`
+
+	// UnverifiedOnly Only return BYO rows with NULL last_verified_at
+	UnverifiedOnly *bool `form:"unverifiedOnly,omitempty" json:"unverifiedOnly,omitempty"`
+}
+
+// GetStorageDestinationsParamsOwnership defines parameters for GetStorageDestinations.
+type GetStorageDestinationsParamsOwnership string
+
 // PostBackupPoliciesJSONRequestBody defines body for PostBackupPolicies for application/json ContentType.
 type PostBackupPoliciesJSONRequestBody = PolicyhandlerPayloadCreateRequest
 
+// PatchBackupPoliciesIdJSONRequestBody defines body for PatchBackupPoliciesId for application/json ContentType.
+type PatchBackupPoliciesIdJSONRequestBody = PolicyhandlerPayloadUpdateRequest
+
 // PostDatasourcesJSONRequestBody defines body for PostDatasources for application/json ContentType.
 type PostDatasourcesJSONRequestBody = DatasourcehandlerPayloadCreateRequest
+
+// ProtectDatasourceJSONRequestBody defines body for ProtectDatasource for application/json ContentType.
+type ProtectDatasourceJSONRequestBody = DatasourcehandlerPayloadProtectRequest
+
+// RunBackupNowJSONRequestBody defines body for RunBackupNow for application/json ContentType.
+type RunBackupNowJSONRequestBody = DatasourcehandlerPayloadRunBackupNowRequest
 
 // PostDatasourcesDatasourceIdPoliciesJSONRequestBody defines body for PostDatasourcesDatasourceIdPolicies for application/json ContentType.
 type PostDatasourcesDatasourceIdPoliciesJSONRequestBody = DatasourcehandlerPayloadDataSourcePolicyAttachRequest
@@ -599,14 +1361,35 @@ type PostDatasourcesDatasourceIdPoliciesJSONRequestBody = DatasourcehandlerPaylo
 // UpdatePolicyAttachmentJSONRequestBody defines body for UpdatePolicyAttachment for application/json ContentType.
 type UpdatePolicyAttachmentJSONRequestBody = DatasourcehandlerPayloadDatasourcePolicyUpdateRequest
 
+// DeleteDatasourceJSONRequestBody defines body for DeleteDatasource for application/json ContentType.
+type DeleteDatasourceJSONRequestBody = DatasourcehandlerDeleteDatasourcePayload
+
 // UpdateDataSourceJSONRequestBody defines body for UpdateDataSource for application/json ContentType.
 type UpdateDataSourceJSONRequestBody = DatasourcehandlerPayloadDatasourceUpdateRequest
 
 // PutDatasourcesIdCredentialsJSONRequestBody defines body for PutDatasourcesIdCredentials for application/json ContentType.
 type PutDatasourcesIdCredentialsJSONRequestBody = DatasourcehandlerPayloadSetCredentialsRequest
 
+// PutRestoreCheckJSONRequestBody defines body for PutRestoreCheck for application/json ContentType.
+type PutRestoreCheckJSONRequestBody = DatasourcehandlerPayloadRestoreCheckRequest
+
+// PutNotificationSettingsJSONRequestBody defines body for PutNotificationSettings for application/json ContentType.
+type PutNotificationSettingsJSONRequestBody = NotificationhandlerPayloadNotificationSettingsRequest
+
+// PostRestoresJSONRequestBody defines body for PostRestores for application/json ContentType.
+type PostRestoresJSONRequestBody = RestorehandlerPayloadCreateRequest
+
+// PostRestoresTargetProbeJSONRequestBody defines body for PostRestoresTargetProbe for application/json ContentType.
+type PostRestoresTargetProbeJSONRequestBody = RestorehandlerPayloadProbeTargetRequest
+
+// PostStorageDestinationsJSONRequestBody defines body for PostStorageDestinations for application/json ContentType.
+type PostStorageDestinationsJSONRequestBody = PolicyhandlerPayloadCreateStorageDestinationRequest
+
 // PostStorageDestinationsManagedEnsureJSONRequestBody defines body for PostStorageDestinationsManagedEnsure for application/json ContentType.
 type PostStorageDestinationsManagedEnsureJSONRequestBody = PolicyhandlerPayloadEnsureManagedStorageDestinationRequest
+
+// PatchStorageDestinationsIdJSONRequestBody defines body for PatchStorageDestinationsId for application/json ContentType.
+type PatchStorageDestinationsIdJSONRequestBody = PolicyhandlerPayloadUpdateStorageDestinationRequest
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -681,6 +1464,12 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
+	// ListAuditLogs request
+	ListAuditLogs(ctx context.Context, params *ListAuditLogsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListAuditLogActors request
+	ListAuditLogActors(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetBackupPolicies request
 	GetBackupPolicies(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -688,6 +1477,11 @@ type ClientInterface interface {
 	PostBackupPoliciesWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	PostBackupPolicies(ctx context.Context, body PostBackupPoliciesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PatchBackupPoliciesIdWithBody request with any body
+	PatchBackupPoliciesIdWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PatchBackupPoliciesId(ctx context.Context, id string, body PatchBackupPoliciesIdJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetBackups request
 	GetBackups(ctx context.Context, params *GetBackupsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -700,8 +1494,30 @@ type ClientInterface interface {
 
 	PostDatasources(ctx context.Context, body PostDatasourcesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ProtectDatasourceWithBody request with any body
+	ProtectDatasourceWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ProtectDatasource(ctx context.Context, body ProtectDatasourceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetBackupHistory request
+	GetBackupHistory(ctx context.Context, datasourceId string, params *GetBackupHistoryParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListBackupJobs request
 	ListBackupJobs(ctx context.Context, datasourceId string, params *ListBackupJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RunBackupNowWithBody request with any body
+	RunBackupNowWithBody(ctx context.Context, datasourceId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RunBackupNow(ctx context.Context, datasourceId string, body RunBackupNowJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteBackup request
+	DeleteBackup(ctx context.Context, datasourceId string, jobId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GenerateBackupDownloadLink request
+	GenerateBackupDownloadLink(ctx context.Context, datasourceId string, jobId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// VerifyBackupNow request
+	VerifyBackupNow(ctx context.Context, datasourceId string, jobId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListPolicies request
 	ListPolicies(ctx context.Context, datasourceId string, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -719,6 +1535,17 @@ type ClientInterface interface {
 
 	UpdatePolicyAttachment(ctx context.Context, datasourceId string, policyId string, body UpdatePolicyAttachmentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetRestoreCheckHistory request
+	GetRestoreCheckHistory(ctx context.Context, datasourceId string, params *GetRestoreCheckHistoryParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetDatasourcesDatasourceIdRestores request
+	GetDatasourcesDatasourceIdRestores(ctx context.Context, datasourceId string, params *GetDatasourcesDatasourceIdRestoresParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteDatasourceWithBody request with any body
+	DeleteDatasourceWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	DeleteDatasource(ctx context.Context, id string, body DeleteDatasourceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// Get request
 	Get(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -732,10 +1559,91 @@ type ClientInterface interface {
 
 	PutDatasourcesIdCredentials(ctx context.Context, id string, body PutDatasourcesIdCredentialsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetRestoreCheck request
+	GetRestoreCheck(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PutRestoreCheckWithBody request with any body
+	PutRestoreCheckWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PutRestoreCheck(ctx context.Context, id string, body PutRestoreCheckJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// VerifyDatasource request
+	VerifyDatasource(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetNotificationSettings request
+	GetNotificationSettings(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PutNotificationSettingsWithBody request with any body
+	PutNotificationSettingsWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PutNotificationSettings(ctx context.Context, body PutNotificationSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// TestNotifications request
+	TestNotifications(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PostRestoresWithBody request with any body
+	PostRestoresWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PostRestores(ctx context.Context, body PostRestoresJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PostRestoresTargetProbeWithBody request with any body
+	PostRestoresTargetProbeWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PostRestoresTargetProbe(ctx context.Context, body PostRestoresTargetProbeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetRestoresId request
+	GetRestoresId(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetRestoresIdLogsPresign request
+	GetRestoresIdLogsPresign(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetStorageDestinations request
+	GetStorageDestinations(ctx context.Context, params *GetStorageDestinationsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PostStorageDestinationsWithBody request with any body
+	PostStorageDestinationsWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PostStorageDestinations(ctx context.Context, body PostStorageDestinationsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// PostStorageDestinationsManagedEnsureWithBody request with any body
 	PostStorageDestinationsManagedEnsureWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	PostStorageDestinationsManagedEnsure(ctx context.Context, body PostStorageDestinationsManagedEnsureJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteStorageDestinationsId request
+	DeleteStorageDestinationsId(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetStorageDestinationsId request
+	GetStorageDestinationsId(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PatchStorageDestinationsIdWithBody request with any body
+	PatchStorageDestinationsIdWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PatchStorageDestinationsId(ctx context.Context, id string, body PatchStorageDestinationsIdJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+}
+
+func (c *Client) ListAuditLogs(ctx context.Context, params *ListAuditLogsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAuditLogsRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListAuditLogActors(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAuditLogActorsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
 }
 
 func (c *Client) GetBackupPolicies(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -764,6 +1672,30 @@ func (c *Client) PostBackupPoliciesWithBody(ctx context.Context, contentType str
 
 func (c *Client) PostBackupPolicies(ctx context.Context, body PostBackupPoliciesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewPostBackupPoliciesRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PatchBackupPoliciesIdWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPatchBackupPoliciesIdRequestWithBody(c.Server, id, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PatchBackupPoliciesId(ctx context.Context, id string, body PatchBackupPoliciesIdJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPatchBackupPoliciesIdRequest(c.Server, id, body)
 	if err != nil {
 		return nil, err
 	}
@@ -822,8 +1754,104 @@ func (c *Client) PostDatasources(ctx context.Context, body PostDatasourcesJSONRe
 	return c.Client.Do(req)
 }
 
+func (c *Client) ProtectDatasourceWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewProtectDatasourceRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ProtectDatasource(ctx context.Context, body ProtectDatasourceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewProtectDatasourceRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetBackupHistory(ctx context.Context, datasourceId string, params *GetBackupHistoryParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetBackupHistoryRequest(c.Server, datasourceId, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ListBackupJobs(ctx context.Context, datasourceId string, params *ListBackupJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListBackupJobsRequest(c.Server, datasourceId, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunBackupNowWithBody(ctx context.Context, datasourceId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunBackupNowRequestWithBody(c.Server, datasourceId, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunBackupNow(ctx context.Context, datasourceId string, body RunBackupNowJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunBackupNowRequest(c.Server, datasourceId, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteBackup(ctx context.Context, datasourceId string, jobId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteBackupRequest(c.Server, datasourceId, jobId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GenerateBackupDownloadLink(ctx context.Context, datasourceId string, jobId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGenerateBackupDownloadLinkRequest(c.Server, datasourceId, jobId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) VerifyBackupNow(ctx context.Context, datasourceId string, jobId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewVerifyBackupNowRequest(c.Server, datasourceId, jobId)
 	if err != nil {
 		return nil, err
 	}
@@ -906,6 +1934,54 @@ func (c *Client) UpdatePolicyAttachment(ctx context.Context, datasourceId string
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetRestoreCheckHistory(ctx context.Context, datasourceId string, params *GetRestoreCheckHistoryParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetRestoreCheckHistoryRequest(c.Server, datasourceId, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetDatasourcesDatasourceIdRestores(ctx context.Context, datasourceId string, params *GetDatasourcesDatasourceIdRestoresParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetDatasourcesDatasourceIdRestoresRequest(c.Server, datasourceId, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteDatasourceWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteDatasourceRequestWithBody(c.Server, id, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteDatasource(ctx context.Context, id string, body DeleteDatasourceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteDatasourceRequest(c.Server, id, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) Get(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetRequest(c.Server, id)
 	if err != nil {
@@ -966,6 +2042,210 @@ func (c *Client) PutDatasourcesIdCredentials(ctx context.Context, id string, bod
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetRestoreCheck(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetRestoreCheckRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PutRestoreCheckWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPutRestoreCheckRequestWithBody(c.Server, id, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PutRestoreCheck(ctx context.Context, id string, body PutRestoreCheckJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPutRestoreCheckRequest(c.Server, id, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) VerifyDatasource(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewVerifyDatasourceRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetNotificationSettings(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetNotificationSettingsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PutNotificationSettingsWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPutNotificationSettingsRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PutNotificationSettings(ctx context.Context, body PutNotificationSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPutNotificationSettingsRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestNotifications(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestNotificationsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostRestoresWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostRestoresRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostRestores(ctx context.Context, body PostRestoresJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostRestoresRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostRestoresTargetProbeWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostRestoresTargetProbeRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostRestoresTargetProbe(ctx context.Context, body PostRestoresTargetProbeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostRestoresTargetProbeRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetRestoresId(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetRestoresIdRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetRestoresIdLogsPresign(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetRestoresIdLogsPresignRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetStorageDestinations(ctx context.Context, params *GetStorageDestinationsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetStorageDestinationsRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostStorageDestinationsWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostStorageDestinationsRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostStorageDestinations(ctx context.Context, body PostStorageDestinationsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostStorageDestinationsRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) PostStorageDestinationsManagedEnsureWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewPostStorageDestinationsManagedEnsureRequestWithBody(c.Server, contentType, body)
 	if err != nil {
@@ -988,6 +2268,231 @@ func (c *Client) PostStorageDestinationsManagedEnsure(ctx context.Context, body 
 		return nil, err
 	}
 	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteStorageDestinationsId(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteStorageDestinationsIdRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetStorageDestinationsId(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetStorageDestinationsIdRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PatchStorageDestinationsIdWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPatchStorageDestinationsIdRequestWithBody(c.Server, id, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PatchStorageDestinationsId(ctx context.Context, id string, body PatchStorageDestinationsIdJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPatchStorageDestinationsIdRequest(c.Server, id, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// NewListAuditLogsRequest generates requests for ListAuditLogs
+func NewListAuditLogsRequest(server string, params *ListAuditLogsParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/audit-log")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
+		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
+
+		if params.Limit != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "limit", *params.Limit, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.CursorCreatedAt != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "cursorCreatedAt", *params.CursorCreatedAt, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.CursorId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "cursorId", *params.CursorId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Since != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "since", *params.Since, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Until != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "until", *params.Until, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Actions != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "actions", *params.Actions, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "array", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.TargetTypes != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "targetTypes", *params.TargetTypes, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "array", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.TargetId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "targetId", *params.TargetId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.ActorIds != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "actorIds", *params.ActorIds, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "array", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListAuditLogActorsRequest generates requests for ListAuditLogActors
+func NewListAuditLogActorsRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/audit-log/actors")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
 }
 
 // NewGetBackupPoliciesRequest generates requests for GetBackupPolicies
@@ -1048,6 +2553,53 @@ func NewPostBackupPoliciesRequestWithBody(server string, contentType string, bod
 	}
 
 	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewPatchBackupPoliciesIdRequest calls the generic PatchBackupPoliciesId builder with application/json body
+func NewPatchBackupPoliciesIdRequest(server string, id string, body PatchBackupPoliciesIdJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPatchBackupPoliciesIdRequestWithBody(server, id, "application/json", bodyReader)
+}
+
+// NewPatchBackupPoliciesIdRequestWithBody generates requests for PatchBackupPoliciesId with any type of body
+func NewPatchBackupPoliciesIdRequestWithBody(server string, id string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/backup-policies/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPatch, queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -1241,6 +2793,107 @@ func NewPostDatasourcesRequestWithBody(server string, contentType string, body i
 	return req, nil
 }
 
+// NewProtectDatasourceRequest calls the generic ProtectDatasource builder with application/json body
+func NewProtectDatasourceRequest(server string, body ProtectDatasourceJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewProtectDatasourceRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewProtectDatasourceRequestWithBody generates requests for ProtectDatasource with any type of body
+func NewProtectDatasourceRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/datasources/protect")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetBackupHistoryRequest generates requests for GetBackupHistory
+func NewGetBackupHistoryRequest(server string, datasourceId string, params *GetBackupHistoryParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "datasourceId", datasourceId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/datasources/%s/backup-history", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
+		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
+
+		if params.Days != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "days", *params.Days, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewListBackupJobsRequest generates requests for ListBackupJobs
 func NewListBackupJobsRequest(server string, datasourceId string, params *ListBackupJobsParams) (*http.Request, error) {
 	var err error
@@ -1307,6 +2960,176 @@ func NewListBackupJobsRequest(server string, datasourceId string, params *ListBa
 	}
 
 	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewRunBackupNowRequest calls the generic RunBackupNow builder with application/json body
+func NewRunBackupNowRequest(server string, datasourceId string, body RunBackupNowJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRunBackupNowRequestWithBody(server, datasourceId, "application/json", bodyReader)
+}
+
+// NewRunBackupNowRequestWithBody generates requests for RunBackupNow with any type of body
+func NewRunBackupNowRequestWithBody(server string, datasourceId string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "datasourceId", datasourceId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/datasources/%s/backups/run-now", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteBackupRequest generates requests for DeleteBackup
+func NewDeleteBackupRequest(server string, datasourceId string, jobId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "datasourceId", datasourceId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithOptions("simple", false, "jobId", jobId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/datasources/%s/backups/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodDelete, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGenerateBackupDownloadLinkRequest generates requests for GenerateBackupDownloadLink
+func NewGenerateBackupDownloadLinkRequest(server string, datasourceId string, jobId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "datasourceId", datasourceId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithOptions("simple", false, "jobId", jobId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/datasources/%s/backups/%s/download-link", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewVerifyBackupNowRequest generates requests for VerifyBackupNow
+func NewVerifyBackupNowRequest(server string, datasourceId string, jobId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "datasourceId", datasourceId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithOptions("simple", false, "jobId", jobId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/datasources/%s/backups/%s/verify", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1490,6 +3313,199 @@ func NewUpdatePolicyAttachmentRequestWithBody(server string, datasourceId string
 	return req, nil
 }
 
+// NewGetRestoreCheckHistoryRequest generates requests for GetRestoreCheckHistory
+func NewGetRestoreCheckHistoryRequest(server string, datasourceId string, params *GetRestoreCheckHistoryParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "datasourceId", datasourceId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/datasources/%s/restore-check-history", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
+		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
+
+		if params.Limit != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "limit", *params.Limit, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetDatasourcesDatasourceIdRestoresRequest generates requests for GetDatasourcesDatasourceIdRestores
+func NewGetDatasourcesDatasourceIdRestoresRequest(server string, datasourceId string, params *GetDatasourcesDatasourceIdRestoresParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "datasourceId", datasourceId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/datasources/%s/restores", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
+		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
+
+		if params.Cursor != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "cursor", *params.Cursor, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Limit != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "limit", *params.Limit, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Trigger != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "trigger", *params.Trigger, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewDeleteDatasourceRequest calls the generic DeleteDatasource builder with application/json body
+func NewDeleteDatasourceRequest(server string, id string, body DeleteDatasourceJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewDeleteDatasourceRequestWithBody(server, id, "application/json", bodyReader)
+}
+
+// NewDeleteDatasourceRequestWithBody generates requests for DeleteDatasource with any type of body
+func NewDeleteDatasourceRequestWithBody(server string, id string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/datasources/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodDelete, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewGetRequest generates requests for Get
 func NewGetRequest(server string, id string) (*http.Request, error) {
 	var err error
@@ -1618,6 +3634,481 @@ func NewPutDatasourcesIdCredentialsRequestWithBody(server string, id string, con
 	return req, nil
 }
 
+// NewGetRestoreCheckRequest generates requests for GetRestoreCheck
+func NewGetRestoreCheckRequest(server string, id string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/datasources/%s/restore-check", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewPutRestoreCheckRequest calls the generic PutRestoreCheck builder with application/json body
+func NewPutRestoreCheckRequest(server string, id string, body PutRestoreCheckJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPutRestoreCheckRequestWithBody(server, id, "application/json", bodyReader)
+}
+
+// NewPutRestoreCheckRequestWithBody generates requests for PutRestoreCheck with any type of body
+func NewPutRestoreCheckRequestWithBody(server string, id string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/datasources/%s/restore-check", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPut, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewVerifyDatasourceRequest generates requests for VerifyDatasource
+func NewVerifyDatasourceRequest(server string, id string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/datasources/%s/verify", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetNotificationSettingsRequest generates requests for GetNotificationSettings
+func NewGetNotificationSettingsRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/notifications/settings")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewPutNotificationSettingsRequest calls the generic PutNotificationSettings builder with application/json body
+func NewPutNotificationSettingsRequest(server string, body PutNotificationSettingsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPutNotificationSettingsRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewPutNotificationSettingsRequestWithBody generates requests for PutNotificationSettings with any type of body
+func NewPutNotificationSettingsRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/notifications/settings")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPut, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewTestNotificationsRequest generates requests for TestNotifications
+func NewTestNotificationsRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/notifications/test")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewPostRestoresRequest calls the generic PostRestores builder with application/json body
+func NewPostRestoresRequest(server string, body PostRestoresJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPostRestoresRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewPostRestoresRequestWithBody generates requests for PostRestores with any type of body
+func NewPostRestoresRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/restores")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewPostRestoresTargetProbeRequest calls the generic PostRestoresTargetProbe builder with application/json body
+func NewPostRestoresTargetProbeRequest(server string, body PostRestoresTargetProbeJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPostRestoresTargetProbeRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewPostRestoresTargetProbeRequestWithBody generates requests for PostRestoresTargetProbe with any type of body
+func NewPostRestoresTargetProbeRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/restores/target-probe")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetRestoresIdRequest generates requests for GetRestoresId
+func NewGetRestoresIdRequest(server string, id string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/restores/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetRestoresIdLogsPresignRequest generates requests for GetRestoresIdLogsPresign
+func NewGetRestoresIdLogsPresignRequest(server string, id string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/restores/%s/logs.presign", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetStorageDestinationsRequest generates requests for GetStorageDestinations
+func NewGetStorageDestinationsRequest(server string, params *GetStorageDestinationsParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/storage-destinations")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
+		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
+
+		if params.Search != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "search", *params.Search, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Ownership != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "ownership", *params.Ownership, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.UnverifiedOnly != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "unverifiedOnly", *params.UnverifiedOnly, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "boolean", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewPostStorageDestinationsRequest calls the generic PostStorageDestinations builder with application/json body
+func NewPostStorageDestinationsRequest(server string, body PostStorageDestinationsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPostStorageDestinationsRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewPostStorageDestinationsRequestWithBody generates requests for PostStorageDestinations with any type of body
+func NewPostStorageDestinationsRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/storage-destinations")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewPostStorageDestinationsManagedEnsureRequest calls the generic PostStorageDestinationsManagedEnsure builder with application/json body
 func NewPostStorageDestinationsManagedEnsureRequest(server string, body PostStorageDestinationsManagedEnsureJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -1649,6 +4140,121 @@ func NewPostStorageDestinationsManagedEnsureRequestWithBody(server string, conte
 	}
 
 	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteStorageDestinationsIdRequest generates requests for DeleteStorageDestinationsId
+func NewDeleteStorageDestinationsIdRequest(server string, id string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/storage-destinations/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodDelete, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetStorageDestinationsIdRequest generates requests for GetStorageDestinationsId
+func NewGetStorageDestinationsIdRequest(server string, id string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/storage-destinations/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewPatchStorageDestinationsIdRequest calls the generic PatchStorageDestinationsId builder with application/json body
+func NewPatchStorageDestinationsIdRequest(server string, id string, body PatchStorageDestinationsIdJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPatchStorageDestinationsIdRequestWithBody(server, id, "application/json", bodyReader)
+}
+
+// NewPatchStorageDestinationsIdRequestWithBody generates requests for PatchStorageDestinationsId with any type of body
+func NewPatchStorageDestinationsIdRequestWithBody(server string, id string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/storage-destinations/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPatch, queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -1701,6 +4307,12 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
+	// ListAuditLogsWithResponse request
+	ListAuditLogsWithResponse(ctx context.Context, params *ListAuditLogsParams, reqEditors ...RequestEditorFn) (*ListAuditLogsResponse, error)
+
+	// ListAuditLogActorsWithResponse request
+	ListAuditLogActorsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListAuditLogActorsResponse, error)
+
 	// GetBackupPoliciesWithResponse request
 	GetBackupPoliciesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetBackupPoliciesResponse, error)
 
@@ -1708,6 +4320,11 @@ type ClientWithResponsesInterface interface {
 	PostBackupPoliciesWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostBackupPoliciesResponse, error)
 
 	PostBackupPoliciesWithResponse(ctx context.Context, body PostBackupPoliciesJSONRequestBody, reqEditors ...RequestEditorFn) (*PostBackupPoliciesResponse, error)
+
+	// PatchBackupPoliciesIdWithBodyWithResponse request with any body
+	PatchBackupPoliciesIdWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PatchBackupPoliciesIdResponse, error)
+
+	PatchBackupPoliciesIdWithResponse(ctx context.Context, id string, body PatchBackupPoliciesIdJSONRequestBody, reqEditors ...RequestEditorFn) (*PatchBackupPoliciesIdResponse, error)
 
 	// GetBackupsWithResponse request
 	GetBackupsWithResponse(ctx context.Context, params *GetBackupsParams, reqEditors ...RequestEditorFn) (*GetBackupsResponse, error)
@@ -1720,8 +4337,30 @@ type ClientWithResponsesInterface interface {
 
 	PostDatasourcesWithResponse(ctx context.Context, body PostDatasourcesJSONRequestBody, reqEditors ...RequestEditorFn) (*PostDatasourcesResponse, error)
 
+	// ProtectDatasourceWithBodyWithResponse request with any body
+	ProtectDatasourceWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ProtectDatasourceResponse, error)
+
+	ProtectDatasourceWithResponse(ctx context.Context, body ProtectDatasourceJSONRequestBody, reqEditors ...RequestEditorFn) (*ProtectDatasourceResponse, error)
+
+	// GetBackupHistoryWithResponse request
+	GetBackupHistoryWithResponse(ctx context.Context, datasourceId string, params *GetBackupHistoryParams, reqEditors ...RequestEditorFn) (*GetBackupHistoryResponse, error)
+
 	// ListBackupJobsWithResponse request
 	ListBackupJobsWithResponse(ctx context.Context, datasourceId string, params *ListBackupJobsParams, reqEditors ...RequestEditorFn) (*ListBackupJobsResponse, error)
+
+	// RunBackupNowWithBodyWithResponse request with any body
+	RunBackupNowWithBodyWithResponse(ctx context.Context, datasourceId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunBackupNowResponse, error)
+
+	RunBackupNowWithResponse(ctx context.Context, datasourceId string, body RunBackupNowJSONRequestBody, reqEditors ...RequestEditorFn) (*RunBackupNowResponse, error)
+
+	// DeleteBackupWithResponse request
+	DeleteBackupWithResponse(ctx context.Context, datasourceId string, jobId string, reqEditors ...RequestEditorFn) (*DeleteBackupResponse, error)
+
+	// GenerateBackupDownloadLinkWithResponse request
+	GenerateBackupDownloadLinkWithResponse(ctx context.Context, datasourceId string, jobId string, reqEditors ...RequestEditorFn) (*GenerateBackupDownloadLinkResponse, error)
+
+	// VerifyBackupNowWithResponse request
+	VerifyBackupNowWithResponse(ctx context.Context, datasourceId string, jobId string, reqEditors ...RequestEditorFn) (*VerifyBackupNowResponse, error)
 
 	// ListPoliciesWithResponse request
 	ListPoliciesWithResponse(ctx context.Context, datasourceId string, reqEditors ...RequestEditorFn) (*ListPoliciesResponse, error)
@@ -1739,6 +4378,17 @@ type ClientWithResponsesInterface interface {
 
 	UpdatePolicyAttachmentWithResponse(ctx context.Context, datasourceId string, policyId string, body UpdatePolicyAttachmentJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdatePolicyAttachmentResponse, error)
 
+	// GetRestoreCheckHistoryWithResponse request
+	GetRestoreCheckHistoryWithResponse(ctx context.Context, datasourceId string, params *GetRestoreCheckHistoryParams, reqEditors ...RequestEditorFn) (*GetRestoreCheckHistoryResponse, error)
+
+	// GetDatasourcesDatasourceIdRestoresWithResponse request
+	GetDatasourcesDatasourceIdRestoresWithResponse(ctx context.Context, datasourceId string, params *GetDatasourcesDatasourceIdRestoresParams, reqEditors ...RequestEditorFn) (*GetDatasourcesDatasourceIdRestoresResponse, error)
+
+	// DeleteDatasourceWithBodyWithResponse request with any body
+	DeleteDatasourceWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteDatasourceResponse, error)
+
+	DeleteDatasourceWithResponse(ctx context.Context, id string, body DeleteDatasourceJSONRequestBody, reqEditors ...RequestEditorFn) (*DeleteDatasourceResponse, error)
+
 	// GetWithResponse request
 	GetWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetResponse, error)
 
@@ -1752,10 +4402,131 @@ type ClientWithResponsesInterface interface {
 
 	PutDatasourcesIdCredentialsWithResponse(ctx context.Context, id string, body PutDatasourcesIdCredentialsJSONRequestBody, reqEditors ...RequestEditorFn) (*PutDatasourcesIdCredentialsResponse, error)
 
+	// GetRestoreCheckWithResponse request
+	GetRestoreCheckWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetRestoreCheckResponse, error)
+
+	// PutRestoreCheckWithBodyWithResponse request with any body
+	PutRestoreCheckWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutRestoreCheckResponse, error)
+
+	PutRestoreCheckWithResponse(ctx context.Context, id string, body PutRestoreCheckJSONRequestBody, reqEditors ...RequestEditorFn) (*PutRestoreCheckResponse, error)
+
+	// VerifyDatasourceWithResponse request
+	VerifyDatasourceWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*VerifyDatasourceResponse, error)
+
+	// GetNotificationSettingsWithResponse request
+	GetNotificationSettingsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetNotificationSettingsResponse, error)
+
+	// PutNotificationSettingsWithBodyWithResponse request with any body
+	PutNotificationSettingsWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutNotificationSettingsResponse, error)
+
+	PutNotificationSettingsWithResponse(ctx context.Context, body PutNotificationSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*PutNotificationSettingsResponse, error)
+
+	// TestNotificationsWithResponse request
+	TestNotificationsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*TestNotificationsResponse, error)
+
+	// PostRestoresWithBodyWithResponse request with any body
+	PostRestoresWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostRestoresResponse, error)
+
+	PostRestoresWithResponse(ctx context.Context, body PostRestoresJSONRequestBody, reqEditors ...RequestEditorFn) (*PostRestoresResponse, error)
+
+	// PostRestoresTargetProbeWithBodyWithResponse request with any body
+	PostRestoresTargetProbeWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostRestoresTargetProbeResponse, error)
+
+	PostRestoresTargetProbeWithResponse(ctx context.Context, body PostRestoresTargetProbeJSONRequestBody, reqEditors ...RequestEditorFn) (*PostRestoresTargetProbeResponse, error)
+
+	// GetRestoresIdWithResponse request
+	GetRestoresIdWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetRestoresIdResponse, error)
+
+	// GetRestoresIdLogsPresignWithResponse request
+	GetRestoresIdLogsPresignWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetRestoresIdLogsPresignResponse, error)
+
+	// GetStorageDestinationsWithResponse request
+	GetStorageDestinationsWithResponse(ctx context.Context, params *GetStorageDestinationsParams, reqEditors ...RequestEditorFn) (*GetStorageDestinationsResponse, error)
+
+	// PostStorageDestinationsWithBodyWithResponse request with any body
+	PostStorageDestinationsWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostStorageDestinationsResponse, error)
+
+	PostStorageDestinationsWithResponse(ctx context.Context, body PostStorageDestinationsJSONRequestBody, reqEditors ...RequestEditorFn) (*PostStorageDestinationsResponse, error)
+
 	// PostStorageDestinationsManagedEnsureWithBodyWithResponse request with any body
 	PostStorageDestinationsManagedEnsureWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostStorageDestinationsManagedEnsureResponse, error)
 
 	PostStorageDestinationsManagedEnsureWithResponse(ctx context.Context, body PostStorageDestinationsManagedEnsureJSONRequestBody, reqEditors ...RequestEditorFn) (*PostStorageDestinationsManagedEnsureResponse, error)
+
+	// DeleteStorageDestinationsIdWithResponse request
+	DeleteStorageDestinationsIdWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*DeleteStorageDestinationsIdResponse, error)
+
+	// GetStorageDestinationsIdWithResponse request
+	GetStorageDestinationsIdWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetStorageDestinationsIdResponse, error)
+
+	// PatchStorageDestinationsIdWithBodyWithResponse request with any body
+	PatchStorageDestinationsIdWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PatchStorageDestinationsIdResponse, error)
+
+	PatchStorageDestinationsIdWithResponse(ctx context.Context, id string, body PatchStorageDestinationsIdJSONRequestBody, reqEditors ...RequestEditorFn) (*PatchStorageDestinationsIdResponse, error)
+}
+
+type ListAuditLogsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *AudithandlerPayloadListResponse
+	JSON400      *ResponseAPIError
+	JSON500      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r ListAuditLogsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListAuditLogsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r ListAuditLogsResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type ListAuditLogActorsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]AudithandlerPayloadActor
+	JSON400      *ResponseAPIError
+	JSON500      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r ListAuditLogActorsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListAuditLogActorsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r ListAuditLogActorsResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
 }
 
 type GetBackupPoliciesResponse struct {
@@ -1820,6 +4591,39 @@ func (r PostBackupPoliciesResponse) StatusCode() int {
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
 func (r PostBackupPoliciesResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type PatchBackupPoliciesIdResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON400      *ResponseAPIError
+	JSON404      *ResponseAPIError
+	JSON409      *ResponseAPIError
+	JSON500      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r PatchBackupPoliciesIdResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PatchBackupPoliciesIdResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r PatchBackupPoliciesIdResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
@@ -1930,6 +4734,70 @@ func (r PostDatasourcesResponse) ContentType() string {
 	return ""
 }
 
+type ProtectDatasourceResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *DatasourcehandlerPayloadProtectResponse
+	JSON400      *ResponseAPIError
+	JSON500      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r ProtectDatasourceResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ProtectDatasourceResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r ProtectDatasourceResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type GetBackupHistoryResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DtoBackupHistoryResponse
+	JSON400      *ResponseAPIError
+	JSON500      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r GetBackupHistoryResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetBackupHistoryResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetBackupHistoryResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type ListBackupJobsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -1960,6 +4828,140 @@ func (r ListBackupJobsResponse) StatusCode() int {
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
 func (r ListBackupJobsResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type RunBackupNowResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DatasourcehandlerPayloadRunBackupNowResponse
+	JSON400      *ResponseAPIError
+	JSON402      *ResponseAPIError
+	JSON404      *ResponseAPIError
+	JSON500      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r RunBackupNowResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RunBackupNowResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r RunBackupNowResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type DeleteBackupResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DatasourcehandlerPayloadDeleteBackupResponse
+	JSON400      *ResponseAPIError
+	JSON404      *ResponseAPIError
+	JSON409      *ResponseAPIError
+	JSON500      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteBackupResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteBackupResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r DeleteBackupResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type GenerateBackupDownloadLinkResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DatasourcehandlerPayloadGenerateDownloadLinkResponse
+	JSON400      *ResponseAPIError
+	JSON404      *ResponseAPIError
+	JSON500      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r GenerateBackupDownloadLinkResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GenerateBackupDownloadLinkResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GenerateBackupDownloadLinkResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type VerifyBackupNowResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON202      *DatasourcehandlerPayloadVerifyBackupResponse
+	JSON400      *ResponseAPIError
+	JSON409      *ResponseAPIError
+	JSON500      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r VerifyBackupNowResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r VerifyBackupNowResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r VerifyBackupNowResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
@@ -2093,6 +5095,108 @@ func (r UpdatePolicyAttachmentResponse) ContentType() string {
 	return ""
 }
 
+type GetRestoreCheckHistoryResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DtoRestoreCheckHealthResponse
+	JSON400      *ResponseAPIError
+	JSON500      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r GetRestoreCheckHistoryResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetRestoreCheckHistoryResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetRestoreCheckHistoryResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type GetDatasourcesDatasourceIdRestoresResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Cursors ResponseAPIResponsePaginationCursors `json:"cursors"`
+		List    []DtoRestoreJob                      `json:"list"`
+		Meta    ResponseAPIResponsePaginationMeta    `json:"meta"`
+	}
+	JSON400 *ResponseAPIError
+	JSON500 *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r GetDatasourcesDatasourceIdRestoresResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetDatasourcesDatasourceIdRestoresResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetDatasourcesDatasourceIdRestoresResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type DeleteDatasourceResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DatasourcehandlerDeleteDatasourceResponse
+	JSON400      *ResponseAPIError
+	JSON404      *ResponseAPIError
+	JSON409      *ResponseAPIError
+	JSON500      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteDatasourceResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteDatasourceResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r DeleteDatasourceResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type GetResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -2189,6 +5293,392 @@ func (r PutDatasourcesIdCredentialsResponse) ContentType() string {
 	return ""
 }
 
+type GetRestoreCheckResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DtoRestoreCheck
+	JSON400      *ResponseAPIError
+	JSON500      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r GetRestoreCheckResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetRestoreCheckResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetRestoreCheckResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type PutRestoreCheckResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DtoRestoreCheck
+	JSON400      *ResponseAPIError
+	JSON500      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r PutRestoreCheckResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PutRestoreCheckResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r PutRestoreCheckResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type VerifyDatasourceResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DatasourcehandlerPayloadVerifyResponse
+	JSON400      *ResponseAPIError
+	JSON404      *ResponseAPIError
+	JSON500      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r VerifyDatasourceResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r VerifyDatasourceResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r VerifyDatasourceResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type GetNotificationSettingsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DtoNotificationSettings
+	JSON500      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r GetNotificationSettingsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetNotificationSettingsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetNotificationSettingsResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type PutNotificationSettingsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DtoNotificationSettings
+	JSON400      *ResponseAPIError
+	JSON500      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r PutNotificationSettingsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PutNotificationSettingsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r PutNotificationSettingsResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type TestNotificationsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DtoNotificationTestResponse
+	JSON500      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r TestNotificationsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r TestNotificationsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r TestNotificationsResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type PostRestoresResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *RestorehandlerPayloadCreateResponse
+	JSON400      *ResponseAPIError
+	JSON409      *ResponseAPIError
+	JSON500      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r PostRestoresResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PostRestoresResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r PostRestoresResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type PostRestoresTargetProbeResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *RestorehandlerPayloadProbeTargetResponse
+	JSON400      *ResponseAPIError
+	JSON500      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r PostRestoresTargetProbeResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PostRestoresTargetProbeResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r PostRestoresTargetProbeResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type GetRestoresIdResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DtoRestoreJob
+	JSON400      *ResponseAPIError
+	JSON404      *ResponseAPIError
+	JSON500      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r GetRestoresIdResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetRestoresIdResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetRestoresIdResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type GetRestoresIdLogsPresignResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *RestorehandlerPayloadLogsPresignResponse
+	JSON400      *ResponseAPIError
+	JSON500      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r GetRestoresIdLogsPresignResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetRestoresIdLogsPresignResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetRestoresIdLogsPresignResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type GetStorageDestinationsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]PolicyhandlerPayloadStorageDestinationResponse
+	JSON400      *ResponseAPIError
+	JSON500      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r GetStorageDestinationsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetStorageDestinationsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetStorageDestinationsResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type PostStorageDestinationsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *PolicyhandlerPayloadCreateStorageDestinationResponse
+	JSON400      *ResponseAPIError
+	JSON409      *ResponseAPIError
+	JSON500      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r PostStorageDestinationsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PostStorageDestinationsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r PostStorageDestinationsResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type PostStorageDestinationsManagedEnsureResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -2221,6 +5711,124 @@ func (r PostStorageDestinationsManagedEnsureResponse) ContentType() string {
 	return ""
 }
 
+type DeleteStorageDestinationsIdResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON400      *ResponseAPIError
+	JSON404      *ResponseAPIError
+	JSON409      *ResponseAPIError
+	JSON500      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteStorageDestinationsIdResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteStorageDestinationsIdResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r DeleteStorageDestinationsIdResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type GetStorageDestinationsIdResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *PolicyhandlerPayloadStorageDestinationResponse
+	JSON400      *ResponseAPIError
+	JSON404      *ResponseAPIError
+	JSON500      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r GetStorageDestinationsIdResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetStorageDestinationsIdResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetStorageDestinationsIdResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type PatchStorageDestinationsIdResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *PolicyhandlerPayloadStorageDestinationResponse
+	JSON400      *ResponseAPIError
+	JSON404      *ResponseAPIError
+	JSON409      *ResponseAPIError
+	JSON500      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r PatchStorageDestinationsIdResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PatchStorageDestinationsIdResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r PatchStorageDestinationsIdResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+// ListAuditLogsWithResponse request returning *ListAuditLogsResponse
+func (c *ClientWithResponses) ListAuditLogsWithResponse(ctx context.Context, params *ListAuditLogsParams, reqEditors ...RequestEditorFn) (*ListAuditLogsResponse, error) {
+	rsp, err := c.ListAuditLogs(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAuditLogsResponse(rsp)
+}
+
+// ListAuditLogActorsWithResponse request returning *ListAuditLogActorsResponse
+func (c *ClientWithResponses) ListAuditLogActorsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListAuditLogActorsResponse, error) {
+	rsp, err := c.ListAuditLogActors(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAuditLogActorsResponse(rsp)
+}
+
 // GetBackupPoliciesWithResponse request returning *GetBackupPoliciesResponse
 func (c *ClientWithResponses) GetBackupPoliciesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetBackupPoliciesResponse, error) {
 	rsp, err := c.GetBackupPolicies(ctx, reqEditors...)
@@ -2245,6 +5853,23 @@ func (c *ClientWithResponses) PostBackupPoliciesWithResponse(ctx context.Context
 		return nil, err
 	}
 	return ParsePostBackupPoliciesResponse(rsp)
+}
+
+// PatchBackupPoliciesIdWithBodyWithResponse request with arbitrary body returning *PatchBackupPoliciesIdResponse
+func (c *ClientWithResponses) PatchBackupPoliciesIdWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PatchBackupPoliciesIdResponse, error) {
+	rsp, err := c.PatchBackupPoliciesIdWithBody(ctx, id, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePatchBackupPoliciesIdResponse(rsp)
+}
+
+func (c *ClientWithResponses) PatchBackupPoliciesIdWithResponse(ctx context.Context, id string, body PatchBackupPoliciesIdJSONRequestBody, reqEditors ...RequestEditorFn) (*PatchBackupPoliciesIdResponse, error) {
+	rsp, err := c.PatchBackupPoliciesId(ctx, id, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePatchBackupPoliciesIdResponse(rsp)
 }
 
 // GetBackupsWithResponse request returning *GetBackupsResponse
@@ -2282,6 +5907,32 @@ func (c *ClientWithResponses) PostDatasourcesWithResponse(ctx context.Context, b
 	return ParsePostDatasourcesResponse(rsp)
 }
 
+// ProtectDatasourceWithBodyWithResponse request with arbitrary body returning *ProtectDatasourceResponse
+func (c *ClientWithResponses) ProtectDatasourceWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ProtectDatasourceResponse, error) {
+	rsp, err := c.ProtectDatasourceWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseProtectDatasourceResponse(rsp)
+}
+
+func (c *ClientWithResponses) ProtectDatasourceWithResponse(ctx context.Context, body ProtectDatasourceJSONRequestBody, reqEditors ...RequestEditorFn) (*ProtectDatasourceResponse, error) {
+	rsp, err := c.ProtectDatasource(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseProtectDatasourceResponse(rsp)
+}
+
+// GetBackupHistoryWithResponse request returning *GetBackupHistoryResponse
+func (c *ClientWithResponses) GetBackupHistoryWithResponse(ctx context.Context, datasourceId string, params *GetBackupHistoryParams, reqEditors ...RequestEditorFn) (*GetBackupHistoryResponse, error) {
+	rsp, err := c.GetBackupHistory(ctx, datasourceId, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetBackupHistoryResponse(rsp)
+}
+
 // ListBackupJobsWithResponse request returning *ListBackupJobsResponse
 func (c *ClientWithResponses) ListBackupJobsWithResponse(ctx context.Context, datasourceId string, params *ListBackupJobsParams, reqEditors ...RequestEditorFn) (*ListBackupJobsResponse, error) {
 	rsp, err := c.ListBackupJobs(ctx, datasourceId, params, reqEditors...)
@@ -2289,6 +5940,50 @@ func (c *ClientWithResponses) ListBackupJobsWithResponse(ctx context.Context, da
 		return nil, err
 	}
 	return ParseListBackupJobsResponse(rsp)
+}
+
+// RunBackupNowWithBodyWithResponse request with arbitrary body returning *RunBackupNowResponse
+func (c *ClientWithResponses) RunBackupNowWithBodyWithResponse(ctx context.Context, datasourceId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunBackupNowResponse, error) {
+	rsp, err := c.RunBackupNowWithBody(ctx, datasourceId, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunBackupNowResponse(rsp)
+}
+
+func (c *ClientWithResponses) RunBackupNowWithResponse(ctx context.Context, datasourceId string, body RunBackupNowJSONRequestBody, reqEditors ...RequestEditorFn) (*RunBackupNowResponse, error) {
+	rsp, err := c.RunBackupNow(ctx, datasourceId, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunBackupNowResponse(rsp)
+}
+
+// DeleteBackupWithResponse request returning *DeleteBackupResponse
+func (c *ClientWithResponses) DeleteBackupWithResponse(ctx context.Context, datasourceId string, jobId string, reqEditors ...RequestEditorFn) (*DeleteBackupResponse, error) {
+	rsp, err := c.DeleteBackup(ctx, datasourceId, jobId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteBackupResponse(rsp)
+}
+
+// GenerateBackupDownloadLinkWithResponse request returning *GenerateBackupDownloadLinkResponse
+func (c *ClientWithResponses) GenerateBackupDownloadLinkWithResponse(ctx context.Context, datasourceId string, jobId string, reqEditors ...RequestEditorFn) (*GenerateBackupDownloadLinkResponse, error) {
+	rsp, err := c.GenerateBackupDownloadLink(ctx, datasourceId, jobId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGenerateBackupDownloadLinkResponse(rsp)
+}
+
+// VerifyBackupNowWithResponse request returning *VerifyBackupNowResponse
+func (c *ClientWithResponses) VerifyBackupNowWithResponse(ctx context.Context, datasourceId string, jobId string, reqEditors ...RequestEditorFn) (*VerifyBackupNowResponse, error) {
+	rsp, err := c.VerifyBackupNow(ctx, datasourceId, jobId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseVerifyBackupNowResponse(rsp)
 }
 
 // ListPoliciesWithResponse request returning *ListPoliciesResponse
@@ -2343,6 +6038,41 @@ func (c *ClientWithResponses) UpdatePolicyAttachmentWithResponse(ctx context.Con
 	return ParseUpdatePolicyAttachmentResponse(rsp)
 }
 
+// GetRestoreCheckHistoryWithResponse request returning *GetRestoreCheckHistoryResponse
+func (c *ClientWithResponses) GetRestoreCheckHistoryWithResponse(ctx context.Context, datasourceId string, params *GetRestoreCheckHistoryParams, reqEditors ...RequestEditorFn) (*GetRestoreCheckHistoryResponse, error) {
+	rsp, err := c.GetRestoreCheckHistory(ctx, datasourceId, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetRestoreCheckHistoryResponse(rsp)
+}
+
+// GetDatasourcesDatasourceIdRestoresWithResponse request returning *GetDatasourcesDatasourceIdRestoresResponse
+func (c *ClientWithResponses) GetDatasourcesDatasourceIdRestoresWithResponse(ctx context.Context, datasourceId string, params *GetDatasourcesDatasourceIdRestoresParams, reqEditors ...RequestEditorFn) (*GetDatasourcesDatasourceIdRestoresResponse, error) {
+	rsp, err := c.GetDatasourcesDatasourceIdRestores(ctx, datasourceId, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetDatasourcesDatasourceIdRestoresResponse(rsp)
+}
+
+// DeleteDatasourceWithBodyWithResponse request with arbitrary body returning *DeleteDatasourceResponse
+func (c *ClientWithResponses) DeleteDatasourceWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteDatasourceResponse, error) {
+	rsp, err := c.DeleteDatasourceWithBody(ctx, id, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteDatasourceResponse(rsp)
+}
+
+func (c *ClientWithResponses) DeleteDatasourceWithResponse(ctx context.Context, id string, body DeleteDatasourceJSONRequestBody, reqEditors ...RequestEditorFn) (*DeleteDatasourceResponse, error) {
+	rsp, err := c.DeleteDatasource(ctx, id, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteDatasourceResponse(rsp)
+}
+
 // GetWithResponse request returning *GetResponse
 func (c *ClientWithResponses) GetWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetResponse, error) {
 	rsp, err := c.Get(ctx, id, reqEditors...)
@@ -2386,6 +6116,154 @@ func (c *ClientWithResponses) PutDatasourcesIdCredentialsWithResponse(ctx contex
 	return ParsePutDatasourcesIdCredentialsResponse(rsp)
 }
 
+// GetRestoreCheckWithResponse request returning *GetRestoreCheckResponse
+func (c *ClientWithResponses) GetRestoreCheckWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetRestoreCheckResponse, error) {
+	rsp, err := c.GetRestoreCheck(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetRestoreCheckResponse(rsp)
+}
+
+// PutRestoreCheckWithBodyWithResponse request with arbitrary body returning *PutRestoreCheckResponse
+func (c *ClientWithResponses) PutRestoreCheckWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutRestoreCheckResponse, error) {
+	rsp, err := c.PutRestoreCheckWithBody(ctx, id, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePutRestoreCheckResponse(rsp)
+}
+
+func (c *ClientWithResponses) PutRestoreCheckWithResponse(ctx context.Context, id string, body PutRestoreCheckJSONRequestBody, reqEditors ...RequestEditorFn) (*PutRestoreCheckResponse, error) {
+	rsp, err := c.PutRestoreCheck(ctx, id, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePutRestoreCheckResponse(rsp)
+}
+
+// VerifyDatasourceWithResponse request returning *VerifyDatasourceResponse
+func (c *ClientWithResponses) VerifyDatasourceWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*VerifyDatasourceResponse, error) {
+	rsp, err := c.VerifyDatasource(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseVerifyDatasourceResponse(rsp)
+}
+
+// GetNotificationSettingsWithResponse request returning *GetNotificationSettingsResponse
+func (c *ClientWithResponses) GetNotificationSettingsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetNotificationSettingsResponse, error) {
+	rsp, err := c.GetNotificationSettings(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetNotificationSettingsResponse(rsp)
+}
+
+// PutNotificationSettingsWithBodyWithResponse request with arbitrary body returning *PutNotificationSettingsResponse
+func (c *ClientWithResponses) PutNotificationSettingsWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutNotificationSettingsResponse, error) {
+	rsp, err := c.PutNotificationSettingsWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePutNotificationSettingsResponse(rsp)
+}
+
+func (c *ClientWithResponses) PutNotificationSettingsWithResponse(ctx context.Context, body PutNotificationSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*PutNotificationSettingsResponse, error) {
+	rsp, err := c.PutNotificationSettings(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePutNotificationSettingsResponse(rsp)
+}
+
+// TestNotificationsWithResponse request returning *TestNotificationsResponse
+func (c *ClientWithResponses) TestNotificationsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*TestNotificationsResponse, error) {
+	rsp, err := c.TestNotifications(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestNotificationsResponse(rsp)
+}
+
+// PostRestoresWithBodyWithResponse request with arbitrary body returning *PostRestoresResponse
+func (c *ClientWithResponses) PostRestoresWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostRestoresResponse, error) {
+	rsp, err := c.PostRestoresWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostRestoresResponse(rsp)
+}
+
+func (c *ClientWithResponses) PostRestoresWithResponse(ctx context.Context, body PostRestoresJSONRequestBody, reqEditors ...RequestEditorFn) (*PostRestoresResponse, error) {
+	rsp, err := c.PostRestores(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostRestoresResponse(rsp)
+}
+
+// PostRestoresTargetProbeWithBodyWithResponse request with arbitrary body returning *PostRestoresTargetProbeResponse
+func (c *ClientWithResponses) PostRestoresTargetProbeWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostRestoresTargetProbeResponse, error) {
+	rsp, err := c.PostRestoresTargetProbeWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostRestoresTargetProbeResponse(rsp)
+}
+
+func (c *ClientWithResponses) PostRestoresTargetProbeWithResponse(ctx context.Context, body PostRestoresTargetProbeJSONRequestBody, reqEditors ...RequestEditorFn) (*PostRestoresTargetProbeResponse, error) {
+	rsp, err := c.PostRestoresTargetProbe(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostRestoresTargetProbeResponse(rsp)
+}
+
+// GetRestoresIdWithResponse request returning *GetRestoresIdResponse
+func (c *ClientWithResponses) GetRestoresIdWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetRestoresIdResponse, error) {
+	rsp, err := c.GetRestoresId(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetRestoresIdResponse(rsp)
+}
+
+// GetRestoresIdLogsPresignWithResponse request returning *GetRestoresIdLogsPresignResponse
+func (c *ClientWithResponses) GetRestoresIdLogsPresignWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetRestoresIdLogsPresignResponse, error) {
+	rsp, err := c.GetRestoresIdLogsPresign(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetRestoresIdLogsPresignResponse(rsp)
+}
+
+// GetStorageDestinationsWithResponse request returning *GetStorageDestinationsResponse
+func (c *ClientWithResponses) GetStorageDestinationsWithResponse(ctx context.Context, params *GetStorageDestinationsParams, reqEditors ...RequestEditorFn) (*GetStorageDestinationsResponse, error) {
+	rsp, err := c.GetStorageDestinations(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetStorageDestinationsResponse(rsp)
+}
+
+// PostStorageDestinationsWithBodyWithResponse request with arbitrary body returning *PostStorageDestinationsResponse
+func (c *ClientWithResponses) PostStorageDestinationsWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostStorageDestinationsResponse, error) {
+	rsp, err := c.PostStorageDestinationsWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostStorageDestinationsResponse(rsp)
+}
+
+func (c *ClientWithResponses) PostStorageDestinationsWithResponse(ctx context.Context, body PostStorageDestinationsJSONRequestBody, reqEditors ...RequestEditorFn) (*PostStorageDestinationsResponse, error) {
+	rsp, err := c.PostStorageDestinations(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostStorageDestinationsResponse(rsp)
+}
+
 // PostStorageDestinationsManagedEnsureWithBodyWithResponse request with arbitrary body returning *PostStorageDestinationsManagedEnsureResponse
 func (c *ClientWithResponses) PostStorageDestinationsManagedEnsureWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostStorageDestinationsManagedEnsureResponse, error) {
 	rsp, err := c.PostStorageDestinationsManagedEnsureWithBody(ctx, contentType, body, reqEditors...)
@@ -2401,6 +6279,121 @@ func (c *ClientWithResponses) PostStorageDestinationsManagedEnsureWithResponse(c
 		return nil, err
 	}
 	return ParsePostStorageDestinationsManagedEnsureResponse(rsp)
+}
+
+// DeleteStorageDestinationsIdWithResponse request returning *DeleteStorageDestinationsIdResponse
+func (c *ClientWithResponses) DeleteStorageDestinationsIdWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*DeleteStorageDestinationsIdResponse, error) {
+	rsp, err := c.DeleteStorageDestinationsId(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteStorageDestinationsIdResponse(rsp)
+}
+
+// GetStorageDestinationsIdWithResponse request returning *GetStorageDestinationsIdResponse
+func (c *ClientWithResponses) GetStorageDestinationsIdWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetStorageDestinationsIdResponse, error) {
+	rsp, err := c.GetStorageDestinationsId(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetStorageDestinationsIdResponse(rsp)
+}
+
+// PatchStorageDestinationsIdWithBodyWithResponse request with arbitrary body returning *PatchStorageDestinationsIdResponse
+func (c *ClientWithResponses) PatchStorageDestinationsIdWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PatchStorageDestinationsIdResponse, error) {
+	rsp, err := c.PatchStorageDestinationsIdWithBody(ctx, id, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePatchStorageDestinationsIdResponse(rsp)
+}
+
+func (c *ClientWithResponses) PatchStorageDestinationsIdWithResponse(ctx context.Context, id string, body PatchStorageDestinationsIdJSONRequestBody, reqEditors ...RequestEditorFn) (*PatchStorageDestinationsIdResponse, error) {
+	rsp, err := c.PatchStorageDestinationsId(ctx, id, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePatchStorageDestinationsIdResponse(rsp)
+}
+
+// ParseListAuditLogsResponse parses an HTTP response from a ListAuditLogsWithResponse call
+func ParseListAuditLogsResponse(rsp *http.Response) (*ListAuditLogsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListAuditLogsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest AudithandlerPayloadListResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListAuditLogActorsResponse parses an HTTP response from a ListAuditLogActorsWithResponse call
+func ParseListAuditLogActorsResponse(rsp *http.Response) (*ListAuditLogActorsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListAuditLogActorsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []AudithandlerPayloadActor
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
 }
 
 // ParseGetBackupPoliciesResponse parses an HTTP response from a GetBackupPoliciesWithResponse call
@@ -2474,6 +6467,53 @@ func ParsePostBackupPoliciesResponse(rsp *http.Response) (*PostBackupPoliciesRes
 			return nil, err
 		}
 		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePatchBackupPoliciesIdResponse parses an HTTP response from a PatchBackupPoliciesIdWithResponse call
+func ParsePatchBackupPoliciesIdResponse(rsp *http.Response) (*PatchBackupPoliciesIdResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PatchBackupPoliciesIdResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest ResponseAPIError
@@ -2615,6 +6655,86 @@ func ParsePostDatasourcesResponse(rsp *http.Response) (*PostDatasourcesResponse,
 	return response, nil
 }
 
+// ParseProtectDatasourceResponse parses an HTTP response from a ProtectDatasourceWithResponse call
+func ParseProtectDatasourceResponse(rsp *http.Response) (*ProtectDatasourceResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ProtectDatasourceResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest DatasourcehandlerPayloadProtectResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetBackupHistoryResponse parses an HTTP response from a GetBackupHistoryWithResponse call
+func ParseGetBackupHistoryResponse(rsp *http.Response) (*GetBackupHistoryResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetBackupHistoryResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DtoBackupHistoryResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseListBackupJobsResponse parses an HTTP response from a ListBackupJobsWithResponse call
 func ParseListBackupJobsResponse(rsp *http.Response) (*ListBackupJobsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -2646,6 +6766,208 @@ func ParseListBackupJobsResponse(rsp *http.Response) (*ListBackupJobsResponse, e
 			return nil, err
 		}
 		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseRunBackupNowResponse parses an HTTP response from a RunBackupNowWithResponse call
+func ParseRunBackupNowResponse(rsp *http.Response) (*RunBackupNowResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RunBackupNowResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DatasourcehandlerPayloadRunBackupNowResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 402:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON402 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDeleteBackupResponse parses an HTTP response from a DeleteBackupWithResponse call
+func ParseDeleteBackupResponse(rsp *http.Response) (*DeleteBackupResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteBackupResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DatasourcehandlerPayloadDeleteBackupResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGenerateBackupDownloadLinkResponse parses an HTTP response from a GenerateBackupDownloadLinkWithResponse call
+func ParseGenerateBackupDownloadLinkResponse(rsp *http.Response) (*GenerateBackupDownloadLinkResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GenerateBackupDownloadLinkResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DatasourcehandlerPayloadGenerateDownloadLinkResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseVerifyBackupNowResponse parses an HTTP response from a VerifyBackupNowWithResponse call
+func ParseVerifyBackupNowResponse(rsp *http.Response) (*VerifyBackupNowResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &VerifyBackupNowResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 202:
+		var dest DatasourcehandlerPayloadVerifyBackupResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON202 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest ResponseAPIError
@@ -2812,6 +7134,144 @@ func ParseUpdatePolicyAttachmentResponse(rsp *http.Response) (*UpdatePolicyAttac
 	return response, nil
 }
 
+// ParseGetRestoreCheckHistoryResponse parses an HTTP response from a GetRestoreCheckHistoryWithResponse call
+func ParseGetRestoreCheckHistoryResponse(rsp *http.Response) (*GetRestoreCheckHistoryResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetRestoreCheckHistoryResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DtoRestoreCheckHealthResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetDatasourcesDatasourceIdRestoresResponse parses an HTTP response from a GetDatasourcesDatasourceIdRestoresWithResponse call
+func ParseGetDatasourcesDatasourceIdRestoresResponse(rsp *http.Response) (*GetDatasourcesDatasourceIdRestoresResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetDatasourcesDatasourceIdRestoresResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Cursors ResponseAPIResponsePaginationCursors `json:"cursors"`
+			List    []DtoRestoreJob                      `json:"list"`
+			Meta    ResponseAPIResponsePaginationMeta    `json:"meta"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDeleteDatasourceResponse parses an HTTP response from a DeleteDatasourceWithResponse call
+func ParseDeleteDatasourceResponse(rsp *http.Response) (*DeleteDatasourceResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteDatasourceResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DatasourcehandlerDeleteDatasourceResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetResponse parses an HTTP response from a GetWithResponse call
 func ParseGetResponse(rsp *http.Response) (*GetResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -2932,6 +7392,500 @@ func ParsePutDatasourcesIdCredentialsResponse(rsp *http.Response) (*PutDatasourc
 	return response, nil
 }
 
+// ParseGetRestoreCheckResponse parses an HTTP response from a GetRestoreCheckWithResponse call
+func ParseGetRestoreCheckResponse(rsp *http.Response) (*GetRestoreCheckResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetRestoreCheckResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DtoRestoreCheck
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePutRestoreCheckResponse parses an HTTP response from a PutRestoreCheckWithResponse call
+func ParsePutRestoreCheckResponse(rsp *http.Response) (*PutRestoreCheckResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PutRestoreCheckResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DtoRestoreCheck
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseVerifyDatasourceResponse parses an HTTP response from a VerifyDatasourceWithResponse call
+func ParseVerifyDatasourceResponse(rsp *http.Response) (*VerifyDatasourceResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &VerifyDatasourceResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DatasourcehandlerPayloadVerifyResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetNotificationSettingsResponse parses an HTTP response from a GetNotificationSettingsWithResponse call
+func ParseGetNotificationSettingsResponse(rsp *http.Response) (*GetNotificationSettingsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetNotificationSettingsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DtoNotificationSettings
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePutNotificationSettingsResponse parses an HTTP response from a PutNotificationSettingsWithResponse call
+func ParsePutNotificationSettingsResponse(rsp *http.Response) (*PutNotificationSettingsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PutNotificationSettingsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DtoNotificationSettings
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseTestNotificationsResponse parses an HTTP response from a TestNotificationsWithResponse call
+func ParseTestNotificationsResponse(rsp *http.Response) (*TestNotificationsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &TestNotificationsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DtoNotificationTestResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePostRestoresResponse parses an HTTP response from a PostRestoresWithResponse call
+func ParsePostRestoresResponse(rsp *http.Response) (*PostRestoresResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PostRestoresResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest RestorehandlerPayloadCreateResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePostRestoresTargetProbeResponse parses an HTTP response from a PostRestoresTargetProbeWithResponse call
+func ParsePostRestoresTargetProbeResponse(rsp *http.Response) (*PostRestoresTargetProbeResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PostRestoresTargetProbeResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest RestorehandlerPayloadProbeTargetResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetRestoresIdResponse parses an HTTP response from a GetRestoresIdWithResponse call
+func ParseGetRestoresIdResponse(rsp *http.Response) (*GetRestoresIdResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetRestoresIdResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DtoRestoreJob
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetRestoresIdLogsPresignResponse parses an HTTP response from a GetRestoresIdLogsPresignWithResponse call
+func ParseGetRestoresIdLogsPresignResponse(rsp *http.Response) (*GetRestoresIdLogsPresignResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetRestoresIdLogsPresignResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest RestorehandlerPayloadLogsPresignResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetStorageDestinationsResponse parses an HTTP response from a GetStorageDestinationsWithResponse call
+func ParseGetStorageDestinationsResponse(rsp *http.Response) (*GetStorageDestinationsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetStorageDestinationsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []PolicyhandlerPayloadStorageDestinationResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePostStorageDestinationsResponse parses an HTTP response from a PostStorageDestinationsWithResponse call
+func ParsePostStorageDestinationsResponse(rsp *http.Response) (*PostStorageDestinationsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PostStorageDestinationsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest PolicyhandlerPayloadCreateStorageDestinationResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParsePostStorageDestinationsManagedEnsureResponse parses an HTTP response from a PostStorageDestinationsManagedEnsureWithResponse call
 func ParsePostStorageDestinationsManagedEnsureResponse(rsp *http.Response) (*PostStorageDestinationsManagedEnsureResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -2959,6 +7913,154 @@ func ParsePostStorageDestinationsManagedEnsureResponse(rsp *http.Response) (*Pos
 			return nil, err
 		}
 		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDeleteStorageDestinationsIdResponse parses an HTTP response from a DeleteStorageDestinationsIdWithResponse call
+func ParseDeleteStorageDestinationsIdResponse(rsp *http.Response) (*DeleteStorageDestinationsIdResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteStorageDestinationsIdResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetStorageDestinationsIdResponse parses an HTTP response from a GetStorageDestinationsIdWithResponse call
+func ParseGetStorageDestinationsIdResponse(rsp *http.Response) (*GetStorageDestinationsIdResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetStorageDestinationsIdResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest PolicyhandlerPayloadStorageDestinationResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePatchStorageDestinationsIdResponse parses an HTTP response from a PatchStorageDestinationsIdWithResponse call
+func ParsePatchStorageDestinationsIdResponse(rsp *http.Response) (*PatchStorageDestinationsIdResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PatchStorageDestinationsIdResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest PolicyhandlerPayloadStorageDestinationResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest ResponseAPIError

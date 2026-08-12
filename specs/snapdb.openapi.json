@@ -1,6 +1,203 @@
 {
   "components": {
     "schemas": {
+      "audithandler.payloadActor": {
+        "properties": {
+          "email": {
+            "example": "alice@example.com",
+            "type": "string"
+          },
+          "id": {
+            "example": "7d7a739e-b9fd-4a4f-85df-880264d3422c",
+            "type": "string"
+          },
+          "name": {
+            "example": "Alice",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "audithandler.payloadAuditLogEntry": {
+        "properties": {
+          "action": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/constants.AuditAction"
+              }
+            ],
+            "example": "backup_job.deleted"
+          },
+          "actorEmail": {
+            "example": "alice@example.com",
+            "type": "string"
+          },
+          "actorId": {
+            "example": "7d7a739e-b9fd-4a4f-85df-880264d3422c",
+            "type": "string"
+          },
+          "actorName": {
+            "example": "Alice",
+            "type": "string"
+          },
+          "actorType": {
+            "example": "user",
+            "type": "string"
+          },
+          "createdAt": {
+            "example": "2026-05-20T01:31:43Z",
+            "type": "string"
+          },
+          "id": {
+            "example": "a7c11d1a-6f3e-4e3f-8b62-4e6c3b51b9e2",
+            "type": "string"
+          },
+          "ip": {
+            "example": "127.0.0.1",
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "organizationId": {
+            "example": "c392d4a7-1c2b-4688-abd6-73ee06cc381a",
+            "type": "string"
+          },
+          "targetId": {
+            "example": "1af086d9-1bcb-494e-b3b0-06ebd420233d",
+            "type": "string"
+          },
+          "targetType": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/constants.AuditTargetType"
+              }
+            ],
+            "example": "backup_job"
+          },
+          "userAgent": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "audithandler.payloadListResponse": {
+        "properties": {
+          "list": {
+            "items": {
+              "$ref": "#/components/schemas/audithandler.payloadAuditLogEntry"
+            },
+            "type": "array"
+          },
+          "nextCursorCreatedAt": {
+            "example": "2026-05-20T01:31:43Z",
+            "type": "string"
+          },
+          "nextCursorId": {
+            "example": "a7c11d1a-6f3e-4e3f-8b62-4e6c3b51b9e2",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "constants.AuditAction": {
+        "enum": [
+          "datasource.created",
+          "datasource.updated",
+          "datasource.credentials_set",
+          "datasource.activated",
+          "datasource.deactivated",
+          "datasource.deleted",
+          "datasource.verify_attempted",
+          "policy.created",
+          "policy.updated",
+          "policy.deleted",
+          "policy.attached",
+          "policy.detached",
+          "storage_destination.created",
+          "storage_destination.updated",
+          "storage_destination.reverified",
+          "storage_destination.deleted",
+          "backup_job.queued",
+          "backup_job.started",
+          "backup_job.completed",
+          "backup_job.failed",
+          "backup_job.manual_run",
+          "backup_job.download_link_generated",
+          "backup_job.deleted",
+          "backup_job.reaped_stuck",
+          "backup_job.reaped_healed",
+          "backup_job.reaped_orphan_cleaned",
+          "backup_job.reaped_no_arn",
+          "restore_job.created",
+          "restore_job.started",
+          "restore_job.completed",
+          "restore_job.failed",
+          "restore_job.reaped_stuck",
+          "notification_settings.updated",
+          "datasource.restore_check_updated",
+          "restore_job.log_link_generated"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "AuditActionDatasourceCreated",
+          "AuditActionDatasourceUpdated",
+          "AuditActionDatasourceCredentialsSet",
+          "AuditActionDatasourceActivated",
+          "AuditActionDatasourceDeactivated",
+          "AuditActionDatasourceDeleted",
+          "AuditActionDatasourceVerified",
+          "AuditActionPolicyCreated",
+          "AuditActionPolicyUpdated",
+          "AuditActionPolicyDeleted",
+          "AuditActionPolicyAttached",
+          "AuditActionPolicyDetached",
+          "AuditActionStorageDestinationCreated",
+          "AuditActionStorageDestinationUpdated",
+          "AuditActionStorageDestinationReverified",
+          "AuditActionStorageDestinationDeleted",
+          "AuditActionBackupJobQueued",
+          "AuditActionBackupJobStarted",
+          "AuditActionBackupJobCompleted",
+          "AuditActionBackupJobFailed",
+          "AuditActionBackupManualRun",
+          "AuditActionBackupDownloadLinkGenerated",
+          "AuditActionBackupDeleted",
+          "AuditActionBackupReapedStuck",
+          "AuditActionBackupReapedHealed",
+          "AuditActionBackupReapedOrphanCleaned",
+          "AuditActionBackupReapedNoArn",
+          "AuditActionRestoreJobCreated",
+          "AuditActionRestoreJobStarted",
+          "AuditActionRestoreJobCompleted",
+          "AuditActionRestoreJobFailed",
+          "AuditActionRestoreJobReapedStuck",
+          "AuditActionNotificationSettingsUpdated",
+          "AuditActionRestoreCheckUpdated",
+          "AuditActionRestoreLogLinkGenerated"
+        ]
+      },
+      "constants.AuditTargetType": {
+        "enum": [
+          "datasource",
+          "backup_policy",
+          "data_source_policy",
+          "storage_destination",
+          "backup_job",
+          "restore_job",
+          "organization"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "AuditTargetDatasource",
+          "AuditTargetPolicy",
+          "AuditTargetDataSourcePolicy",
+          "AuditTargetStorageDestination",
+          "AuditTargetBackupJob",
+          "AuditTargetRestoreJob",
+          "AuditTargetOrganization"
+        ]
+      },
       "constants.BackupJobStatus": {
         "enum": [
           "queued",
@@ -118,6 +315,19 @@
           "RegionEUCentral1"
         ]
       },
+      "constants.RestoreMode": {
+        "enum": [
+          "new_database",
+          "overwrite",
+          "new_server"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "RestoreModeNewDatabase",
+          "RestoreModeOverwrite",
+          "RestoreModeNewServer"
+        ]
+      },
       "constants.StorageDestinationRegion": {
         "enum": [
           "eu-central-1"
@@ -126,6 +336,26 @@
         "x-enum-varnames": [
           "StorageDestinationRegionEUCentral1"
         ]
+      },
+      "datasourcehandler.deleteDatasourcePayload": {
+        "properties": {
+          "confirmation": {
+            "description": "Confirmation must equal the datasource's name. Same defensive\nshape the close-org dialog uses: it doesn't gate anything new\n(the JWT + middleware already authorise the action) but stops\na curl-typo from wiping a live datasource and all its backup\nhistory.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "datasourcehandler.deleteDatasourceResponse": {
+        "properties": {
+          "deletedResourcesCount": {
+            "type": "integer"
+          },
+          "enqueuedS3Blobs": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
       },
       "datasourcehandler.payloadCreateRequest": {
         "properties": {
@@ -191,10 +421,6 @@
       },
       "datasourcehandler.payloadDataSourcePolicyAttachRequest": {
         "properties": {
-          "destinationId": {
-            "example": "dc70e90d-a49f-4333-9f33-54a27d18869e",
-            "type": "string"
-          },
           "enabled": {
             "example": true,
             "type": "boolean"
@@ -209,7 +435,6 @@
           }
         },
         "required": [
-          "destinationId",
           "enabled",
           "policyId"
         ],
@@ -263,6 +488,191 @@
         },
         "type": "object"
       },
+      "datasourcehandler.payloadDeleteBackupResponse": {
+        "properties": {
+          "enqueuedS3Blobs": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "datasourcehandler.payloadGenerateDownloadLinkResponse": {
+        "properties": {
+          "contentEncoding": {
+            "example": "gzip",
+            "type": "string"
+          },
+          "errorCode": {
+            "description": "ErrorCode enum: not_found, not_succeeded, missing_artifact,\ncustomer_managed_storage, presign_failed.",
+            "example": "customer_managed_storage",
+            "type": "string"
+          },
+          "errorMessage": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "example": "2026-05-20T00:42:00Z",
+            "type": "string"
+          },
+          "ok": {
+            "description": "OK=true means url is a working presigned URL the client can\nopen directly. OK=false carries a structured ErrorCode +\nErrorMessage explaining why (job not finished, customer-\nmanaged bucket, etc.); the response is still HTTP 200 so the\nfrontend can render the domain failure without hitting the\ngeneric-transport-error path.",
+            "example": true,
+            "type": "boolean"
+          },
+          "sizeBytes": {
+            "example": 12345678,
+            "type": "integer"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "datasourcehandler.payloadProtectRequest": {
+        "properties": {
+          "credential": {
+            "$ref": "#/components/schemas/datasourcehandler.payloadSetCredentialsRequest"
+          },
+          "engine": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/constants.DatasourceEngine"
+              }
+            ],
+            "example": "postgres"
+          },
+          "environment": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/constants.DatasourceEnvironment"
+              }
+            ],
+            "example": "prod"
+          },
+          "keepLastN": {
+            "example": 14,
+            "type": "integer"
+          },
+          "name": {
+            "example": "prod-postgres",
+            "type": "string"
+          },
+          "region": {
+            "$ref": "#/components/schemas/constants.DatasourceRegion"
+          },
+          "retentionDays": {
+            "example": 30,
+            "type": "integer"
+          },
+          "scheduleCron": {
+            "example": "0 2 * * *",
+            "type": "string"
+          },
+          "timezone": {
+            "example": "Europe/Prague",
+            "type": "string"
+          }
+        },
+        "required": [
+          "credential",
+          "engine",
+          "keepLastN",
+          "name",
+          "retentionDays",
+          "scheduleCron",
+          "timezone"
+        ],
+        "type": "object"
+      },
+      "datasourcehandler.payloadProtectResponse": {
+        "properties": {
+          "dataSourceId": {
+            "type": "string"
+          },
+          "policyId": {
+            "type": "string"
+          },
+          "verifyErrorCode": {
+            "type": "string"
+          },
+          "verifyMessage": {
+            "type": "string"
+          },
+          "verifyOk": {
+            "description": "Post-setup connection test (non-fatal — the setup is created either\nway; verifyOk=false means the credentials need fixing before the\nfirst backup will connect).",
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "datasourcehandler.payloadRestoreCheckRequest": {
+        "properties": {
+          "enabled": {
+            "example": true,
+            "type": "boolean"
+          },
+          "mode": {
+            "example": "schedule",
+            "type": "string"
+          },
+          "nth": {
+            "example": 7,
+            "type": "integer"
+          },
+          "sampleProbability": {
+            "example": 0.1,
+            "type": "number"
+          },
+          "scheduleCron": {
+            "example": "0 3 * * 1",
+            "type": "string"
+          },
+          "scheduleTimezone": {
+            "example": "Europe/Prague",
+            "type": "string"
+          },
+          "scratchConnectionString": {
+            "description": "ScratchConnectionString is stored (KMS-enveloped) for a\ncustomer_scratch target; empty leaves any existing creds in place.",
+            "type": "string"
+          },
+          "target": {
+            "example": "managed_ephemeral",
+            "type": "string"
+          },
+          "validationLevel": {
+            "example": "l2",
+            "type": "string"
+          },
+          "validationQuery": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "datasourcehandler.payloadRunBackupNowRequest": {
+        "properties": {
+          "policyId": {
+            "description": "PolicyID is optional. Empty means \"pick the highest-priority\nenabled attachment on this datasource\". Send a value when the\ndialog's selector is changed away from the preselected one.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "datasourcehandler.payloadRunBackupNowResponse": {
+        "properties": {
+          "destinationId": {
+            "type": "string"
+          },
+          "jobId": {
+            "type": "string"
+          },
+          "policyId": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "datasourcehandler.payloadSetCredentialsRequest": {
         "properties": {
           "fields": {
@@ -290,6 +700,55 @@
         "properties": {
           "updatedAt": {
             "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "datasourcehandler.payloadVerifyBackupResponse": {
+        "properties": {
+          "restoreJobId": {
+            "example": "be2b30de-593c-4060-9043-f651d354de7a",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "datasourcehandler.payloadVerifyResponse": {
+        "properties": {
+          "detectedVersion": {
+            "description": "DetectedVersion is the server version read during the probe (e.g.\n\"17.4\"), empty if the connection failed before it could be read.\nDetectedVersionMajor is its major (17) — 0 if unknown. When the\nmajor is outside what our dump tools support, ok is false and\nerrorCode is server_version_unsupported.",
+            "example": "17.4",
+            "type": "string"
+          },
+          "detectedVersionMajor": {
+            "example": 17,
+            "type": "integer"
+          },
+          "engine": {
+            "example": "postgres",
+            "type": "string"
+          },
+          "errorCode": {
+            "description": "ErrorCode is empty on success; otherwise one of:\nno_credentials, decrypt_failed, unsupported_engine, invalid_uri,\nnetwork_unreachable, auth_failed, timeout,\nserver_version_unsupported, unknown. Stable enum so the frontend\ncan branch without parsing text.",
+            "example": "auth_failed",
+            "type": "string"
+          },
+          "errorMessage": {
+            "description": "ErrorMessage is a sanitised, human-readable explanation. Never\nincludes the connection string or credentials.",
+            "type": "string"
+          },
+          "latencyMs": {
+            "example": 42,
+            "type": "integer"
+          },
+          "ok": {
+            "example": true,
+            "type": "boolean"
+          },
+          "reachabilityOnly": {
+            "description": "ReachabilityOnly = true means the probe confirmed the host is\nreachable but didn't verify authentication. Reserved for a future\nfast-path probe; both engines do full auth-aware pings today.",
+            "example": false,
+            "type": "boolean"
           }
         },
         "type": "object"
@@ -382,6 +841,34 @@
           "port",
           "user"
         ],
+        "type": "object"
+      },
+      "dto.BackupHistoryPoint": {
+        "properties": {
+          "bytes": {
+            "example": 1048576,
+            "type": "integer"
+          },
+          "durationMs": {
+            "example": 42000,
+            "type": "integer"
+          },
+          "finishedAt": {
+            "example": "2026-07-15T03:00:00Z",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "dto.BackupHistoryResponse": {
+        "properties": {
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/dto.BackupHistoryPoint"
+            },
+            "type": "array"
+          }
+        },
         "type": "object"
       },
       "dto.BackupJob": {
@@ -506,6 +993,37 @@
           "policyRetentionDays": {
             "example": 30,
             "type": "integer"
+          },
+          "verifiedAt": {
+            "example": "2026-05-01T03:00:00Z",
+            "type": "string"
+          },
+          "verifyHasLog": {
+            "example": true,
+            "type": "boolean"
+          },
+          "verifyPassed": {
+            "example": true,
+            "type": "boolean"
+          },
+          "verifyRestoreJobId": {
+            "description": "VerifyRestoreJobID / VerifyHasLog point at the latest restore test's\njob + whether its log is uploaded, so the row can open that log directly.",
+            "example": "dc70e90d-a49f-4333-9f33-54a27d18869e",
+            "type": "string"
+          },
+          "verifyStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/constants.BackupJobStatus"
+              }
+            ],
+            "description": "Latest restore-check of this backup. All null when it was never\nverified. VerifyStatus is the verification restore's lifecycle status\n(queued/running/success/failed); VerifyPassed is the pass/fail of the\nvalidation ladder, meaningful once VerifyStatus is success; VerifiedAt\nis when the check finished.",
+            "example": "success"
+          },
+          "verifyWarnings": {
+            "description": "VerifyWarnings is set when the restore test passed but pg_restore skipped\nsome objects (e.g. an index too large to rebuild) — \"passed with warnings\".",
+            "example": "1 object(s) could not be restored; e.g. index row size exceeds btree maximum",
+            "type": "string"
           }
         },
         "required": [
@@ -539,6 +1057,11 @@
               }
             ],
             "example": "gzip"
+          },
+          "destinationId": {
+            "description": "DestinationID — the storage_destination the policy writes to.\nRequired (NOT NULL on the table); every policy now declares\nits destination at create time.",
+            "example": "dc70e90d-a49f-4333-9f33-54a27d18869e",
+            "type": "string"
           },
           "encryption": {
             "allOf": [
@@ -598,6 +1121,7 @@
           }
         },
         "required": [
+          "destinationId",
           "encryption",
           "id",
           "keepLastN",
@@ -619,6 +1143,15 @@
             "type": "integer"
           },
           "createdAt": {
+            "example": "2023-01-01T00:00:00Z",
+            "type": "string"
+          },
+          "detectedEngineVersion": {
+            "description": "DetectedEngineVersion is the server version read at the last\nsuccessful verify (e.g. \"17.4\"), omitted if never verified.\nDetectedEngineVersionAt is when it was read.",
+            "example": "17.4",
+            "type": "string"
+          },
+          "detectedEngineVersionAt": {
             "example": "2023-01-01T00:00:00Z",
             "type": "string"
           },
@@ -661,6 +1194,39 @@
           "organizationId": {
             "example": "7d4a65c6-938b-48f7-a792-6980667381d2",
             "type": "string"
+          },
+          "restoreCheckLastAt": {
+            "example": "2026-07-15T03:00:00Z",
+            "type": "string"
+          },
+          "restoreCheckPassed": {
+            "example": 19,
+            "type": "integer"
+          },
+          "restoreCheckTotal": {
+            "description": "Restore-check health for the datasource-list health bar, aggregated\nover the last few terminal verification checks. RestoreCheckTotal = 0\n(or null) means the datasource has no checks yet. Present on list rows,\nomitted on the by-ID detail read (which uses the health endpoint).",
+            "example": 20,
+            "type": "integer"
+          },
+          "restoreCheckWarnings": {
+            "description": "RestoreCheckWarnings is how many of the passed checks passed with\nwarnings (data restored but some object skipped) — drawn amber.",
+            "example": 1,
+            "type": "integer"
+          },
+          "restoreTestingEnabled": {
+            "description": "RestoreTestingEnabled is true when automated restore testing is on for\nthis datasource (config enabled and a cadence other than \"off\"). Present\non the by-ID detail read; omitted on list rows.",
+            "example": true,
+            "type": "boolean"
+          },
+          "totalBackupJobs": {
+            "description": "TotalBackupJobs counts every backup_job for this datasource\n(any status, including retention-expired). Used by the FE\nSectionCard count badge — the loaded-page count was misleading\nfor any datasource with more rows than fit on one page.",
+            "example": 137,
+            "type": "integer"
+          },
+          "totalStoredBytes": {
+            "description": "TotalStoredBytes is the total size still persisted in object\nstorage across every live backup for this datasource (excludes\nretention-deleted backups). Only present on the by-ID detail read.",
+            "example": 5242880,
+            "type": "integer"
           },
           "updatedAt": {
             "example": "2023-01-01T00:00:00Z",
@@ -754,10 +1320,330 @@
         ],
         "type": "object"
       },
+      "dto.NotificationSettings": {
+        "properties": {
+          "alertEmails": {
+            "example": [
+              "ops@example.com"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "hasWebhookSecret": {
+            "description": "HasWebhookSecret reports whether a signing secret is stored for the\nwebhook (the secret itself is never returned).",
+            "example": true,
+            "type": "boolean"
+          },
+          "onBackupFailed": {
+            "example": true,
+            "type": "boolean"
+          },
+          "onMissedSchedule": {
+            "example": true,
+            "type": "boolean"
+          },
+          "onRecovered": {
+            "example": true,
+            "type": "boolean"
+          },
+          "onRestoreFailed": {
+            "example": true,
+            "type": "boolean"
+          },
+          "onRestoreTestFailed": {
+            "example": true,
+            "type": "boolean"
+          },
+          "slackWebhookUrl": {
+            "example": "https://hooks.slack.com/services/T00/B00/xxx",
+            "type": "string"
+          },
+          "webhookUrl": {
+            "example": "https://example.com/hooks/norcube",
+            "type": "string"
+          }
+        },
+        "required": [
+          "alertEmails",
+          "hasWebhookSecret",
+          "onBackupFailed",
+          "onMissedSchedule",
+          "onRecovered",
+          "onRestoreFailed",
+          "onRestoreTestFailed"
+        ],
+        "type": "object"
+      },
+      "dto.NotificationTestResponse": {
+        "properties": {
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/dto.NotificationTestResult"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "dto.NotificationTestResult": {
+        "properties": {
+          "channel": {
+            "example": "email",
+            "type": "string"
+          },
+          "error": {
+            "example": "endpoint returned HTTP 404",
+            "type": "string"
+          },
+          "ok": {
+            "example": true,
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "channel",
+          "ok"
+        ],
+        "type": "object"
+      },
+      "dto.RestoreCheck": {
+        "properties": {
+          "enabled": {
+            "example": true,
+            "type": "boolean"
+          },
+          "hasScratchCredentials": {
+            "example": false,
+            "type": "boolean"
+          },
+          "lastRunAt": {
+            "example": "2026-07-15T03:00:00Z",
+            "type": "string"
+          },
+          "mode": {
+            "example": "schedule",
+            "type": "string"
+          },
+          "nth": {
+            "example": 7,
+            "type": "integer"
+          },
+          "sampleProbability": {
+            "example": 0.1,
+            "type": "number"
+          },
+          "scheduleCron": {
+            "example": "0 3 * * 1",
+            "type": "string"
+          },
+          "scheduleTimezone": {
+            "example": "Europe/Prague",
+            "type": "string"
+          },
+          "target": {
+            "example": "managed_ephemeral",
+            "type": "string"
+          },
+          "validationLevel": {
+            "example": "l2",
+            "type": "string"
+          },
+          "validationQuery": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "mode",
+          "target",
+          "validationLevel"
+        ],
+        "type": "object"
+      },
+      "dto.RestoreCheckHealthResponse": {
+        "properties": {
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/dto.RestoreCheckPoint"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "dto.RestoreCheckPoint": {
+        "properties": {
+          "at": {
+            "example": "2026-07-15T03:00:00Z",
+            "type": "string"
+          },
+          "durationMs": {
+            "example": 42000,
+            "type": "integer"
+          },
+          "passed": {
+            "example": true,
+            "type": "boolean"
+          },
+          "warnings": {
+            "description": "Warnings is true when the check passed but skipped some object\n(passed with warnings) — drawn amber in the status strip.",
+            "example": false,
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "dto.RestoreJob": {
+        "properties": {
+          "bytesRead": {
+            "example": 104857600,
+            "type": "integer"
+          },
+          "bytesRestored": {
+            "example": 524288000,
+            "type": "integer"
+          },
+          "createdAt": {
+            "example": "2026-07-15T12:00:00Z",
+            "type": "string"
+          },
+          "dataSourceId": {
+            "example": "db70e90d-a49f-4333-9f33-54a27d18869e",
+            "type": "string"
+          },
+          "dataSourceName": {
+            "example": "production-db",
+            "type": "string"
+          },
+          "durationMs": {
+            "example": 1500000,
+            "type": "integer"
+          },
+          "engine": {
+            "example": "postgres",
+            "type": "string"
+          },
+          "errorSummary": {
+            "example": "pg_restore: connection timeout",
+            "type": "string"
+          },
+          "finishedAt": {
+            "example": "2026-07-15T12:30:00Z",
+            "type": "string"
+          },
+          "hasLog": {
+            "description": "HasLog is true once the agent uploaded the restore output — the\nlogs.presign endpoint will return a link.",
+            "example": true,
+            "type": "boolean"
+          },
+          "id": {
+            "example": "dc70e90d-a49f-4333-9f33-54a27d18869e",
+            "type": "string"
+          },
+          "mode": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/constants.RestoreMode"
+              }
+            ],
+            "example": "new_database"
+          },
+          "sourceBackupId": {
+            "example": "bc70e90d-a49f-4333-9f33-54a27d18869e",
+            "type": "string"
+          },
+          "startedAt": {
+            "example": "2026-07-15T12:05:00Z",
+            "type": "string"
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/constants.BackupJobStatus"
+              }
+            ],
+            "example": "success"
+          },
+          "targetConnectionRef": {
+            "description": "TargetConnectionRef is the redacted display form of the restore\ntarget (scheme://…@host:port/db) — never carries credentials.",
+            "example": "postgres://…@db.example.com:5432/app",
+            "type": "string"
+          },
+          "targetDatabase": {
+            "example": "app_restored",
+            "type": "string"
+          },
+          "verifyLevel": {
+            "example": "l2",
+            "type": "string"
+          },
+          "verifyPassed": {
+            "description": "Verification fields — set only for verification checks\n(trigger=verification). VerifyPassed is the validation-ladder outcome\n(null until terminal); VerifyLevel is the depth reached (l1/l2/l3).",
+            "example": true,
+            "type": "boolean"
+          },
+          "verifyWarnings": {
+            "description": "VerifyWarnings is set when the restore passed but skipped some objects\n(passed with warnings); null for a clean pass.",
+            "example": "1 object(s) could not be restored (see the restore log)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "createdAt",
+          "dataSourceId",
+          "dataSourceName",
+          "engine",
+          "id",
+          "mode",
+          "status"
+        ],
+        "type": "object"
+      },
+      "notificationhandler.payloadNotificationSettingsRequest": {
+        "properties": {
+          "alertEmails": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "onBackupFailed": {
+            "type": "boolean"
+          },
+          "onMissedSchedule": {
+            "type": "boolean"
+          },
+          "onRecovered": {
+            "type": "boolean"
+          },
+          "onRestoreFailed": {
+            "type": "boolean"
+          },
+          "onRestoreTestFailed": {
+            "type": "boolean"
+          },
+          "slackWebhookUrl": {
+            "type": "string"
+          },
+          "webhookSecret": {
+            "type": "string"
+          },
+          "webhookUrl": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "policyhandler.payloadCreateRequest": {
         "properties": {
           "compression": {
             "description": "gzip, zstd, none",
+            "type": "string"
+          },
+          "destinationId": {
+            "description": "DestinationID is required: every policy now declares where its\narchives land (migration 20260520121030 moved the column from\nthe attachment row to the policy itself). Customers picking\n\"this template uses my R2 bucket\" once is cleaner than\nre-picking on every datasource attach.",
+            "example": "dc70e90d-a49f-4333-9f33-54a27d18869e",
             "type": "string"
           },
           "encryption": {
@@ -794,6 +1680,7 @@
           }
         },
         "required": [
+          "destinationId",
           "keepLastN",
           "name",
           "retentionDays",
@@ -811,6 +1698,71 @@
         "required": [
           "id"
         ],
+        "type": "object"
+      },
+      "policyhandler.payloadCreateStorageDestinationRequest": {
+        "properties": {
+          "accessKeyId": {
+            "example": "AKIAIOSFODNN7EXAMPLE",
+            "type": "string"
+          },
+          "bucket": {
+            "example": "customer-backups",
+            "type": "string"
+          },
+          "encryptionMode": {
+            "example": "sse-s3",
+            "type": "string"
+          },
+          "endpointUrl": {
+            "example": "https://acc.r2.cloudflarestorage.com",
+            "type": "string"
+          },
+          "forcePathStyle": {
+            "example": false,
+            "type": "boolean"
+          },
+          "name": {
+            "example": "customer-r2-prod",
+            "type": "string"
+          },
+          "region": {
+            "example": "auto",
+            "type": "string"
+          },
+          "secretAccessKey": {
+            "example": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+            "type": "string"
+          },
+          "storageClass": {
+            "example": "STANDARD",
+            "type": "string"
+          },
+          "type": {
+            "example": "r2",
+            "type": "string"
+          }
+        },
+        "required": [
+          "accessKeyId",
+          "bucket",
+          "name",
+          "secretAccessKey",
+          "type"
+        ],
+        "type": "object"
+      },
+      "policyhandler.payloadCreateStorageDestinationResponse": {
+        "properties": {
+          "id": {
+            "example": "0d2b1bb6-9c3a-4a5e-bf6b-12d5f25c2a9d",
+            "type": "string"
+          },
+          "lastVerifiedAt": {
+            "example": "2026-05-20T01:55:00Z",
+            "type": "string"
+          }
+        },
         "type": "object"
       },
       "policyhandler.payloadEnsureManagedStorageDestinationRequest": {
@@ -839,6 +1791,145 @@
         "required": [
           "id"
         ],
+        "type": "object"
+      },
+      "policyhandler.payloadStorageDestinationResponse": {
+        "properties": {
+          "bucket": {
+            "example": "customer-backups",
+            "type": "string"
+          },
+          "createdAt": {
+            "example": "2026-05-20T01:55:00Z",
+            "type": "string"
+          },
+          "encryptionMode": {
+            "example": "sse-s3",
+            "type": "string"
+          },
+          "endpointUrl": {
+            "example": "https://acc.r2.cloudflarestorage.com",
+            "type": "string"
+          },
+          "forcePathStyle": {
+            "example": false,
+            "type": "boolean"
+          },
+          "id": {
+            "example": "0d2b1bb6-9c3a-4a5e-bf6b-12d5f25c2a9d",
+            "type": "string"
+          },
+          "isActive": {
+            "example": true,
+            "type": "boolean"
+          },
+          "isManaged": {
+            "example": false,
+            "type": "boolean"
+          },
+          "lastVerifiedAt": {
+            "example": "2026-05-20T01:55:00Z",
+            "type": "string"
+          },
+          "name": {
+            "example": "customer-r2-prod",
+            "type": "string"
+          },
+          "region": {
+            "example": "auto",
+            "type": "string"
+          },
+          "storageClass": {
+            "example": "STANDARD",
+            "type": "string"
+          },
+          "type": {
+            "example": "r2",
+            "type": "string"
+          },
+          "updatedAt": {
+            "example": "2026-05-20T01:55:00Z",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "policyhandler.payloadUpdateRequest": {
+        "properties": {
+          "compression": {
+            "description": "gzip, zstd, none",
+            "type": "string"
+          },
+          "encryption": {
+            "description": "sse-kms, sse-s3, client-side, none",
+            "type": "string"
+          },
+          "keepLastN": {
+            "type": "integer"
+          },
+          "method": {
+            "description": "logical_dump, physical, pitr",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "parallelism": {
+            "type": "integer"
+          },
+          "pitrEnabled": {
+            "type": "boolean"
+          },
+          "retentionDays": {
+            "type": "integer"
+          },
+          "scheduleCron": {
+            "type": "string"
+          },
+          "throttleMbps": {
+            "type": "integer"
+          },
+          "timezone": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "policyhandler.payloadUpdateStorageDestinationRequest": {
+        "properties": {
+          "accessKeyId": {
+            "example": "AKIAIOSFODNN7EXAMPLE",
+            "type": "string"
+          },
+          "encryptionMode": {
+            "example": "sse-s3",
+            "type": "string"
+          },
+          "endpointUrl": {
+            "example": "https://acc.r2.cloudflarestorage.com",
+            "type": "string"
+          },
+          "forcePathStyle": {
+            "example": false,
+            "type": "boolean"
+          },
+          "name": {
+            "example": "customer-r2-prod",
+            "type": "string"
+          },
+          "region": {
+            "example": "auto",
+            "type": "string"
+          },
+          "secretAccessKey": {
+            "example": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+            "type": "string"
+          },
+          "storageClass": {
+            "example": "INTELLIGENT_TIERING",
+            "type": "string"
+          }
+        },
         "type": "object"
       },
       "response.APIError": {
@@ -920,7 +2011,9 @@
           "UNAUTHORIZED",
           "FORBIDDEN",
           "MISSING_ORGANIZATION_ID",
-          "MISSING_USER_ID"
+          "MISSING_USER_ID",
+          "INTERNAL_SERVER_ERROR",
+          "ORG_BLOCKED"
         ],
         "type": "string",
         "x-enum-varnames": [
@@ -932,8 +2025,138 @@
           "ErrUnauthorized",
           "ErrForbidden",
           "ErrMissingOrganizationID",
-          "ErrMissingUserID"
+          "ErrMissingUserID",
+          "ErrInternalServer",
+          "ErrOrgBlocked"
         ]
+      },
+      "restorehandler.payloadCreateRequest": {
+        "properties": {
+          "confirmOverwrite": {
+            "description": "ConfirmOverwrite must be true for overwrite mode — the API guard\nbehind the wizard's confirm step.",
+            "example": true,
+            "type": "boolean"
+          },
+          "dataSourceId": {
+            "example": "db70e90d-a49f-4333-9f33-54a27d18869e",
+            "type": "string"
+          },
+          "mode": {
+            "description": "Mode is one of new_database | overwrite | new_server.",
+            "example": "new_database",
+            "type": "string"
+          },
+          "sourceBackupId": {
+            "example": "bc70e90d-a49f-4333-9f33-54a27d18869e",
+            "type": "string"
+          },
+          "targetDatabase": {
+            "description": "TargetDatabase is the database to create (new_database mode only).",
+            "example": "app_restored",
+            "type": "string"
+          },
+          "targetUri": {
+            "description": "TargetURI is the write-capable connection string for new_database /\nnew_server modes. Encrypted at rest; never returned by any endpoint.",
+            "example": "postgres://admin:secret@db.example.com:5432/postgres",
+            "type": "string"
+          }
+        },
+        "required": [
+          "dataSourceId",
+          "mode",
+          "sourceBackupId"
+        ],
+        "type": "object"
+      },
+      "restorehandler.payloadCreateResponse": {
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "restorehandler.payloadLogsPresignResponse": {
+        "properties": {
+          "errorCode": {
+            "description": "ErrorCode is one of: not_found | no_log | presign_failed.",
+            "type": "string"
+          },
+          "errorMessage": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string"
+          },
+          "ok": {
+            "type": "boolean"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "type": "object"
+      },
+      "restorehandler.payloadProbeTargetRequest": {
+        "properties": {
+          "dataSourceId": {
+            "example": "db70e90d-a49f-4333-9f33-54a27d18869e",
+            "type": "string"
+          },
+          "mode": {
+            "description": "Mode is one of new_database | overwrite | new_server.",
+            "example": "overwrite",
+            "type": "string"
+          },
+          "targetDatabase": {
+            "description": "TargetDatabase (new_database mode) is probed for prior existence.",
+            "example": "app_restored",
+            "type": "string"
+          },
+          "targetUri": {
+            "description": "TargetURI is required for new_database / new_server; ignored for\noverwrite (which probes the stored datasource credentials).",
+            "example": "postgres://admin:secret@db.example.com:5432/postgres",
+            "type": "string"
+          }
+        },
+        "required": [
+          "dataSourceId",
+          "mode"
+        ],
+        "type": "object"
+      },
+      "restorehandler.payloadProbeTargetResponse": {
+        "properties": {
+          "engine": {
+            "example": "postgres",
+            "type": "string"
+          },
+          "errorCode": {
+            "description": "ErrorCode mirrors the verify enum plus write-probe codes:\ntarget_not_writable | cannot_create_database | database_already_exists | engine_mismatch | …",
+            "example": "target_not_writable",
+            "type": "string"
+          },
+          "errorMessage": {
+            "type": "string"
+          },
+          "latencyMs": {
+            "example": 142,
+            "type": "integer"
+          },
+          "ok": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "type": "object"
       }
     }
   },
@@ -948,6 +2171,176 @@
   },
   "openapi": "3.0.3",
   "paths": {
+    "/audit-log": {
+      "get": {
+        "description": "Returns audit_log rows for the calling organization, newest first. Cursor-paginated via (createdAt, id) — pass nextCursorCreatedAt + nextCursorId from a response into the next request's cursorCreatedAt + cursorId to fetch the following page. Actor identity is resolved at read time via auth.BatchGetUsers; rows whose account has been anonymised (right-to-erasure) return empty actorEmail + actorName.",
+        "operationId": "listAuditLogs",
+        "parameters": [
+          {
+            "description": "Page size (1-200, default 50)",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Cursor from prior response — RFC3339 timestamp",
+            "in": "query",
+            "name": "cursorCreatedAt",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Cursor from prior response — UUID tiebreaker for same-timestamp rows",
+            "in": "query",
+            "name": "cursorId",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filter to rows with createdAt \u003e= since (RFC3339)",
+            "in": "query",
+            "name": "since",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filter to rows with createdAt \u003c until (RFC3339)",
+            "in": "query",
+            "name": "until",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filter to one or more exact actions (repeated)",
+            "in": "query",
+            "name": "actions",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Filter by one or more exact target_types (repeated)",
+            "in": "query",
+            "name": "targetTypes",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Filter by exact target uuid (e.g. one datasource's id)",
+            "in": "query",
+            "name": "targetId",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filter by one or more actor user ids (repeated)",
+            "in": "query",
+            "name": "actorIds",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/audithandler.payloadListResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "List Audit Log",
+        "tags": [
+          "Audit"
+        ]
+      }
+    },
+    "/audit-log/actors": {
+      "get": {
+        "description": "Returns every distinct user who has ever written an audit row for the calling organization, resolved via auth.BatchGetUsers. Anonymised accounts come back with empty email/name. Used to populate the audit-log Actor filter dropdown.",
+        "operationId": "listAuditLogActors",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/audithandler.payloadActor"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "List Audit Log Actors",
+        "tags": [
+          "Audit"
+        ]
+      }
+    },
     "/backup-policies": {
       "get": {
         "description": "List all backup policies for the organization.",
@@ -1050,6 +2443,83 @@
           }
         },
         "summary": "Create Policy",
+        "tags": [
+          "Policies"
+        ]
+      }
+    },
+    "/backup-policies/{id}": {
+      "patch": {
+        "description": "Partially update a backup policy. Omitted fields are left unchanged.",
+        "parameters": [
+          {
+            "description": "Policy ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/policyhandler.payloadUpdateRequest"
+              }
+            }
+          },
+          "description": "Policy update payload (partial)",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "204": {
+            "description": "no content"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Update Policy",
         "tags": [
           "Policies"
         ]
@@ -1263,6 +2733,120 @@
         ]
       }
     },
+    "/datasources/protect": {
+      "post": {
+        "description": "Atomically creates a datasource + credentials + a default backup policy on a Norcube-managed destination and attaches it, so a new user gets a working scheduled backup from a single call. A failure at any step rolls everything back. After committing it runs a connection test and returns the result (non-fatal) so the caller can tell the user whether the first backup will connect.",
+        "operationId": "protectDatasource",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/datasourcehandler.payloadProtectRequest"
+              }
+            }
+          },
+          "description": "Protect payload",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/datasourcehandler.payloadProtectResponse"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Protect a database (one-call guided setup)",
+        "tags": [
+          "Data Sources"
+        ]
+      }
+    },
+    "/datasources/{datasourceId}/backup-history": {
+      "get": {
+        "description": "Daily buckets of a data source's successful backups over the last N days (oldest → newest), for the storage-size and duration trend charts.",
+        "operationId": "getBackupHistory",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "days",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Data Source ID",
+            "in": "path",
+            "name": "datasourceId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.BackupHistoryResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Backup history time series",
+        "tags": [
+          "Data Sources"
+        ]
+      }
+    },
     "/datasources/{datasourceId}/backups": {
       "get": {
         "description": "Retrieve a paginated list of backup jobs for the organization, with optional filtering by data source IDs.",
@@ -1340,6 +2924,316 @@
           }
         },
         "summary": "List Backup Jobs",
+        "tags": [
+          "Data Sources"
+        ]
+      }
+    },
+    "/datasources/{datasourceId}/backups/run-now": {
+      "post": {
+        "description": "Enqueues a manual backup_job row (trigger=manual) and returns its id. The 5-second Tick worker picks it up and launches a Fargate task. PolicyID is optional — leave empty to use the highest-priority enabled attachment for this datasource. Multiple concurrent runs of the same datasource + same policy are allowed by design (user explicitly clicked); the Fargate worker tolerates parallel jobs. Audit row backup_job.manual_run carries which policy was chosen and whether it was an explicit pick or the default.",
+        "operationId": "runBackupNow",
+        "parameters": [
+          {
+            "description": "Datasource ID (UUID)",
+            "in": "path",
+            "name": "datasourceId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/datasourcehandler.payloadRunBackupNowRequest"
+              }
+            }
+          },
+          "description": "Optional policy override",
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/datasourcehandler.payloadRunBackupNowResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "billing gate — org is BLOCKED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Run an ad-hoc backup of a datasource",
+        "tags": [
+          "Data Sources"
+        ]
+      }
+    },
+    "/datasources/{datasourceId}/backups/{jobId}": {
+      "delete": {
+        "description": "Hard-deletes the backup_job + cascades backup_artifact, removes the backup_retention_audit_log row (RESTRICT FK), and enqueues every (bucket, s3_key) pair for managed-S3 cleanup. Refuses with 409 if the job is currently `queued` or `running` (would race the Fargate worker). Writes one audit_log row with action `backup_job.deleted` before any destructive work. Customer-managed buckets are unaffected — we have no IAM on them, the DB row goes but the S3 file is the customer's responsibility.",
+        "operationId": "deleteBackup",
+        "parameters": [
+          {
+            "description": "Datasource ID (UUID)",
+            "in": "path",
+            "name": "datasourceId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Backup job ID (UUID)",
+            "in": "path",
+            "name": "jobId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/datasourcehandler.payloadDeleteBackupResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Delete one backup",
+        "tags": [
+          "Data Sources"
+        ]
+      }
+    },
+    "/datasources/{datasourceId}/backups/{jobId}/download-link": {
+      "post": {
+        "description": "Returns a presigned S3 GET URL for the backup archive (15-minute expiry). Both backup engines write exactly one archive per job (mongodump --archive piped through gzip; pg_dump --format=custom piped through gzip), so the response is a single URL — no per-artifact list. The handler is gated by MiddlewareDataSourceAccess + the SQL query filters on (org_id, data_source_id, job_id) for defence in depth. Every mint writes one audit_log row with action backup_job.download_link_generated. Customer-managed storage destinations return errorCode=customer_managed_storage because snapdb has no IAM on those buckets.",
+        "operationId": "generateBackupDownloadLink",
+        "parameters": [
+          {
+            "description": "Datasource ID (UUID)",
+            "in": "path",
+            "name": "datasourceId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Backup job ID (UUID)",
+            "in": "path",
+            "name": "jobId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/datasourcehandler.payloadGenerateDownloadLinkResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Generate a download link for a backup file",
+        "tags": [
+          "Data Sources"
+        ]
+      }
+    },
+    "/datasources/{datasourceId}/backups/{jobId}/verify": {
+      "post": {
+        "description": "Enqueue an on-demand verification restore of a backup into the datasource's configured scratch target. Recorded as a restore with trigger=verification, feeding the Restore health card.",
+        "operationId": "verifyBackupNow",
+        "parameters": [
+          {
+            "description": "Data Source ID",
+            "in": "path",
+            "name": "datasourceId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Backup Job ID",
+            "in": "path",
+            "name": "jobId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/datasourcehandler.payloadVerifyBackupResponse"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Verify a backup now",
         "tags": [
           "Data Sources"
         ]
@@ -1592,7 +3486,239 @@
         ]
       }
     },
+    "/datasources/{datasourceId}/restore-check-history": {
+      "get": {
+        "description": "Recent terminal restore-checks (verification restores) of a data source, oldest → newest, for the Restore-health card's status strip and pass-rate.",
+        "operationId": "getRestoreCheckHistory",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Data Source ID",
+            "in": "path",
+            "name": "datasourceId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.RestoreCheckHealthResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Restore-check history",
+        "tags": [
+          "Data Sources"
+        ]
+      }
+    },
+    "/datasources/{datasourceId}/restores": {
+      "get": {
+        "description": "Restore jobs for one datasource, newest first, cursor-paginated. Org + datasource scoping is enforced at the SQL level (and by the datasource-access middleware on the route).",
+        "parameters": [
+          {
+            "description": "Datasource ID",
+            "in": "path",
+            "name": "datasourceId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Trigger scopes the list: \"manual\" (user-initiated restore jobs,\ndefault) or \"verification\" (automated/on-demand restore checks).",
+            "in": "query",
+            "name": "trigger",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/response.APIResponseWithPagination"
+                    },
+                    {
+                      "properties": {
+                        "list": {
+                          "items": {
+                            "$ref": "#/components/schemas/dto.RestoreJob"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "List a datasource's restore jobs",
+        "tags": [
+          "Restores"
+        ]
+      }
+    },
     "/datasources/{id}": {
+      "delete": {
+        "description": "Hard-deletes the data_sources row plus every backup_job, restore_job, pitr_timeline, and per-datasource policy attachment. Managed-S3 artifacts are enqueued into pending_s3_cleanup and dropped asynchronously by the s3sweep worker — they may take up to a minute to disappear from the bucket. Org-scoped policies and storage destinations are NOT removed (they're templates shared across other datasources). The request body must include a `confirmation` field whose value exactly matches the datasource's name, mirroring the close-org dialog's defensive shape. Refuses to run when a backup_job for this datasource is currently queued or running.",
+        "operationId": "deleteDatasource",
+        "parameters": [
+          {
+            "description": "Datasource ID (UUID)",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/datasourcehandler.deleteDatasourcePayload"
+              }
+            }
+          },
+          "description": "Confirmation payload",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/datasourcehandler.deleteDatasourceResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "confirmation mismatch or malformed body"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "datasource not found in this org"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "in-flight backup job — wait or fail it first"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Delete a datasource and all its backup history",
+        "tags": [
+          "Data Sources"
+        ]
+      },
       "get": {
         "description": "Retrieve details of a specific data source by its ID.",
         "operationId": "get",
@@ -1775,6 +3901,667 @@
         ]
       }
     },
+    "/datasources/{id}/restore-check": {
+      "get": {
+        "description": "The datasource's automated restore-check configuration (an \"off\" default when never configured).",
+        "operationId": "getRestoreCheck",
+        "parameters": [
+          {
+            "description": "Data Source ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.RestoreCheck"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Get restore-check config",
+        "tags": [
+          "Data Sources"
+        ]
+      },
+      "put": {
+        "description": "Create or update the datasource's automated restore-check configuration.",
+        "operationId": "putRestoreCheck",
+        "parameters": [
+          {
+            "description": "Data Source ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/datasourcehandler.payloadRestoreCheckRequest"
+              }
+            }
+          },
+          "description": "Restore check config",
+          "required": true,
+          "x-originalParamName": "request"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.RestoreCheck"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Save restore-check config",
+        "tags": [
+          "Data Sources"
+        ]
+      }
+    },
+    "/datasources/{id}/verify": {
+      "post": {
+        "description": "Decrypts the stored credential cipher in-process via KMS + AES-256-GCM and runs an engine-specific connectivity probe with a 5-second timeout. Postgres uses pgx.ConnectConfig + Ping; MongoDB uses the official driver's Ping(Primary) — both are real authentication checks. On success the probe also reads the server version (`detectedVersion`/`detectedVersionMajor`) and, if it's newer than the bundled dump tools support, returns ok=false with errorCode `server_version_unsupported` so an unsupported server is caught at connect time rather than at backup time. Never returns the connection string or any credential material in the response or audit log.",
+        "operationId": "verifyDatasource",
+        "parameters": [
+          {
+            "description": "Datasource ID (UUID)",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/datasourcehandler.payloadVerifyResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Test the connection for a datasource",
+        "tags": [
+          "Data Sources"
+        ]
+      }
+    },
+    "/notifications/settings": {
+      "get": {
+        "description": "The org's failure-alerting configuration. Defaults (all alert types on, email to org members) when never configured.",
+        "operationId": "getNotificationSettings",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.NotificationSettings"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Get notification settings",
+        "tags": [
+          "Notifications"
+        ]
+      },
+      "put": {
+        "description": "Create or update the org's failure-alerting configuration. webhookSecret is write-only: omitted keeps the stored secret; clearing webhookUrl drops it.",
+        "operationId": "putNotificationSettings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/notificationhandler.payloadNotificationSettingsRequest"
+              }
+            }
+          },
+          "description": "Notification settings",
+          "required": true,
+          "x-originalParamName": "request"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.NotificationSettings"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Save notification settings",
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/notifications/test": {
+      "post": {
+        "description": "Push a synthetic alert through every configured channel (email, Slack, webhook) and report per-channel results.",
+        "operationId": "testNotifications",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.NotificationTestResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Send a test alert",
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/restores": {
+      "post": {
+        "description": "Creates a restore job from a successful backup and dispatches it to a restore worker. Modes: `new_database` (create a fresh DB on a server you point at — targetUri needs create-database rights, targetDatabase is the name to create), `overwrite` (restore over the datasource's existing database using its stored credentials — requires confirmOverwrite=true and a write-capable role), `new_server` (restore into the database named in targetUri). Probe the target first via POST /restores/target-probe. Restores are deliberately not billing-gated.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/restorehandler.payloadCreateRequest"
+              }
+            }
+          },
+          "description": "Restore creation payload",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/restorehandler.payloadCreateResponse"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Start a restore",
+        "tags": [
+          "Restores"
+        ]
+      }
+    },
+    "/restores/target-probe": {
+      "post": {
+        "description": "The restore wizard's pre-flight. For `overwrite` it checks the datasource's stored credentials can actually write (creates + drops a throwaway norcube_write_test table/collection) — backup roles are usually read-only, so this catches the failure before anything runs. For `new_database` it checks the supplied targetUri can create databases and that targetDatabase doesn't exist yet; for `new_server` it write-probes the database named in targetUri. Domain failures come back as errorCode/errorMessage with HTTP 200.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/restorehandler.payloadProbeTargetRequest"
+              }
+            }
+          },
+          "description": "Probe payload",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/restorehandler.payloadProbeTargetResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Probe a restore target for writability",
+        "tags": [
+          "Restores"
+        ]
+      }
+    },
+    "/restores/{id}": {
+      "get": {
+        "description": "Full detail of a restore job, including status, byte counters, the redacted target, and whether a log is available.",
+        "parameters": [
+          {
+            "description": "Restore job ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.RestoreJob"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Get one restore job",
+        "tags": [
+          "Restores"
+        ]
+      }
+    },
+    "/restores/{id}/logs.presign": {
+      "get": {
+        "description": "Returns a short-lived presigned URL for the restore run's output log (the redacted pg_restore / mongorestore output the worker uploaded). Available for both successful and failed restores once the worker has reported; `errorCode: no_log` until then.",
+        "parameters": [
+          {
+            "description": "Restore job ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/restorehandler.payloadLogsPresignResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Get a link to the restore's log",
+        "tags": [
+          "Restores"
+        ]
+      }
+    },
+    "/storage-destinations": {
+      "get": {
+        "description": "Returns every storage destination an organization can attach to a backup policy — both Norcube-managed buckets and BYO (customer-owned) S3-compatible destinations. Credential fields are never included in the response; the agent dispatcher fetches them via a separate decrypt path when starting a job. Supports server-side filtering by search substring (matched against name / bucket / endpoint / type), ownership (`all` / `managed` / `byo`), and unverifiedOnly (BYO rows whose verify rotted).",
+        "parameters": [
+          {
+            "description": "Substring search across name, bucket, endpoint URL, and type",
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filter by ownership: all | managed | byo",
+            "in": "query",
+            "name": "ownership",
+            "schema": {
+              "enum": [
+                "all",
+                "managed",
+                "byo"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only return BYO rows with NULL last_verified_at",
+            "in": "query",
+            "name": "unverifiedOnly",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/policyhandler.payloadStorageDestinationResponse"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "List Storage Destinations",
+        "tags": [
+          "Storage Destinations"
+        ]
+      },
+      "post": {
+        "description": "Registers a customer-owned S3-compatible storage destination (AWS S3 outside our account, Cloudflare R2, Backblaze B2, Wasabi, MinIO, etc.). The supplied credentials are verified end-to-end (PutObject → HeadObject → DeleteObject of a tiny probe object) BEFORE the row is persisted — if any step fails the request returns 400 and nothing is saved. Credentials are KMS-wrapped (envelope-encrypted with the same {org_id, destination_id} context we use for datasource credentials) before persistence and never leave the encrypted path again until the agent dispatcher unseals them at job-start time.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/policyhandler.payloadCreateStorageDestinationRequest"
+              }
+            }
+          },
+          "description": "Request payload",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/policyhandler.payloadCreateStorageDestinationResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Create Storage Destination (BYO)",
+        "tags": [
+          "Storage Destinations"
+        ]
+      }
+    },
     "/storage-destinations/managed/ensure": {
       "post": {
         "description": "Ensure that a managed storage destination exists for the given region. If it does not exist, it will be created.",
@@ -1823,6 +4610,213 @@
           }
         },
         "summary": "Ensure managed storage destination",
+        "tags": [
+          "Storage Destinations"
+        ]
+      }
+    },
+    "/storage-destinations/{id}": {
+      "delete": {
+        "description": "Soft-deletes a customer-owned (BYO) storage destination (sets is_active=false and wipes the credential blob). Refuses with 409 if any data_source_policy still references this destination — the customer must detach those policies first. Managed destinations cannot be deleted through this endpoint.",
+        "parameters": [
+          {
+            "description": "Storage destination ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Delete Storage Destination",
+        "tags": [
+          "Storage Destinations"
+        ]
+      },
+      "get": {
+        "description": "Returns a single storage destination by id, scoped to the calling organization.",
+        "parameters": [
+          {
+            "description": "Storage destination ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/policyhandler.payloadStorageDestinationResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Get Storage Destination",
+        "tags": [
+          "Storage Destinations"
+        ]
+      },
+      "patch": {
+        "description": "Updates a customer-owned (BYO) storage destination. Two paths: metadata-only (name / storageClass / encryptionMode) writes immediately. Any connection-knob change (region / endpointUrl / forcePathStyle) OR credential change requires accessKeyId + secretAccessKey to be supplied together — the new combination is re-verified end-to-end (PutObject → HeadObject → DeleteObject) before the row is updated. Managed destinations cannot be edited through this endpoint.",
+        "parameters": [
+          {
+            "description": "Storage destination ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/policyhandler.payloadUpdateStorageDestinationRequest"
+              }
+            }
+          },
+          "description": "Request payload",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/policyhandler.payloadStorageDestinationResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Update Storage Destination",
         "tags": [
           "Storage Destinations"
         ]
