@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"strings"
 
@@ -97,7 +96,7 @@ func resolveDataSourceID(ctx context.Context, c *snapdbContext, args []string, p
 // confirm prompts the user with a yes/no question. When stdin is not
 // interactive or the caller already passed --yes, returns true without
 // prompting so scripts work the same way they always have.
-func confirm(prompt string, yesFlag bool, stderr io.Writer) (bool, error) {
+func confirm(prompt string, yesFlag bool) (bool, error) {
 	if yesFlag {
 		return true, nil
 	}

@@ -59,8 +59,8 @@ func must(err error) {
 // services use Fiber's syntax in their @Router annotations, which `swag`
 // passes through unchanged, but oapi-codegen requires OpenAPI syntax.
 var (
-	fiberParamRE   = regexp.MustCompile(`:([A-Za-z_][A-Za-z0-9_]*)`)
-	pathParamRE    = regexp.MustCompile(`\{([A-Za-z_][A-Za-z0-9_]*)\}`)
+	fiberParamRE = regexp.MustCompile(`:([A-Za-z_][A-Za-z0-9_]*)`)
+	pathParamRE  = regexp.MustCompile(`\{([A-Za-z_][A-Za-z0-9_]*)\}`)
 )
 
 // ensurePathParameters walks every operation and adds a declaration for any

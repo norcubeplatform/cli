@@ -165,12 +165,10 @@ func resolveCreateFields(name, lang, ctx string, orgLangs []langsync.DtoDTOLangu
 		return name, lang, ctx, nil
 	}
 	if !stdinIsInteractive() {
-		switch {
-		case name == "":
+		if name == "" {
 			return "", "", "", fmt.Errorf("namespace name is required: pass it as a positional argument or run interactively")
-		default:
-			return "", "", "", fmt.Errorf("--default-language is required (language code, e.g. en)")
 		}
+		return "", "", "", fmt.Errorf("--default-language is required (language code, e.g. en)")
 	}
 	var (
 		newName = name

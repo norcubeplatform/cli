@@ -1,0 +1,47 @@
+version: "2"
+
+linters:
+  default: standard
+  enable:
+    - misspell
+    - unconvert
+    - unparam
+    - gosec
+  settings:
+    errcheck:
+      # Terminal writes: if stdout/stderr are gone there is nobody left
+      # to report the failure to. Body.Close in defers likewise.
+      exclude-functions:
+        - fmt.Fprint
+        - fmt.Fprintf
+        - fmt.Fprintln
+        - (io.Closer).Close
+    gosec:
+      excludes:
+        # G107/G304/G301: fetching URLs and reading/creating files at
+        # user-supplied paths is what a CLI is for.
+        - G107
+        - G304
+        - G301
+    misspell:
+      ignore-rules:
+        # `strat` is the sync --strategy variable, not a typo of "start".
+        - strat
+  exclusions:
+    rules:
+      # Generated API clients are not ours to lint.
+      - path: internal/api/.*\.gen\.go
+        linters:
+          - misspell
+          - unconvert
+          - unparam
+          - gosec
+      # Build-time helper tools, not shipped code.
+      - path: ^tools/
+        linters:
+          - gosec
+          - errcheck
+
+formatters:
+  enable:
+    - gofmt

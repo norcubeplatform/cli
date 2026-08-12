@@ -67,9 +67,8 @@ func runLogin(cmd *cobra.Command, force bool) error {
 	if err := auth.SaveRefreshToken(authURL, payload.RefreshToken); err != nil {
 		return fmt.Errorf("store refresh token: %w", err)
 	}
-	if err := auth.SaveAccessToken(authURL, auth.AudienceAuth, "", payload.AccessToken); err != nil {
-		// non-fatal — we'll just re-mint via /oauth/token next call
-	}
+	// Cache failure is non-fatal — we'll just re-mint via /oauth/token next call.
+	_ = auth.SaveAccessToken(authURL, auth.AudienceAuth, "", payload.AccessToken)
 
 	cfg.Auth = authURL
 	cfg.WebApp = webApp

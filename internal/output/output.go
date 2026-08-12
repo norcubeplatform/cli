@@ -140,7 +140,7 @@ func (t Table[T]) writeTable(w io.Writer) error {
 		var line strings.Builder
 		for i, c := range r {
 			pad := widths[i] - utf8.RuneCountInString(c)
-			styled := c
+			var styled string
 			switch {
 			case isHeader:
 				styled = s.styleHeader(c)

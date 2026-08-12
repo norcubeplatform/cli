@@ -151,7 +151,7 @@ attachment was a mistake or is permanently obsolete.`,
 			}
 			ok, err := confirm(
 				fmt.Sprintf("Detach policy %q from data source %q?", policyID, datasourceID),
-				yes, cmd.ErrOrStderr(),
+				yes,
 			)
 			if err != nil {
 				if err == ErrCancelled {

@@ -36,7 +36,9 @@ func pageThrough(w io.Writer, format string, value any) error {
 		return Print(w, format, value)
 	}
 
-	cmd := exec.Command(parts[0], parts[1:]...)
+	// Running $PAGER on the user's own machine is the feature, not an
+	// injection vector.
+	cmd := exec.Command(parts[0], parts[1:]...) // #nosec G204
 	cmd.Stdout = w
 	cmd.Stderr = os.Stderr
 	cmd.Env = append(os.Environ(), "LESS=FRX")

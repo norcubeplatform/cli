@@ -1,0 +1,40 @@
+name: Bug report
+description: Something in the CLI misbehaves
+labels: [bug]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: CLI version
+      description: Output of `norcube --version`
+      placeholder: norcube version 0.14.0 (commit 2624a1e, built ...)
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: OS and architecture
+      placeholder: macOS 15.4 arm64 / Ubuntu 24.04 amd64 / Windows 11
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: >-
+        The command you ran, what you expected, and what you got instead.
+        Redact org IDs and datasource names if you consider them
+        sensitive; never paste tokens.
+      placeholder: |
+        $ norcube backup list --datasource ...
+        expected: ...
+        got: ...
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else?
+      description: >-
+        Install method (brew, install script, from source), whether it
+        worked in a previous version, proxy/VPN in play, etc.

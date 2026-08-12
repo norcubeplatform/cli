@@ -141,9 +141,8 @@ func BrowserLogin(ctx context.Context, opts BrowserLoginOptions) (*CallbackPaylo
 	if opts.OnURLReady != nil {
 		opts.OnURLReady(loginURL)
 	}
-	if err := opts.BrowserOpenURL(loginURL); err != nil {
-		// Not fatal — the user can copy/paste the URL manually.
-	}
+	// Open failure is not fatal — the user can copy/paste the URL manually.
+	_ = opts.BrowserOpenURL(loginURL)
 
 	timeoutCtx, cancel := context.WithTimeout(ctx, opts.Timeout)
 	defer cancel()

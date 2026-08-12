@@ -351,36 +351,6 @@ are unaffected. Use --yes to skip the confirmation in scripts.`,
 	return cmd
 }
 
-// resolveLanguage looks up a language by either numeric id (passed as a
-// stringified int) or language code (case-insensitive). Returns the
-// id and a human label for success messages.
-func resolveLanguage(ctx context.Context, c *langsyncContext, input string) (int, string, error) {
-	input = strings.TrimSpace(input)
-	if input == "" {
-		return 0, "", fmt.Errorf("language code or id is required")
-	}
-	// If it parses as a positive int, treat it as an id and trust the
-	// backend to validate.
-	if id, err := strconv.Atoi(input); err == nil && id > 0 {
-		return id, fmt.Sprintf("language id %d", id), nil
-	}
-	// Otherwise treat as a code; resolve via the global /languages list.
-	all, err := listAllLanguages(ctx, c)
-	if err != nil {
-		return 0, "", err
-	}
-	lc := strings.ToLower(input)
-	for _, l := range all {
-		if l.Code != nil && strings.ToLower(*l.Code) == lc {
-			if l.Id == nil {
-				return 0, "", fmt.Errorf("language %q is missing an id in the backend response", input)
-			}
-			return *l.Id, languageLabel(l), nil
-		}
-	}
-	return 0, "", fmt.Errorf("no language found with code %q — run `norcube langsync lang list` to see what's available", input)
-}
-
 // resolveLanguageAttached is like resolveLanguage but scopes the lookup
 // to the languages already attached to ns, so removing a non-attached
 // language fails fast with a useful error.

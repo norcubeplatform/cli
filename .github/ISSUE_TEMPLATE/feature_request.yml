@@ -1,0 +1,24 @@
+name: Feature request
+description: Propose a new command, flag, or behavior
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: >-
+        The workflow or task, not the solution — "I want to restore last
+        night's backup into a local container" beats "add a --docker
+        flag".
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: How could the CLI support it?
+      description: A sketch of the command/flags you'd expect, if you have one.
+  - type: textarea
+    id: workaround
+    attributes:
+      label: Current workaround
+      description: How you do it today (dashboard, raw API, scripts), if at all.

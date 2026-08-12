@@ -23,6 +23,7 @@ func namespaceAccessError(activeOrg, ns string) error {
 	if activeOrg != "" {
 		orgClause = fmt.Sprintf("the active organization (%q)", activeOrg)
 	}
+	//nolint:staticcheck // multi-line guidance message; the punctuation is deliberate
 	return fmt.Errorf(`namespace %q is not accessible to %s.
 
 This usually means one of:

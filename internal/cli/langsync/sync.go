@@ -340,7 +340,7 @@ func syncNamespaceParallel(
 	stats := statsFromJob(final)
 
 	if !opts.dryRun && final != nil && final.Status != nil && *final.Status == "completed" {
-		written, werr := writeResultFiles(final, dir, configPath, ns.LanguageAliases)
+		written, werr := writeResultFiles(final, dir, ns.LanguageAliases)
 		if werr != nil {
 			d.Fail(ns.Namespace, fmt.Errorf("write files: %w", werr))
 			return stats, final, werr
@@ -523,7 +523,7 @@ func statsFromJob(j *langsync.DtoDTOSyncJob) namespaceSyncStats {
 	return s
 }
 
-func writeResultFiles(j *langsync.DtoDTOSyncJob, dir, configPath string, aliases map[string]string) (int, error) {
+func writeResultFiles(j *langsync.DtoDTOSyncJob, dir string, aliases map[string]string) (int, error) {
 	if j.ResultPerLanguage == nil {
 		return 0, nil
 	}
@@ -561,19 +561,5 @@ func relPath(configPath, target string) string {
 	return target
 }
 
-func shortID(id string) string {
-	if len(id) > 8 {
-		return id[:8]
-	}
-	return id
-}
-
 func ptrStr(s string) *string { return &s }
 func ptrBool(b bool) *bool    { return &b }
-
-func marksMapPtr(m map[string]string) *map[string]string {
-	if m == nil {
-		m = map[string]string{}
-	}
-	return &m
-}

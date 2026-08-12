@@ -266,7 +266,9 @@ func streamDownload(cmd *cobra.Command, rawURL string, sizeBytes *int, jobID, fi
 		dest = objectBasename(rawURL, jobID)
 	}
 
-	f, err := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o644)
+	// 0600: the artifact is a database dump; nobody else on the machine
+	// has any business reading it.
+	f, err := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
 	if err != nil {
 		if os.IsExist(err) {
 			return fmt.Errorf("%s already exists; pass --file to pick another name", dest)

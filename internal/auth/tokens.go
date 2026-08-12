@@ -97,9 +97,8 @@ func (t *TokenSource) Token(ctx context.Context) (string, error) {
 			return "", fmt.Errorf("persist rotated refresh token: %w", err)
 		}
 	}
-	if err := SaveAccessToken(t.APIBase, t.Audience, t.OrgID, access); err != nil {
-		// Cache failure is non-fatal — we still got a usable token.
-	}
+	// Cache failure is non-fatal — we still got a usable token.
+	_ = SaveAccessToken(t.APIBase, t.Audience, t.OrgID, access)
 	return access, nil
 }
 
@@ -145,7 +144,9 @@ func (t *TokenSource) exchangeRefresh(ctx context.Context, refresh string) (stri
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	// The handler reads the refresh token from the configured cookie name.
-	req.AddCookie(&http.Cookie{Name: "jds_refresh_token", Value: refresh})
+	// Secure/HttpOnly/SameSite are response attributes; they don't apply to
+	// a cookie attached to an outgoing request.
+	req.AddCookie(&http.Cookie{Name: "jds_refresh_token", Value: refresh}) // #nosec G124
 
 	resp, err := t.HTTP.Do(req)
 	if err != nil {
