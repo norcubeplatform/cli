@@ -8,6 +8,10 @@ Command-line interface for the [Norcube platform](https://norcube.com). Manage b
 
 Its flagship job: proving you're never locked in to Norcube Backup. `norcube backup download` streams any backup straight from storage into `pg_restore` or `mongorestore`, and `norcube backup health` shows whether your backups actually restore — restore-tested against real throwaway databases, not just checksummed.
 
+![norcube CLI demo](demo/demo.gif)
+
+<sub>Scripted demo with sanitized names — the tape and stub live in [`demo/`](demo/).</sub>
+
 > **Status**: v0 — login + organization management, Norcube Backup (browse, pause/resume, download, restore tests, health), full Langsync CRUD, and project-level `langsync init` / `langsync sync` for repo-side translation files.
 
 ## Install

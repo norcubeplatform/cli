@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# Fake norcube used only to record demo/demo.gif with vhs. It replays real
+# command output (captured from a live session) with sanitized org and
+# datasource names, so the demo doesn't publish anyone's infrastructure.
+set -euo pipefail
+
+G=$'\033[32m'   # green
+D=$'\033[2m'    # dim
+R=$'\033[0m'    # reset
+
+case "$*" in
+"backup health")
+  sleep 0.6
+  printf '%s\n' \
+"${D}DATASOURCE       ENGINE    HEALTH  TESTS         WARNINGS  LAST TESTED${R}" \
+"prod-postgres    postgres  100%    20/20 passed  0         2026-08-12 04:00:12" \
+"analytics-mongo  mongodb   100%    20/20 passed  0         2026-08-12 04:05:31" \
+"billing-db       postgres  96%     27/28 passed  1         2026-08-12 04:02:44"
+  ;;
+"backup list --limit 3")
+  sleep 0.5
+  printf '%s\n' \
+"${D}DATASOURCE       STATUS   TEST    TRIGGER   STARTED              DURATION  SIZE      JOB_ID${R}" \
+"prod-postgres    ${G}success${R}  passed  schedule  2026-08-12 00:00:34  4.3s      5.5 MiB   b81c22d0-56fa-4c19-9e01-3f8a2c47d1aa" \
+"analytics-mongo  ${G}success${R}  passed  schedule  2026-08-12 00:00:29  614ms     25.2 KiB  57e02a79-705d-4bb4-b33f-d8a75a0ea5b5" \
+"billing-db       ${G}success${R}  passed  schedule  2026-08-12 00:00:23  5.3s      12.3 MiB  0dda8767-a097-475a-b213-66dd08578616"
+  ;;
+"backup download "*)
+  sleep 0.4
+  for pct in 18 42 71 100; do
+    mib=$(printf '%s' "$pct 5.5" | awk '{printf "%.1f", $1*$2/100}')
+    printf '\r\033[K%s MiB / 5.5 MiB (%d%%)' "$mib" "$pct" >&2
+    sleep 0.35
+  done
+  printf '\r\033[K' >&2
+  echo "Downloaded prod-postgres-full-20260812.dump.gz (5.5 MiB)."
+  ;;
+"backup restore-test run "*)
+  sleep 0.5
+  echo "Restore test queued (restore job 4f2a9c1e-8b3d-4e67-a012-6c5d9e8f7a3b)."
+  echo "Track it with \`norcube backup list\`; the verdict appears in the TEST column." >&2
+  ;;
+*)
+  echo "demo stub: no canned output for: $*" >&2
+  exit 1
+  ;;
+esac
