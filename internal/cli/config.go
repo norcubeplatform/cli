@@ -38,7 +38,7 @@ organization alone — only the per-service base URLs are rewritten.`,
 			}
 			out := cmd.OutOrStdout()
 			fmt.Fprintln(out, "Per-service URLs reset to defaults:")
-			fmt.Fprintf(out, "  SnapDB:       %s\n", cfg.SnapDB)
+			fmt.Fprintf(out, "  Backup:       %s\n", cfg.SnapDB)
 			fmt.Fprintf(out, "  Langsync:     %s\n", cfg.Langsync)
 			fmt.Fprintf(out, "  Domainradar:  %s\n", cfg.Domainradar)
 			fmt.Fprintf(out, "  Billing:      %s\n", cfg.Billing)
@@ -74,7 +74,7 @@ overrides on top of ~/.config/norcube/config.toml.`,
 			fmt.Fprintf(tw, "Config path:\t%s\n", path)
 			fmt.Fprintf(tw, "Auth API:\t%s\n", flags.ResolveAuth(cfg))
 			fmt.Fprintf(tw, "Web app:\t%s\n", flags.ResolveWebApp(cfg))
-			fmt.Fprintf(tw, "SnapDB:\t%s\n", cfg.SnapDB)
+			fmt.Fprintf(tw, "Backup:\t%s\n", cfg.SnapDB)
 			fmt.Fprintf(tw, "Langsync:\t%s\n", cfg.Langsync)
 			fmt.Fprintf(tw, "Domainradar:\t%s\n", cfg.Domainradar)
 			fmt.Fprintf(tw, "Billing:\t%s\n", cfg.Billing)
