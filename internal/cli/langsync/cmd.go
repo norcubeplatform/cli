@@ -15,6 +15,7 @@ import (
 	"github.com/norcubeplatform/cli/internal/auth"
 	"github.com/norcubeplatform/cli/internal/cli/langsync/projectcfg"
 	"github.com/norcubeplatform/cli/internal/clictx"
+	"github.com/norcubeplatform/cli/internal/clierr"
 	"github.com/norcubeplatform/cli/internal/config"
 )
 
@@ -40,12 +41,11 @@ type langsyncContext struct {
 }
 
 func newLangsyncContext(cmd *cobra.Command) (*langsyncContext, error) {
-	cfg, err := config.Load()
+	cfg, err := clictx.Get(cmd).Config()
 	if err != nil {
 		return nil, err
 	}
 	flags := clictx.Get(cmd)
-	authURL := flags.ResolveAuth(cfg)
 
 	// Org precedence:
 	//   1. --org flag (explicit user override)
@@ -66,20 +66,31 @@ func newLangsyncContext(cmd *cobra.Command) (*langsyncContext, error) {
 	// ever needs to confirm which org a command is hitting,
 	// `nrc whoami` and the .langsync.json contents are
 	// authoritative.
-	orgID, _ := flags.ResolveOrg(cfg)
-	if !flags.HasOrgFlag() {
-		if projOrgID, _, ok := tryReadProjectOrg(); ok {
-			orgID = projOrgID
+	var orgID, orgSlug string
+	if projOrgID, projSlug, ok := tryReadProjectOrg(); ok && !flags.HasOrgFlag() {
+		orgID, orgSlug = projOrgID, projSlug
+	} else {
+		org, err := flags.Org(cmd.Context(), cfg)
+		if err != nil {
+			return nil, err
 		}
+		orgID = org.ID
 	}
 	if orgID == "" {
-		return nil, fmt.Errorf("no active organization — run `norcube org use <slug>` or pass --org <slug>")
+		return nil, clierr.Usage(errors.New("no active organization. Run `norcube org use <slug>` or pass --org <slug>"))
 	}
 
-	ts := auth.NewTokenSource(authURL, auth.AudienceLangsync, orgID)
+	ts, err := flags.TokenSource(cfg, auth.AudienceLangsync, orgID)
+	if err != nil {
+		return nil, err
+	}
+	if orgSlug != "" {
+		ts.OrgLabel = orgSlug
+	}
 
 	client, err := langsync.NewClientWithResponses(
 		cfg.Langsync,
+		langsync.WithHTTPClient(ts.HTTP),
 		langsync.WithRequestEditorFn(ts.BearerInjector()),
 	)
 	if err != nil {
@@ -103,17 +114,20 @@ func newLangsyncContextForOrg(cmd *cobra.Command, orgID string) (*langsyncContex
 	if orgID == "" {
 		return nil, fmt.Errorf("orgID must not be empty")
 	}
-	cfg, err := config.Load()
+	cfg, err := clictx.Get(cmd).Config()
 	if err != nil {
 		return nil, err
 	}
 	flags := clictx.Get(cmd)
-	authURL := flags.ResolveAuth(cfg)
 
-	ts := auth.NewTokenSource(authURL, auth.AudienceLangsync, orgID)
+	ts, err := flags.TokenSource(cfg, auth.AudienceLangsync, orgID)
+	if err != nil {
+		return nil, err
+	}
 
 	client, err := langsync.NewClientWithResponses(
 		cfg.Langsync,
+		langsync.WithHTTPClient(ts.HTTP),
 		langsync.WithRequestEditorFn(ts.BearerInjector()),
 	)
 	if err != nil {
@@ -157,8 +171,3 @@ func tryReadProjectOrg() (orgID, slug string, ok bool) {
 	}
 	return cfg.Organization.ID, cfg.Organization.Slug, true
 }
-
-// Silence unused-import for projectcfg in commands that never reach
-// tryReadProjectOrg (keeps the import line alive across refactors
-// where the helper might temporarily go unreferenced).
-var _ = errors.New

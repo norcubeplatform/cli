@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"golang.org/x/term"
+	"github.com/norcubeplatform/cli/internal/term"
 )
 
 // PrintPaged behaves like Print, but pipes the output through a pager
@@ -55,7 +55,7 @@ func pageThrough(w io.Writer, format string, value any) error {
 	// Wrap the pipe so styleFor() treats it as interactive. The pager is
 	// launched with LESS=FRX (R = pass raw ANSI through), so colors do
 	// reach the user's terminal even though `pipe` itself is not a TTY.
-	werr := Print(&forcedTTY{Writer: pipe}, format, value)
+	werr := Print(term.Forced{Writer: pipe}, format, value)
 	_ = pipe.Close()
 	waitErr := cmd.Wait()
 
@@ -92,27 +92,6 @@ func isBrokenPipe(err error) bool {
 // IsInteractive reports whether w is a real terminal. Exported so command
 // packages can decide whether to emit chatty stderr hints. Non-*os.File
 // writers (test buffers, captured stderr) are treated as non-interactive.
-func IsInteractive(w io.Writer) bool {
-	return isInteractive(w)
-}
+func IsInteractive(w io.Writer) bool { return term.IsTerminal(w) }
 
-func isInteractive(w io.Writer) bool {
-	// forcedTTY tags a writer (typically the pager's stdin pipe) as
-	// effectively interactive because we know the eventual reader is a
-	// terminal. styleFor() therefore keeps colors on for the table.
-	if _, ok := w.(*forcedTTY); ok {
-		return true
-	}
-	f, ok := w.(*os.File)
-	if !ok {
-		return false
-	}
-	return term.IsTerminal(int(f.Fd()))
-}
-
-// forcedTTY wraps a writer whose downstream consumer is known to be a
-// color-capable terminal (e.g. less -R), even though the immediate writer
-// itself is a non-terminal pipe.
-type forcedTTY struct {
-	io.Writer
-}
+func isInteractive(w io.Writer) bool { return term.IsTerminal(w) }

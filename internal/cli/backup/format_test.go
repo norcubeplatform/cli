@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/norcubeplatform/cli/internal/api/snapdb"
+	"github.com/norcubeplatform/cli/internal/output"
 )
 
 func strPtr(s string) *string { return &s }
@@ -74,7 +75,7 @@ func TestHealthRow(t *testing.T) {
 		RestoreCheckLastAt:   strPtr("2026-08-12T04:00:00Z"),
 	}
 	got = healthRow(tested)
-	want = []string{"prod-postgres", "postgres", "96%", "27/28 passed", "1", "2026-08-12 04:00:00"}
+	want = []string{"prod-postgres", "postgres", "96%", "27/28 passed", "1", output.WhenStringSeconds("2026-08-12T04:00:00Z")}
 	for i := range want {
 		if got[i] != want[i] {
 			t.Fatalf("healthRow(tested)[%d] = %q, want %q", i, got[i], want[i])

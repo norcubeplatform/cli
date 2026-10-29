@@ -11,8 +11,10 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/norcubeplatform/cli/internal/api/langsync"
-	"github.com/norcubeplatform/cli/internal/clictx"
+	"github.com/norcubeplatform/cli/internal/clierr"
+	"github.com/norcubeplatform/cli/internal/cmdutil"
 	"github.com/norcubeplatform/cli/internal/output"
+	"github.com/norcubeplatform/cli/internal/term"
 )
 
 func newNamespaceCmd() *cobra.Command {
@@ -34,6 +36,8 @@ func newNamespaceListCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "list",
 		Short: "List namespaces in the active organization",
+		Example: `  norcube langsync namespace list
+  norcube langsync namespace list -o json --query "[].name"`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			c, err := newLangsyncContext(cmd)
 			if err != nil {
@@ -49,14 +53,21 @@ func newNamespaceListCmd() *cobra.Command {
 			}
 			items := *res.JSON200
 
-			flags := clictx.Get(cmd)
-			return output.PrintPaged(cmd.OutOrStdout(), c.output, flags.NoPager, output.Table[langsync.DtoDTONamespace]{
+			// The API returns the default language as an id; the table
+			// shows its code. JSON/YAML keep the raw API shape. If the
+			// lookup fails, the table falls back to the id.
+			var codes map[int]string
+			if c.output == output.FormatTable {
+				codes, _ = fetchLanguageCodesByID(cmd.Context(), c)
+			}
+
+			return cmdutil.Print(cmd, output.Table[langsync.DtoDTONamespace]{
 				Headers:   []string{"NAME", "DEFAULT_LANG", "LANGUAGES", "CONTEXT", "ID"},
 				MaxWidths: []int{32, 0, 0, 40, 0},
 				Rows: func(n langsync.DtoDTONamespace) []string {
 					return []string{
 						deref(n.Name),
-						intStr(n.DefaultLanguageId),
+						languageCode(n.DefaultLanguageId, codes),
 						languageCount(n.Languages),
 						deref(n.Context),
 						deref(n.Id),
@@ -83,12 +94,10 @@ The default language is the source of truth — it's the language users
 write marks in. It's a language code like "en", "cs", "de"; the backend
 maps it to an actual language record on creation.
 
-Examples:
-  norcube langsync namespace create web --default-language en
-  norcube langsync namespace create marketing --default-language cs --context "Marketing site copy"
-
 In an interactive shell, omitting any value pops a prompt; in a script
 the name positional + --default-language are both required.`,
+		Example: `  norcube langsync namespace create web --default-language en
+  norcube langsync namespace create marketing --default-language cs --context "Marketing site copy"`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			c, err := newLangsyncContext(cmd)
@@ -104,7 +113,7 @@ the name positional + --default-language are both required.`,
 			// and the shell is interactive. Skips the round trip
 			// on every scripted invocation.
 			var orgLangs []langsync.DtoDTOLanguage
-			if defaultLanguage == "" && stdinIsInteractive() {
+			if defaultLanguage == "" && term.StdinIsTerminal() {
 				orgLangs, err = fetchOrgLanguageList(cmd.Context(), c)
 				if err != nil {
 					return err
@@ -113,7 +122,7 @@ the name positional + --default-language are both required.`,
 			name, defaultLanguage, context, err = resolveCreateFields(name, defaultLanguage, context, orgLangs)
 			if err != nil {
 				if errors.Is(err, ErrCancelled) {
-					fmt.Fprintln(cmd.OutOrStdout(), "Cancelled.")
+					fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 					return nil
 				}
 				return err
@@ -141,8 +150,11 @@ the name positional + --default-language are both required.`,
 				return apiError(res.HTTPResponse, res.Body,
 					res.JSON400, res.JSON401, res.JSON403, res.JSON404, res.JSON500)
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "Created namespace %q (default language %q).\n", name, defaultLanguage)
-			return nil
+			return cmdutil.Print(cmd, output.Done{
+				Message: fmt.Sprintf("Created namespace %q (default language %q).", name, defaultLanguage),
+				Value:   namespaceResult{Name: name, DefaultLanguage: defaultLanguage, Context: context},
+				Fields:  []output.Field{{Value: name}, {Value: defaultLanguage}},
+			})
 		},
 	}
 	cmd.Flags().StringVar(&defaultLanguage, "default-language", "", "Language code that source marks are written in (e.g. en, cs, de)")
@@ -164,9 +176,9 @@ func resolveCreateFields(name, lang, ctx string, orgLangs []langsync.DtoDTOLangu
 	if !missing {
 		return name, lang, ctx, nil
 	}
-	if !stdinIsInteractive() {
+	if !term.StdinIsTerminal() {
 		if name == "" {
-			return "", "", "", fmt.Errorf("namespace name is required: pass it as a positional argument or run interactively")
+			return "", "", "", clierr.Usage(errors.New("namespace name is required: pass it as a positional argument or run interactively"))
 		}
 		return "", "", "", fmt.Errorf("--default-language is required (language code, e.g. en)")
 	}
@@ -320,6 +332,8 @@ change — omitted flags leave existing values alone.
 --default-language accepts either a language code (e.g. en, cs) or the
 numeric language id. The CLI resolves codes via /languages before
 sending the request — the underlying endpoint wants the id form.`,
+		Example: `  norcube langsync namespace update web --rename website
+  norcube langsync namespace update web --default-language cs`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			c, err := newLangsyncContext(cmd)
@@ -364,8 +378,21 @@ sending the request — the underlying endpoint wants the id form.`,
 				return apiError(res.HTTPResponse, res.Body,
 					res.JSON400, res.JSON401, res.JSON403, res.JSON404, res.JSON500)
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "Updated namespace %q.\n", name)
-			return nil
+			updated := namespaceResult{Name: name}
+			if body.Name != nil {
+				updated.Name = *body.Name
+			}
+			if body.Context != nil {
+				updated.Context = *body.Context
+			}
+			if cmd.Flags().Changed("default-language") {
+				updated.DefaultLanguage = defaultLanguage
+			}
+			return cmdutil.Print(cmd, output.Done{
+				Message: fmt.Sprintf("Updated namespace %q.", name),
+				Value:   updated,
+				Fields:  []output.Field{{Value: updated.Name}},
+			})
 		},
 	}
 	cmd.Flags().StringVar(&rename, "rename", "", "New name for the namespace (URL slug)")
@@ -382,6 +409,8 @@ func newNamespaceDeleteCmd() *cobra.Command {
 		Long: `Permanently removes the namespace, every mark, and every per-language
 translation. There is no undo. Use --yes to skip the confirmation prompt
 in scripts.`,
+		Example: `  norcube langsync namespace delete old-site
+  norcube langsync namespace delete old-site --yes   # scripts`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			c, err := newLangsyncContext(cmd)
@@ -398,13 +427,13 @@ in scripts.`,
 			)
 			if err != nil {
 				if errors.Is(err, ErrCancelled) {
-					fmt.Fprintln(cmd.OutOrStdout(), "Cancelled.")
+					fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 					return nil
 				}
 				return err
 			}
 			if !ok {
-				fmt.Fprintln(cmd.OutOrStdout(), "Cancelled.")
+				fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 				return nil
 			}
 
@@ -419,8 +448,11 @@ in scripts.`,
 				return apiError(res.HTTPResponse, res.Body,
 					res.JSON400, res.JSON401, res.JSON403, res.JSON404, res.JSON500)
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "Deleted namespace %q.\n", name)
-			return nil
+			return cmdutil.Print(cmd, output.Done{
+				Message: fmt.Sprintf("Deleted namespace %q.", name),
+				Value:   deletedResult{ID: name, Deleted: true},
+				Fields:  []output.Field{{Value: name}},
+			})
 		},
 	}
 	cmd.Flags().BoolVar(&yes, "yes", false, "Skip the confirmation prompt (required when stdin isn't a TTY)")
@@ -446,4 +478,22 @@ func languageCount(p *[]string) string {
 		return "0"
 	}
 	return fmt.Sprintf("%d", len(*p))
+}
+
+// languageCode renders a language id as its code, or the id itself when
+// the code isn't known.
+func languageCode(id *int, codes map[int]string) string {
+	if id != nil {
+		if code, ok := codes[*id]; ok {
+			return code
+		}
+	}
+	return intStr(id)
+}
+
+// namespaceResult is what namespace create/update print with -o json.
+type namespaceResult struct {
+	Name            string `json:"name" yaml:"name"`
+	DefaultLanguage string `json:"defaultLanguage,omitempty" yaml:"defaultLanguage,omitempty"`
+	Context         string `json:"context,omitempty" yaml:"context,omitempty"`
 }

@@ -15,6 +15,8 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/norcubeplatform/cli/internal/buildinfo"
+	"github.com/norcubeplatform/cli/internal/cmdutil"
+	"github.com/norcubeplatform/cli/internal/output"
 )
 
 // releaseSlug identifies the GitHub repository to pull releases from.
@@ -29,6 +31,8 @@ func newUpgradeCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "upgrade",
 		Short: "Update norcube to the latest release",
+		Example: `  norcube upgrade
+  norcube upgrade --force`,
 		Long: `Checks GitHub for newer releases of norcube, verifies the SHA-256
 checksum against the release's checksums.txt, and atomically replaces this
 binary with the latest version.
@@ -37,22 +41,41 @@ Skipped automatically when the binary appears to be managed by a package
 manager (Homebrew, apt, rpm) — use the package manager to upgrade instead.
 Pass --force to override.`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			out := cmd.OutOrStdout()
+			current := "v" + strings.TrimPrefix(buildinfo.Version, "v")
 			if reason := managedInstallReason(); reason != "" && !force {
-				fmt.Fprintf(out, "%s\nPass --force to upgrade anyway.\n", reason)
-				return nil
+				return cmdutil.Print(cmd, output.Done{
+					Message: reason + "\nPass --force to upgrade anyway.",
+					Value:   upgradeResult{From: current, To: current, Skipped: reason},
+				})
 			}
-			return runUpgrade(cmd.Context(), out)
+			res, err := runUpgrade(cmd.Context(), cmd.ErrOrStderr())
+			if err != nil {
+				return err
+			}
+			msg := fmt.Sprintf("Already on the latest version (%s).", res.From)
+			if res.Upgraded {
+				msg = fmt.Sprintf("Upgraded to %s. Run `norcube --version` to verify.", res.To)
+			}
+			return cmdutil.Print(cmd, output.Done{Message: msg, Value: res})
 		},
 	}
 	cmd.Flags().BoolVar(&force, "force", false, "Upgrade even when the binary appears to be managed by a package manager")
 	return cmd
 }
 
-func runUpgrade(ctx context.Context, out io.Writer) error {
+// upgradeResult is what `upgrade -o json` prints.
+type upgradeResult struct {
+	From     string `json:"from" yaml:"from"`
+	To       string `json:"to" yaml:"to"`
+	Upgraded bool   `json:"upgraded" yaml:"upgraded"`
+	Skipped  string `json:"skipped,omitempty" yaml:"skipped,omitempty"`
+}
+
+// runUpgrade installs the latest release, writing progress to out.
+func runUpgrade(ctx context.Context, out io.Writer) (upgradeResult, error) {
 	exe, err := os.Executable()
 	if err != nil {
-		return fmt.Errorf("locate current binary: %w", err)
+		return upgradeResult{}, fmt.Errorf("locate current binary: %w", err)
 	}
 	// When invoked via the `nrc` short-name symlink, os.Executable() returns
 	// the symlink path ("…/nrc"), but the release tar only contains the
@@ -67,29 +90,28 @@ func runUpgrade(ctx context.Context, out io.Writer) error {
 	// tampered release can't replace the live binary.
 	src, err := selfupdate.NewGitHubSource(selfupdate.GitHubConfig{})
 	if err != nil {
-		return err
+		return upgradeResult{}, err
 	}
 	updater, err := selfupdate.NewUpdater(selfupdate.Config{
 		Source:    src,
 		Validator: &selfupdate.ChecksumValidator{UniqueFilename: "checksums.txt"},
 	})
 	if err != nil {
-		return err
+		return upgradeResult{}, err
 	}
 
 	repo := selfupdate.NewRepositorySlug(releaseOwner, releaseRepo)
 	latest, found, err := updater.DetectLatest(ctx, repo)
 	if err != nil {
-		return fmt.Errorf("check latest release: %w", err)
+		return upgradeResult{}, fmt.Errorf("check latest release: %w", err)
 	}
 	if !found {
-		return errors.New("no releases found on GitHub — has v0.1.0 been tagged yet?")
+		return upgradeResult{}, errors.New("no releases found on GitHub — has v0.1.0 been tagged yet?")
 	}
 
 	current := strings.TrimPrefix(buildinfo.Version, "v")
 	if latest.LessOrEqual(current) {
-		fmt.Fprintf(out, "Already on the latest version (v%s).\n", current)
-		return nil
+		return upgradeResult{From: "v" + current, To: "v" + current}, nil
 	}
 
 	fmt.Fprintf(out, "Upgrading from v%s to v%s…\n", current, latest.Version())
@@ -97,7 +119,7 @@ func runUpgrade(ctx context.Context, out io.Writer) error {
 		// Permission denied on system-wide install dirs (/usr/local/bin, etc.)
 		// — give the user a concrete next step instead of the raw error.
 		if errors.Is(err, fs.ErrPermission) || strings.Contains(err.Error(), "permission denied") {
-			return fmt.Errorf(`install update: cannot write to %s.
+			return upgradeResult{}, fmt.Errorf(`install update: cannot write to %s.
 
 This usually means norcube is installed system-wide (e.g. /usr/local/bin).
 Two ways forward:
@@ -114,10 +136,9 @@ Underlying error: %w`,
 				exe, filepath.Join(filepath.Dir(exe), "nrc"),
 				releaseOwner, releaseRepo, err)
 		}
-		return fmt.Errorf("install update: %w", err)
+		return upgradeResult{}, fmt.Errorf("install update: %w", err)
 	}
-	fmt.Fprintf(out, "Upgraded to v%s. Run `norcube --version` to verify.\n", latest.Version())
-	return nil
+	return upgradeResult{From: "v" + current, To: "v" + latest.Version(), Upgraded: true}, nil
 }
 
 // managedInstallReason returns a non-empty explanation when the running

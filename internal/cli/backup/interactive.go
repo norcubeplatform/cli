@@ -4,22 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/charmbracelet/huh"
-	"golang.org/x/term"
 
 	"github.com/norcubeplatform/cli/internal/api/snapdb"
+	"github.com/norcubeplatform/cli/internal/clierr"
+	"github.com/norcubeplatform/cli/internal/term"
 )
-
-// stdinIsInteractive reports whether stdin is a terminal. We only prompt
-// when there's a human at the keyboard — pipes, CI, redirects all skip
-// the interactive code path and surface a clear "id required" error
-// instead of hanging on a hidden prompt.
-func stdinIsInteractive() bool {
-	return term.IsTerminal(int(os.Stdin.Fd()))
-}
 
 // pickDataSource opens a huh.Select listing every data source in the
 // active organization and returns the chosen one. Used by commands that
@@ -83,8 +75,8 @@ func resolveDataSourceID(ctx context.Context, c *snapdbContext, args []string, p
 	if len(args) > 0 {
 		return strings.TrimSpace(args[0]), "", nil
 	}
-	if !stdinIsInteractive() {
-		return "", "", fmt.Errorf("data source id required (pipe a positional argument or run interactively)")
+	if !term.StdinIsTerminal() {
+		return "", "", clierr.Usage(errors.New("data source id required (pass it as a positional argument or run interactively)"))
 	}
 	ds, err := pickDataSource(ctx, c, pickerTitle)
 	if err != nil {
@@ -93,15 +85,15 @@ func resolveDataSourceID(ctx context.Context, c *snapdbContext, args []string, p
 	return ds.Id, ds.Name, nil
 }
 
-// confirm prompts the user with a yes/no question. When stdin is not
-// interactive or the caller already passed --yes, returns true without
-// prompting so scripts work the same way they always have.
+// confirm prompts the user with a yes/no question. --yes answers it
+// without prompting; without a TTY it fails and asks for --yes, so a
+// script never deletes anything by accident.
 func confirm(prompt string, yesFlag bool) (bool, error) {
 	if yesFlag {
 		return true, nil
 	}
-	if !stdinIsInteractive() {
-		return false, fmt.Errorf("%s — pass --yes to confirm non-interactively", prompt)
+	if !term.StdinIsTerminal() {
+		return false, clierr.Usage(fmt.Errorf("%s: pass --yes to confirm non-interactively", prompt))
 	}
 	var ok bool
 	err := huh.NewConfirm().

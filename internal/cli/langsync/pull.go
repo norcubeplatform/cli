@@ -33,12 +33,11 @@ push local edits, use ` + "`norcube langsync sync`" + `.
 
 By default sync waits for any in-flight server-side autotranslate to
 finish before returning, so the on-disk files are complete. Pass
---wait=false to return immediately with whatever's there now.
-
-Examples:
-  norcube langsync pull
+--wait=false to return immediately with whatever's there now.`,
+		Example: `  norcube langsync pull
   norcube langsync pull -n ytracker-backend
-  norcube langsync pull --wait=false`,
+  norcube langsync pull --wait=false
+  norcube langsync pull -o json --query "[?status=='failed'].namespace"`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			c, err := newLangsyncContext(cmd)
 			if err != nil {
@@ -58,7 +57,7 @@ Examples:
 				waitTimeout: waitTimeout,
 				pollEvery:   pollEvery,
 			}
-			return runParallelSync(cmd, c, cfg, path, targets, opts)
+			return runSyncCommand(cmd, c, cfg, path, targets, opts)
 		},
 	}
 	cmd.Flags().StringSliceVarP(&nsFilters, "namespace", "n", nil, "Pull only this namespace (repeat for multiple)")

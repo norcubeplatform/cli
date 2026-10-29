@@ -3,14 +3,14 @@ package langsync
 import (
 	"fmt"
 	"io"
-	"os"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 
 	"github.com/charmbracelet/lipgloss"
-	"golang.org/x/term"
+
+	"github.com/norcubeplatform/cli/internal/term"
 )
 
 // dashboard renders the live state of one or more sync jobs in
@@ -41,6 +41,10 @@ type dashboard struct {
 	// construction; rows wider than this get clipped.
 	labelWidth int
 	phaseWidth int
+
+	// quiet drops the non-TTY phase log (the summary on stdout replaces
+	// it when the output is for a script).
+	quiet bool
 
 	closed atomic.Bool
 	stop   chan struct{}
@@ -76,12 +80,8 @@ func newDashboard(w io.Writer, namespaces []string) *dashboard {
 		stop:   make(chan struct{}),
 		done:   make(chan struct{}),
 	}
-	if f, ok := w.(*os.File); ok {
-		d.tty = term.IsTerminal(int(f.Fd()))
-	}
-	if d.tty && os.Getenv("NO_COLOR") == "" {
-		d.color = true
-	}
+	d.tty = term.IsTerminal(w)
+	d.color = term.Color(w)
 	for _, ns := range namespaces {
 		s := &slotState{namespace: ns, phase: "queued", startedAt: time.Now()}
 		d.slots = append(d.slots, s)
@@ -216,6 +216,9 @@ func (d *dashboard) Close() {
 // slot's phase changed since the last log. Keeps the log readable
 // in CI without spamming one line per poll tick.
 func (d *dashboard) maybeLogNonTTY(s *slotState) {
+	if d.quiet {
+		return
+	}
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	if s.phase == s.loggedPhase {

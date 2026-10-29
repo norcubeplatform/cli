@@ -1,7 +1,7 @@
 #!/bin/sh
 # install.sh — Norcube CLI installer
 #
-# Usage (default install to /usr/local/bin):
+# Usage (default install to ~/.norcube/bin):
 #   curl -fsSL https://github.com/norcubeplatform/cli/raw/main/install.sh | sh
 #
 # Override the install directory:
@@ -136,8 +136,7 @@ printf 'Short alias: %s/nrc\n' "$INSTALL_DIR"
 #
 # The append is idempotent: re-running the installer detects the
 # sentinel comment and leaves the rc file alone. Removing the block
-# manually (or running `nrc uninstall`, if available) cleanly undoes
-# the change.
+# manually cleanly undoes the change.
 case ":$PATH:" in
     *":$INSTALL_DIR:"*)
         printf 'Verify with: norcube --version\n'

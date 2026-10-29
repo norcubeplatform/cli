@@ -1,0 +1,18 @@
+[
+  {
+    "context": "Marketing site",
+    "created_at": "2026-01-01T00:00:00Z",
+    "created_by": "user-1",
+    "defaultLanguageId": 4,
+    "id": "ns-1",
+    "languages": [
+      "en",
+      "cs"
+    ],
+    "name": "web",
+    "organization_id": "org-1",
+    "progress": 50,
+    "total_terms": 12,
+    "updated_at": "2026-01-02T00:00:00Z"
+  }
+]

@@ -1,0 +1,2 @@
+prod-db	success	passed	schedule	2026-10-01T10:00:00Z	42.0s	1.0 MiB	job-1
+prod-db	failed		manual			0 B	job-2

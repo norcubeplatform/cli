@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -16,6 +17,9 @@ import (
 	"github.com/norcubeplatform/cli/internal/api/langsync"
 	"github.com/norcubeplatform/cli/internal/cli/langsync/projectcfg"
 	"github.com/norcubeplatform/cli/internal/cli/langsync/projectcfg/translations"
+	"github.com/norcubeplatform/cli/internal/cmdutil"
+	"github.com/norcubeplatform/cli/internal/output"
+	"github.com/norcubeplatform/cli/internal/term"
 )
 
 // syncStrategy mirrors the --strategy flag. "interactive" runs
@@ -69,16 +73,15 @@ Flags:
                        when a term's source-language value has changed,
                        empty its existing non-source-language translations
                        so the server re-translates them via the LLM
-                       (default off: stale translations stay as-is)
-
-Examples:
-  norcube langsync sync
+                       (default off: stale translations stay as-is)`,
+		Example: `  norcube langsync sync
   norcube langsync sync --dry-run
   norcube langsync sync -n ytracker-backend
   norcube langsync sync --strategy server
   norcube langsync sync --strategy interactive
   norcube langsync sync --prune
-  norcube langsync sync --wait=false   # don't block on autotranslate`,
+  norcube langsync sync --wait=false   # don't block on autotranslate
+  norcube langsync sync -o json   # one summary per namespace, for CI`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			c, err := newLangsyncContext(cmd)
 			if err != nil {
@@ -105,7 +108,7 @@ Examples:
 				pollEvery:                 pollEvery,
 				retranslateOnSourceChange: retranslateOnSourceChange,
 			}
-			return runParallelSync(cmd, c, cfg, path, targets, opts)
+			return runSyncCommand(cmd, c, cfg, path, targets, opts)
 		},
 	}
 	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "Submit a planning-only job (returns the diff without applying it)")
@@ -150,10 +153,10 @@ type syncOptions struct {
 // runParallelSync is the shared entry point for both `sync` and the
 // init auto-pull path. It owns the dashboard lifecycle (start/close)
 // and the goroutine fan-out.
-func runParallelSync(cmd *cobra.Command, c *langsyncContext, cfg *projectcfg.File, configPath string, targets []projectcfg.Namespace, opts syncOptions) error {
+func runParallelSync(cmd *cobra.Command, c *langsyncContext, cfg *projectcfg.File, configPath string, targets []projectcfg.Namespace, opts syncOptions) ([]syncSummary, error) {
 	if len(targets) == 0 {
-		fmt.Fprintln(cmd.OutOrStdout(), "Nothing to do — no namespaces configured.")
-		return nil
+		fmt.Fprintln(cmd.ErrOrStderr(), "Nothing to do — no namespaces configured.")
+		return []syncSummary{}, nil
 	}
 
 	// Pre-flight: detect local <code>.json files for languages
@@ -166,7 +169,7 @@ func runParallelSync(cmd *cobra.Command, c *langsyncContext, cfg *projectcfg.Fil
 	// committing to the sync.
 	if opts.strategy != strategyServer {
 		if err := preflightAttachLanguages(cmd.Context(), c, cfg, configPath, targets); err != nil {
-			return err
+			return nil, err
 		}
 	}
 
@@ -174,7 +177,11 @@ func runParallelSync(cmd *cobra.Command, c *langsyncContext, cfg *projectcfg.Fil
 	for _, ns := range targets {
 		names = append(names, ns.Namespace)
 	}
-	d := newDashboard(cmd.OutOrStdout(), names)
+	// The dashboard is for the person at the terminal: stderr. With
+	// -o json|yaml|text the CI phase log is left out too; stdout gets the
+	// per-namespace summary instead.
+	d := newDashboard(cmd.ErrOrStderr(), names)
+	d.quiet = !cmdutil.Human(cmd)
 	d.Start()
 
 	// One goroutine per namespace. Each returns a result row that
@@ -211,17 +218,82 @@ func runParallelSync(cmd *cobra.Command, c *langsyncContext, cfg *projectcfg.Fil
 		d.PrintHeading("Dry run — nothing was changed")
 	}
 
-	anyErr := false
+	summary := summarizeSync(results)
 	for _, r := range results {
 		if r.err != nil {
-			anyErr = true
-			break
+			return summary, errSyncFailed
 		}
 	}
-	if anyErr {
-		return fmt.Errorf("one or more namespaces failed to sync")
+	return summary, nil
+}
+
+// errSyncFailed: at least one namespace failed; the summary says which.
+var errSyncFailed = errors.New("one or more namespaces failed to sync")
+
+// runSyncCommand runs a parallel sync and prints its summary, also when
+// some namespace failed, so a script sees which.
+func runSyncCommand(cmd *cobra.Command, c *langsyncContext, cfg *projectcfg.File, configPath string, targets []projectcfg.Namespace, opts syncOptions) error {
+	summary, err := runParallelSync(cmd, c, cfg, configPath, targets, opts)
+	if summary != nil {
+		if perr := printSyncSummary(cmd, summary); perr != nil && err == nil {
+			err = perr
+		}
 	}
-	return nil
+	return err
+}
+
+// syncSummary is one namespace's outcome, what sync, pull and init print
+// with -o json|yaml|text.
+type syncSummary struct {
+	Namespace              string `json:"namespace" yaml:"namespace"`
+	Status                 string `json:"status" yaml:"status"`
+	Pushed                 int    `json:"pushed" yaml:"pushed"`
+	Created                int    `json:"created" yaml:"created"`
+	Updated                int    `json:"updated" yaml:"updated"`
+	Deleted                int    `json:"deleted" yaml:"deleted"`
+	AutotranslateTriggered bool   `json:"autotranslateTriggered" yaml:"autotranslateTriggered"`
+	StillUntranslated      int    `json:"stillUntranslated" yaml:"stillUntranslated"`
+	FilesWritten           int    `json:"filesWritten" yaml:"filesWritten"`
+	Error                  string `json:"error,omitempty" yaml:"error,omitempty"`
+}
+
+// summarizeSync turns the per-namespace results into summaries.
+func summarizeSync(results []syncResult) []syncSummary {
+	rows := make([]syncSummary, 0, len(results))
+	for _, r := range results {
+		st := r.stats
+		row := syncSummary{
+			Namespace:              r.namespace,
+			Status:                 "ok",
+			Pushed:                 st.pushDone,
+			Created:                st.created,
+			Updated:                st.updated,
+			Deleted:                st.deleted,
+			AutotranslateTriggered: st.autotranslateTriggered,
+			StillUntranslated:      st.stillUntranslated,
+			FilesWritten:           st.filesWritten,
+		}
+		if r.err != nil {
+			row.Status, row.Error = "failed", r.err.Error()
+		}
+		rows = append(rows, row)
+	}
+	return rows
+}
+
+// printSyncSummary prints the per-namespace outcome for scripts. A table
+// prints nothing: the dashboard above already showed every namespace.
+func printSyncSummary(cmd *cobra.Command, rows []syncSummary) error {
+	if cmdutil.Human(cmd) {
+		return nil
+	}
+	return cmdutil.Print(cmd, output.Table[syncSummary]{
+		Rows: func(r syncSummary) []string {
+			return []string{r.Namespace, r.Status, strconv.Itoa(r.Created), strconv.Itoa(r.Updated),
+				strconv.Itoa(r.Deleted), strconv.Itoa(r.StillUntranslated), strconv.Itoa(r.FilesWritten), r.Error}
+		},
+		Items: rows,
+	})
 }
 
 func loadProjectConfig(override string) (string, *projectcfg.File, error) {
@@ -247,7 +319,7 @@ func parseStrategy(s string) (syncStrategy, error) {
 	case "server":
 		return strategyServer, nil
 	case "interactive":
-		if !stdinIsInteractive() {
+		if !term.StdinIsTerminal() {
 			return "", fmt.Errorf("--strategy interactive needs a TTY (stdin isn't a terminal)")
 		}
 		return strategyInteractive, nil

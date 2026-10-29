@@ -1,50 +1,68 @@
 package cli
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
 
-	"github.com/norcubeplatform/cli/internal/api"
-	"github.com/norcubeplatform/cli/internal/auth"
 	"github.com/norcubeplatform/cli/internal/clictx"
-	"github.com/norcubeplatform/cli/internal/config"
+	"github.com/norcubeplatform/cli/internal/cmdutil"
+	"github.com/norcubeplatform/cli/internal/output"
 )
 
 func newWhoamiCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "whoami",
 		Short: "Show the signed-in user and active organization",
+		Example: `  norcube whoami
+  norcube whoami -o json --query user.email`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			cfg, err := config.Load()
+			flags := clictx.Get(cmd)
+			cfg, err := flags.Config()
 			if err != nil {
 				return err
 			}
-			flags := clictx.Get(cmd)
-			apiURL := flags.ResolveAuth(cfg)
-			orgID, _ := flags.ResolveOrg(cfg)
+			org, err := flags.Org(cmd.Context(), cfg)
+			if err != nil {
+				return err
+			}
 
-			ts := auth.NewTokenSource(apiURL, auth.AudienceAuth, orgID)
-			client := api.NewAuthClient(apiURL, func(ctx context.Context) (string, error) {
-				return ts.Token(ctx)
-			})
+			client, err := flags.AuthClient(cfg, org.ID)
+			if err != nil {
+				return err
+			}
 
 			me, err := client.GetMe(cmd.Context())
 			if err != nil {
 				return err
 			}
 
-			out := cmd.OutOrStdout()
-			fmt.Fprintf(out, "User:         %s <%s>\n", me.Name, me.Email)
-			fmt.Fprintf(out, "User ID:      %s\n", me.ID)
-			if cfg.ActiveOrg.Slug != "" {
-				fmt.Fprintf(out, "Active org:   %s (%s)\n", cfg.ActiveOrg.Slug, cfg.ActiveOrg.ID)
-			} else {
-				fmt.Fprintln(out, "Active org:   (none — run `norcube org use <slug>`)")
+			res := whoamiResult{
+				User:         userRef{ID: me.ID, Name: me.Name, Email: me.Email},
+				Organization: orgRefOf(cfg.ActiveOrg),
+				Profile:      cfg.Profile,
+				Environment:  cfg.Environment,
+				API:          cfg.Auth,
 			}
-			fmt.Fprintf(out, "API:          %s\n", apiURL)
-			return nil
+			active := "(none — run `norcube org use <slug>`)"
+			if res.Organization != nil {
+				active = fmt.Sprintf("%s (%s)", orgLabel(cfg.ActiveOrg), cfg.ActiveOrg.ID)
+			}
+			return cmdutil.Print(cmd, output.Object{Value: res, Fields: []output.Field{
+				{Name: "User", Value: fmt.Sprintf("%s <%s>", me.Name, me.Email)},
+				{Name: "User ID", Value: me.ID},
+				{Name: "Active org", Value: active},
+				{Name: "Profile", Value: fmt.Sprintf("%s (%s)", cfg.Profile, cfg.Environment)},
+				{Name: "API", Value: cfg.Auth},
+			}})
 		},
 	}
+}
+
+type whoamiResult struct {
+	User         userRef `json:"user" yaml:"user"`
+	Organization *orgRef `json:"organization" yaml:"organization"`
+	Profile      string  `json:"profile" yaml:"profile"`
+	Environment  string  `json:"environment" yaml:"environment"`
+	API          string  `json:"api" yaml:"api"`
 }

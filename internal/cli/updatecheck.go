@@ -13,10 +13,10 @@ import (
 	"time"
 
 	"github.com/creativeprojects/go-selfupdate"
-	"golang.org/x/term"
 
 	"github.com/norcubeplatform/cli/internal/buildinfo"
 	"github.com/norcubeplatform/cli/internal/config"
+	"github.com/norcubeplatform/cli/internal/term"
 )
 
 // updateCheckTTL bounds how often the CLI asks GitHub for the latest
@@ -150,7 +150,7 @@ func shouldSkipUpdateCheck(subCommand string) bool {
 	if os.Getenv("NORCUBE_NO_UPDATE_CHECK") != "" {
 		return true
 	}
-	if !term.IsTerminal(int(os.Stderr.Fd())) {
+	if !term.StderrIsTerminal() {
 		return true
 	}
 	if buildinfo.Version == "dev" {

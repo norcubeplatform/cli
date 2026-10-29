@@ -1,0 +1,10 @@
+[
+  {
+    "active": true,
+    "name": "prod-db"
+  },
+  {
+    "active": false,
+    "name": "analytics"
+  }
+]

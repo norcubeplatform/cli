@@ -10,10 +10,11 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/norcubeplatform/cli/internal/api"
-	"github.com/norcubeplatform/cli/internal/auth"
 	"github.com/norcubeplatform/cli/internal/cli/langsync/projectcfg"
 	"github.com/norcubeplatform/cli/internal/clictx"
-	"github.com/norcubeplatform/cli/internal/config"
+	"github.com/norcubeplatform/cli/internal/clierr"
+	"github.com/norcubeplatform/cli/internal/orgs"
+	"github.com/norcubeplatform/cli/internal/term"
 )
 
 // resolveInitOrg picks the org to bake into the project config.
@@ -30,7 +31,7 @@ import (
 // Returns the org as a domain Organization with both ID and Slug
 // populated — both fields are needed for the file format.
 func resolveInitOrg(cmd *cobra.Command, existing *projectcfg.File) (api.Organization, error) {
-	cfg, err := config.Load()
+	cfg, err := clictx.Get(cmd).Config()
 	if err != nil {
 		return api.Organization{}, err
 	}
@@ -52,53 +53,51 @@ func resolveInitOrg(cmd *cobra.Command, existing *projectcfg.File) (api.Organiza
 	// Case 1 & 3 both need the org list (case 1 to resolve a slug
 	// to an id; case 3 to render the picker). One API call serves
 	// both.
-	authURL := flags.ResolveAuth(cfg)
-	ts := auth.NewTokenSource(authURL, auth.AudienceAuth, cfg.ActiveOrg.ID)
-	client := api.NewAuthClient(authURL, ts.Token)
-	orgs, err := client.ListOrganizations(cmd.Context())
+	client, err := flags.AuthClient(cfg, cfg.ActiveOrg.ID)
+	if err != nil {
+		return api.Organization{}, err
+	}
+	list, err := client.ListOrganizations(cmd.Context())
 	if err != nil {
 		return api.Organization{}, fmt.Errorf("list organizations: %w", err)
 	}
 
 	// Case 1: --org flag — match by id OR slug.
 	if flags.HasOrgFlag() {
-		if len(orgs) == 0 {
+		if len(list) == 0 {
 			return api.Organization{}, fmt.Errorf("--org %q given but you have access to no organizations yet — run `nrc org create` first", flags.OrgOverride)
 		}
-		want := strings.ToLower(strings.TrimSpace(flags.OrgOverride))
-		for _, o := range orgs {
-			if o.ID == flags.OrgOverride || strings.ToLower(o.Slug) == want {
-				return o, nil
-			}
+		if o, ok := orgs.Find(list, flags.OrgOverride); ok {
+			return o, nil
 		}
-		return api.Organization{}, fmt.Errorf("--org %q didn't match any organization slug or id you have access to", flags.OrgOverride)
+		return api.Organization{}, clierr.Usage(&orgs.NotFoundError{Value: flags.OrgOverride})
 	}
 
 	// Case zero-orgs: offer to create one inline. Non-interactive
 	// shells fail with the same instruction as before.
-	if len(orgs) == 0 {
-		if !stdinIsInteractive() {
+	if len(list) == 0 {
+		if !term.StdinIsTerminal() {
 			return api.Organization{}, fmt.Errorf("you have no organizations yet — run `nrc org create <name>` first (non-interactive shell can't show the prompt)")
 		}
-		fmt.Fprintln(cmd.OutOrStdout(), "You don't have any organization yet — creating one to pin this project to.")
+		fmt.Fprintln(cmd.ErrOrStderr(), "You don't have any organization yet — creating one to pin this project to.")
 		return createOrgInteractive(cmd.Context(), client)
 	}
 
 	// Case 3a: single org → silent.
-	if len(orgs) == 1 {
-		return orgs[0], nil
+	if len(list) == 1 {
+		return list[0], nil
 	}
 
 	// Case 3b: multiple orgs → interactive picker, preselect active,
 	// with a "+ Create new" sentinel at the bottom for users who
 	// want to spin up a fresh org without leaving the wizard.
-	if !stdinIsInteractive() {
+	if !term.StdinIsTerminal() {
 		return api.Organization{}, fmt.Errorf(
 			"you have access to %d organizations — pass --org <slug> to pick one (non-interactive shell can't show the picker)",
-			len(orgs))
+			len(list))
 	}
 	const createSentinel = "__norcube_create_org__"
-	options := make([]huh.Option[string], 0, len(orgs)+1)
+	options := make([]huh.Option[string], 0, len(list)+1)
 
 	// Build the option list with the active org pinned at row 0.
 	// huh's Select scrolls the viewport so the preselected value
@@ -117,12 +116,12 @@ func resolveInitOrg(cmd *cobra.Command, existing *projectcfg.File) (api.Organiza
 		}
 		options = append(options, huh.NewOption(label, o.ID))
 	}
-	for _, o := range orgs {
+	for _, o := range list {
 		if o.Slug == cfg.ActiveOrg.Slug {
 			addOpt(o)
 		}
 	}
-	for _, o := range orgs {
+	for _, o := range list {
 		if o.Slug != cfg.ActiveOrg.Slug {
 			addOpt(o)
 		}
@@ -159,7 +158,7 @@ func resolveInitOrg(cmd *cobra.Command, existing *projectcfg.File) (api.Organiza
 	if selectedID == createSentinel {
 		return createOrgInteractive(cmd.Context(), client)
 	}
-	for _, o := range orgs {
+	for _, o := range list {
 		if o.ID == selectedID {
 			return o, nil
 		}

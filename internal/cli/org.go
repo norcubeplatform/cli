@@ -1,20 +1,21 @@
 package cli
 
 import (
-	"context"
+	"errors"
 	"fmt"
-	"os"
 	"strings"
-	"text/tabwriter"
 
 	"github.com/charmbracelet/huh"
 	"github.com/spf13/cobra"
-	"golang.org/x/term"
 
 	"github.com/norcubeplatform/cli/internal/api"
-	"github.com/norcubeplatform/cli/internal/auth"
 	"github.com/norcubeplatform/cli/internal/clictx"
+	"github.com/norcubeplatform/cli/internal/clierr"
+	"github.com/norcubeplatform/cli/internal/cmdutil"
 	"github.com/norcubeplatform/cli/internal/config"
+	"github.com/norcubeplatform/cli/internal/orgs"
+	"github.com/norcubeplatform/cli/internal/output"
+	"github.com/norcubeplatform/cli/internal/term"
 )
 
 func newOrgCmd() *cobra.Command {
@@ -45,20 +46,22 @@ The new org is set as the active organization by default. Pass
 when you just need the org to exist for a project-level
 .langsync.json that pins it directly).
 
-Examples:
-  norcube org create
+`,
+		Example: `  norcube org create
   norcube org create "Acme Inc"
   norcube org create "Acme Inc" --slug acme
-  norcube org create "Acme Inc" --set-active=false`,
+  norcube org create "Acme Inc" --set-active=false -o json`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg, err := config.Load()
+			cfg, err := clictx.Get(cmd).Config()
 			if err != nil {
 				return err
 			}
 			flags := clictx.Get(cmd)
-			apiURL := flags.ResolveAuth(cfg)
-			orgID, _ := flags.ResolveOrg(cfg)
+			org, err := flags.Org(cmd.Context(), cfg)
+			if err != nil {
+				return err
+			}
 
 			// Resolve name: positional first, then interactive
 			// prompt when stdin is a TTY, else error out so scripts
@@ -68,8 +71,8 @@ Examples:
 				name = strings.TrimSpace(args[0])
 			}
 			if name == "" {
-				if !stdinIsInteractive() {
-					return fmt.Errorf("organization name is required as a positional argument (or run interactively)")
+				if !term.StdinIsTerminal() {
+					return clierr.Usage(errors.New("organization name is required as a positional argument (or run interactively)"))
 				}
 				if err := huh.NewInput().
 					Title("Organization name").
@@ -84,8 +87,10 @@ Examples:
 				}
 			}
 
-			ts := auth.NewTokenSource(apiURL, auth.AudienceAuth, orgID)
-			client := api.NewAuthClient(apiURL, ts.Token)
+			client, err := flags.AuthClient(cfg, org.ID)
+			if err != nil {
+				return err
+			}
 
 			var slugPtr *string
 			if s := strings.TrimSpace(slug); s != "" {
@@ -95,8 +100,7 @@ Examples:
 			if err != nil {
 				return err
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "Created organization %q (slug: %s, id: %s).\n",
-				created.Name, created.Slug, created.ID)
+			msg := fmt.Sprintf("Created organization %q (slug: %s, id: %s).", created.Name, created.Slug, created.ID)
 
 			// Decide whether to flip active_org. When --set-active
 			// was given explicitly, honor it. Otherwise: default
@@ -105,20 +109,24 @@ Examples:
 			// silent state changes).
 			wantActive := setActive
 			if !setActiveExplicit {
-				wantActive = stdinIsInteractive()
+				wantActive = term.StdinIsTerminal()
 			}
 			if wantActive {
-				cfg.ActiveOrg = config.Organization{
+				if err := clictx.Get(cmd).SetActiveOrg(config.Organization{
 					ID:   created.ID,
 					Slug: created.Slug,
 					Name: created.Name,
-				}
-				if err := config.Save(cfg); err != nil {
+				}); err != nil {
 					return fmt.Errorf("save active org: %w", err)
 				}
-				fmt.Fprintf(cmd.OutOrStdout(), "Active organization set to %s.\n", created.Slug)
+				msg += fmt.Sprintf("\nActive organization set to %s.", created.Slug)
 			}
-			return nil
+			ref := orgRef{ID: created.ID, Slug: created.Slug, Name: created.Name}
+			return cmdutil.Print(cmd, output.Done{
+				Message: msg,
+				Value:   orgCreateResult{Organization: ref, Active: wantActive},
+				Fields:  []output.Field{{Value: ref.ID}, {Value: ref.Slug}, {Value: ref.Name}},
+			})
 		},
 	}
 	cmd.Flags().StringVar(&slug, "slug", "", "URL slug (optional — the server derives one from the name when omitted)")
@@ -131,40 +139,39 @@ Examples:
 	return cmd
 }
 
-// stdinIsInteractive is duplicated from internal/cli/langsync to
-// keep this package from importing the langsync subpackage just for
-// a one-liner. Same semantics: true when stdin is attached to a TTY.
-func stdinIsInteractive() bool {
-	return term.IsTerminal(int(os.Stdin.Fd()))
-}
-
 func newOrgSwitchCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "switch",
-		Short: "Pick an organization interactively (arrow keys / j,k to navigate, enter to select)",
+		Use:     "switch",
+		Short:   "Pick an organization interactively (arrow keys / j,k to navigate, enter to select)",
+		Example: `  norcube org switch`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			cfg, err := config.Load()
+			if !term.StdinIsTerminal() {
+				return clierr.Usage(errors.New("org switch needs an interactive terminal; use `norcube org use <slug>` in scripts"))
+			}
+			cfg, err := clictx.Get(cmd).Config()
 			if err != nil {
 				return err
 			}
 			flags := clictx.Get(cmd)
-			apiURL := flags.ResolveAuth(cfg)
-			orgID, _ := flags.ResolveOrg(cfg)
-
-			ts := auth.NewTokenSource(apiURL, auth.AudienceAuth, orgID)
-			client := api.NewAuthClient(apiURL, func(ctx context.Context) (string, error) {
-				return ts.Token(ctx)
-			})
-			orgs, err := client.ListOrganizations(cmd.Context())
+			org, err := flags.Org(cmd.Context(), cfg)
 			if err != nil {
 				return err
 			}
-			if len(orgs) == 0 {
+
+			client, err := flags.AuthClient(cfg, org.ID)
+			if err != nil {
+				return err
+			}
+			list, err := client.ListOrganizations(cmd.Context())
+			if err != nil {
+				return err
+			}
+			if len(list) == 0 {
 				return fmt.Errorf("no organizations available")
 			}
 
-			options := make([]huh.Option[string], 0, len(orgs))
-			for _, o := range orgs {
+			options := make([]huh.Option[string], 0, len(list))
+			for _, o := range list {
 				label := o.Slug
 				if o.Name != "" && o.Name != o.Slug {
 					label = fmt.Sprintf("%s — %s", o.Slug, o.Name)
@@ -183,16 +190,16 @@ func newOrgSwitchCmd() *cobra.Command {
 				Run()
 			if err != nil {
 				if err == huh.ErrUserAborted {
-					fmt.Fprintln(cmd.OutOrStdout(), "Cancelled.")
+					fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 					return nil
 				}
 				return err
 			}
 
 			var match *api.Organization
-			for i := range orgs {
-				if orgs[i].ID == selectedID {
-					match = &orgs[i]
+			for i := range list {
+				if list[i].ID == selectedID {
+					match = &list[i]
 					break
 				}
 			}
@@ -200,16 +207,14 @@ func newOrgSwitchCmd() *cobra.Command {
 				return fmt.Errorf("internal: selection %q not in org list", selectedID)
 			}
 
-			cfg.ActiveOrg = config.Organization{
+			if err := clictx.Get(cmd).SetActiveOrg(config.Organization{
 				ID:   match.ID,
 				Slug: match.Slug,
 				Name: match.Name,
-			}
-			if err := config.Save(cfg); err != nil {
+			}); err != nil {
 				return err
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "Active organization set to %s.\n", match.Slug)
-			return nil
+			return cmdutil.Print(cmd, orgSet(*match, fmt.Sprintf("Active organization set to %s.", match.Slug)))
 		},
 	}
 }
@@ -218,35 +223,45 @@ func newOrgListCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "list",
 		Short: "List organizations you can access",
+		Example: `  norcube org list
+  norcube org list -o json --query "[?active].slug"`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			cfg, err := config.Load()
+			cfg, err := clictx.Get(cmd).Config()
 			if err != nil {
 				return err
 			}
 			flags := clictx.Get(cmd)
-			apiURL := flags.ResolveAuth(cfg)
-			orgID, _ := flags.ResolveOrg(cfg)
-
-			ts := auth.NewTokenSource(apiURL, auth.AudienceAuth, orgID)
-			client := api.NewAuthClient(apiURL, func(ctx context.Context) (string, error) {
-				return ts.Token(ctx)
-			})
-
-			orgs, err := client.ListOrganizations(cmd.Context())
+			org, err := flags.Org(cmd.Context(), cfg)
 			if err != nil {
 				return err
 			}
 
-			tw := tabwriter.NewWriter(cmd.OutOrStdout(), 0, 0, 2, ' ', 0)
-			fmt.Fprintln(tw, "ACTIVE\tSLUG\tNAME\tID")
-			for _, o := range orgs {
-				active := " "
-				if o.Slug == cfg.ActiveOrg.Slug {
-					active = "*"
-				}
-				fmt.Fprintf(tw, "%s\t%s\t%s\t%s\n", active, o.Slug, o.Name, o.ID)
+			client, err := flags.AuthClient(cfg, org.ID)
+			if err != nil {
+				return err
 			}
-			return tw.Flush()
+
+			list, err := client.ListOrganizations(cmd.Context())
+			if err != nil {
+				return err
+			}
+
+			items := make([]orgListItem, len(list))
+			for i, o := range list {
+				items[i] = orgListItem{ID: o.ID, Slug: o.Slug, Name: o.Name, Active: o.ID == cfg.ActiveOrg.ID}
+			}
+			return cmdutil.Print(cmd, output.Table[orgListItem]{
+				Headers: []string{"ACTIVE", "SLUG", "NAME", "ID"},
+				Rows: func(o orgListItem) []string {
+					active := " "
+					if o.Active {
+						active = "*"
+					}
+					return []string{active, o.Slug, o.Name, o.ID}
+				},
+				Items: items,
+				Style: output.NoStyle,
+			})
 		},
 	}
 }
@@ -255,47 +270,44 @@ func newOrgUseCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "use <slug-or-id>",
 		Short: "Set the active organization",
-		Args:  cobra.ExactArgs(1),
+		Example: `  norcube org use acme
+  norcube org use 0b9d2b8e-1c1f-4c3e-9a51-6d1c2f9a7e01`,
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			target := strings.TrimSpace(args[0])
-			cfg, err := config.Load()
+			cfg, err := clictx.Get(cmd).Config()
 			if err != nil {
 				return err
 			}
 			flags := clictx.Get(cmd)
-			apiURL := flags.ResolveAuth(cfg)
-			orgID, _ := flags.ResolveOrg(cfg)
-
-			ts := auth.NewTokenSource(apiURL, auth.AudienceAuth, orgID)
-			client := api.NewAuthClient(apiURL, func(ctx context.Context) (string, error) {
-				return ts.Token(ctx)
-			})
-			orgs, err := client.ListOrganizations(cmd.Context())
+			org, err := flags.Org(cmd.Context(), cfg)
 			if err != nil {
 				return err
 			}
 
-			var match *api.Organization
-			for i := range orgs {
-				if orgs[i].Slug == target || orgs[i].ID == target {
-					match = &orgs[i]
-					break
-				}
+			client, err := flags.AuthClient(cfg, org.ID)
+			if err != nil {
+				return err
 			}
-			if match == nil {
-				return fmt.Errorf("no organization found matching %q — run `norcube org list`", target)
+			list, err := client.ListOrganizations(cmd.Context())
+			if err != nil {
+				return err
 			}
 
-			cfg.ActiveOrg = config.Organization{
+			found, ok := orgs.Find(list, target)
+			if !ok {
+				return clierr.Usage(&orgs.NotFoundError{Value: target})
+			}
+			match := &found
+
+			if err := clictx.Get(cmd).SetActiveOrg(config.Organization{
 				ID:   match.ID,
 				Slug: match.Slug,
 				Name: match.Name,
-			}
-			if err := config.Save(cfg); err != nil {
+			}); err != nil {
 				return err
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "Active organization set to %s (%s).\n", match.Slug, match.ID)
-			return nil
+			return cmdutil.Print(cmd, orgSet(*match, fmt.Sprintf("Active organization set to %s (%s).", match.Slug, match.ID)))
 		},
 	}
 }
@@ -304,16 +316,45 @@ func newOrgCurrentCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "current",
 		Short: "Print the currently active organization",
+		Example: `  norcube org current
+  norcube org current -o text`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			cfg, err := config.Load()
+			cfg, err := clictx.Get(cmd).Config()
 			if err != nil {
 				return err
 			}
-			if cfg.ActiveOrg.Slug == "" {
-				return fmt.Errorf("no active organization — run `norcube org use <slug>`")
+			if cfg.ActiveOrg.Slug == "" && cfg.ActiveOrg.ID == "" {
+				return clierr.Usage(errors.New("no active organization. Run `norcube org use <slug>`"))
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "%s (%s)\n", cfg.ActiveOrg.Slug, cfg.ActiveOrg.ID)
-			return nil
+			ref := orgRefOf(cfg.ActiveOrg)
+			return cmdutil.Print(cmd, output.Done{
+				Message: fmt.Sprintf("%s (%s)", cfg.ActiveOrg.Slug, cfg.ActiveOrg.ID),
+				Value:   ref,
+				Fields:  []output.Field{{Value: ref.ID}, {Value: ref.Slug}, {Value: ref.Name}},
+			})
 		},
+	}
+}
+
+// orgListItem is one row of `org list`.
+type orgListItem struct {
+	ID     string `json:"id" yaml:"id"`
+	Slug   string `json:"slug" yaml:"slug"`
+	Name   string `json:"name" yaml:"name"`
+	Active bool   `json:"active" yaml:"active"`
+}
+
+type orgCreateResult struct {
+	Organization orgRef `json:"organization" yaml:"organization"`
+	Active       bool   `json:"active" yaml:"active"`
+}
+
+// orgSet is the result of making o the active organization.
+func orgSet(o api.Organization, msg string) output.Done {
+	ref := orgRef{ID: o.ID, Slug: o.Slug, Name: o.Name}
+	return output.Done{
+		Message: msg,
+		Value:   ref,
+		Fields:  []output.Field{{Value: ref.ID}, {Value: ref.Slug}, {Value: ref.Name}},
 	}
 }

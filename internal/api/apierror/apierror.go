@@ -11,8 +11,11 @@
 package apierror
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/norcubeplatform/cli/internal/clierr"
 )
 
 // maxRawBody bounds how much of an untyped response body ends up in the
@@ -26,43 +29,59 @@ type Typed struct {
 	Type string
 }
 
-// Format builds the standard "service METHOD URL: detail" error. The
-// first non-nil typed body wins; with none, the raw body is used.
+// Format builds the standard "service METHOD URL: detail" error as a
+// *clierr.Error, so the code and exit code follow the response status.
+// The first non-nil typed body wins; with none, the raw body is used.
 func Format(service string, resp *http.Response, body []byte, typed ...*Typed) error {
-	url := "<unknown url>"
-	method := "?"
-	if resp != nil && resp.Request != nil {
-		url = resp.Request.URL.String()
-		method = resp.Request.Method
-	}
-	status := 0
+	e := &clierr.Error{Service: service, URL: "<unknown url>", Method: "?"}
 	if resp != nil {
-		status = resp.StatusCode
+		e.HTTPStatus = resp.StatusCode
+		e.RequestID = requestID(resp.Header)
+		if resp.Request != nil {
+			e.URL = resp.Request.URL.String()
+			e.Method = resp.Request.Method
+		}
 	}
 
 	for _, t := range typed {
 		if t != nil {
-			return fmt.Errorf("%s %s %s: %s", service, method, url, formatTyped(*t, status))
+			e.Message, e.Type = t.Msg, t.Type
+			if e.Message == "" {
+				e.Message = fmt.Sprintf("status %d", e.HTTPStatus)
+			}
+			e.Code = clierr.CodeForStatus(e.HTTPStatus, e.Type)
+			return e
 		}
+	}
+
+	// Every Norcube service answers errors as {"type": ..., "msg": ...},
+	// also on statuses the generated client has no typed field for.
+	var generic struct {
+		Type string `json:"type"`
+		Msg  string `json:"msg"`
+	}
+	if json.Unmarshal(body, &generic) == nil && generic.Msg != "" {
+		e.Message, e.Type = generic.Msg, generic.Type
+		e.Code = clierr.CodeForStatus(e.HTTPStatus, e.Type)
+		return e
 	}
 
 	msg := string(body)
 	if len(msg) > maxRawBody {
 		msg = msg[:maxRawBody] + "…"
 	}
-	if msg == "" {
-		return fmt.Errorf("%s %s %s: status %d (empty body)", service, method, url, status)
-	}
-	return fmt.Errorf("%s %s %s: status %d: %s", service, method, url, status, msg)
+	e.Message = msg
+	e.Code = clierr.CodeForStatus(e.HTTPStatus, "")
+	return e
 }
 
-func formatTyped(e Typed, status int) string {
-	switch {
-	case e.Msg != "" && e.Type != "":
-		return fmt.Sprintf("%s (%s, %d)", e.Msg, e.Type, status)
-	case e.Msg != "":
-		return fmt.Sprintf("%s (%d)", e.Msg, status)
-	default:
-		return fmt.Sprintf("status %d", status)
+// requestID returns the id the service logged the request under, when it
+// sent one back.
+func requestID(h http.Header) string {
+	for _, k := range []string{"X-Request-Id", "X-Request-ID", "Request-Id"} {
+		if v := h.Get(k); v != "" {
+			return v
+		}
 	}
+	return ""
 }
