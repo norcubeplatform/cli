@@ -5,6 +5,14 @@ this file collects what users and scripts need to know.
 
 ## Unreleased
 
+## 0.21.2 (2026-10-29)
+
+### Fixes
+
+- Release publishing: 0.21.1 was published, but its Homebrew cask update
+  and build provenance attestations failed. 0.21.2 has the same changes,
+  with the cask and attestations.
+
 ## 0.21.1 (2026-10-29)
 
 The first published release with the changes below. 0.21.0 was tagged but
