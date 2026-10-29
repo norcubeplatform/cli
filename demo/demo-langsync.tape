@@ -15,7 +15,7 @@ Type "export PATH=demo/bin:$PATH && clear"
 Enter
 Show
 
-Type "norcube langsync namespace list"
+Type "norcube langsync namespaces list"
 Sleep 400ms
 Enter
 Sleep 2s

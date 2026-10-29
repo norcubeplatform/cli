@@ -10,7 +10,7 @@ What it's best at: proving you're never locked in to Norcube Backup. `norcube ba
 
 ![norcube CLI demo](demo/demo.gif)
 
-<sub>Scripted demo with sanitized names — the tape and stub live in [`demo/`](demo/).</sub>
+<sub>Scripted demo with sanitized names: whoami, Backup health, scripting with `-o json --query`, any endpoint with `norcube api`, and your CLI sessions. The tape and stub live in [`demo/`](demo/).</sub>
 
 > **Status**: pre-1.0. Norcube Backup (data sources, backup jobs and downloads, restore tests, health, policies), LangSync (namespaces, terms, languages, project sync), organizations, profiles, and `norcube api` for everything else. See the [changelog](CHANGELOG.md).
 

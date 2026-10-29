@@ -30,7 +30,7 @@ case "$*" in
 "analytics-mongo  mongodb   100%    30/30 passed  0         2026-10-29 06:05:31" \
 "billing-db       postgres  96%     27/28 passed  1         2026-10-29 06:02:44"
   ;;
-"backup list -o json --query "*)
+"backup jobs list -o json --query "*)
   sleep 0.5
   cat <<'EOF'
 [
@@ -41,14 +41,22 @@ case "$*" in
 ]
 EOF
   ;;
+"api backup /datasources --query "*)
+  sleep 0.5
+  printf '%s\n' \
+"${B}DATABASE${R}         ${B}LASTBACKUP${R}" \
+"prod-postgres    2026-10-29T06:00:04Z" \
+"analytics-mongo  2026-10-29T06:05:12Z" \
+"billing-db       2026-10-28T06:02:40Z"
+  ;;
 "auth sessions list")
   sleep 0.5
   printf '%s\n' \
 "${B}CURRENT${R}  ${B}DEVICE${R}        ${B}CLIENT${R}                         ${B}LAST USED${R}         ${B}IP${R}            ${B}ID${R}" \
-"*        ada-macbook   norcube 0.16.0 (darwin/arm64)  2026-10-29 09:42  203.0.113.24  5a4c1e9f-2b7d-4e30-9c18-6f0d3a2b8e71" \
+"*        ada-macbook   norcube 0.17.0 (darwin/arm64)  2026-10-29 09:42  203.0.113.24  5a4c1e9f-2b7d-4e30-9c18-6f0d3a2b8e71" \
 "         ci-runner-04  norcube 0.16.0 (linux/amd64)   2026-10-28 23:10  198.51.100.7  0e7b93d2-4a6c-41f8-b5d0-9c2e7a1f6b34"
   ;;
-"langsync namespace list")
+"langsync namespaces list")
   sleep 0.5
   printf '%s\n' \
 "${B}NAME${R}       ${B}DEFAULT_LANG${R}  ${B}LANGUAGES${R}  ${B}CONTEXT${R}              ${B}ID${R}" \
