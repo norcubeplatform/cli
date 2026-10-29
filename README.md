@@ -104,7 +104,7 @@ norcube auth ci-token create --name "GitHub Actions" --scopes langsync.sync -o t
 ```
 
 ```yaml
-- uses: norcubeplatform/setup-nrc@v1
+- uses: norcubeplatform/setup-norcube@v1
   with:
     token: ${{ secrets.NORCUBE_TOKEN }}
 - run: nrc langsync sync
