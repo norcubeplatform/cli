@@ -5,6 +5,13 @@ this file collects what users and scripts need to know.
 
 ## Unreleased
 
+### Fixes
+
+- `backup policies create | update`: the `--keep-last` help said "keep at
+  most"; it is the number of newest backups that are always kept,
+  however old. `--retention-days` now says the newest `--keep-last`
+  backups are never deleted and 0 keeps every backup.
+
 ## 0.20.0 (2026-10-29)
 
 ### New
