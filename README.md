@@ -25,23 +25,6 @@ brew install --cask norcubeplatform/tap/norcube
 Installs `norcube`, the short alias `nrc`, and bash/zsh/fish completions.
 Upgrade with `brew upgrade norcube`.
 
-**Scoop (Windows):**
-
-```powershell
-scoop bucket add norcube https://github.com/norcubeplatform/scoop-bucket
-scoop install norcube
-```
-
-Upgrade with `scoop update norcube`.
-
-**winget (Windows):**
-
-```powershell
-winget install Norcube.CLI
-```
-
-Upgrade with `winget upgrade Norcube.CLI`.
-
 **Debian / Ubuntu, Fedora / RHEL / openSUSE, Alpine:**
 
 Every release has `.deb`, `.rpm` and `.apk` packages for amd64 and arm64.
@@ -121,9 +104,10 @@ from GitHub), and atomically replaces the running binary. Nothing is
 replaced when the checksum is missing or doesn't match. Run
 `norcube --version` afterward to confirm.
 
-If `norcube` was installed with Homebrew, Scoop, winget or a deb/rpm/apk
-package, the upgrade command detects that and tells you to upgrade with
-that tool instead; pass `--force` if you really want to override it.
+If `norcube` was installed with Homebrew or a deb/rpm/apk package (or a
+Scoop or winget package, once those are published), the upgrade command
+detects that and tells you to upgrade with that tool instead; pass
+`--force` if you really want to override it.
 
 ## Verify a release
 
