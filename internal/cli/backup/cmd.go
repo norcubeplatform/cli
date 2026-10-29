@@ -1,20 +1,16 @@
 // Package backup implements the `norcube backup ...` command tree (snapdb is
-// the backend service behind the Norcube Backup product). It owns the wiring
-// between the CLI's TokenSource (audience: snapdb-api) and the generated
-// snapdb HTTP client.
+// the backend service behind the Norcube Backup product).
 package backup
 
 import (
-	"errors"
-	"fmt"
+	"net/http"
 
 	"github.com/spf13/cobra"
 
 	"github.com/norcubeplatform/cli/internal/api/snapdb"
-	"github.com/norcubeplatform/cli/internal/auth"
-	"github.com/norcubeplatform/cli/internal/clictx"
-	"github.com/norcubeplatform/cli/internal/clierr"
+	"github.com/norcubeplatform/cli/internal/cmdutil"
 	"github.com/norcubeplatform/cli/internal/config"
+	"github.com/norcubeplatform/cli/internal/service"
 )
 
 // NewCmd returns the `backup` parent command with all subcommands wired up.
@@ -27,60 +23,39 @@ func NewCmd() *cobra.Command {
 		Short:   "Manage Norcube Backup: data sources, backup jobs, policies, restore tests",
 	}
 	cmd.AddCommand(
-		newBackupListCmd(),
-		newBackupDownloadCmd(),
+		newJobsCmd(),
 		newDataSourceCmd(),
 		newPolicyCmd(),
 		newHealthCmd(),
 		newRestoreTestCmd(),
+		// Names from before the `<service> <resource> <verb>` convention.
+		cmdutil.Renamed(newBackupListCmd(), "norcube backup jobs list"),
+		cmdutil.Renamed(newBackupDownloadCmd(), "norcube backup jobs download"),
 	)
+	registerCompletions(cmd)
 	return cmd
 }
 
-// snapdbContext bundles per-invocation state used across snapdb subcommands —
-// resolved config, the typed client, and the requested output format. Built
-// once per RunE so child commands don't repeat the wiring.
-type snapdbContext struct {
-	cfg    *config.Config
-	flags  *clictx.Flags
-	client *snapdb.ClientWithResponses
-	output string
+func newJobsCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "jobs",
+		Aliases: []string{"job"},
+		Short:   "List backup jobs and download their backups",
+	}
+	cmd.AddCommand(newBackupListCmd(), newBackupDownloadCmd())
+	return cmd
 }
 
-var errNoActiveOrg = clierr.Usage(errors.New("no active organization. Run `norcube org use <slug>` or pass --org <slug>"))
+// snapdbContext is the Backup API client plus the profile, organization
+// and output format of the invocation.
+type snapdbContext = service.Client[*snapdb.ClientWithResponses]
 
 func newSnapdbContext(cmd *cobra.Command) (*snapdbContext, error) {
-	cfg, err := clictx.Get(cmd).Config()
-	if err != nil {
-		return nil, err
-	}
-	flags := clictx.Get(cmd)
-	org, err := flags.Org(cmd.Context(), cfg)
-	if err != nil {
-		return nil, err
-	}
-	if org.ID == "" {
-		return nil, errNoActiveOrg
-	}
+	return service.New(cmd, config.ServiceSnapDB, newSnapdbAPI)
+}
 
-	ts, err := flags.TokenSource(cfg, auth.AudienceSnapDB, org.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	client, err := snapdb.NewClientWithResponses(
-		cfg.SnapDB,
-		snapdb.WithHTTPClient(ts.HTTP),
-		snapdb.WithRequestEditorFn(ts.BearerInjector()),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("snapdb client: %w", err)
-	}
-
-	return &snapdbContext{
-		cfg:    cfg,
-		flags:  flags,
-		client: client,
-		output: flags.Output,
-	}, nil
+func newSnapdbAPI(baseURL string, httpc *http.Client, edit service.RequestEditor) (*snapdb.ClientWithResponses, error) {
+	return snapdb.NewClientWithResponses(baseURL,
+		snapdb.WithHTTPClient(httpc),
+		snapdb.WithRequestEditorFn(edit))
 }

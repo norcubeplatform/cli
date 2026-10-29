@@ -32,8 +32,8 @@ This usually means one of:
   3. The namespace name is misspelled (it's the slug, case-sensitive).`,
 		ns, orgClause,
 		"`norcube whoami`", "`norcube org switch`",
-		"`norcube langsync namespace create <name> --default-language <code>`",
-		"`norcube langsync namespace list`")
+		"`norcube langsync namespaces create <name> --default-language <code>`",
+		"`norcube langsync namespaces list`")
 }
 
 // isNamespaceForbidden returns true when the server's typed error looks

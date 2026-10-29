@@ -53,10 +53,10 @@ func newAuthSessionsListCmd() *cobra.Command {
 					}
 					return []string{
 						current,
-						orDash(deref(s.Hostname)),
+						orDash(cmdutil.Deref(s.Hostname)),
 						sessionClientLabel(s.Client),
 						output.When(s.LastUsedAt),
-						orDash(deref(s.IPAddress)),
+						orDash(cmdutil.Deref(s.IPAddress)),
 						s.ID,
 					}
 				},
@@ -152,11 +152,4 @@ func sessionClientLabel(c api.SessionClient) string {
 		return "-"
 	}
 	return strings.Join(parts, " ")
-}
-
-func deref(s *string) string {
-	if s == nil {
-		return ""
-	}
-	return *s
 }

@@ -3,6 +3,7 @@ package cli
 import (
 	"errors"
 	"fmt"
+	"reflect"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -13,7 +14,9 @@ import (
 	"github.com/norcubeplatform/cli/internal/cli/langsync"
 	"github.com/norcubeplatform/cli/internal/clictx"
 	"github.com/norcubeplatform/cli/internal/clierr"
+	"github.com/norcubeplatform/cli/internal/completion"
 	"github.com/norcubeplatform/cli/internal/output"
+	"github.com/norcubeplatform/cli/internal/registry"
 	"github.com/norcubeplatform/cli/internal/term"
 )
 
@@ -64,13 +67,14 @@ func NewRootCmd() *cobra.Command {
 	cmd.PersistentFlags().StringVar(&flags.OrgOverride, "org", "", "Run this command against a specific organization, id or slug (env: NORCUBE_ORG)")
 	cmd.PersistentFlags().StringVarP(&flags.Output, "output", "o", "table", "Output format: table | json | yaml | text (env: NORCUBE_OUTPUT)")
 	cmd.PersistentFlags().StringVar(&flags.Query, "query", "", "JMESPath expression applied to the result before it is printed, e.g. \"[?status=='failed'].jobId\"")
-	cmd.PersistentFlags().StringArrayVar(&flags.EndpointURLs, "endpoint-url", nil, "Override a service endpoint, service=url (repeatable; services: auth, web_app, snapdb, langsync, domainradar, billing, prompthub)")
+	cmd.PersistentFlags().StringArrayVar(&flags.EndpointURLs, "endpoint-url", nil, "Override a service endpoint, service=url (repeatable; services: "+strings.Join(registry.Keys(), ", ")+")")
 	cmd.PersistentFlags().StringVar(&flags.TokenFile, "token-file", "", "Read an access token from this file instead of the profile's credentials (env: NORCUBE_TOKEN holds one directly)")
 	cmd.PersistentFlags().StringVar(&flags.AuthOverride, "auth-url", "", "Override the auth service base URL, same as --endpoint-url auth=URL (env: NORCUBE_AUTH_URL)")
 	cmd.PersistentFlags().StringVar(&flags.WebAppOverride, "web-app", "", "Override the web app base URL used for browser login (env: NORCUBE_WEB_APP)")
 	cmd.PersistentFlags().IntVar(&flags.ReadTimeoutSecs, clictx.FlagReadTimeout, 60, "Seconds to wait for each API response, 0 for no limit (env: NORCUBE_READ_TIMEOUT)")
 	cmd.PersistentFlags().IntVar(&flags.ConnectTimeoutSecs, clictx.FlagConnectTimeout, 10, "Seconds to wait for a connection, 0 for no limit (env: NORCUBE_CONNECT_TIMEOUT)")
 	cmd.PersistentFlags().IntVar(&flags.MaxAttempts, clictx.FlagMaxAttempts, 3, "Attempts for a request that hit throttling or a transient failure, 1 disables retries (env: NORCUBE_MAX_ATTEMPTS)")
+	cmd.PersistentFlags().BoolVar(&flags.Debug, "debug", false, "Print every HTTP request and response to stderr, with credentials redacted (env: NORCUBE_DEBUG=1)")
 	cmd.PersistentFlags().BoolVar(&noColor, "no-color", false, "Disable color and styling (env: NO_COLOR, CLICOLOR=0)")
 	cmd.PersistentFlags().BoolVar(&flags.NoPager, "no-pager", false, "Disable automatic paging of long table output (env: $PAGER controls the pager, default: less)")
 
@@ -83,10 +87,14 @@ func NewRootCmd() *cobra.Command {
 		newOrgCmd(),
 		newConfigCmd(),
 		newUpgradeCmd(),
+		newAPICmd(),
+		newDoctorCmd(),
 		backup.NewCmd(),
 		langsync.NewCmd(),
 	)
 	markUsageErrors(cmd)
+	completion.Bind(flags)
+	registerCompletions(cmd)
 
 	return cmd
 }
@@ -139,6 +147,12 @@ func markUsageErrors(c *cobra.Command) {
 	for _, sub := range c.Commands() {
 		markUsageErrors(sub)
 	}
+}
+
+// IsGroup reports whether c only groups subcommands: running it alone
+// shows help. Documentation generators use it to skip a usage line.
+func IsGroup(c *cobra.Command) bool {
+	return c.RunE != nil && reflect.ValueOf(c.RunE).Pointer() == reflect.ValueOf(unknownSubcommand).Pointer()
 }
 
 func unknownSubcommand(cmd *cobra.Command, args []string) error {

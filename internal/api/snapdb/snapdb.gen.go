@@ -413,6 +413,7 @@ func (e DsnMongoFieldsScheme) Valid() bool {
 const (
 	ErrConflict              ResponseType = "CONFLICT"
 	ErrForbidden             ResponseType = "FORBIDDEN"
+	ErrInsufficientScope     ResponseType = "INSUFFICIENT_SCOPE"
 	ErrInternal              ResponseType = "INTERNAL_ERROR"
 	ErrInternalServer        ResponseType = "INTERNAL_SERVER_ERROR"
 	ErrInvalidPayload        ResponseType = "INVALID_PAYLOAD"
@@ -420,6 +421,7 @@ const (
 	ErrMissingUserID         ResponseType = "MISSING_USER_ID"
 	ErrNotFound              ResponseType = "NOT_FOUND"
 	ErrOrgBlocked            ResponseType = "ORG_BLOCKED"
+	ErrQuotaExceeded         ResponseType = "QUOTA_EXCEEDED"
 	ErrUnauthorized          ResponseType = "UNAUTHORIZED"
 	ErrValidationFailed      ResponseType = "VALIDATION_FAILED"
 )
@@ -430,6 +432,8 @@ func (e ResponseType) Valid() bool {
 	case ErrConflict:
 		return true
 	case ErrForbidden:
+		return true
+	case ErrInsufficientScope:
 		return true
 	case ErrInternal:
 		return true
@@ -444,6 +448,8 @@ func (e ResponseType) Valid() bool {
 	case ErrNotFound:
 		return true
 	case ErrOrgBlocked:
+		return true
+	case ErrQuotaExceeded:
 		return true
 	case ErrUnauthorized:
 		return true
@@ -1513,6 +1519,9 @@ type ClientInterface interface {
 	// DeleteBackup request
 	DeleteBackup(ctx context.Context, datasourceId string, jobId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetBackupJob request
+	GetBackupJob(ctx context.Context, datasourceId string, jobId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GenerateBackupDownloadLink request
 	GenerateBackupDownloadLink(ctx context.Context, datasourceId string, jobId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -1828,6 +1837,18 @@ func (c *Client) RunBackupNow(ctx context.Context, datasourceId string, body Run
 
 func (c *Client) DeleteBackup(ctx context.Context, datasourceId string, jobId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDeleteBackupRequest(c.Server, datasourceId, jobId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetBackupJob(ctx context.Context, datasourceId string, jobId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetBackupJobRequest(c.Server, datasourceId, jobId)
 	if err != nil {
 		return nil, err
 	}
@@ -3048,6 +3069,47 @@ func NewDeleteBackupRequest(server string, datasourceId string, jobId string) (*
 	}
 
 	req, err := http.NewRequest(http.MethodDelete, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetBackupJobRequest generates requests for GetBackupJob
+func NewGetBackupJobRequest(server string, datasourceId string, jobId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "datasourceId", datasourceId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithOptions("simple", false, "jobId", jobId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/datasources/%s/backups/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -4356,6 +4418,9 @@ type ClientWithResponsesInterface interface {
 	// DeleteBackupWithResponse request
 	DeleteBackupWithResponse(ctx context.Context, datasourceId string, jobId string, reqEditors ...RequestEditorFn) (*DeleteBackupResponse, error)
 
+	// GetBackupJobWithResponse request
+	GetBackupJobWithResponse(ctx context.Context, datasourceId string, jobId string, reqEditors ...RequestEditorFn) (*GetBackupJobResponse, error)
+
 	// GenerateBackupDownloadLinkWithResponse request
 	GenerateBackupDownloadLinkWithResponse(ctx context.Context, datasourceId string, jobId string, reqEditors ...RequestEditorFn) (*GenerateBackupDownloadLinkResponse, error)
 
@@ -4707,6 +4772,7 @@ type PostDatasourcesResponse struct {
 	HTTPResponse *http.Response
 	JSON201      *DatasourcehandlerPayloadCreateResponse
 	JSON400      *ResponseAPIError
+	JSON403      *ResponseAPIError
 	JSON500      *ResponseAPIError
 }
 
@@ -4739,6 +4805,7 @@ type ProtectDatasourceResponse struct {
 	HTTPResponse *http.Response
 	JSON201      *DatasourcehandlerPayloadProtectResponse
 	JSON400      *ResponseAPIError
+	JSON403      *ResponseAPIError
 	JSON500      *ResponseAPIError
 }
 
@@ -4896,6 +4963,39 @@ func (r DeleteBackupResponse) StatusCode() int {
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
 func (r DeleteBackupResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type GetBackupJobResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DtoBackupJob
+	JSON400      *ResponseAPIError
+	JSON404      *ResponseAPIError
+	JSON500      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r GetBackupJobResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetBackupJobResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetBackupJobResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
@@ -5968,6 +6068,15 @@ func (c *ClientWithResponses) DeleteBackupWithResponse(ctx context.Context, data
 	return ParseDeleteBackupResponse(rsp)
 }
 
+// GetBackupJobWithResponse request returning *GetBackupJobResponse
+func (c *ClientWithResponses) GetBackupJobWithResponse(ctx context.Context, datasourceId string, jobId string, reqEditors ...RequestEditorFn) (*GetBackupJobResponse, error) {
+	rsp, err := c.GetBackupJob(ctx, datasourceId, jobId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetBackupJobResponse(rsp)
+}
+
 // GenerateBackupDownloadLinkWithResponse request returning *GenerateBackupDownloadLinkResponse
 func (c *ClientWithResponses) GenerateBackupDownloadLinkWithResponse(ctx context.Context, datasourceId string, jobId string, reqEditors ...RequestEditorFn) (*GenerateBackupDownloadLinkResponse, error) {
 	rsp, err := c.GenerateBackupDownloadLink(ctx, datasourceId, jobId, reqEditors...)
@@ -6643,6 +6752,13 @@ func ParsePostDatasourcesResponse(rsp *http.Response) (*PostDatasourcesResponse,
 		}
 		response.JSON400 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest ResponseAPIError
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -6682,6 +6798,13 @@ func ParseProtectDatasourceResponse(rsp *http.Response) (*ProtectDatasourceRespo
 			return nil, err
 		}
 		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest ResponseAPIError
@@ -6874,6 +6997,53 @@ func ParseDeleteBackupResponse(rsp *http.Response) (*DeleteBackupResponse, error
 			return nil, err
 		}
 		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetBackupJobResponse parses an HTTP response from a GetBackupJobWithResponse call
+func ParseGetBackupJobResponse(rsp *http.Response) (*GetBackupJobResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetBackupJobResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DtoBackupJob
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest ResponseAPIError

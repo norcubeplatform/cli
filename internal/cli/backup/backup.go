@@ -46,9 +46,9 @@ with an opaque "next" cursor; by default this command fetches one page
 and prints the next cursor to stderr if there are more results. Use
 --all-pages to follow the cursor until exhausted, with a safety cap of
 --max-items.`,
-		Example: `  norcube backup list
-  norcube backup list --datasource 9f8e7d6c-… --all-pages
-  norcube backup list -o json --query "[?jobStatus=='failed'].jobId"`,
+		Example: `  norcube backup jobs list
+  norcube backup jobs list --datasource 9f8e7d6c-… --all-pages
+  norcube backup jobs list -o json --query "[?jobStatus=='failed'].jobId"`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			c, err := newSnapdbContext(cmd)
 			if err != nil {
@@ -63,7 +63,7 @@ and prints the next cursor to stderr if there are more results. Use
 					ids := append([]string(nil), datasourceIDs...)
 					params.DatasourceIDs = &ids
 				}
-				res, err := c.client.GetBackupsWithResponse(ctx, params)
+				res, err := c.API.GetBackupsWithResponse(ctx, params)
 				if err != nil {
 					return nil, "", err
 				}
@@ -123,11 +123,11 @@ Backups stored in customer-managed buckets can't be downloaded this way:
 Norcube deliberately holds no read credentials for your bucket, so fetch
 the object directly from your own storage instead.`,
 		Example: `  # Download next to you, keeping the object name
-  norcube backup download 6a1b2c3d-… --datasource 9f8e7d6c-…
+  norcube backup jobs download 6a1b2c3d-… --datasource 9f8e7d6c-…
 
   # Pipe straight into a restore (pg_dump custom format; decompression must
   # match the policy's compression setting, gzip here)
-  norcube backup download 6a1b2c3d-… -d 9f8e7d6c-… --file - | gunzip | pg_restore -d "$DSN"`,
+  norcube backup jobs download 6a1b2c3d-… -d 9f8e7d6c-… --file - | gunzip | pg_restore -d "$DSN"`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			jobID := args[0]
@@ -136,7 +136,7 @@ the object directly from your own storage instead.`,
 				return err
 			}
 
-			res, err := c.client.GenerateBackupDownloadLinkWithResponse(cmd.Context(), datasourceID, jobID)
+			res, err := c.API.GenerateBackupDownloadLinkWithResponse(cmd.Context(), datasourceID, jobID)
 			if err != nil {
 				return err
 			}
@@ -168,11 +168,11 @@ the object directly from your own storage instead.`,
 // an actionable message. Unknown codes fall through with code + message so a
 // newer backend still produces something useful.
 func downloadLinkError(link *snapdb.DatasourcehandlerPayloadGenerateDownloadLinkResponse) error {
-	code := deref(link.ErrorCode)
-	msg := deref(link.ErrorMessage)
+	code := cmdutil.Deref(link.ErrorCode)
+	msg := cmdutil.Deref(link.ErrorMessage)
 	switch code {
 	case "not_found":
-		return fmt.Errorf("backup job not found; check the job id and --datasource (see `norcube backup list`)")
+		return fmt.Errorf("backup job not found; check the job id and --datasource (see `norcube backup jobs list`)")
 	case "not_succeeded":
 		return fmt.Errorf("this backup didn't succeed, so there is no artifact to download")
 	case "missing_artifact":
@@ -236,7 +236,7 @@ func streamDownload(cmd *cobra.Command, rawURL string, sizeBytes *int, jobID, fi
 	var src io.Reader = resp.Body
 	stderr := cmd.ErrOrStderr()
 	if output.IsInteractive(stderr) {
-		src = &progressReader{r: resp.Body, total: derefInt(sizeBytes), out: stderr}
+		src = &progressReader{r: resp.Body, total: cmdutil.Deref(sizeBytes), out: stderr}
 	}
 
 	sum := sha256.New()
@@ -299,7 +299,7 @@ func (p *progressReader) Read(buf []byte) (int, error) {
 	return n, err
 }
 
-// downloadResult is what `backup download -o json` prints.
+// downloadResult is what `backup jobs download -o json` prints.
 type downloadResult struct {
 	Path   string `json:"path" yaml:"path"`
 	Bytes  int64  `json:"bytes" yaml:"bytes"`

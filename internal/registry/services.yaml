@@ -1,0 +1,70 @@
+# The services the CLI talks to: one entry per Norcube backend service.
+#
+# This file is the single source of truth for
+#   - service keys (config [profiles.<name>.endpoints], --endpoint-url,
+#     NORCUBE_<KEY>_URL),
+#   - production endpoints,
+#   - OAuth audiences the CLI mints tokens for,
+#   - code generation (`make codegen`): `spec` is the Swagger 2.0 file in
+#     the backend monorepo, `package` the generated client under
+#     internal/api/<package>.
+#
+# Adding a service: add an entry here, run `make codegen`, then wire its
+# commands with service.New (see docs/ARCHITECTURE.md).
+services:
+  - key: auth
+    name: Norcube Auth
+    audience: auth
+    endpoint: https://auth.api.norcube.com
+
+  - key: web_app
+    name: Norcube dashboard
+    endpoint: https://app.norcube.com
+
+  - key: snapdb
+    name: Norcube Backup
+    command: backup
+    aliases: [snapdb]
+    audience: snapdb-api
+    endpoint: https://snapdb.api.norcube.com/app/v1
+    spec:
+      app: snapdb
+      file: app_swagger.json
+    package: snapdb
+
+  - key: langsync
+    name: LangSync
+    command: langsync
+    audience: langsync-api
+    endpoint: https://langsync.api.norcube.com
+    spec:
+      app: langsync
+      file: backend_swagger.json
+    package: langsync
+
+  - key: domainradar
+    name: DomainRadar
+    command: domainradar
+    audience: domainradar
+    endpoint: https://domainradar.api.norcube.com/app/v1
+    spec:
+      app: domainradar
+      file: app_swagger.json
+
+  - key: billing
+    name: Norcube Billing
+    command: billing
+    audience: billing
+    endpoint: https://billing.api.norcube.com/app/v1
+    spec:
+      app: billing
+      file: backend_swagger.json
+
+  - key: prompthub
+    name: PromptHub
+    command: prompthub
+    audience: prompthub
+    endpoint: https://prompthub.api.norcube.com
+    spec:
+      app: prompthub
+      file: prompthub_swagger.json

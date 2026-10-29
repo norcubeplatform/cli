@@ -13,6 +13,7 @@ import (
 	"github.com/norcubeplatform/cli/internal/cli/langsync/projectcfg"
 	"github.com/norcubeplatform/cli/internal/clictx"
 	"github.com/norcubeplatform/cli/internal/clierr"
+	"github.com/norcubeplatform/cli/internal/cmdutil"
 	"github.com/norcubeplatform/cli/internal/orgs"
 	"github.com/norcubeplatform/cli/internal/term"
 )
@@ -151,7 +152,7 @@ func resolveInitOrg(cmd *cobra.Command, existing *projectcfg.File) (api.Organiza
 	)).Run()
 	if err != nil {
 		if errors.Is(err, huh.ErrUserAborted) {
-			return api.Organization{}, ErrCancelled
+			return api.Organization{}, cmdutil.ErrCancelled
 		}
 		return api.Organization{}, err
 	}
@@ -205,7 +206,7 @@ func createOrgInteractive(ctx context.Context, client *api.AuthClient) (api.Orga
 	)
 	if err := form.Run(); err != nil {
 		if errors.Is(err, huh.ErrUserAborted) {
-			return api.Organization{}, ErrCancelled
+			return api.Organization{}, cmdutil.ErrCancelled
 		}
 		return api.Organization{}, err
 	}

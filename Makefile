@@ -1,4 +1,4 @@
-.PHONY: build install test vet tidy clean run codegen codegen-snapdb
+.PHONY: build install test vet tidy clean run codegen codegen-check docs
 
 VERSION ?= dev
 COMMIT  ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo unknown)
@@ -29,20 +29,23 @@ tidy:
 clean:
 	rm -rf bin dist
 
-# Path to the backend monorepo. Override with `make codegen MONO=...` if you
-# keep it elsewhere.
-MONO ?= ../norcube-platform-backend-mono
+# Backend monorepo (or a directory with the same apps/<app>/docs/<file>
+# layout, e.g. a published spec artifact). Override with MONO=...
+MONO ?= ../backend-mono
 
-codegen: codegen-snapdb codegen-langsync
+# Regenerate every API client listed in internal/registry/services.yaml.
+# oapi-codegen is pinned in tools/codegen; no global install needed.
+codegen:
+	go run ./tools/codegen -mono $(MONO)
 
-codegen-snapdb:
-	@echo ">> snapdb: converting swagger 2.0 → OpenAPI 3.0"
-	@go run ./tools/swagger2openapi $(MONO)/apps/snapdb/docs/app_swagger.json > specs/snapdb.openapi.json
-	@echo ">> snapdb: generating client"
-	@oapi-codegen --config internal/api/snapdb/oapi-codegen.yaml specs/snapdb.openapi.json
+# Fail when the generated clients don't match the specs in MONO (CI's
+# drift check runs this).
+codegen-check: codegen
+	@git diff --exit-code -- specs internal/api || { \
+		echo "Generated clients are out of date. Run 'make codegen' and commit the result."; exit 1; }
 
-codegen-langsync:
-	@echo ">> langsync: converting swagger 2.0 → OpenAPI 3.0"
-	@go run ./tools/swagger2openapi $(MONO)/apps/langsync/docs/backend_swagger.json > specs/langsync.openapi.json
-	@echo ">> langsync: generating client"
-	@oapi-codegen --config internal/api/langsync/oapi-codegen.yaml specs/langsync.openapi.json
+# Regenerate the command reference (MDX) in the docs site checkout. CI
+# fails when the committed reference differs (see .github/workflows).
+DOCS ?= ../docs
+docs:
+	go run ./tools/gendocs -mdx $(DOCS)/content/docs/platform/cli-reference

@@ -10,6 +10,7 @@ import (
 	"github.com/charmbracelet/huh"
 
 	"github.com/norcubeplatform/cli/internal/api/langsync"
+	"github.com/norcubeplatform/cli/internal/cmdutil"
 )
 
 // interactivelyResolveConflicts is the client-side pre-flight for
@@ -22,7 +23,7 @@ import (
 // strategy job — the backend never knows the user resolved
 // interactively, only that this is the authoritative client view.
 //
-// ErrCancelled means the user aborted; the caller skips the namespace.
+// cmdutil.ErrCancelled means the user aborted; the caller skips the namespace.
 func interactivelyResolveConflicts(ctx context.Context, c *langsyncContext, namespace string, local map[string]string, defaultCode string) (map[string]string, error) {
 	server, err := fetchDefaultLangValues(ctx, c, namespace, defaultCode)
 	if err != nil {
@@ -92,7 +93,7 @@ func interactivelyResolveConflicts(ctx context.Context, c *langsyncContext, name
 			resolved[conf.mark] = conf.serverVal
 			autoChoice = keepServer
 		case abort:
-			return nil, ErrCancelled
+			return nil, cmdutil.ErrCancelled
 		default:
 			return nil, fmt.Errorf("internal: unknown interactive choice %q", choice)
 		}
@@ -119,7 +120,7 @@ func promptResolveOne(mark, localVal, serverVal string, index, total int, opts [
 	)).Run()
 	if err != nil {
 		if errors.Is(err, huh.ErrUserAborted) {
-			return "", ErrCancelled
+			return "", cmdutil.ErrCancelled
 		}
 		return "", err
 	}
@@ -147,13 +148,13 @@ func fetchDefaultLangValues(ctx context.Context, c *langsyncContext, namespace, 
 			Cursor: cursor,
 			Limit:  200,
 		}
-		res, err := c.client.ListByNamespaceWithResponse(ctx, namespace, params)
+		res, err := c.API.ListByNamespaceWithResponse(ctx, namespace, params)
 		if err != nil {
 			return nil, err
 		}
 		if res.JSON200 == nil {
 			if isNamespaceForbidden(res.JSON403) || isNamespaceForbidden(res.JSON404) {
-				return nil, namespaceAccessError(c.cfg.ActiveOrg.Slug, namespace)
+				return nil, namespaceAccessError(c.OrgLabel(), namespace)
 			}
 			return nil, apiError(res.HTTPResponse, res.Body,
 				res.JSON400, res.JSON401, res.JSON403, res.JSON404, res.JSON500)

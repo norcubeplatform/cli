@@ -105,7 +105,7 @@ already in .langsync.json from a previous init are left alone.
 			// active_org / interactive picker on fresh init.
 			org, err := resolveInitOrg(cmd, existing)
 			if err != nil {
-				if errors.Is(err, ErrCancelled) {
+				if errors.Is(err, cmdutil.ErrCancelled) {
 					fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 					return nil
 				}
@@ -129,12 +129,12 @@ already in .langsync.json from a previous init are left alone.
 			// error pointing at the explicit create command.
 			if len(namespaces) == 0 {
 				if !term.StdinIsTerminal() {
-					return fmt.Errorf("no namespaces in org %q — run `nrc langsync namespace create` first (non-interactive shell can't show the prompt)", org.Slug)
+					return fmt.Errorf("no namespaces in org %q — run `nrc langsync namespaces create` first (non-interactive shell can't show the prompt)", org.Slug)
 				}
 				fmt.Fprintf(cmd.ErrOrStderr(), "Organization %q has no namespaces yet — creating one to seed this project.\n", org.Slug)
 				ns, err := createNamespaceInteractive(cmd.Context(), c)
 				if err != nil {
-					if errors.Is(err, ErrCancelled) {
+					if errors.Is(err, cmdutil.ErrCancelled) {
 						fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 						return nil
 					}
@@ -149,7 +149,7 @@ already in .langsync.json from a previous init are left alone.
 
 			picked, err := resolveInitNamespaceSelection(cmd.Context(), c, namespaces, nsFlags, existing)
 			if err != nil {
-				if errors.Is(err, ErrCancelled) {
+				if errors.Is(err, cmdutil.ErrCancelled) {
 					fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 					return nil
 				}
@@ -162,7 +162,7 @@ already in .langsync.json from a previous init are left alone.
 
 			additions, err := buildInitEntries(picked, langByID, existing, dirFlag, localLangCode)
 			if err != nil {
-				if errors.Is(err, ErrCancelled) {
+				if errors.Is(err, cmdutil.ErrCancelled) {
 					fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 					return nil
 				}
@@ -348,7 +348,7 @@ func loadExistingForInit(path string, force bool) (*projectcfg.File, error) {
 }
 
 func fetchAllNamespaces(ctx context.Context, c *langsyncContext) ([]langsync.DtoDTONamespace, error) {
-	res, err := c.client.ListNamespacesWithResponse(ctx)
+	res, err := c.API.ListNamespacesWithResponse(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -364,7 +364,7 @@ func fetchAllNamespaces(ctx context.Context, c *langsyncContext) ([]langsync.Dto
 // Used by init to render namespace.DefaultLanguageId as a code on
 // disk; the code is the thing that maps cleanly to a filename.
 func fetchLanguageCodesByID(ctx context.Context, c *langsyncContext) (map[int]string, error) {
-	res, err := c.client.ListLanguagesForOrgWithResponse(ctx)
+	res, err := c.API.ListLanguagesForOrgWithResponse(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -489,7 +489,7 @@ func resolveInitNamespaceSelection(ctx context.Context, c *langsyncContext, all 
 	)).Run()
 	if err != nil {
 		if errors.Is(err, huh.ErrUserAborted) {
-			return nil, ErrCancelled
+			return nil, cmdutil.ErrCancelled
 		}
 		return nil, err
 	}
@@ -498,7 +498,7 @@ func resolveInitNamespaceSelection(ctx context.Context, c *langsyncContext, all 
 	case createSentinel:
 		newNS, err := createNamespaceInteractive(ctx, c)
 		if err != nil {
-			if errors.Is(err, ErrCancelled) {
+			if errors.Is(err, cmdutil.ErrCancelled) {
 				return nil, nil
 			}
 			return nil, err
@@ -572,7 +572,7 @@ func pickNamespacesMulti(all []langsync.DtoDTONamespace, alreadyConfigured map[s
 	)).Run()
 	if err != nil {
 		if errors.Is(err, huh.ErrUserAborted) {
-			return nil, ErrCancelled
+			return nil, cmdutil.ErrCancelled
 		}
 		return nil, err
 	}
@@ -662,7 +662,7 @@ func buildInitEntries(picked []langsync.DtoDTONamespace, langByID map[int]string
 				Run()
 			if err != nil {
 				if errors.Is(err, huh.ErrUserAborted) {
-					return nil, ErrCancelled
+					return nil, cmdutil.ErrCancelled
 				}
 				return nil, err
 			}
@@ -732,7 +732,7 @@ func mergeInitEntries(existing *projectcfg.File, additions []projectcfg.Namespac
 // init can read its DefaultLanguageId. Used when the active org
 // has zero namespaces and init would otherwise have no work to do.
 //
-// Returns ErrCancelled when the prompt is dismissed; the caller
+// Returns cmdutil.ErrCancelled when the prompt is dismissed; the caller
 // turns that into "Cancelled." instead of crashing.
 func createNamespaceInteractive(ctx context.Context, c *langsyncContext) (*langsync.DtoDTONamespace, error) {
 	// Pre-fetch the org's lang list so resolveCreateFields can
@@ -757,7 +757,7 @@ func createNamespaceInteractive(ctx context.Context, c *langsyncContext) (*langs
 		code := strings.TrimSpace(lang)
 		body.DefaultLanguageCode = &code
 	}
-	res, err := c.client.CreateNamespaceWithResponse(ctx, body)
+	res, err := c.API.CreateNamespaceWithResponse(ctx, body)
 	if err != nil {
 		return nil, err
 	}
@@ -770,7 +770,7 @@ func createNamespaceInteractive(ctx context.Context, c *langsyncContext) (*langs
 	// follow up with a GET to retrieve the DefaultLanguageId the
 	// server assigned. One extra round trip, but only on the rare
 	// zero-namespaces init path.
-	getRes, err := c.client.GetNamespaceByNameAndOrgWithResponse(ctx, name)
+	getRes, err := c.API.GetNamespaceByNameAndOrgWithResponse(ctx, name)
 	if err != nil {
 		return nil, fmt.Errorf("fetch newly-created namespace: %w", err)
 	}

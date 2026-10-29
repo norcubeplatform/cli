@@ -8,6 +8,7 @@
     },
     "translations": [
       {
+        "aiGenerated": false,
         "lang": {
           "code": "",
           "id": 0
@@ -16,6 +17,7 @@
         "value": "Save changes"
       },
       {
+        "aiGenerated": false,
         "lang": {
           "code": "",
           "id": 0

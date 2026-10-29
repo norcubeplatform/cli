@@ -386,7 +386,7 @@ func syncNamespaceParallel(
 		defaultMarks := marksPerLang[ns.DefaultLocalLanguage]
 		resolved, err := interactivelyResolveConflicts(ctx, c, ns.Namespace, defaultMarks, ns.DefaultLocalLanguage)
 		if err != nil {
-			if errors.Is(err, ErrCancelled) {
+			if errors.Is(err, cmdutil.ErrCancelled) {
 				d.Complete(ns.Namespace, "aborted interactive resolution")
 				return namespaceSyncStats{}, nil, nil
 			}
@@ -518,13 +518,13 @@ func submitSyncJob(ctx context.Context, c *langsyncContext, ns projectcfg.Namesp
 		WaitForAutotranslate:      ptrBool(opts.wait),
 		RetranslateOnSourceChange: ptrBool(opts.retranslateOnSourceChange),
 	}
-	res, err := c.client.PostNamespacesNamespaceNameSyncWithResponse(ctx, ns.Namespace, body)
+	res, err := c.API.PostNamespacesNamespaceNameSyncWithResponse(ctx, ns.Namespace, body)
 	if err != nil {
 		return "", err
 	}
 	if res.JSON202 == nil {
 		if isNamespaceForbidden(res.JSON403) || isNamespaceForbidden(res.JSON404) {
-			return "", namespaceAccessError(c.cfg.ActiveOrg.Slug, ns.Namespace)
+			return "", namespaceAccessError(c.OrgLabel(), ns.Namespace)
 		}
 		return "", apiError(res.HTTPResponse, res.Body,
 			res.JSON400, res.JSON401, res.JSON403, res.JSON404, res.JSON500)

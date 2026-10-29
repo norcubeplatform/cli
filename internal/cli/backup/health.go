@@ -25,7 +25,7 @@ Each datasource's score aggregates its recent restore tests: automated
 drills that recover a real backup into a throwaway database, confirm the
 data came back, and tear it down. A datasource with no tests yet shows a
 dash; enable restore testing in the dashboard or run one now with
-` + "`norcube backup restore-test run`" + `.`,
+` + "`norcube backup restore-tests run`" + `.`,
 		Example: `  # Org-wide restore health
   norcube backup health
 
@@ -38,7 +38,7 @@ dash; enable restore testing in the dashboard or run one now with
 				return err
 			}
 
-			res, err := c.client.ListWithResponse(cmd.Context(), &snapdb.ListParams{})
+			res, err := c.API.ListWithResponse(cmd.Context(), &snapdb.ListParams{})
 			if err != nil {
 				return err
 			}
@@ -67,9 +67,9 @@ func healthRow(d snapdb.DtoDataSource) []string {
 	name := d.Name
 	engine := d.Engine
 
-	total := derefInt(d.RestoreCheckTotal)
-	passed := derefInt(d.RestoreCheckPassed)
-	warnings := derefInt(d.RestoreCheckWarnings)
+	total := cmdutil.Deref(d.RestoreCheckTotal)
+	passed := cmdutil.Deref(d.RestoreCheckPassed)
+	warnings := cmdutil.Deref(d.RestoreCheckWarnings)
 	if total == 0 {
 		return []string{name, engine, "—", "—", "—", "—"}
 	}
@@ -80,19 +80,4 @@ func healthRow(d snapdb.DtoDataSource) []string {
 		warn = fmt.Sprintf("%d", warnings)
 	}
 	return []string{name, engine, score, tests, warn, formatTimestamp(d.RestoreCheckLastAt)}
-}
-
-func deref[T any](p *T) T {
-	var zero T
-	if p == nil {
-		return zero
-	}
-	return *p
-}
-
-func derefInt(p *int) int {
-	if p == nil {
-		return 0
-	}
-	return *p
 }

@@ -1,0 +1,107 @@
+name: codegen-drift
+
+# Checks that the generated API clients (internal/api, specs/) match the
+# service specs. The specs come from a source configured in the repository
+# settings, so this public repository names neither:
+#
+#   - vars.SPEC_ARCHIVE_URL: a .tar.gz with the apps/<app>/docs/<file>
+#     layout (a published spec artifact), or
+#   - vars.BACKEND_SPECS_REPO + secrets.BACKEND_SPECS_DEPLOY_KEY: a
+#     read-only deploy key for the backend repository (only its
+#     apps/*/docs folders are checked out).
+#
+# Without either, the job skips with a notice. Pull requests fail on drift;
+# the weekly run opens a pull request with the regenerated clients.
+
+on:
+  pull_request:
+    paths:
+      - internal/registry/services.yaml
+      - internal/api/**
+      - specs/**
+      - tools/codegen/**
+      - tools/swagger2openapi/**
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      SPEC_ARCHIVE_URL: ${{ vars.SPEC_ARCHIVE_URL }}
+      BACKEND_SPECS_REPO: ${{ vars.BACKEND_SPECS_REPO }}
+      HAS_DEPLOY_KEY: ${{ secrets.BACKEND_SPECS_DEPLOY_KEY != '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Choose the spec source
+        id: source
+        run: |
+          if [ -n "$SPEC_ARCHIVE_URL" ]; then
+            echo "kind=archive" >> "$GITHUB_OUTPUT"
+          elif [ -n "$BACKEND_SPECS_REPO" ] && [ "$HAS_DEPLOY_KEY" = "true" ]; then
+            echo "kind=repo" >> "$GITHUB_OUTPUT"
+          else
+            echo "kind=none" >> "$GITHUB_OUTPUT"
+            echo "::notice::No spec source configured (SPEC_ARCHIVE_URL or BACKEND_SPECS_REPO + deploy key); skipping the drift check."
+          fi
+
+      - name: Fetch the spec archive
+        if: steps.source.outputs.kind == 'archive'
+        run: |
+          mkdir -p "$RUNNER_TEMP/specs"
+          curl -fsSL "$SPEC_ARCHIVE_URL" | tar -xz -C "$RUNNER_TEMP/specs"
+          echo "MONO=$RUNNER_TEMP/specs" >> "$GITHUB_ENV"
+
+      - name: Check out the service specs
+        if: steps.source.outputs.kind == 'repo'
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ vars.BACKEND_SPECS_REPO }}
+          ssh-key: ${{ secrets.BACKEND_SPECS_DEPLOY_KEY }}
+          path: .specs-src
+          sparse-checkout: apps/*/docs
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      - name: Use the checked-out specs
+        if: steps.source.outputs.kind == 'repo'
+        run: echo "MONO=$GITHUB_WORKSPACE/.specs-src" >> "$GITHUB_ENV"
+
+      - uses: actions/setup-go@v5
+        if: steps.source.outputs.kind != 'none'
+        with:
+          go-version-file: go.mod
+
+      - name: Regenerate and compare
+        if: steps.source.outputs.kind != 'none' && github.event_name != 'schedule'
+        run: make codegen-check MONO="$MONO"
+
+      - name: Regenerate
+        if: steps.source.outputs.kind != 'none' && github.event_name == 'schedule'
+        run: |
+          make codegen MONO="$MONO"
+          rm -rf .specs-src
+
+      - name: Open a pull request with the regenerated clients
+        if: steps.source.outputs.kind != 'none' && github.event_name == 'schedule'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: chore/regenerate-api-clients
+          commit-message: "chore: regenerate API clients from the current service specs"
+          title: "chore: regenerate API clients"
+          body: |
+            The weekly drift check found service spec changes. Review the
+            generated diff, run the tests, and add commands for new
+            endpoints where they're worth it.
+          add-paths: |
+            internal/api/**
+            specs/**
+          signoff: true

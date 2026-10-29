@@ -19,12 +19,12 @@ import (
 
 func newMarkCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "mark",
-		Aliases: []string{"marks", "term", "terms"},
-		Short:   "Manage marks (source strings) inside a namespace",
-		Long: `In Langsync, a "mark" is the source string that other translations
-target — stored on the term row as the ` + "`mark`" + ` column. Each mark
-belongs to exactly one namespace within your active organization.`,
+		Use:     "terms",
+		Aliases: []string{"term", "mark", "marks"},
+		Short:   "Manage terms (source strings) inside a namespace",
+		Long: `A term is a source string that translations target (the API calls its
+text the "mark"). Each term belongs to exactly one namespace of the
+organization.`,
 	}
 	cmd.AddCommand(newMarkAddCmd(), newMarkListCmd(), newMarkDeleteCmd())
 	return cmd
@@ -49,9 +49,9 @@ The positional source string and --namespace are both optional in
 interactive shells — pickers/prompts fill in anything that's missing.
 In scripts and pipes (stdin not a terminal), both must be passed
 explicitly or the command errors out before touching the network.`,
-		Example: `  norcube langsync mark add --namespace web "Save changes"
-  norcube langsync mark add --namespace web "Email" --context "form label" --default-value "E-mail"
-  norcube langsync mark add --namespace web "Welcome" --default-value "Welcome" --auto-translate`,
+		Example: `  norcube langsync terms add --namespace web "Save changes"
+  norcube langsync terms add --namespace web "Email" --context "form label" --default-value "E-mail"
+  norcube langsync terms add --namespace web "Welcome" --default-value "Welcome" --auto-translate`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			c, err := newLangsyncContext(cmd)
@@ -64,7 +64,7 @@ explicitly or the command errors out before touching the network.`,
 			// natural: "where?" then "what?".
 			ns, err := resolveNamespace(cmd.Context(), c, namespaceName, "Add the new mark to which namespace?")
 			if err != nil {
-				if errors.Is(err, ErrCancelled) {
+				if errors.Is(err, cmdutil.ErrCancelled) {
 					fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 					return nil
 				}
@@ -73,14 +73,14 @@ explicitly or the command errors out before touching the network.`,
 
 			mark, err := resolveMark(args)
 			if err != nil {
-				if errors.Is(err, ErrCancelled) {
+				if errors.Is(err, cmdutil.ErrCancelled) {
 					fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 					return nil
 				}
 				return err
 			}
 
-			res, err := c.client.AddTermWithResponse(cmd.Context(), ns, langsync.AddTermJSONRequestBody{
+			res, err := c.API.AddTermWithResponse(cmd.Context(), ns, langsync.AddTermJSONRequestBody{
 				Mark:                   mark,
 				Context:                context,
 				DefaultLanguageValue:   defaultValue,
@@ -91,7 +91,7 @@ explicitly or the command errors out before touching the network.`,
 			}
 			if res.JSON200 == nil {
 				if isNamespaceForbidden(res.JSON403) || isNamespaceForbidden(res.JSON404) {
-					return namespaceAccessError(c.cfg.ActiveOrg.Slug, ns)
+					return namespaceAccessError(c.OrgLabel(), ns)
 				}
 				return apiError(res.HTTPResponse, res.Body,
 					res.JSON400, res.JSON401, res.JSON403, res.JSON404, res.JSON500)
@@ -99,7 +99,7 @@ explicitly or the command errors out before touching the network.`,
 
 			msg := fmt.Sprintf("Added mark %q to namespace %q.", mark, ns)
 			if autoTranslate {
-				msg += "\nAuto-translation requested; check `norcube langsync mark list` to see progress."
+				msg += "\nAuto-translation requested; check `norcube langsync terms list` to see progress."
 			}
 			return cmdutil.Print(cmd, output.Done{Message: msg, Value: res.JSON200})
 		},
@@ -137,11 +137,11 @@ for partially-translated marks and full-text search.
 Pagination is cursor-based: re-run with the --cursor value printed to
 stderr to fetch the next page, or pass --all-pages to follow until
 exhausted.`,
-		Example: `  norcube langsync mark list --namespace web
-  norcube langsync mark list --namespace web --search Save
-  norcube langsync mark list --namespace web --has-untranslated
-  norcube langsync mark list --namespace web --untranslated-lang 17
-  norcube langsync mark list -n web --all-pages -o json --query "[].term.mark"`,
+		Example: `  norcube langsync terms list --namespace web
+  norcube langsync terms list --namespace web --search Save
+  norcube langsync terms list --namespace web --has-untranslated
+  norcube langsync terms list --namespace web --untranslated-lang 17
+  norcube langsync terms list -n web --all-pages -o json --query "[].term.mark"`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			c, err := newLangsyncContext(cmd)
 			if err != nil {
@@ -164,13 +164,13 @@ exhausted.`,
 				if cmd.Flags().Changed("untranslated-lang") {
 					params.UntranslatedLangId = &untranslatedLang
 				}
-				res, err := c.client.ListByNamespaceWithResponse(ctx, ns, params)
+				res, err := c.API.ListByNamespaceWithResponse(ctx, ns, params)
 				if err != nil {
 					return nil, "", err
 				}
 				if res.JSON200 == nil {
 					if isNamespaceForbidden(res.JSON403) || isNamespaceForbidden(res.JSON404) {
-						return nil, "", namespaceAccessError(c.cfg.ActiveOrg.Slug, ns)
+						return nil, "", namespaceAccessError(c.OrgLabel(), ns)
 					}
 					return nil, "", apiError(res.HTTPResponse, res.Body,
 						res.JSON400, res.JSON401, res.JSON403, res.JSON404, res.JSON500)
@@ -225,8 +225,8 @@ This action is irreversible — the mark, its context, and every
 per-language translation row are deleted from the database.
 
 Use --yes to skip the interactive confirmation in scripts.`,
-		Example: `  norcube langsync mark delete 1234 --namespace web
-  norcube langsync mark delete 1234 --namespace web --yes   # scripts`,
+		Example: `  norcube langsync terms delete 1234 --namespace web
+  norcube langsync terms delete 1234 --namespace web --yes   # scripts`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			c, err := newLangsyncContext(cmd)
@@ -239,19 +239,19 @@ Use --yes to skip the interactive confirmation in scripts.`,
 			}
 			ns, err := resolveNamespace(cmd.Context(), c, namespaceName, "Delete a mark from which namespace?")
 			if err != nil {
-				if errors.Is(err, ErrCancelled) {
+				if errors.Is(err, cmdutil.ErrCancelled) {
 					fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 					return nil
 				}
 				return err
 			}
 
-			ok, err := confirm(
+			ok, err := cmdutil.Confirm(
 				fmt.Sprintf("Delete mark #%d from namespace %q? This cannot be undone.", termID, ns),
 				yes,
 			)
 			if err != nil {
-				if errors.Is(err, ErrCancelled) {
+				if errors.Is(err, cmdutil.ErrCancelled) {
 					fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 					return nil
 				}
@@ -262,14 +262,14 @@ Use --yes to skip the interactive confirmation in scripts.`,
 				return nil
 			}
 
-			res, err := c.client.DeleteTermWithResponse(cmd.Context(), ns, termID)
+			res, err := c.API.DeleteTermWithResponse(cmd.Context(), ns, termID)
 			if err != nil {
 				return err
 			}
 			status := res.HTTPResponse.StatusCode
 			if status != 200 && status != 204 {
 				if isNamespaceForbidden(res.JSON403) || isNamespaceForbidden(res.JSON404) {
-					return namespaceAccessError(c.cfg.ActiveOrg.Slug, ns)
+					return namespaceAccessError(c.OrgLabel(), ns)
 				}
 				return apiError(res.HTTPResponse, res.Body,
 					res.JSON400, res.JSON401, res.JSON403, res.JSON404, res.JSON500)
@@ -328,7 +328,7 @@ func resolveMark(args []string) (string, error) {
 		Run()
 	if err != nil {
 		if errors.Is(err, huh.ErrUserAborted) {
-			return "", ErrCancelled
+			return "", cmdutil.ErrCancelled
 		}
 		return "", err
 	}

@@ -1,6 +1,10 @@
 package config
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/norcubeplatform/cli/internal/registry"
+)
 
 // Service keys, as used in [profiles.<name>.endpoints] and --endpoint-url.
 const (
@@ -14,11 +18,8 @@ const (
 )
 
 // Services lists every service the CLI has an endpoint for, in display
-// order.
-var Services = []string{
-	ServiceAuth, ServiceWebApp, ServiceSnapDB, ServiceLangsync,
-	ServiceDomainradar, ServiceBilling, ServicePrompthub,
-}
+// order (the order of services.yaml).
+var Services = registry.Keys()
 
 // IsService reports whether name is a known service key.
 func IsService(name string) bool {
@@ -48,27 +49,18 @@ const (
 	EnvCustom = "custom"
 )
 
-// Production endpoints.
-const (
-	DefaultAuth        = "https://auth.api.norcube.com"
-	DefaultWebApp      = "https://app.norcube.com"
-	DefaultSnapDB      = "https://snapdb.api.norcube.com/app/v1"
-	DefaultLangsync    = "https://langsync.api.norcube.com"
-	DefaultDomainradar = "https://domainradar.api.norcube.com/app/v1"
-	DefaultBilling     = "https://billing.api.norcube.com/app/v1"
-	DefaultPrompthub   = "https://prompthub.api.norcube.com"
-)
-
+// environments holds the built-in endpoint sets. Production comes from the
+// service registry; custom has none of its own.
 var environments = map[string]map[string]string{
-	EnvProduction: {
-		ServiceAuth:        DefaultAuth,
-		ServiceWebApp:      DefaultWebApp,
-		ServiceSnapDB:      DefaultSnapDB,
-		ServiceLangsync:    DefaultLangsync,
-		ServiceDomainradar: DefaultDomainradar,
-		ServiceBilling:     DefaultBilling,
-		ServicePrompthub:   DefaultPrompthub,
-	},
+	EnvProduction: productionEndpoints(),
+}
+
+func productionEndpoints() map[string]string {
+	out := map[string]string{}
+	for _, s := range registry.All() {
+		out[s.Key] = s.Endpoint
+	}
+	return out
 }
 
 // EnvironmentEndpoints returns the built-in endpoints of a named
