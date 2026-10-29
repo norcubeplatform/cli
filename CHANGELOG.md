@@ -5,6 +5,8 @@ this file collects what users and scripts need to know.
 
 ## Unreleased
 
+## 0.21.0 (2026-10-29)
+
 ### New
 
 - Releases are verifiable: `checksums.txt` is signed keylessly with
