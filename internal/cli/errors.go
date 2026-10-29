@@ -40,6 +40,10 @@ func Describe(err error) *clierr.Error {
 		if out.Message == "" {
 			out.Message = err.Error()
 		}
+		if usingCIToken && out.Hint == "" &&
+			(out.Code == clierr.CodePermissionDenied || out.Code == clierr.CodeInsufficientScope) {
+			out.Hint = ciRefusalHint
+		}
 		return &out
 	}
 
@@ -70,6 +74,15 @@ func Describe(err error) *clierr.Error {
 	}
 	return e
 }
+
+// usingCIToken is set when the running command authenticates with a CI
+// token (NORCUBE_TOKEN or --token-file), so a refusal can say why.
+var usingCIToken bool
+
+// ciRefusalHint explains a refusal under a CI token: a scope may be
+// missing, or the action is one no CI token can do (Backup restores and
+// data source or policy changes always need a signed-in person).
+const ciRefusalHint = "A CI token can only do what its scopes allow, and some actions (such as Backup restores and data source or policy changes) always need a person: run them after `norcube login`. `norcube auth ci-token scopes` lists what each scope allows."
 
 // profileSuffix names the profile in a message when --profile or
 // NORCUBE_PROFILE chose it.

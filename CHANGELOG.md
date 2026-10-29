@@ -5,6 +5,15 @@ this file collects what users and scripts need to know.
 
 ## Unreleased
 
+## 0.21.3 (2026-10-29)
+
+### Fixes
+
+- A permission refusal while using a CI token now explains that some
+  actions (such as Backup restores and data source or policy changes)
+  always need a signed-in person, and points to `norcube auth ci-token
+  scopes`. Before, it was a bare "permission denied".
+
 ## 0.21.2 (2026-10-29)
 
 ### Fixes
