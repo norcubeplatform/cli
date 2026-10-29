@@ -14,8 +14,8 @@ this file collects what users and scripts need to know.
   the `cosign verify-blob` and `gh attestation verify` commands.
 - Linux packages: `.deb`, `.rpm` and `.apk` for amd64 and arm64, with the
   `nrc` alias, shell completions and man pages.
-- Scoop (`norcubeplatform/scoop-bucket`) and winget (`Norcube.CLI`)
-  manifests, published once their release tokens are configured.
+- Scoop and winget manifests are built with every release; publishing them
+  is switched on once their repositories and tokens are set up.
 - The Homebrew cask installs the `nrc` alias.
 - macOS binaries are signed with a Developer ID certificate and notarized
   once the signing keys are configured for the release workflow.
@@ -29,6 +29,13 @@ this file collects what users and scripts need to know.
 - `norcube upgrade` recognizes Scoop, winget and Homebrew cask installs on
   Intel Macs, and tells you to upgrade with that tool (`--force`
   overrides). The messages for Homebrew and system packages are reworded.
+
+### Fixes
+
+- `backup policies create | update`: the `--keep-last` help said "keep at
+  most"; it is the number of newest backups that are always kept,
+  however old. `--retention-days` now says the newest `--keep-last`
+  backups are never deleted and 0 keeps every backup.
 
 ## 0.20.0 (2026-10-29)
 
