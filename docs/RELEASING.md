@@ -124,9 +124,9 @@ is valid for five years.
 4. Check the file and store it as secrets:
 
    ```bash
-   # prints the certificate subject when the password is right
-   openssl pkcs12 -in developer-id.p12 -nokeys -passin 'pass:<p12-password>' \
-     | openssl x509 -noout -subject
+   # prompts for the export password and prints the certificate subject
+   # (kept out of the command line, so it isn't saved in shell history)
+   openssl pkcs12 -in developer-id.p12 -nokeys | openssl x509 -noout -subject
 
    base64 -i developer-id.p12 | tr -d '\n' \
      | gh secret set MACOS_SIGN_P12 --repo norcubeplatform/cli
