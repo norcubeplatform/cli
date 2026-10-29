@@ -1,0 +1,20 @@
+[
+  {
+    "billingMode": "plans",
+    "code": "snapdb",
+    "name": "Norcube Backup",
+    "subscription": {
+      "currentPeriodEnd": "2026-11-01T00:00:00Z",
+      "currentPeriodStart": "2026-10-01T00:00:00Z",
+      "id": "sub-1",
+      "planCode": "backup-team",
+      "planName": "Team",
+      "status": "active"
+    }
+  },
+  {
+    "billingMode": "metered",
+    "code": "domainradar",
+    "name": "DomainRadar"
+  }
+]

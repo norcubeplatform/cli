@@ -2,6 +2,7 @@ package langsync
 
 import (
 	"bytes"
+	"context"
 	"encoding/csv"
 	"errors"
 	"fmt"
@@ -12,6 +13,7 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -65,6 +67,7 @@ func newImportCmd() *cobra.Command {
 		columns                  []string
 		overwrite, autoTranslate bool
 		dryRun                   bool
+		wait                     cmdutil.WaitFlags
 	)
 	cmd := &cobra.Command{
 		Use:   "import <file.csv>",
@@ -81,12 +84,15 @@ refuses to guess.
 
 Existing terms with the same mark are skipped unless --overwrite is set.
 With --auto-translate, AI fills in the languages the file leaves empty.
-The import finishes on the server after the command returns.
+The import finishes on the server after the command returns; --wait
+waits for it (and exits 1, code job_failed, when it failed), and
+` + "`terms import status <import-id>`" + ` checks on it later.
 
 --dry-run shows how each column would be imported, without uploading.`,
 		Example: `  norcube langsync terms import strings.csv --namespace web
   norcube langsync terms import export.csv -n web --column "String ID=mark" --column "Notes=ignore"
-  norcube langsync terms import strings.csv -n web --overwrite --auto-translate --dry-run`,
+  norcube langsync terms import strings.csv -n web --overwrite --auto-translate --dry-run
+  norcube langsync terms import strings.csv -n web --wait`,
 		Args: cobra.ExactArgs(1),
 		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
 			path := args[0]
@@ -157,6 +163,16 @@ The import finishes on the server after the command returns.
 					res.JSON400, res.JSON401, res.JSON403, res.JSON404, res.JSON500)
 			}
 			result.Status = string(res.JSON200.Status)
+			if wait.Wait {
+				imp, err := waitForImport(cmd, c, ns, result.ImportID, wait.Timeout)
+				if err != nil {
+					return nil, err
+				}
+				result.Status = string(imp.Status)
+				if imp.Status == langsync.Failed {
+					return nil, importFailed(imp)
+				}
+			}
 			return output.Done{Message: describeImport(result, false), Value: result, Fields: []output.Field{{Value: result.ImportID}, {Value: result.Status}}}, nil
 		}),
 	}
@@ -166,6 +182,117 @@ The import finishes on the server after the command returns.
 	cmd.Flags().BoolVar(&autoTranslate, "auto-translate", false, "AI-translate the languages the file leaves empty")
 	cmd.Flags().StringVar(&prompt, "prompt", "", "Custom prompt id for --auto-translate instead of the namespace's default")
 	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "Show how each column would be imported, without uploading")
+	cmdutil.AddWaitFlags(cmd, &wait, "import", 30*time.Minute)
+	cmd.MarkFlagsMutuallyExclusive("wait", "dry-run")
+	cmd.AddCommand(newImportStatusCmd())
+	return cmd
+}
+
+// importDone reports whether an import reached a final status.
+func importDone(s langsync.DtoDTOTermImportStatus) bool {
+	return s == langsync.Completed || s == langsync.Failed
+}
+
+func getImport(ctx context.Context, c *langsyncContext, ns, id string) (langsync.DtoDTOTermImport, error) {
+	res, err := c.API.GetImportWithResponse(ctx, ns, id)
+	if err != nil {
+		return langsync.DtoDTOTermImport{}, err
+	}
+	if res.JSON200 == nil {
+		return langsync.DtoDTOTermImport{}, namespaceAPIError(c, ns, res.HTTPResponse, res.Body,
+			res.JSON400, res.JSON401, res.JSON403, res.JSON404, res.JSON500)
+	}
+	return *res.JSON200, nil
+}
+
+// waitForImport polls an import until it completed or failed, showing its
+// status on stderr for a person.
+func waitForImport(cmd *cobra.Command, c *langsyncContext, ns, id string, timeout time.Duration) (langsync.DtoDTOTermImport, error) {
+	var last langsync.DtoDTOTermImport
+	stderr := cmdutil.Stderr(cmd)
+	human := cmdutil.Human(cmd) && output.IsInteractive(stderr)
+	err := cmdutil.Poll(cmd.Context(), cmdutil.PollOptions{Timeout: timeout}, func(ctx context.Context) (bool, error) {
+		imp, err := getImport(ctx, c, ns, id)
+		if err != nil {
+			return false, err
+		}
+		last = imp
+		if human {
+			fmt.Fprintf(stderr, "\r\033[KImport %s…", imp.Status)
+		}
+		return importDone(imp.Status), nil
+	})
+	if human {
+		fmt.Fprint(stderr, "\r\033[K")
+	}
+	return last, err
+}
+
+func importFailed(imp langsync.DtoDTOTermImport) error {
+	msg := fmt.Sprintf("import %s failed", imp.Id)
+	if e := strings.TrimSpace(cmdutil.Deref(imp.Error)); e != "" {
+		msg += ": " + e
+	}
+	return cmdutil.JobFailed(msg, imp)
+}
+
+func importObject(ns string, imp langsync.DtoDTOTermImport) output.Object {
+	fields := []output.Field{
+		{Name: "ID", Value: imp.Id},
+		{Name: "Namespace", Value: ns},
+		{Name: "Status", Value: string(imp.Status)},
+		{Name: "Rows", Value: fmt.Sprint(imp.TotalRows)},
+		{Name: "Format", Value: imp.Format},
+		{Name: "Started", Value: compactDate(imp.CreatedAt)},
+		{Name: "Finished", Value: compactDate(cmdutil.Deref(imp.FinishedAt))},
+	}
+	if e := cmdutil.Deref(imp.Error); e != "" {
+		fields = append(fields, output.Field{Name: "Error", Value: e})
+	}
+	return output.Object{Value: imp, Fields: fields}
+}
+
+func newImportStatusCmd() *cobra.Command {
+	var (
+		namespaceName string
+		wait          cmdutil.WaitFlags
+	)
+	cmd := &cobra.Command{
+		Use:   "status <import-id>",
+		Short: "Show how a CSV import is doing",
+		Long: `Shows an import started with ` + "`terms import`" + `: prechecked (uploaded,
+not started), processing, completed or failed. --wait waits until it
+completed or failed, and exits 1 (code job_failed) when it failed.`,
+		Example: `  norcube langsync terms import status 7c1d2e3f-… --namespace web
+  norcube langsync terms import status 7c1d2e3f-… -n web --wait`,
+		Args: cobra.ExactArgs(1),
+		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
+			c, err := newLangsyncContext(cmd)
+			if err != nil {
+				return nil, err
+			}
+			ns, err := resolveNamespace(cmd.Context(), c, namespaceName, "Which namespace was the import into?")
+			if err != nil {
+				return nil, cancelledOK(cmd, err)
+			}
+			id := strings.TrimSpace(args[0])
+			var imp langsync.DtoDTOTermImport
+			if wait.Wait {
+				imp, err = waitForImport(cmd, c, ns, id, wait.Timeout)
+			} else {
+				imp, err = getImport(cmd.Context(), c, ns, id)
+			}
+			if err != nil {
+				return nil, err
+			}
+			if wait.Wait && imp.Status == langsync.Failed {
+				return nil, importFailed(imp)
+			}
+			return importObject(ns, imp), nil
+		}),
+	}
+	cmd.Flags().StringVarP(&namespaceName, "namespace", "n", "", "Namespace name; picker opens when omitted and stdin is a TTY")
+	cmdutil.AddWaitFlags(cmd, &wait, "import", 30*time.Minute)
 	return cmd
 }
 
@@ -347,8 +474,12 @@ func describeImport(r importResult, dryRun bool) string {
 		}
 		fmt.Fprintf(&b, "  %-24s %s\n", col.Header, use)
 	}
-	if !dryRun {
-		fmt.Fprintf(&b, "Follow it with `norcube langsync terms list --namespace %s`.", r.Namespace)
+	switch {
+	case dryRun:
+	case r.Status == string(langsync.Completed):
+		fmt.Fprintf(&b, "Done; see the terms with `norcube langsync terms list --namespace %s`.", r.Namespace)
+	default:
+		fmt.Fprintf(&b, "Follow it with `norcube langsync terms import status %s --namespace %s`.", r.ImportID, r.Namespace)
 	}
 	return strings.TrimRight(b.String(), "\n")
 }

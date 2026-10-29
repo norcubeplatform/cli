@@ -1,0 +1,11 @@
+ID:          rst-1
+Datasource:  prod-db (ds-1)
+Backup:      job-1
+Mode:        new_database
+Status:      success
+Target:      postgres://…@db.example.com:5432/app_restored
+Database:    app_restored
+Started:     2026-10-02 10:00:05
+Finished:    2026-10-02 10:03:05
+Duration:    3m00s
+Restored:    2.0 MiB

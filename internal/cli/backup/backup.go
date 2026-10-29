@@ -30,7 +30,7 @@ const maxBackupItems = 10000
 // that haven't picked up the clamp yet.
 const defaultPageLimit = 50
 
-func newBackupListCmd() *cobra.Command {
+func newBackupListCmd(d deps) *cobra.Command {
 	var datasourceIDs []string
 	var pages cmdutil.PageFlags
 
@@ -48,7 +48,7 @@ and prints the next cursor to stderr if there are more results. Use
   norcube backup jobs list --datasource 9f8e7d6c-… --all-pages
   norcube backup jobs list -o json --query "[?jobStatus=='failed'].jobId"`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			c, err := newSnapdbContext(cmd)
+			c, err := d.client(cmd)
 			if err != nil {
 				return err
 			}
@@ -102,7 +102,7 @@ and prints the next cursor to stderr if there are more results. Use
 	return cmd
 }
 
-func newBackupDownloadCmd() *cobra.Command {
+func newBackupDownloadCmd(d deps) *cobra.Command {
 	var datasourceID string
 	var filePath string
 
@@ -129,7 +129,7 @@ the object directly from your own storage instead.`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			jobID := args[0]
-			c, err := newSnapdbContext(cmd)
+			c, err := d.client(cmd)
 			if err != nil {
 				return err
 			}

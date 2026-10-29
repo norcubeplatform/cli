@@ -1,0 +1,7 @@
+Datasource:           ds-1
+Automated tests:      every 7 successful backups
+Target:               managed_ephemeral
+Scratch credentials:  —
+Validation:           l2
+Validation query:     
+Last run:             2026-10-01 13:00:00

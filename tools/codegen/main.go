@@ -19,6 +19,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"gopkg.in/yaml.v3"
+
 	"github.com/norcubeplatform/cli/internal/registry"
 )
 
@@ -69,8 +71,12 @@ func generate(mono string, s registry.Service) error {
 	}
 
 	fmt.Fprintf(os.Stderr, ">> %s: %s → specs/%s.openapi.json\n", s.Package, s.Spec.Path(), s.Package)
+	excluded, err := excludedTags(cfg)
+	if err != nil {
+		return err
+	}
 	var converted bytes.Buffer
-	conv := exec.Command("go", "run", "./tools/swagger2openapi", spec) // #nosec G204 -- paths from the embedded manifest
+	conv := exec.Command("go", "run", "./tools/swagger2openapi", "-exclude-tags", strings.Join(excluded, ","), spec) // #nosec G204 -- paths from the embedded manifest
 	conv.Stdout, conv.Stderr = &converted, os.Stderr
 	if err := conv.Run(); err != nil {
 		return fmt.Errorf("convert: %w", err)
@@ -87,4 +93,23 @@ func generate(mono string, s registry.Service) error {
 		return fmt.Errorf("oapi-codegen: %w", err)
 	}
 	return nil
+}
+
+// excludedTags reads output-options.exclude-tags from a package's
+// oapi-codegen.yaml: the converter leaves those operations out of the
+// checked-in spec too, not only out of the generated client.
+func excludedTags(cfgPath string) ([]string, error) {
+	raw, err := os.ReadFile(cfgPath) // #nosec G304 -- a path inside the repository
+	if err != nil {
+		return nil, err
+	}
+	var cfg struct {
+		OutputOptions struct {
+			ExcludeTags []string `yaml:"exclude-tags"`
+		} `yaml:"output-options"`
+	}
+	if err := yaml.Unmarshal(raw, &cfg); err != nil {
+		return nil, fmt.Errorf("%s: %w", cfgPath, err)
+	}
+	return cfg.OutputOptions.ExcludeTags, nil
 }

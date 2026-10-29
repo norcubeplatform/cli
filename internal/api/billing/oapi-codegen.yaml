@@ -1,0 +1,14 @@
+package: billing
+generate:
+  models: true
+  client: true
+output: internal/api/billing/billing.gen.go
+output-options:
+  skip-prune: true
+  # Superadmin, webhook and status routes are not for organization members;
+  # leave them out of the client.
+  exclude-tags:
+    - Admin
+    - Billing Admin
+    - Stripe Webhooks
+    - Status

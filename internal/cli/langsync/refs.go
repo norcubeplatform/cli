@@ -3,8 +3,6 @@ package langsync
 import (
 	"errors"
 	"fmt"
-	"io"
-	"os"
 	"strconv"
 	"strings"
 
@@ -44,34 +42,4 @@ func optionalPrompt(changed bool, s string) (*string, error) {
 		return nil, clierr.Usage(errors.New("--prompt needs a custom prompt id (leave it out to use the namespace's default prompt)"))
 	}
 	return &s, nil
-}
-
-// maxTextInput caps text read from a file or stdin (a prompt or a
-// translation), well above anything the API accepts.
-const maxTextInput = 1 << 20
-
-// readText returns value, or the contents of path when path is set ("-"
-// is stdin). A single trailing newline is dropped, so `echo ... |` works.
-func readText(stdin io.Reader, value, path, what string) (string, error) {
-	if path == "" {
-		return value, nil
-	}
-	r := stdin
-	if path != "-" {
-		f, err := os.Open(path) // #nosec G304 -- the user names the file
-		if err != nil {
-			return "", clierr.Usage(fmt.Errorf("read %s: %w", what, err))
-		}
-		defer func() { _ = f.Close() }()
-		r = f
-	}
-	b, err := io.ReadAll(io.LimitReader(r, maxTextInput+1))
-	if err != nil {
-		return "", fmt.Errorf("read %s: %w", what, err)
-	}
-	if len(b) > maxTextInput {
-		return "", clierr.Usage(fmt.Errorf("%s is larger than %d bytes", what, maxTextInput))
-	}
-	s := strings.TrimSuffix(strings.TrimSuffix(string(b), "\n"), "\r")
-	return s, nil
 }

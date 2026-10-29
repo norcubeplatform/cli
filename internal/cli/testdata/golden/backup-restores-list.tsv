@@ -1,0 +1,2 @@
+rst-1	success	new_database	postgres://…@db.example.com:5432/app_restored	job-1	2026-10-02T08:00:05Z	3m00s	2.0 MiB
+rst-2	failed	overwrite		job-1			0 B

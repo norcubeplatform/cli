@@ -1,0 +1,7 @@
+enabled: true
+hasScratchCredentials: false
+lastRunAt: "2026-10-01T11:00:00Z"
+mode: every_nth
+nth: 7
+target: managed_ephemeral
+validationLevel: l2

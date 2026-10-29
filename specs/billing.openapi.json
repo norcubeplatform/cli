@@ -1,0 +1,1996 @@
+{
+  "components": {
+    "schemas": {
+      "constants.BillingType": {
+        "enum": [
+          "",
+          "individual",
+          "company"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "BillingTypeUnknown",
+          "BillingTypeIndividual",
+          "BillingTypeCompany"
+        ]
+      },
+      "constants.InvoiceStatus": {
+        "enum": [
+          "draft"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "InvoiceStatusDraft"
+        ]
+      },
+      "dto.BillingPlan": {
+        "properties": {
+          "code": {
+            "example": "backup_pro",
+            "type": "string"
+          },
+          "currency": {
+            "example": "USD",
+            "type": "string"
+          },
+          "description": {
+            "example": "For growing teams",
+            "type": "string"
+          },
+          "displayOrder": {
+            "example": 2,
+            "type": "integer"
+          },
+          "entitlements": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "description": "Entitlements maps entitlement keys to values (\"Up to N datasources\").",
+            "type": "object"
+          },
+          "highlighted": {
+            "description": "Highlighted renders the \"Most popular\" treatment.",
+            "example": false,
+            "type": "boolean"
+          },
+          "monthlyPriceCents": {
+            "example": 3900,
+            "type": "integer"
+          },
+          "name": {
+            "example": "Backup Pro",
+            "type": "string"
+          },
+          "quotas": {
+            "description": "Quotas are the included allowances (\"100 GB included, then $X/GB\").",
+            "items": {
+              "$ref": "#/components/schemas/dto.BillingPlanQuota"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "dto.BillingPlanQuota": {
+        "properties": {
+          "includedQuantity": {
+            "example": 100,
+            "type": "number"
+          },
+          "metricCode": {
+            "example": "SNAPDB_STORAGE_BYTES",
+            "type": "string"
+          },
+          "metricName": {
+            "example": "Backup Storage",
+            "type": "string"
+          },
+          "metricUnit": {
+            "example": "GB",
+            "type": "string"
+          },
+          "overageUnitPrice": {
+            "description": "OverageUnitPrice is the lowest non-zero currently-valid pricing-tier\nunit price — the \"then $X per GB beyond included\" figure. Null when the\nmetric has no overage pricing (UI renders generic copy).",
+            "example": 0.08,
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "dto.BillingPreferences": {
+        "properties": {
+          "city": {
+            "type": "string"
+          },
+          "countryCode": {
+            "type": "string"
+          },
+          "invoicingEmail": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "postalCode": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "street": {
+            "type": "string"
+          },
+          "taxId": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/constants.BillingType"
+          },
+          "vatId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "city",
+          "countryCode",
+          "name",
+          "postalCode",
+          "state",
+          "street",
+          "type"
+        ],
+        "type": "object"
+      },
+      "dto.BillingService": {
+        "properties": {
+          "billingMode": {
+            "description": "BillingMode drives the section layout: metered → PAYG card, plans → tier\ngrid, choice → PAYG card + optional tier grid.",
+            "enum": [
+              "metered",
+              "plans",
+              "choice"
+            ],
+            "example": "plans",
+            "type": "string"
+          },
+          "code": {
+            "example": "snapdb",
+            "type": "string"
+          },
+          "name": {
+            "example": "Backup",
+            "type": "string"
+          },
+          "plans": {
+            "description": "Plans is the public plan selector, sorted by displayOrder then price.\nEmpty for metered services.",
+            "items": {
+              "$ref": "#/components/schemas/dto.BillingPlan"
+            },
+            "type": "array"
+          },
+          "subscription": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/dto.BillingServiceSubscription"
+              }
+            ],
+            "description": "Subscription is the org's current subscription on this service, nil when\nnone (metered services, or choice services on pure PAYG)."
+          }
+        },
+        "type": "object"
+      },
+      "dto.BillingServiceSubscription": {
+        "properties": {
+          "cancelAt": {
+            "type": "string"
+          },
+          "cancelledAt": {
+            "type": "string"
+          },
+          "currentPeriodEnd": {
+            "type": "string"
+          },
+          "currentPeriodStart": {
+            "type": "string"
+          },
+          "id": {
+            "example": "4f1c2a0e-6d3b-4a1e-9f2c-0b1d2e3f4a5b",
+            "type": "string"
+          },
+          "planCode": {
+            "example": "backup_pro",
+            "type": "string"
+          },
+          "planName": {
+            "example": "Backup Pro",
+            "type": "string"
+          },
+          "startedAt": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "paused",
+              "cancelled"
+            ],
+            "example": "active",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "dto.CreditGrant": {
+        "properties": {
+          "amountUsdCents": {
+            "example": 5000,
+            "type": "integer"
+          },
+          "consumedUsdCents": {
+            "example": 1500,
+            "type": "integer"
+          },
+          "expiresAt": {
+            "description": "ExpiresAt is null for grants that never expire.",
+            "example": "2027-05-19T00:00:00Z",
+            "type": "string"
+          },
+          "grantedAt": {
+            "example": "2026-05-19T18:00:00Z",
+            "type": "string"
+          },
+          "id": {
+            "example": "3f1a4a1c-9c61-4c8b-a3d8-94f8b3f7e0aa",
+            "type": "string"
+          },
+          "reason": {
+            "example": "Onboarding credit",
+            "type": "string"
+          },
+          "remainingUsdCents": {
+            "example": 3500,
+            "type": "integer"
+          },
+          "source": {
+            "enum": [
+              "admin",
+              "promo",
+              "refund_settlement",
+              "manual"
+            ],
+            "example": "admin",
+            "type": "string"
+          },
+          "status": {
+            "description": "Status is one of active / exhausted / expired / voided — derived\nby the backend from amount + consumed + expires_at + voided_at\nagainst wall clock at query time. Voided beats everything; an\nexhausted grant overrides expired (the credit was used, not\nlost).",
+            "enum": [
+              "active",
+              "exhausted",
+              "expired",
+              "voided"
+            ],
+            "example": "active",
+            "type": "string"
+          },
+          "voidedAt": {
+            "description": "VoidedAt is set when the grant was explicitly retired (e.g. the\nPhase 5 cascade voids leftover credit when an org is closed).\nNull on never-voided grants.",
+            "example": "2026-05-19T20:40:00Z",
+            "type": "string"
+          },
+          "voidedReason": {
+            "description": "VoidedReason carries the why for voided grants — today always\n\"org_closed\" from the cascade hook, but future use cases (admin\nrevoke, fraud, etc.) get their own strings.",
+            "example": "org_closed",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "dto.FreeTierMetric": {
+        "properties": {
+          "currentUnits": {
+            "example": 347.5,
+            "type": "number"
+          },
+          "freeTierUnits": {
+            "description": "FreeTierUnits is the ceiling derived from $0 pricing tiers; 0\nmeans the metric is billed from unit 1 (no free tier).",
+            "example": 1000,
+            "type": "integer"
+          },
+          "freeTierUnlimited": {
+            "description": "FreeTierUnlimited handles the edge case where a $0 tier has no\nupper bound — the metric is always free, no progress bar needed.",
+            "example": false,
+            "type": "boolean"
+          },
+          "metricCode": {
+            "example": "translations",
+            "type": "string"
+          },
+          "metricName": {
+            "example": "AI Translations",
+            "type": "string"
+          },
+          "metricType": {
+            "description": "MetricType is \"storage\" or \"usage\". Storage metrics don't\nextrapolate end-of-month (the MTD average is already a rate);\nusage metrics extrapolate linearly. Frontend uses this to label\nthe projection (\"end-of-month forecast\" vs \"current average\").",
+            "enum": [
+              "storage",
+              "usage"
+            ],
+            "example": "usage",
+            "type": "string"
+          },
+          "overflowProjected": {
+            "description": "OverflowProjected is true when projectedEndOfMonthUnits exceeds\nfreeTierUnits — the user is on track to incur charges this month.",
+            "example": true,
+            "type": "boolean"
+          },
+          "previousMonthUnits": {
+            "description": "PreviousMonthUnits is the previous calendar month's final figure\n— average for storage, sum for usage. Used for the \"Last month\"\ncolumn so customers can spot trending consumption.",
+            "example": 812,
+            "type": "number"
+          },
+          "projectedEndOfMonthUnits": {
+            "example": 1042.5,
+            "type": "number"
+          },
+          "serviceCode": {
+            "example": "langsync",
+            "type": "string"
+          },
+          "serviceName": {
+            "example": "LangSync",
+            "type": "string"
+          },
+          "unit": {
+            "example": "translations",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "dto.Invoice": {
+        "properties": {
+          "billingCity": {
+            "type": "string"
+          },
+          "billingCountryCode": {
+            "type": "string"
+          },
+          "billingName": {
+            "type": "string"
+          },
+          "billingPostalCode": {
+            "type": "string"
+          },
+          "billingState": {
+            "type": "string"
+          },
+          "billingStreet": {
+            "type": "string"
+          },
+          "billingTaxId": {
+            "type": "string"
+          },
+          "billingType": {
+            "$ref": "#/components/schemas/constants.BillingType"
+          },
+          "billingVatId": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "periodEnd": {
+            "type": "string"
+          },
+          "periodStart": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/constants.InvoiceStatus"
+          },
+          "subtotal": {
+            "type": "number"
+          },
+          "tax": {
+            "type": "number"
+          },
+          "total": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "billingCity",
+          "billingCountryCode",
+          "billingName",
+          "billingPostalCode",
+          "billingState",
+          "billingStreet",
+          "billingType",
+          "currency",
+          "id",
+          "organizationId",
+          "periodEnd",
+          "periodStart",
+          "status",
+          "subtotal",
+          "tax",
+          "total"
+        ],
+        "type": "object"
+      },
+      "dto.ListCreditGrants": {
+        "properties": {
+          "grants": {
+            "items": {
+              "$ref": "#/components/schemas/dto.CreditGrant"
+            },
+            "type": "array"
+          },
+          "totalActiveRemainingUsdCents": {
+            "description": "TotalActiveRemainingUSDCents is the sum of remaining USD cents on\nevery grant that is currently \"active\" — useful for a headline\n\"you have $X in credit available\" widget on the page header.",
+            "example": 3500,
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "dto.ListFreeTierMetrics": {
+        "properties": {
+          "metrics": {
+            "items": {
+              "$ref": "#/components/schemas/dto.FreeTierMetric"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "dto.PaymentMethod": {
+        "properties": {
+          "brand": {
+            "example": "visa",
+            "type": "string"
+          },
+          "country": {
+            "example": "CZ",
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "expMonth": {
+            "example": 12,
+            "type": "integer"
+          },
+          "expYear": {
+            "example": 2030,
+            "type": "integer"
+          },
+          "funding": {
+            "example": "credit",
+            "type": "string"
+          },
+          "id": {
+            "example": "pm_1OabcdEFghIJklMN",
+            "type": "string"
+          },
+          "isDefault": {
+            "example": true,
+            "type": "boolean"
+          },
+          "last4": {
+            "example": "4242",
+            "type": "string"
+          },
+          "type": {
+            "example": "card",
+            "type": "string"
+          },
+          "wallet": {
+            "example": "apple_pay",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "dto.SpendingCap": {
+        "properties": {
+          "alertThresholds": {
+            "example": [
+              50,
+              80,
+              100
+            ],
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "hardCapCents": {
+            "example": 50000,
+            "type": "integer"
+          },
+          "softCapCents": {
+            "example": 30000,
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "dto.Subscription": {
+        "properties": {
+          "cancelAt": {
+            "type": "string"
+          },
+          "cancelledAt": {
+            "type": "string"
+          },
+          "currentPeriodEnd": {
+            "type": "string"
+          },
+          "currentPeriodStart": {
+            "type": "string"
+          },
+          "id": {
+            "example": "4f1c2a0e-6d3b-4a1e-9f2c-0b1d2e3f4a5b",
+            "type": "string"
+          },
+          "planCode": {
+            "example": "backup_pro",
+            "type": "string"
+          },
+          "startedAt": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "paused",
+              "cancelled"
+            ],
+            "example": "active",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "dto.UpdateSubscriptionRequest": {
+        "properties": {
+          "planCode": {
+            "example": "backup_pro",
+            "type": "string"
+          }
+        },
+        "required": [
+          "planCode"
+        ],
+        "type": "object"
+      },
+      "handler.CreateSCAReauthPaymentIntentResponse": {
+        "properties": {
+          "clientSecret": {
+            "example": "pi_3RXyz..._secret_AbCd",
+            "type": "string"
+          },
+          "paymentIntentId": {
+            "example": "pi_3RXyz...",
+            "type": "string"
+          },
+          "publishableKey": {
+            "example": "pk_test_...",
+            "type": "string"
+          }
+        },
+        "required": [
+          "clientSecret",
+          "paymentIntentId",
+          "publishableKey"
+        ],
+        "type": "object"
+      },
+      "handler.CreateSetupIntentResponse": {
+        "properties": {
+          "clientSecret": {
+            "example": "seti_1OabcdEFghIJklMN_secret_xxx",
+            "type": "string"
+          },
+          "publishableKey": {
+            "example": "pk_test_xxx",
+            "type": "string"
+          },
+          "stripeCustomerId": {
+            "example": "cus_1OabcdEFghIJklMN",
+            "type": "string"
+          }
+        },
+        "required": [
+          "clientSecret",
+          "publishableKey",
+          "stripeCustomerId"
+        ],
+        "type": "object"
+      },
+      "handler.GetBillingEstimateResponse": {
+        "properties": {
+          "currentUsage": {
+            "type": "number"
+          },
+          "daysElapsed": {
+            "type": "integer"
+          },
+          "daysInMonth": {
+            "type": "integer"
+          },
+          "estimatedTotal": {
+            "type": "number"
+          },
+          "historicalAverage": {
+            "type": "number"
+          },
+          "linearEstimate": {
+            "type": "number"
+          },
+          "periodEnd": {
+            "type": "string"
+          },
+          "periodStart": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "currentUsage",
+          "daysElapsed",
+          "daysInMonth",
+          "estimatedTotal",
+          "historicalAverage",
+          "linearEstimate",
+          "periodEnd",
+          "periodStart"
+        ],
+        "type": "object"
+      },
+      "handler.SetDefaultPaymentMethodResponse": {
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "isDefault": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "isDefault"
+        ],
+        "type": "object"
+      },
+      "handler.payloadBillingPreferencesUpdate": {
+        "properties": {
+          "city": {
+            "type": "string"
+          },
+          "countryCode": {
+            "type": "string"
+          },
+          "invoicingEmail": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "postalCode": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "street": {
+            "type": "string"
+          },
+          "taxId": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/constants.BillingType"
+          },
+          "vatId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "city",
+          "countryCode",
+          "invoicingEmail",
+          "name",
+          "postalCode",
+          "state",
+          "street",
+          "taxId",
+          "type",
+          "vatId"
+        ],
+        "type": "object"
+      },
+      "handler.updateSpendingCapRequest": {
+        "properties": {
+          "alertThresholds": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "hardCapCents": {
+            "type": "integer"
+          },
+          "softCapCents": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "response.APIError": {
+        "properties": {
+          "data": {},
+          "msg": {
+            "example": "The payload is invalid.",
+            "type": "string"
+          },
+          "type": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/response.Type"
+              }
+            ],
+            "example": "INVALID_PAYLOAD"
+          }
+        },
+        "required": [
+          "msg",
+          "type"
+        ],
+        "type": "object"
+      },
+      "response.APIResponseEmpty": {
+        "type": "object"
+      },
+      "response.APIResponsePaginationCursors": {
+        "properties": {
+          "next": {
+            "example": "eyJpZCI6MzI3LCJjcmVhdGVkX2F0IjoiMjAyNS0wMS0wOFQxNzoyOTozMC42MzMxMTRaIn0=",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "response.APIResponsePaginationMeta": {
+        "properties": {
+          "timestamp": {
+            "example": "2021-01-08T17:29:30.663Z",
+            "type": "string"
+          }
+        },
+        "required": [
+          "timestamp"
+        ],
+        "type": "object"
+      },
+      "response.APIResponseWithPagination": {
+        "properties": {
+          "cursors": {
+            "$ref": "#/components/schemas/response.APIResponsePaginationCursors"
+          },
+          "list": {},
+          "meta": {
+            "$ref": "#/components/schemas/response.APIResponsePaginationMeta"
+          }
+        },
+        "required": [
+          "cursors",
+          "list",
+          "meta"
+        ],
+        "type": "object"
+      },
+      "response.Type": {
+        "enum": [
+          "MISSING_ORGANIZATION",
+          "INTERNAL_SERVER_ERROR",
+          "INVALID_TOKEN",
+          "INVALID_REQUEST",
+          "NOT_FOUND",
+          "OTP_INVALID",
+          "UNAUTHORIZED",
+          "INVALID_CREDENTIALS",
+          "INSUFFICIENT_PERMISSIONS",
+          "INVALID_PAYLOAD",
+          "EMAIL_REQUIRED",
+          "MISSING_NEW_PASSWORD",
+          "USER_NOT_FOUND",
+          "SECRET_NOT_FOUND",
+          "SECRET_EXPIRED",
+          "MISSING_RESET_PASSWORD_SECRET",
+          "OLD_PASSWORD_REQUIRED",
+          "NEW_PASSWORD_REQUIRED",
+          "INVALID_OLD_PASSWORD",
+          "MISSING_BACKUP_CODE",
+          "BACKUP_CODE_INVALID",
+          "LOGIN_INTENT_TOKEN",
+          "NAME_REQUIRED",
+          "INNOVATION_AGENCY_ID_REQUIRED",
+          "INVALID_ROLE",
+          "PASSWORD_REQUIRED",
+          "USER_ALREADY_EXISTS",
+          "MISSING_PERMISSIONS",
+          "SLUG_DUPLICATE",
+          "NAME_TOO_SHORT",
+          "NAME_TOO_LONG",
+          "SLUG_TOO_LONG",
+          "SERVICE_NOT_SUBSCRIBABLE",
+          "SUBSCRIPTION_CANCEL_NOT_ALLOWED"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "ErrMissingOrganization",
+          "ErrInternalServer",
+          "ErrInvalidToken",
+          "ErrInvalidRequest",
+          "ErrNotFound",
+          "ErrOTPInvalid",
+          "ErrUnauthorized",
+          "ErrInvalidCredentials",
+          "ErrInsufficientPermissions",
+          "ErrPayloadInvalid",
+          "ErrEmailRequired",
+          "ErrMissingNewPassword",
+          "ErrUserNotFound",
+          "ErrSecretNotFound",
+          "ErrSecretExpired",
+          "ErrMissingResetPasswordSecret",
+          "ErrOldPasswordRequired",
+          "ErrNewPasswordRequired",
+          "ErrInvalidOldPassword",
+          "ErrMissingBackupCode",
+          "ErrBackupCodeInvalid",
+          "ErrLoginIntentToken",
+          "ErrNameRequired",
+          "ErrInnovationAgencyIDRequired",
+          "ErrInvalidRole",
+          "ErrPasswordRequired",
+          "ErrUserAlreadyExists",
+          "ErrMissingPermissions",
+          "ErrSlugDuplicate",
+          "ErrNameTooShort",
+          "ErrNameTooLong",
+          "ErrSlugTooLong",
+          "ErrServiceNotSubscribable",
+          "ErrCancelNotAllowed"
+        ]
+      },
+      "service.AccountStatusOutput": {
+        "properties": {
+          "blockedAt": {
+            "type": "string"
+          },
+          "graceExpiresAt": {
+            "type": "string"
+          },
+          "graceStartedAt": {
+            "type": "string"
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/types.OrgBillingStatus"
+              }
+            ],
+            "example": "active"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "type": "object"
+      },
+      "types.OrgBillingStatus": {
+        "enum": [
+          "active",
+          "grace",
+          "blocked"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "OrgBillingStatusActive",
+          "OrgBillingStatusGrace",
+          "OrgBillingStatusBlocked"
+        ]
+      }
+    }
+  },
+  "info": {
+    "contact": {
+      "email": "jan@jetlio.com",
+      "name": "Jan Švábík"
+    },
+    "description": "Billing Service API Documentation",
+    "title": "Billing Service",
+    "version": ""
+  },
+  "openapi": "3.0.3",
+  "paths": {
+    "/billing/budget": {
+      "get": {
+        "description": "Returns the org's monthly spending cap configuration. Both hardCapCents (block paid usage when crossed) and softCapCents (warn-only) are optional. alertThresholds are percentages of the active cap that trigger warning emails (default 50/80/100).",
+        "operationId": "getSpendingCap",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.SpendingCap"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Get spending cap for the org in context",
+        "tags": [
+          "Billing"
+        ]
+      },
+      "put": {
+        "description": "Sets or updates the org's monthly spending cap. Either or both of hardCapCents and softCapCents may be provided. alertThresholds is an array of percentages (0..100); when omitted defaults to [50, 80, 100]. Setting hardCapCents to null removes the hard cap.",
+        "operationId": "updateSpendingCap",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/handler.updateSpendingCapRequest"
+              }
+            }
+          },
+          "description": "Cap configuration",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.SpendingCap"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Update spending cap",
+        "tags": [
+          "Billing"
+        ]
+      }
+    },
+    "/billing/credits": {
+      "get": {
+        "description": "Returns every credit grant ever issued to the authenticated org, newest first, with computed used / remaining / status (active|exhausted|expired). USD cents throughout — frontend formats to the customer's display currency.",
+        "operationId": "listOrgCredits",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.ListCreditGrants"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "List credits for the org in context",
+        "tags": [
+          "Billing"
+        ]
+      }
+    },
+    "/billing/estimate": {
+      "get": {
+        "description": "Gets billing estimate for the organization in context",
+        "operationId": "getBillingEstimate",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/handler.GetBillingEstimateResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Get Billing Estimate",
+        "tags": [
+          "Billing"
+        ]
+      }
+    },
+    "/billing/free-tier": {
+      "get": {
+        "description": "Returns one row per billable metric (anything with at least one row in pricing_tiers) showing the free-tier ceiling, the org's current month-to-date units, and the projected end-of-month figure. Storage metrics use the MTD average as the projection (already a rate); usage metrics use linear extrapolation. Frontend uses overflowProjected to flag metrics on track to incur charges.",
+        "operationId": "getFreeTierStatus",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.ListFreeTierMetrics"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Free-tier usage status for the org in context",
+        "tags": [
+          "Billing"
+        ]
+      }
+    },
+    "/billing/invoices": {
+      "get": {
+        "description": "Lists invoices for the organization in context",
+        "operationId": "listInvoices",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/response.APIResponseWithPagination"
+                    },
+                    {
+                      "properties": {
+                        "list": {
+                          "items": {
+                            "$ref": "#/components/schemas/dto.Invoice"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "List Invoices",
+        "tags": [
+          "Billing"
+        ]
+      }
+    },
+    "/billing/invoices/{invoiceId}/pdf": {
+      "get": {
+        "description": "Gets the PDF of a specific invoice",
+        "operationId": "getInvoicePDF",
+        "parameters": [
+          {
+            "description": "Invoice ID",
+            "in": "path",
+            "name": "invoiceId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Get Invoice PDF",
+        "tags": [
+          "Billing"
+        ]
+      }
+    },
+    "/billing/payment-methods": {
+      "get": {
+        "description": "Returns active payment methods stored against the organization's Stripe Customer. Replaced/dead methods are excluded.",
+        "operationId": "listPaymentMethods",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/dto.PaymentMethod"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "List payment methods",
+        "tags": [
+          "Payment Methods"
+        ]
+      }
+    },
+    "/billing/payment-methods/setup-intent": {
+      "post": {
+        "description": "Creates a Stripe SetupIntent that the frontend uses with Stripe Elements to collect a card with full SCA authentication. The resulting PaymentMethod is attached to the org's Stripe Customer. Call POST /billing/payment-methods/{id}/default afterwards to set it as the default.",
+        "operationId": "createSetupIntent",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/handler.CreateSetupIntentResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Create a SetupIntent for adding a payment method",
+        "tags": [
+          "Payment Methods"
+        ]
+      }
+    },
+    "/billing/payment-methods/{id}": {
+      "delete": {
+        "description": "Detaches the payment method in Stripe and marks the local copy as replaced. If the removed method was the default, the org has no default until a new one is set.",
+        "operationId": "removePaymentMethod",
+        "parameters": [
+          {
+            "description": "Stripe Payment Method ID (pm_xxx)",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Remove a payment method",
+        "tags": [
+          "Payment Methods"
+        ]
+      }
+    },
+    "/billing/payment-methods/{id}/default": {
+      "post": {
+        "description": "Marks the given payment method as the organization's default off-session charge target. The payment method must already be attached to the org's Stripe Customer (via SetupIntent).",
+        "operationId": "setDefaultPaymentMethod",
+        "parameters": [
+          {
+            "description": "Stripe Payment Method ID (pm_xxx)",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/handler.SetDefaultPaymentMethodResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Set default payment method",
+        "tags": [
+          "Payment Methods"
+        ]
+      }
+    },
+    "/billing/preferences": {
+      "get": {
+        "description": "Gets billing preferences for the organization in context",
+        "operationId": "getBillingPreferences",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.BillingPreferences"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Get Billing Preferences",
+        "tags": [
+          "Billing"
+        ]
+      },
+      "put": {
+        "description": "Updates billing preferences for the organization in context",
+        "operationId": "updateBillingPreferences",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/handler.payloadBillingPreferencesUpdate"
+              }
+            }
+          },
+          "description": "Billing Preferences Update Payload",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.BillingPreferences"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Update Billing Preferences",
+        "tags": [
+          "Billing"
+        ]
+      }
+    },
+    "/billing/proformas/{proformaId}/pdf": {
+      "get": {
+        "description": "Returns the rendered PDF for a Payment Request (proforma) document. The customer must belong to the org that owns the proforma.",
+        "operationId": "getProformaPDF",
+        "parameters": [
+          {
+            "description": "Proforma ID",
+            "in": "path",
+            "name": "proformaId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Get Payment Request PDF",
+        "tags": [
+          "Billing"
+        ]
+      }
+    },
+    "/billing/sca-reauth/{invoiceId}": {
+      "post": {
+        "description": "Creates a fresh on-session PaymentIntent against the org's default payment method for the given invoice. The frontend confirms it with Stripe Elements (`stripe.confirmCardPayment(clientSecret)`), which triggers the 3DS challenge inline. On success the webhook updates the charge_attempts row and marks the invoice paid. Used by the dunning email link for SCA-failed off-session charges.",
+        "operationId": "createSCAReauthPaymentIntent",
+        "parameters": [
+          {
+            "description": "Invoice ID",
+            "in": "path",
+            "name": "invoiceId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/handler.CreateSCAReauthPaymentIntentResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Create an on-session PaymentIntent for SCA re-authentication",
+        "tags": [
+          "Payment Methods"
+        ]
+      }
+    },
+    "/billing/services": {
+      "get": {
+        "description": "Returns every active service with its billing mode, the organization's current subscription on it (plans-mode services lazily auto-assign their default $0 plan here), and the public plan selector — presentation metadata, included quotas with metric names/units, and per-metric overage unit prices. Drives the customer Plans page with zero service-specific frontend logic.",
+        "operationId": "getBillingServices",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/dto.BillingService"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "List billable services with plans and the org's subscriptions",
+        "tags": [
+          "Billing"
+        ]
+      }
+    },
+    "/billing/status": {
+      "get": {
+        "description": "Returns the org's dunning state (active / grace / blocked) + grace expiry timestamp when applicable. Used by the frontend billing banner to surface payment issues. Always returns \"active\" for orgs that have never been dunned.",
+        "operationId": "getBillingAccountStatus",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/service.AccountStatusOutput"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Get Billing Account Status",
+        "tags": [
+          "Billing"
+        ]
+      }
+    },
+    "/billing/subscription": {
+      "delete": {
+        "description": "Cancels the organization's subscription on the given service immediately and deletes its plan entitlements (limits defaults apply again). Only allowed on choice-mode services — plans-mode organizations always hold a plan, so cancellation there returns 409 SUBSCRIPTION_CANCEL_NOT_ALLOWED (pick a different plan instead).",
+        "operationId": "cancelSubscription",
+        "parameters": [
+          {
+            "description": "Service code (default snapdb)",
+            "in": "query",
+            "name": "service",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIResponseEmpty"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Cancel the organization's subscription (back to pay-as-you-go)",
+        "tags": [
+          "Billing"
+        ]
+      },
+      "get": {
+        "description": "Returns the organization's current active/paused subscription on the given service (default \"snapdb\" for backward compatibility). 404 when the org has no subscription there (pure usage-metered).",
+        "operationId": "getSubscription",
+        "parameters": [
+          {
+            "description": "Service code (default snapdb)",
+            "in": "query",
+            "name": "service",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.Subscription"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Get the organization's subscription",
+        "tags": [
+          "Billing"
+        ]
+      },
+      "put": {
+        "description": "Subscribes the organization to the given plan code. The target service is the PLAN's service: if the organization already has a subscription there, its plan is changed (upgrade/downgrade) mid-period; otherwise a new subscription is created. Only public plans of plans/choice-mode services are selectable (409 SERVICE_NOT_SUBSCRIBABLE for metered services, 404 for hidden plans). Entitlements sync to the limits service asynchronously.",
+        "operationId": "updateSubscription",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/dto.UpdateSubscriptionRequest"
+              }
+            }
+          },
+          "description": "Target plan",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.Subscription"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Subscribe to or change the organization's plan",
+        "tags": [
+          "Billing"
+        ]
+      }
+    }
+  }
+}

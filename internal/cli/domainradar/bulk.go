@@ -59,8 +59,9 @@ job. Domains come from the arguments, a file (--file) or standard input
 (--file - or a single -), one per line; blank lines, "#" comments and
 duplicates are skipped.
 
-With --wait the command waits for the job to finish and prints it again;
-"bulk watch" shows the results as they arrive instead.
+With --wait the command waits for the job to finish and prints it again,
+and exits 1 (job_failed) if the job failed or was cancelled; "bulk watch"
+shows the results as they arrive instead.
 
 ` + metered,
 		Example: `  norcube domainradar bulk create --file names.txt --mode bloom
@@ -81,7 +82,7 @@ With --wait the command waits for the job to finish and prints it again;
 			if err != nil {
 				return nil, err
 			}
-			res, err := c.API.PostCheckBulkWithResponse(cmd.Context(), domainradar.PostCheckBulkJSONRequestBody{
+			res, err := c.API.CreateBulkCheckWithResponse(cmd.Context(), domainradar.CreateBulkCheckJSONRequestBody{
 				Domains: &domains, Mode: mode, MaxAge: maxAge,
 			})
 			if err != nil {
@@ -132,11 +133,17 @@ func waitForBulk(cmd *cobra.Command, d deps, c *drContext, id string, timeout ti
 	if human {
 		fmt.Fprint(stderr, "\r\033[K")
 	}
-	return last, err
+	if err != nil {
+		return last, err
+	}
+	if status := cmdutil.Deref(last.Status); status != "completed" {
+		return last, cmdutil.JobFailed(fmt.Sprintf("bulk check %s ended %s", id, status), last)
+	}
+	return last, nil
 }
 
 func getBulkJob(ctx context.Context, c *drContext, id string) (domainradar.DtoBulkCheckJob, error) {
-	res, err := c.API.GetCheckBulkIdWithResponse(ctx, id)
+	res, err := c.API.GetBulkCheckWithResponse(ctx, id)
 	if err != nil {
 		return domainradar.DtoBulkCheckJob{}, err
 	}
@@ -171,11 +178,11 @@ func newBulkListCmd(d deps) *cobra.Command {
 				return err
 			}
 			page, err := cmdutil.Paginate(cmd.Context(), pages, func(ctx context.Context, cursor string, size int) ([]domainradar.DtoBulkCheckJob, string, error) {
-				params := &domainradar.GetCheckBulkParams{Limit: &size}
+				params := &domainradar.ListBulkChecksParams{Limit: &size}
 				if cursor != "" {
 					params.Cursor = &cursor
 				}
-				res, err := c.API.GetCheckBulkWithResponse(ctx, params)
+				res, err := c.API.ListBulkChecksWithResponse(ctx, params)
 				if err != nil {
 					return nil, "", err
 				}
@@ -275,13 +282,13 @@ func (f resultFilters) tldParam() *[]string {
 
 // fetchResults returns one page of a bulk job's results.
 func fetchResults(ctx context.Context, c *drContext, id string, f resultFilters, cursor string, size int) ([]domainradar.DtoDomainCheck, string, error) {
-	params := &domainradar.GetCheckBulkIdResultsParams{
+	params := &domainradar.ListBulkCheckResultsParams{
 		Limit: &size, Available: f.availability(), Search: f.searchParam(), Tld: f.tldParam(),
 	}
 	if cursor != "" {
 		params.Cursor = &cursor
 	}
-	res, err := c.API.GetCheckBulkIdResultsWithResponse(ctx, id, params)
+	res, err := c.API.ListBulkCheckResultsWithResponse(ctx, id, params)
 	if err != nil {
 		return nil, "", err
 	}
@@ -361,7 +368,7 @@ func watchBulk(cmd *cobra.Command, d deps, api *domainradar.ClientWithResponses,
 	var all []domainradar.DtoDomainCheck
 	printed := false
 	err := sse.Follow(cmd.Context(), sse.FollowOptions{Sleep: d.sleep},
-		func(ctx context.Context) (*http.Response, error) { return api.GetCheckBulkIdStream(ctx, id) },
+		func(ctx context.Context) (*http.Response, error) { return api.StreamBulkCheck(ctx, id) },
 		func(ev sse.Event) (bool, error) {
 			if ev.Name == "done" {
 				return true, nil
@@ -497,7 +504,7 @@ func exportCSV(ctx context.Context, d deps, c *drContext, id string, f resultFil
 	if err != nil {
 		return nil, err
 	}
-	resp, err := api.GetCheckBulkIdExport(ctx, id, &domainradar.GetCheckBulkIdExportParams{
+	resp, err := api.ExportBulkCheckResults(ctx, id, &domainradar.ExportBulkCheckResultsParams{
 		Available: f.availability(), Search: f.searchParam(), Tld: f.tldParam(),
 	})
 	if err != nil {
@@ -535,13 +542,13 @@ checked yet are skipped. A cancelled check can't be resumed.`,
 		Args: cobra.ExactArgs(1),
 		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
 			if ok, err := cmdutil.Confirm(fmt.Sprintf("Cancel bulk check %s? It can't be resumed", args[0]), yes); err != nil || !ok {
-				return nil, cancelled(cmd, err)
+				return nil, cmdutil.Cancelled(cmd, err)
 			}
 			c, err := d.client(cmd)
 			if err != nil {
 				return nil, err
 			}
-			res, err := c.API.PostCheckBulkIdCancelWithResponse(cmd.Context(), args[0])
+			res, err := c.API.CancelBulkCheckWithResponse(cmd.Context(), args[0])
 			if err != nil {
 				return nil, err
 			}
@@ -571,13 +578,13 @@ func newBulkDeleteCmd(d deps) *cobra.Command {
 		Args: cobra.ExactArgs(1),
 		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
 			if ok, err := cmdutil.Confirm(fmt.Sprintf("Delete bulk check %s and its results? This can't be undone", args[0]), yes); err != nil || !ok {
-				return nil, cancelled(cmd, err)
+				return nil, cmdutil.Cancelled(cmd, err)
 			}
 			c, err := d.client(cmd)
 			if err != nil {
 				return nil, err
 			}
-			res, err := c.API.DeleteCheckBulkIdWithResponse(cmd.Context(), args[0])
+			res, err := c.API.DeleteBulkCheckWithResponse(cmd.Context(), args[0])
 			if err != nil {
 				return nil, err
 			}
@@ -593,16 +600,6 @@ func newBulkDeleteCmd(d deps) *cobra.Command {
 	}
 	cmd.Flags().BoolVarP(&yes, "yes", "y", false, "Don't ask for confirmation")
 	return cmd
-}
-
-// cancelled turns a declined or dismissed confirmation into the usual
-// "Cancelled." note; other errors pass through.
-func cancelled(cmd *cobra.Command, err error) error {
-	if err == nil || errors.Is(err, cmdutil.ErrCancelled) {
-		fmt.Fprintln(cmdutil.Stderr(cmd), "Cancelled.")
-		return nil
-	}
-	return err
 }
 
 // errNotSet is a usage error for an update that changes nothing.

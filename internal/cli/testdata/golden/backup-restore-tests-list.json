@@ -1,0 +1,42 @@
+[
+  {
+    "createdAt": "2026-10-01T11:00:00Z",
+    "dataSourceId": "ds-1",
+    "dataSourceName": "prod-db",
+    "durationMs": 95000,
+    "engine": "postgres",
+    "id": "rt-1",
+    "mode": "new_database",
+    "sourceBackupId": "job-1",
+    "startedAt": "2026-10-01T11:00:00Z",
+    "status": "success",
+    "verifyLevel": "l2",
+    "verifyPassed": true
+  },
+  {
+    "createdAt": "2026-09-30T11:00:00Z",
+    "dataSourceId": "ds-1",
+    "dataSourceName": "prod-db",
+    "durationMs": 91000,
+    "engine": "postgres",
+    "id": "rt-2",
+    "mode": "new_database",
+    "sourceBackupId": "job-0",
+    "startedAt": "2026-09-30T11:00:00Z",
+    "status": "success",
+    "verifyLevel": "l2",
+    "verifyPassed": true,
+    "verifyWarnings": "index skipped"
+  },
+  {
+    "createdAt": "2026-09-29T11:00:00Z",
+    "dataSourceId": "ds-1",
+    "dataSourceName": "prod-db",
+    "engine": "postgres",
+    "errorSummary": "archive truncated",
+    "id": "rt-3",
+    "mode": "new_database",
+    "sourceBackupId": "job-x",
+    "status": "failed"
+  }
+]

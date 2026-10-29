@@ -83,6 +83,18 @@
         },
         "type": "object"
       },
+      "brandmonitorhandler.watcherHitCountResponse": {
+        "properties": {
+          "count": {
+            "example": 42,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "count"
+        ],
+        "type": "object"
+      },
       "checkhandler.bulkCheckRequest": {
         "properties": {
           "domains": {
@@ -681,7 +693,8 @@
           "MISSING_ORGANIZATION_ID",
           "MISSING_USER_ID",
           "ORG_BLOCKED",
-          "TOO_MANY_REQUESTS"
+          "TOO_MANY_REQUESTS",
+          "INSUFFICIENT_SCOPE"
         ],
         "type": "string",
         "x-enum-varnames": [
@@ -695,7 +708,8 @@
           "ErrMissingOrganizationID",
           "ErrMissingUserID",
           "ErrOrgBlocked",
-          "ErrTooManyRequests"
+          "ErrTooManyRequests",
+          "ErrInsufficientScope"
         ]
       },
       "saveddomainhandler.saveRequest": {
@@ -727,6 +741,7 @@
     "/brand-monitor/hits": {
       "get": {
         "description": "Returns a cursor-paginated, filterable list of brand monitor hits.",
+        "operationId": "listBrandHits",
         "parameters": [
           {
             "in": "query",
@@ -764,8 +779,9 @@
             }
           },
           {
+            "description": "WatcherIDs filters to these watchers: repeat the parameter\n(watcherId=a\u0026watcherId=b) or comma-separate the ids.",
             "in": "query",
-            "name": "watcherIDs",
+            "name": "watcherId",
             "schema": {
               "items": {
                 "type": "string"
@@ -815,6 +831,7 @@
     "/brand-monitor/hits/{id}": {
       "get": {
         "description": "Returns details of a single CT certificate hit including AI analysis.",
+        "operationId": "getBrandHit",
         "parameters": [
           {
             "description": "Hit ID",
@@ -867,6 +884,7 @@
     "/brand-monitor/watchers": {
       "get": {
         "description": "Returns all watchers for the organization.",
+        "operationId": "listBrandWatchers",
         "responses": {
           "200": {
             "content": {
@@ -899,6 +917,7 @@
       },
       "post": {
         "description": "Adds a keyword to monitor in Certificate Transparency logs.",
+        "operationId": "createBrandWatcher",
         "requestBody": {
           "content": {
             "application/json": {
@@ -962,6 +981,7 @@
     "/brand-monitor/watchers/{id}": {
       "delete": {
         "description": "Removes a watcher and all associated hits.",
+        "operationId": "deleteBrandWatcher",
         "parameters": [
           {
             "description": "Watcher ID",
@@ -1005,6 +1025,7 @@
       },
       "get": {
         "description": "Returns a single watcher by ID.",
+        "operationId": "getBrandWatcher",
         "parameters": [
           {
             "description": "Watcher ID",
@@ -1055,6 +1076,7 @@
       },
       "put": {
         "description": "Updates a watcher's configuration.",
+        "operationId": "updateBrandWatcher",
         "parameters": [
           {
             "description": "Watcher ID",
@@ -1129,6 +1151,7 @@
     "/brand-monitor/watchers/{id}/hits": {
       "get": {
         "description": "Returns a cursor-paginated, filterable list of hits for a specific watcher.",
+        "operationId": "listBrandWatcherHits",
         "parameters": [
           {
             "description": "Watcher ID",
@@ -1175,8 +1198,9 @@
             }
           },
           {
+            "description": "WatcherIDs filters to these watchers: repeat the parameter\n(watcherId=a\u0026watcherId=b) or comma-separate the ids.",
             "in": "query",
-            "name": "watcherIDs",
+            "name": "watcherId",
             "schema": {
               "items": {
                 "type": "string"
@@ -1226,6 +1250,7 @@
     "/brand-monitor/watchers/{id}/hits/count": {
       "get": {
         "description": "Returns the total number of CT hits for a specific watcher.",
+        "operationId": "countBrandWatcherHits",
         "parameters": [
           {
             "description": "Watcher ID",
@@ -1242,10 +1267,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": {
-                    "type": "string"
-                  },
-                  "type": "object"
+                  "$ref": "#/components/schemas/brandmonitorhandler.watcherHitCountResponse"
                 }
               }
             },
@@ -1260,6 +1282,16 @@
               }
             },
             "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
           },
           "500": {
             "content": {
@@ -1335,6 +1367,7 @@
     "/check/bulk": {
       "get": {
         "description": "Returns a cursor-paginated list of bulk check jobs for the authenticated organization.",
+        "operationId": "listBulkChecks",
         "parameters": [
           {
             "in": "query",
@@ -1395,6 +1428,7 @@
       },
       "post": {
         "description": "Starts an asynchronous bulk domain check job with a specified mode.",
+        "operationId": "createBulkCheck",
         "requestBody": {
           "content": {
             "application/json": {
@@ -1448,6 +1482,7 @@
     "/check/bulk/{id}": {
       "delete": {
         "description": "Deletes a bulk check job, cancels pending queue items, and removes all results (cascade).",
+        "operationId": "deleteBulkCheck",
         "parameters": [
           {
             "description": "Bulk check job ID",
@@ -1501,6 +1536,7 @@
       },
       "get": {
         "description": "Returns the current state of a bulk check job.",
+        "operationId": "getBulkCheck",
         "parameters": [
           {
             "description": "Bulk check job ID",
@@ -1553,6 +1589,7 @@
     "/check/bulk/{id}/cancel": {
       "post": {
         "description": "Removes all pending queue items and marks the job as cancelled.",
+        "operationId": "cancelBulkCheck",
         "parameters": [
           {
             "description": "Bulk check job ID",
@@ -1615,6 +1652,7 @@
     "/check/bulk/{id}/export": {
       "get": {
         "description": "Streams every domain check result for a bulk job as a CSV file. Honors the same filters as /results so the export matches the current dashboard view.",
+        "operationId": "exportBulkCheckResults",
         "parameters": [
           {
             "description": "Bulk check job ID",
@@ -1718,6 +1756,7 @@
     "/check/bulk/{id}/results": {
       "get": {
         "description": "Returns cursor-paginated results for a bulk check job.",
+        "operationId": "listBulkCheckResults",
         "parameters": [
           {
             "description": "Bulk check job ID",
@@ -1836,6 +1875,7 @@
     "/check/bulk/{id}/stream": {
       "get": {
         "description": "Opens a Server-Sent Events stream for a bulk check job.",
+        "operationId": "streamBulkCheck",
         "parameters": [
           {
             "description": "Bulk check job ID",
@@ -1898,6 +1938,7 @@
     "/domains/saved": {
       "get": {
         "description": "Returns a cursor-paginated list of saved domains with latest check data.",
+        "operationId": "listSavedDomains",
         "parameters": [
           {
             "in": "query",
@@ -2040,6 +2081,7 @@
       },
       "post": {
         "description": "Saves (stars) a domain for the organization.",
+        "operationId": "saveDomain",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2086,6 +2128,7 @@
     "/domains/saved/{domain}": {
       "delete": {
         "description": "Removes a domain from the organization's saved list.",
+        "operationId": "removeSavedDomain",
         "parameters": [
           {
             "description": "Domain name",
@@ -2121,6 +2164,7 @@
     "/name-generator/jobs": {
       "get": {
         "description": "Returns a cursor-paginated list of name generation jobs for the authenticated organization.",
+        "operationId": "listNameJobs",
         "parameters": [
           {
             "description": "Results per page (default 20, max 100)",
@@ -2183,6 +2227,7 @@
       },
       "post": {
         "description": "Creates an async job that uses AI to generate brandable domain name candidates from a description, category, and style.",
+        "operationId": "createNameJob",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2236,6 +2281,7 @@
     "/name-generator/jobs/{jobId}": {
       "delete": {
         "description": "Deletes a name generation job and all its generated names (cascade).",
+        "operationId": "deleteNameJob",
         "parameters": [
           {
             "description": "Job ID (UUID)",
@@ -2289,6 +2335,7 @@
       },
       "get": {
         "description": "Returns the details of a specific name generation job including status and configuration.",
+        "operationId": "getNameJob",
         "parameters": [
           {
             "description": "Job ID (UUID)",
@@ -2341,6 +2388,7 @@
     "/name-generator/jobs/{jobId}/check": {
       "post": {
         "description": "Creates a bulk check job from generated names. If names is empty, all generated names from the job are used. Each name is combined with each TLD to produce the domain list.",
+        "operationId": "checkNameJobNames",
         "parameters": [
           {
             "description": "Name generator job ID (UUID)",
@@ -2405,6 +2453,7 @@
     "/name-generator/jobs/{jobId}/names": {
       "get": {
         "description": "Returns a cursor-paginated list of generated domain name candidates. Supports regex search via the search parameter (e.g. ^cloud, hub$, ^cl.*od$).",
+        "operationId": "listNameJobNames",
         "parameters": [
           {
             "description": "Job ID (UUID)",

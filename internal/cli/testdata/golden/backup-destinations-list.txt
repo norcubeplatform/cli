@@ -1,0 +1,3 @@
+NAME             TYPE  MANAGED  REGION        BUCKET        ID
+Norcube storage  s3    yes      eu-central-1                dst-1
+Own bucket       s3    no       eu-west-1     acme-backups  dst-2

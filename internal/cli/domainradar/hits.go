@@ -47,9 +47,9 @@ func newHitListCmd(d deps) *cobra.Command {
 				return err
 			}
 			page, err := cmdutil.Paginate(cmd.Context(), pages, func(ctx context.Context, cursor string, size int) ([]domainradar.DtoMonitorHit, string, error) {
-				params := &domainradar.GetBrandMonitorHitsParams{Limit: &size}
+				params := &domainradar.ListBrandHitsParams{Limit: &size}
 				if len(watchers) > 0 {
-					params.WatcherIDs = &watchers
+					params.WatcherId = &watchers
 				}
 				if cmd.Flags().Changed("min-score") {
 					params.ScoreMin = &minScore
@@ -63,7 +63,7 @@ func newHitListCmd(d deps) *cobra.Command {
 				if cursor != "" {
 					params.Cursor = &cursor
 				}
-				res, err := c.API.GetBrandMonitorHitsWithResponse(ctx, params)
+				res, err := c.API.ListBrandHitsWithResponse(ctx, params)
 				if err != nil {
 					return nil, "", err
 				}
@@ -112,7 +112,7 @@ func newHitGetCmd(d deps) *cobra.Command {
 			if err != nil {
 				return nil, err
 			}
-			res, err := c.API.GetBrandMonitorHitsIdWithResponse(cmd.Context(), args[0])
+			res, err := c.API.GetBrandHitWithResponse(cmd.Context(), args[0])
 			if err != nil {
 				return nil, err
 			}

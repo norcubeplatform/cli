@@ -1,0 +1,17 @@
+[
+  {
+    "compression": "gzip",
+    "destinationId": "dst-1",
+    "encryption": "sse-kms",
+    "id": "pol-1",
+    "keepLastN": 30,
+    "method": "logical_dump",
+    "name": "Nightly",
+    "organizationId": "org-1",
+    "parallelism": 1,
+    "pitrEnabled": false,
+    "retentionDays": 30,
+    "scheduleCron": "0 2 * * *",
+    "timezone": "Europe/Prague"
+  }
+]

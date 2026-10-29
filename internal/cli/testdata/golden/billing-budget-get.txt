@@ -1,0 +1,3 @@
+Hard cap:   $500.00
+Soft cap:   none
+Alerts at:  50%, 80%, 100%

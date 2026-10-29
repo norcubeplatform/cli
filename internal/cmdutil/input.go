@@ -110,3 +110,36 @@ func inputName(file string) string {
 		return file
 	}
 }
+
+// maxTextInput caps text read from a file or stdin (a prompt, a
+// translation, a connection string), well above anything an API accepts.
+const maxTextInput = 1 << 20
+
+// ReadText returns value, or the contents of path when path is set ("-"
+// is stdin). A single trailing newline is dropped, so `echo ... |` works.
+// what names the text in errors ("the prompt").
+func ReadText(stdin io.Reader, value, path, what string) (string, error) {
+	if path == "" {
+		return value, nil
+	}
+	r := stdin
+	if path != "-" {
+		f, err := os.Open(path) // #nosec G304 -- the user names the file
+		if err != nil {
+			return "", clierr.Usage(fmt.Errorf("read %s: %w", what, err))
+		}
+		defer func() { _ = f.Close() }()
+		r = f
+	} else if r == nil {
+		return "", errors.New("no standard input to read from")
+	}
+	b, err := io.ReadAll(io.LimitReader(r, maxTextInput+1))
+	if err != nil {
+		return "", fmt.Errorf("read %s: %w", what, err)
+	}
+	if len(b) > maxTextInput {
+		return "", clierr.Usage(fmt.Errorf("%s is larger than %d bytes", what, maxTextInput))
+	}
+	s := strings.TrimSuffix(strings.TrimSuffix(string(b), "\n"), "\r")
+	return s, nil
+}

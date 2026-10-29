@@ -1,0 +1,1 @@
+rst-1	prod-db (ds-1)	job-1	new_database	success	postgres://…@db.example.com:5432/app_restored	app_restored	2026-10-02T08:00:05Z	2026-10-02T08:03:05Z	3m00s	2.0 MiB

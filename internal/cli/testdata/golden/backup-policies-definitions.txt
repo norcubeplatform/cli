@@ -1,0 +1,2 @@
+NAME     SCHEDULE   TIMEZONE       RETENTION  KEEP_LAST  METHOD        ID
+Nightly  0 2 * * *  Europe/Prague  30d        30         logical_dump  pol-1

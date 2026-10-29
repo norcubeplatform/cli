@@ -60,6 +60,7 @@ services:
     spec:
       app: billing
       file: backend_swagger.json
+    package: billing
 
   - key: prompthub
     name: PromptHub

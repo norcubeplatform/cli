@@ -136,7 +136,6 @@ func (e ConstantsAuditTargetType) Valid() bool {
 
 // Defines values for ConstantsGlossaryItemType.
 const (
-	GlosasryItemTypePhrase        ConstantsGlossaryItemType = "phrase"
 	GlossaryItemTypeAdj           ConstantsGlossaryItemType = "adjective"
 	GlossaryItemTypeAdv           ConstantsGlossaryItemType = "adverb"
 	GlossaryItemTypeConjunction   ConstantsGlossaryItemType = "conjunction"
@@ -144,6 +143,7 @@ const (
 	GlossaryItemTypeInterjection  ConstantsGlossaryItemType = "interjection"
 	GlossaryItemTypeNotApplicable ConstantsGlossaryItemType = "n/a"
 	GlossaryItemTypeNoun          ConstantsGlossaryItemType = "noun"
+	GlossaryItemTypePhrase        ConstantsGlossaryItemType = "phrase"
 	GlossaryItemTypePreposition   ConstantsGlossaryItemType = "preposition"
 	GlossaryItemTypePronoun       ConstantsGlossaryItemType = "pronoun"
 	GlossaryItemTypeVerb          ConstantsGlossaryItemType = "verb"
@@ -152,8 +152,6 @@ const (
 // Valid indicates whether the value is a known member of the ConstantsGlossaryItemType enum.
 func (e ConstantsGlossaryItemType) Valid() bool {
 	switch e {
-	case GlosasryItemTypePhrase:
-		return true
 	case GlossaryItemTypeAdj:
 		return true
 	case GlossaryItemTypeAdv:
@@ -167,6 +165,8 @@ func (e ConstantsGlossaryItemType) Valid() bool {
 	case GlossaryItemTypeNotApplicable:
 		return true
 	case GlossaryItemTypeNoun:
+		return true
+	case GlossaryItemTypePhrase:
 		return true
 	case GlossaryItemTypePreposition:
 		return true
@@ -251,6 +251,30 @@ func (e ConstantsTermImportFormat) Valid() bool {
 	}
 }
 
+// Defines values for DtoDTOTermImportStatus.
+const (
+	Completed  DtoDTOTermImportStatus = "completed"
+	Failed     DtoDTOTermImportStatus = "failed"
+	Prechecked DtoDTOTermImportStatus = "prechecked"
+	Processing DtoDTOTermImportStatus = "processing"
+)
+
+// Valid indicates whether the value is a known member of the DtoDTOTermImportStatus enum.
+func (e DtoDTOTermImportStatus) Valid() bool {
+	switch e {
+	case Completed:
+		return true
+	case Failed:
+		return true
+	case Prechecked:
+		return true
+	case Processing:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ResponseType.
 const (
 	ErrBackupCodeInvalid          ResponseType = "BACKUP_CODE_INVALID"
@@ -263,8 +287,11 @@ const (
 	ErrEmpty                      ResponseType = "EMPTY"
 	ErrEmptyValue                 ResponseType = "EMPTY_VALUE"
 	ErrForbidden                  ResponseType = "FORBIDDEN"
+	ErrImportInvalidFile          ResponseType = "IMPORT_INVALID_FILE"
+	ErrImportUnsupportedFormat    ResponseType = "IMPORT_UNSUPPORTED_FORMAT"
 	ErrInnovationAgencyIDRequired ResponseType = "INNOVATION_AGENCY_ID_REQUIRED"
 	ErrInsufficientPermissions    ResponseType = "INSUFFICIENT_PERMISSIONS"
+	ErrInsufficientScope          ResponseType = "INSUFFICIENT_SCOPE"
 	ErrInternalServer             ResponseType = "INTERNAL_SERVER_ERROR"
 	ErrInvalidCustomPrompt        ResponseType = "INVALID_CUSTOM_PROMPT"
 	ErrInvalidImportStatus        ResponseType = "INVALID_IMPORT_STATUS"
@@ -326,9 +353,15 @@ func (e ResponseType) Valid() bool {
 		return true
 	case ErrForbidden:
 		return true
+	case ErrImportInvalidFile:
+		return true
+	case ErrImportUnsupportedFormat:
+		return true
 	case ErrInnovationAgencyIDRequired:
 		return true
 	case ErrInsufficientPermissions:
+		return true
+	case ErrInsufficientScope:
 		return true
 	case ErrInternalServer:
 		return true
@@ -471,7 +504,6 @@ type ConstantsTermImportFormat string
 type DtoAPIKey struct {
 	CreatedAt      string  `json:"createdAt"`
 	CreatedBy      string  `json:"createdBy"`
-	Hash           string  `json:"hash"`
 	Id             string  `json:"id"`
 	LastUsedAt     *string `json:"lastUsedAt,omitempty"`
 	Name           string  `json:"name"`
@@ -629,6 +661,23 @@ type DtoDTOTermDetail struct {
 	Mark      string `json:"mark"`
 }
 
+// DtoDTOTermImport defines model for dto.DTOTermImport.
+type DtoDTOTermImport struct {
+	CreatedAt string `json:"createdAt"`
+
+	// Error Error is a short, client-safe description; set when Status is failed.
+	Error      *string                `json:"error,omitempty"`
+	ExpiresAt  string                 `json:"expiresAt"`
+	FinishedAt *string                `json:"finishedAt,omitempty"`
+	Format     string                 `json:"format"`
+	Id         string                 `json:"id"`
+	Status     DtoDTOTermImportStatus `json:"status"`
+	TotalRows  int                    `json:"totalRows"`
+}
+
+// DtoDTOTermImportStatus defines model for DtoDTOTermImport.Status.
+type DtoDTOTermImportStatus string
+
 // DtoGlossary defines model for dto.Glossary.
 type DtoGlossary struct {
 	DefaultLanguageId *int    `json:"defaultLanguageId,omitempty"`
@@ -687,6 +736,11 @@ type DtoTranslationInfo struct {
 type GlossaryAddTranslationRequest struct {
 	LanguageId int    `json:"languageId"`
 	Value      string `json:"value"`
+}
+
+// GlossaryAttachLanguageRequest defines model for glossary.attachLanguageRequest.
+type GlossaryAttachLanguageRequest struct {
+	LanguageId int `json:"languageId"`
 }
 
 // GlossaryCreateGlossaryRequest defines model for glossary.createGlossaryRequest.
@@ -950,8 +1004,11 @@ type TermPayloadRecommendMagicTranslationRequest struct {
 	// CustomPromptId CustomPromptID overrides the namespace's default custom prompt for
 	// this suggestion.
 	CustomPromptId *string `json:"customPromptId,omitempty"`
-	Prompt         string  `json:"prompt"`
-	SourceLangId   *int    `json:"sourceLangId,omitempty"`
+
+	// Prompt Prompt is ignored and kept only so older clients that send it still
+	// validate. Use customPromptId to steer the suggestion.
+	Prompt       *string `json:"prompt,omitempty"`
+	SourceLangId *int    `json:"sourceLangId,omitempty"`
 }
 
 // TermPayloadRecommendMagicTranslationResponse defines model for term.payloadRecommendMagicTranslationResponse.
@@ -1110,6 +1167,9 @@ type AddTranslationToGlossaryItemJSONRequestBody = GlossaryAddTranslationRequest
 
 // UpdateGlossaryItemTranslationJSONRequestBody defines body for UpdateGlossaryItemTranslation for application/json ContentType.
 type UpdateGlossaryItemTranslationJSONRequestBody = GlossaryUpdateTranslationRequest
+
+// AttachLanguageToGlossaryJSONRequestBody defines body for AttachLanguageToGlossary for application/json ContentType.
+type AttachLanguageToGlossaryJSONRequestBody = GlossaryAttachLanguageRequest
 
 // CreateCustomLanguageJSONRequestBody defines body for CreateCustomLanguage for application/json ContentType.
 type CreateCustomLanguageJSONRequestBody = LanguagePayloadCreateLanguageRequest
@@ -1284,8 +1344,10 @@ type ClientInterface interface {
 
 	UpdateGlossaryItemTranslation(ctx context.Context, itemId string, languageId int, body UpdateGlossaryItemTranslationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// AttachLanguageToGlossary request
-	AttachLanguageToGlossary(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// AttachLanguageToGlossaryWithBody request with any body
+	AttachLanguageToGlossaryWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	AttachLanguageToGlossary(ctx context.Context, body AttachLanguageToGlossaryJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListLanguagesForOrg request
 	ListLanguagesForOrg(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -1357,6 +1419,9 @@ type ClientInterface interface {
 	// CreateImportWithBody request with any body
 	CreateImportWithBody(ctx context.Context, namespaceName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetImport request
+	GetImport(ctx context.Context, namespaceName string, importId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ImportFinishWithBody request with any body
 	ImportFinishWithBody(ctx context.Context, namespaceName string, importId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -1369,6 +1434,9 @@ type ClientInterface interface {
 
 	// DeleteTerm request
 	DeleteTerm(ctx context.Context, namespaceName string, termId int, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetTerm request
+	GetTerm(ctx context.Context, namespaceName string, termId int, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UpdateTermWithBody request with any body
 	UpdateTermWithBody(ctx context.Context, namespaceName string, termId int, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -1395,6 +1463,9 @@ type ClientInterface interface {
 
 	// DeleteCustomPrompt request
 	DeleteCustomPrompt(ctx context.Context, promptId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetCustomPrompt request
+	GetCustomPrompt(ctx context.Context, promptId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UpdateCustomPromptWithBody request with any body
 	UpdateCustomPromptWithBody(ctx context.Context, promptId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -1623,8 +1694,20 @@ func (c *Client) UpdateGlossaryItemTranslation(ctx context.Context, itemId strin
 	return c.Client.Do(req)
 }
 
-func (c *Client) AttachLanguageToGlossary(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAttachLanguageToGlossaryRequest(c.Server)
+func (c *Client) AttachLanguageToGlossaryWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAttachLanguageToGlossaryRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AttachLanguageToGlossary(ctx context.Context, body AttachLanguageToGlossaryJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAttachLanguageToGlossaryRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -1947,6 +2030,18 @@ func (c *Client) CreateImportWithBody(ctx context.Context, namespaceName string,
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetImport(ctx context.Context, namespaceName string, importId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetImportRequest(c.Server, namespaceName, importId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ImportFinishWithBody(ctx context.Context, namespaceName string, importId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewImportFinishRequestWithBody(c.Server, namespaceName, importId, contentType, body)
 	if err != nil {
@@ -1997,6 +2092,18 @@ func (c *Client) TranslateMissingTranslations(ctx context.Context, namespaceName
 
 func (c *Client) DeleteTerm(ctx context.Context, namespaceName string, termId int, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDeleteTermRequest(c.Server, namespaceName, termId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetTerm(ctx context.Context, namespaceName string, termId int, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetTermRequest(c.Server, namespaceName, termId)
 	if err != nil {
 		return nil, err
 	}
@@ -2117,6 +2224,18 @@ func (c *Client) CreateCustomPrompt(ctx context.Context, body CreateCustomPrompt
 
 func (c *Client) DeleteCustomPrompt(ctx context.Context, promptId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDeleteCustomPromptRequest(c.Server, promptId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetCustomPrompt(ctx context.Context, promptId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetCustomPromptRequest(c.Server, promptId)
 	if err != nil {
 		return nil, err
 	}
@@ -2795,8 +2914,19 @@ func NewUpdateGlossaryItemTranslationRequestWithBody(server string, itemId strin
 	return req, nil
 }
 
-// NewAttachLanguageToGlossaryRequest generates requests for AttachLanguageToGlossary
-func NewAttachLanguageToGlossaryRequest(server string) (*http.Request, error) {
+// NewAttachLanguageToGlossaryRequest calls the generic AttachLanguageToGlossary builder with application/json body
+func NewAttachLanguageToGlossaryRequest(server string, body AttachLanguageToGlossaryJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewAttachLanguageToGlossaryRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewAttachLanguageToGlossaryRequestWithBody generates requests for AttachLanguageToGlossary with any type of body
+func NewAttachLanguageToGlossaryRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -2814,10 +2944,12 @@ func NewAttachLanguageToGlossaryRequest(server string) (*http.Request, error) {
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, queryURL.String(), nil)
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -3575,6 +3707,47 @@ func NewCreateImportRequestWithBody(server string, namespaceName string, content
 	return req, nil
 }
 
+// NewGetImportRequest generates requests for GetImport
+func NewGetImportRequest(server string, namespaceName string, importId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "namespaceName", namespaceName, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithOptions("simple", false, "importId", importId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/namespaces/%s/terms/imports/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewImportFinishRequest calls the generic ImportFinish builder with application/json body
 func NewImportFinishRequest(server string, namespaceName string, importId string, body ImportFinishJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -3710,6 +3883,47 @@ func NewDeleteTermRequest(server string, namespaceName string, termId int) (*htt
 	}
 
 	req, err := http.NewRequest(http.MethodDelete, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetTermRequest generates requests for GetTerm
+func NewGetTermRequest(server string, namespaceName string, termId int) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "namespaceName", namespaceName, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithOptions("simple", false, "termId", termId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "integer", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/namespaces/%s/terms/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -3994,6 +4208,40 @@ func NewDeleteCustomPromptRequest(server string, promptId string) (*http.Request
 	return req, nil
 }
 
+// NewGetCustomPromptRequest generates requests for GetCustomPrompt
+func NewGetCustomPromptRequest(server string, promptId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "promptId", promptId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/translations/custom-prompts/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewUpdateCustomPromptRequest calls the generic UpdateCustomPrompt builder with application/json body
 func NewUpdateCustomPromptRequest(server string, promptId string, body UpdateCustomPromptJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -4173,8 +4421,10 @@ type ClientWithResponsesInterface interface {
 
 	UpdateGlossaryItemTranslationWithResponse(ctx context.Context, itemId string, languageId int, body UpdateGlossaryItemTranslationJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateGlossaryItemTranslationResponse, error)
 
-	// AttachLanguageToGlossaryWithResponse request
-	AttachLanguageToGlossaryWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*AttachLanguageToGlossaryResponse, error)
+	// AttachLanguageToGlossaryWithBodyWithResponse request with any body
+	AttachLanguageToGlossaryWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AttachLanguageToGlossaryResponse, error)
+
+	AttachLanguageToGlossaryWithResponse(ctx context.Context, body AttachLanguageToGlossaryJSONRequestBody, reqEditors ...RequestEditorFn) (*AttachLanguageToGlossaryResponse, error)
 
 	// ListLanguagesForOrgWithResponse request
 	ListLanguagesForOrgWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListLanguagesForOrgResponse, error)
@@ -4246,6 +4496,9 @@ type ClientWithResponsesInterface interface {
 	// CreateImportWithBodyWithResponse request with any body
 	CreateImportWithBodyWithResponse(ctx context.Context, namespaceName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateImportResponse, error)
 
+	// GetImportWithResponse request
+	GetImportWithResponse(ctx context.Context, namespaceName string, importId string, reqEditors ...RequestEditorFn) (*GetImportResponse, error)
+
 	// ImportFinishWithBodyWithResponse request with any body
 	ImportFinishWithBodyWithResponse(ctx context.Context, namespaceName string, importId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ImportFinishResponse, error)
 
@@ -4258,6 +4511,9 @@ type ClientWithResponsesInterface interface {
 
 	// DeleteTermWithResponse request
 	DeleteTermWithResponse(ctx context.Context, namespaceName string, termId int, reqEditors ...RequestEditorFn) (*DeleteTermResponse, error)
+
+	// GetTermWithResponse request
+	GetTermWithResponse(ctx context.Context, namespaceName string, termId int, reqEditors ...RequestEditorFn) (*GetTermResponse, error)
 
 	// UpdateTermWithBodyWithResponse request with any body
 	UpdateTermWithBodyWithResponse(ctx context.Context, namespaceName string, termId int, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateTermResponse, error)
@@ -4284,6 +4540,9 @@ type ClientWithResponsesInterface interface {
 
 	// DeleteCustomPromptWithResponse request
 	DeleteCustomPromptWithResponse(ctx context.Context, promptId string, reqEditors ...RequestEditorFn) (*DeleteCustomPromptResponse, error)
+
+	// GetCustomPromptWithResponse request
+	GetCustomPromptWithResponse(ctx context.Context, promptId string, reqEditors ...RequestEditorFn) (*GetCustomPromptResponse, error)
 
 	// UpdateCustomPromptWithBodyWithResponse request with any body
 	UpdateCustomPromptWithBodyWithResponse(ctx context.Context, promptId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateCustomPromptResponse, error)
@@ -5398,6 +5657,41 @@ func (r CreateImportResponse) ContentType() string {
 	return ""
 }
 
+type GetImportResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DtoDTOTermImport
+	JSON400      *ResponseAPIError
+	JSON401      *ResponseAPIError
+	JSON403      *ResponseAPIError
+	JSON404      *ResponseAPIError
+	JSON500      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r GetImportResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetImportResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetImportResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type ImportFinishResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -5496,6 +5790,41 @@ func (r DeleteTermResponse) StatusCode() int {
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
 func (r DeleteTermResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type GetTermResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DtoDTOTerm
+	JSON400      *ResponseAPIError
+	JSON401      *ResponseAPIError
+	JSON403      *ResponseAPIError
+	JSON404      *ResponseAPIError
+	JSON500      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r GetTermResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetTermResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetTermResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
@@ -5699,6 +6028,41 @@ func (r DeleteCustomPromptResponse) StatusCode() int {
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
 func (r DeleteCustomPromptResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type GetCustomPromptResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DtoCustomPrompt
+	JSON400      *ResponseAPIError
+	JSON401      *ResponseAPIError
+	JSON403      *ResponseAPIError
+	JSON404      *ResponseAPIError
+	JSON500      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r GetCustomPromptResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetCustomPromptResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetCustomPromptResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
@@ -5927,9 +6291,17 @@ func (c *ClientWithResponses) UpdateGlossaryItemTranslationWithResponse(ctx cont
 	return ParseUpdateGlossaryItemTranslationResponse(rsp)
 }
 
-// AttachLanguageToGlossaryWithResponse request returning *AttachLanguageToGlossaryResponse
-func (c *ClientWithResponses) AttachLanguageToGlossaryWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*AttachLanguageToGlossaryResponse, error) {
-	rsp, err := c.AttachLanguageToGlossary(ctx, reqEditors...)
+// AttachLanguageToGlossaryWithBodyWithResponse request with arbitrary body returning *AttachLanguageToGlossaryResponse
+func (c *ClientWithResponses) AttachLanguageToGlossaryWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AttachLanguageToGlossaryResponse, error) {
+	rsp, err := c.AttachLanguageToGlossaryWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAttachLanguageToGlossaryResponse(rsp)
+}
+
+func (c *ClientWithResponses) AttachLanguageToGlossaryWithResponse(ctx context.Context, body AttachLanguageToGlossaryJSONRequestBody, reqEditors ...RequestEditorFn) (*AttachLanguageToGlossaryResponse, error) {
+	rsp, err := c.AttachLanguageToGlossary(ctx, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -6162,6 +6534,15 @@ func (c *ClientWithResponses) CreateImportWithBodyWithResponse(ctx context.Conte
 	return ParseCreateImportResponse(rsp)
 }
 
+// GetImportWithResponse request returning *GetImportResponse
+func (c *ClientWithResponses) GetImportWithResponse(ctx context.Context, namespaceName string, importId string, reqEditors ...RequestEditorFn) (*GetImportResponse, error) {
+	rsp, err := c.GetImport(ctx, namespaceName, importId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetImportResponse(rsp)
+}
+
 // ImportFinishWithBodyWithResponse request with arbitrary body returning *ImportFinishResponse
 func (c *ClientWithResponses) ImportFinishWithBodyWithResponse(ctx context.Context, namespaceName string, importId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ImportFinishResponse, error) {
 	rsp, err := c.ImportFinishWithBody(ctx, namespaceName, importId, contentType, body, reqEditors...)
@@ -6203,6 +6584,15 @@ func (c *ClientWithResponses) DeleteTermWithResponse(ctx context.Context, namesp
 		return nil, err
 	}
 	return ParseDeleteTermResponse(rsp)
+}
+
+// GetTermWithResponse request returning *GetTermResponse
+func (c *ClientWithResponses) GetTermWithResponse(ctx context.Context, namespaceName string, termId int, reqEditors ...RequestEditorFn) (*GetTermResponse, error) {
+	rsp, err := c.GetTerm(ctx, namespaceName, termId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetTermResponse(rsp)
 }
 
 // UpdateTermWithBodyWithResponse request with arbitrary body returning *UpdateTermResponse
@@ -6289,6 +6679,15 @@ func (c *ClientWithResponses) DeleteCustomPromptWithResponse(ctx context.Context
 		return nil, err
 	}
 	return ParseDeleteCustomPromptResponse(rsp)
+}
+
+// GetCustomPromptWithResponse request returning *GetCustomPromptResponse
+func (c *ClientWithResponses) GetCustomPromptWithResponse(ctx context.Context, promptId string, reqEditors ...RequestEditorFn) (*GetCustomPromptResponse, error) {
+	rsp, err := c.GetCustomPrompt(ctx, promptId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetCustomPromptResponse(rsp)
 }
 
 // UpdateCustomPromptWithBodyWithResponse request with arbitrary body returning *UpdateCustomPromptResponse
@@ -8079,6 +8478,67 @@ func ParseCreateImportResponse(rsp *http.Response) (*CreateImportResponse, error
 	return response, nil
 }
 
+// ParseGetImportResponse parses an HTTP response from a GetImportWithResponse call
+func ParseGetImportResponse(rsp *http.Response) (*GetImportResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetImportResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DtoDTOTermImport
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseImportFinishResponse parses an HTTP response from a ImportFinishWithResponse call
 func ParseImportFinishResponse(rsp *http.Response) (*ImportFinishResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -8215,6 +8675,67 @@ func ParseDeleteTermResponse(rsp *http.Response) (*DeleteTermResponse, error) {
 	}
 
 	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetTermResponse parses an HTTP response from a GetTermWithResponse call
+func ParseGetTermResponse(rsp *http.Response) (*GetTermResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetTermResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DtoDTOTerm
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
 		var dest ResponseAPIError
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -8559,6 +9080,67 @@ func ParseDeleteCustomPromptResponse(rsp *http.Response) (*DeleteCustomPromptRes
 			return nil, err
 		}
 		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetCustomPromptResponse parses an HTTP response from a GetCustomPromptWithResponse call
+func ParseGetCustomPromptResponse(rsp *http.Response) (*GetCustomPromptResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetCustomPromptResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DtoCustomPrompt
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest ResponseAPIError

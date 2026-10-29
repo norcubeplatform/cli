@@ -217,6 +217,54 @@ func TestDomainRadarBulkCreateWaitsForTheJob(t *testing.T) {
 	}
 }
 
+// A job that ends without completing fails --wait with job_failed (exit
+// 1), so a script never mistakes a failed or cancelled job for results.
+func TestDomainRadarWaitFailsOnUnfinishedJobs(t *testing.T) {
+	for _, status := range []string{"failed", "cancelled"} {
+		t.Run(status, func(t *testing.T) {
+			goldenEnv(t)
+			goldenHandlers(t, map[string]http.HandlerFunc{
+				"POST /check/bulk": func(w http.ResponseWriter, r *http.Request) {
+					w.WriteHeader(http.StatusAccepted)
+					fmt.Fprint(w, `{"id":"bulk-9","status":"pending","totalDomains":1,"completedDomains":0}`)
+				},
+				"GET /check/bulk/bulk-9": func(w http.ResponseWriter, r *http.Request) {
+					fmt.Fprintf(w, `{"id":"bulk-9","status":%q,"totalDomains":1,"completedDomains":0}`, status)
+				},
+			})
+			_, _, err := run(t, "domainradar", "bulk", "create", "x.io", "--wait", "-o", "json")
+			if err == nil {
+				t.Fatal("--wait succeeded on a job that did not complete")
+			}
+			e := Describe(err)
+			if e.Code != clierr.CodeJobFailed || e.ExitCode() != clierr.ExitError || !strings.Contains(e.Message, "bulk-9 ended "+status) {
+				t.Fatalf("err = %+v", e)
+			}
+		})
+	}
+
+	t.Run("name generation", func(t *testing.T) {
+		goldenEnv(t)
+		goldenHandlers(t, map[string]http.HandlerFunc{
+			"POST /name-generator/jobs": func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusAccepted)
+				fmt.Fprint(w, `{"id":"n-9","status":"pending"}`)
+			},
+			"GET /name-generator/jobs/n-9": func(w http.ResponseWriter, r *http.Request) {
+				fmt.Fprint(w, `{"id":"n-9","status":"failed","error":"model unavailable"}`)
+			},
+		})
+		_, _, err := run(t, "domainradar", "names", "generate", "invoicing for freelancers", "--wait", "-o", "json")
+		if err == nil {
+			t.Fatal("--wait succeeded on a job that did not complete")
+		}
+		e := Describe(err)
+		if e.Code != clierr.CodeJobFailed || !strings.Contains(e.Message, "n-9 ended failed: model unavailable") {
+			t.Fatalf("err = %+v", e)
+		}
+	})
+}
+
 func TestDomainRadarWatchStreamsAndDeduplicates(t *testing.T) {
 	goldenEnv(t)
 	var opened int32

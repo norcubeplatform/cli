@@ -105,3 +105,11 @@ func SleepContext(ctx context.Context, d time.Duration) error {
 		return nil
 	}
 }
+
+// JobFailed is the error of a command that waited for a job (--wait)
+// which ended unsuccessfully: exit 1 with code job_failed, so a script
+// can tell "the backup failed" from "the CLI failed". job is the job as
+// last seen, included in the JSON error as details.
+func JobFailed(message string, job any) error {
+	return &clierr.Error{Code: clierr.CodeJobFailed, Message: message, Details: job}
+}

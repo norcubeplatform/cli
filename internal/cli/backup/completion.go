@@ -16,29 +16,32 @@ const (
 )
 
 // registerCompletions offers data source ids for every --datasource flag
-// and `datasources get|pause|resume`, and backup job ids for
-// `jobs download` and `restore-tests run`.
-func registerCompletions(c *cobra.Command) {
+// and `datasources get|update|pause|resume`, and backup job ids for
+// `jobs download|get` and `restore-tests run`.
+func registerCompletions(c *cobra.Command, d deps) {
 	if c.Flags().Lookup("datasource") != nil {
-		_ = c.RegisterFlagCompletionFunc("datasource", completion.Flag(completeDatasources, datasourceCandidates))
+		_ = c.RegisterFlagCompletionFunc("datasource", completion.Flag(completeDatasources, d.datasourceCandidates))
+	}
+	if c.Flags().Lookup("backup") != nil {
+		_ = c.RegisterFlagCompletionFunc("backup", completion.Flag(completeJobs, d.jobCandidates))
 	}
 	parent := ""
 	if c.HasParent() {
 		parent = c.Parent().Name()
 	}
 	switch {
-	case parent == "datasources" && (c.Name() == "get" || c.Name() == "pause" || c.Name() == "resume"):
-		c.ValidArgsFunction = completion.Func(completeDatasources, 1, datasourceCandidates)
-	case c.Name() == "download" || (parent == "restore-tests" && c.Name() == "run"):
-		c.ValidArgsFunction = completion.Func(completeJobs, 1, jobCandidates)
+	case parent == "datasources" && (c.Name() == "get" || c.Name() == "update" || c.Name() == "pause" || c.Name() == "resume"):
+		c.ValidArgsFunction = completion.Func(completeDatasources, 1, d.datasourceCandidates)
+	case c.Name() == "download" || (parent == "jobs" && c.Name() == "get") || (parent == "restore-tests" && c.Name() == "run"):
+		c.ValidArgsFunction = completion.Func(completeJobs, 1, d.jobCandidates)
 	}
 	for _, sub := range c.Commands() {
-		registerCompletions(sub)
+		registerCompletions(sub, d)
 	}
 }
 
-func datasourceCandidates(cmd *cobra.Command) ([]cobra.Completion, error) {
-	c, err := newSnapdbContext(cmd)
+func (d deps) datasourceCandidates(cmd *cobra.Command) ([]cobra.Completion, error) {
+	c, err := d.client(cmd)
 	if err != nil {
 		return nil, err
 	}
@@ -57,8 +60,8 @@ func datasourceCandidates(cmd *cobra.Command) ([]cobra.Completion, error) {
 }
 
 // jobCandidates offers the 50 newest backup jobs.
-func jobCandidates(cmd *cobra.Command) ([]cobra.Completion, error) {
-	c, err := newSnapdbContext(cmd)
+func (d deps) jobCandidates(cmd *cobra.Command) ([]cobra.Completion, error) {
+	c, err := d.client(cmd)
 	if err != nil {
 		return nil, err
 	}

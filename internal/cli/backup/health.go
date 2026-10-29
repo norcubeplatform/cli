@@ -15,7 +15,7 @@ import (
 // recoverable. This is the CLI face of the dashboard's Restore-health
 // card, and the answer to "can we actually restore?" without opening a
 // browser.
-func newHealthCmd() *cobra.Command {
+func newHealthCmd(d deps) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "health",
 		Short: "Restore health per datasource: do the backups actually restore?",
@@ -33,7 +33,7 @@ dash; enable restore testing in the dashboard or run one now with
   norcube backup health -o json`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			c, err := newSnapdbContext(cmd)
+			c, err := d.client(cmd)
 			if err != nil {
 				return err
 			}

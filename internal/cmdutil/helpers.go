@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/charmbracelet/huh"
+	"github.com/spf13/cobra"
 
 	"github.com/norcubeplatform/cli/internal/clierr"
 	"github.com/norcubeplatform/cli/internal/term"
@@ -57,4 +58,15 @@ func DerefOr[T any](p *T, fallback T) T {
 		return fallback
 	}
 	return *p
+}
+
+// Cancelled ends a command whose confirmation (Confirm) was declined or
+// dismissed: "Cancelled." on stderr and a clean exit. Other errors pass
+// through. Use it as `if err != nil || !ok { return nil, Cancelled(cmd, err) }`.
+func Cancelled(cmd *cobra.Command, err error) error {
+	if err == nil || errors.Is(err, ErrCancelled) {
+		fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
+		return nil
+	}
+	return err
 }

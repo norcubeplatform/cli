@@ -1,0 +1,11 @@
+Job ID:        job-1
+Datasource:    prod-db (ds-1)
+Policy:        Nightly
+Status:        success
+Trigger:       schedule
+Started:       2026-10-01 12:00:00
+Finished:      2026-10-01 12:00:42
+Duration:      42.0s
+Size:          1.0 MiB
+Restore test:  passed
+Error:         
