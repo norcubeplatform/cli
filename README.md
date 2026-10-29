@@ -10,7 +10,7 @@ Its flagship job: proving you're never locked in to Norcube Backup. `norcube bac
 
 ![norcube CLI demo](demo/demo.gif)
 
-<sub>Scripted demo with sanitized names — the tape and stub live in [`demo/`](demo/).</sub>
+<sub>Scripted demo with sanitized names: whoami, Backup health, scripting with `-o json --query`, and your CLI sessions. The tape and stub live in [`demo/`](demo/).</sub>
 
 > **Status**: v0 — login + organization management, Norcube Backup (browse, pause/resume, download, restore tests, health), full Langsync CRUD, and project-level `langsync init` / `langsync sync` for repo-side translation files.
 

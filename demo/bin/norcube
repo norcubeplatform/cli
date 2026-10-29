@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
-# Fake norcube used only to record demo/demo.gif with vhs. It replays real
-# command output (captured from a live session) with sanitized org and
-# datasource names, so the demo doesn't publish anyone's infrastructure.
+# Fake norcube used only to record the demo GIFs with vhs. It replays the
+# output shapes of the real CLI (v0.16: bold table headers, colored
+# statuses, plain JSON) with sanitized org, user and datasource names, so
+# the demo doesn't publish anyone's infrastructure.
 set -euo pipefail
 
-G=$'\033[32m'   # green
+B=$'\033[1m'    # bold (table headers, names)
+G=$'\033[32m'   # green (success)
+GB=$'\033[1;32m' # bold green (finished sync phase)
+BL=$'\033[94m'  # bright blue (active sync phase, progress bar)
 D=$'\033[2m'    # dim
 R=$'\033[0m'    # reset
 
@@ -12,62 +16,63 @@ case "$*" in
 "whoami")
   sleep 0.4
   printf '%s\n' \
-"User:         Ada Deven <ada@acme.dev>" \
-"User ID:      7c1f3b2a-9e4d-4f68-b350-2a8d61c94e07" \
-"Active org:   acme (d94a7e12-3c56-48b9-a1f0-8b72c65d30e4)" \
-"API:          https://auth.api.norcube.com"
+"User:        Ada Deven <ada@acme.dev>" \
+"User ID:     7c1f3b2a-9e4d-4f68-b350-2a8d61c94e07" \
+"Active org:  acme (d94a7e12-3c56-48b9-a1f0-8b72c65d30e4)" \
+"Profile:     default (production)" \
+"API:         https://auth.api.norcube.com"
   ;;
 "backup health")
   sleep 0.6
   printf '%s\n' \
-"${D}DATASOURCE       ENGINE    HEALTH  TESTS         WARNINGS  LAST TESTED${R}" \
-"prod-postgres    postgres  100%    20/20 passed  0         2026-08-12 04:00:12" \
-"analytics-mongo  mongodb   100%    20/20 passed  0         2026-08-12 04:05:31" \
-"billing-db       postgres  96%     27/28 passed  1         2026-08-12 04:02:44"
+"${B}DATASOURCE${R}       ${B}ENGINE${R}    ${B}HEALTH${R}  ${B}TESTS${R}         ${B}WARNINGS${R}  ${B}LAST TESTED${R}" \
+"prod-postgres    postgres  100%    30/30 passed  0         2026-10-29 06:00:12" \
+"analytics-mongo  mongodb   100%    30/30 passed  0         2026-10-29 06:05:31" \
+"billing-db       postgres  96%     27/28 passed  1         2026-10-29 06:02:44"
   ;;
-"backup list --limit 3")
+"backup list -o json --query "*)
+  sleep 0.5
+  cat <<'EOF'
+[
+  {
+    "db": "billing-db",
+    "error": "pg_dump: connection to server timed out"
+  }
+]
+EOF
+  ;;
+"auth sessions list")
   sleep 0.5
   printf '%s\n' \
-"${D}DATASOURCE       STATUS   TEST    TRIGGER   STARTED              DURATION  SIZE      JOB_ID${R}" \
-"prod-postgres    ${G}success${R}  passed  schedule  2026-08-12 00:00:34  4.3s      5.5 MiB   b81c22d0-56fa-4c19-9e01-3f8a2c47d1aa" \
-"analytics-mongo  ${G}success${R}  passed  schedule  2026-08-12 00:00:29  614ms     25.2 KiB  57e02a79-705d-4bb4-b33f-d8a75a0ea5b5" \
-"billing-db       ${G}success${R}  passed  schedule  2026-08-12 00:00:23  5.3s      12.3 MiB  0dda8767-a097-475a-b213-66dd08578616"
+"${B}CURRENT${R}  ${B}DEVICE${R}        ${B}CLIENT${R}                         ${B}LAST USED${R}         ${B}IP${R}            ${B}ID${R}" \
+"*        ada-macbook   norcube 0.16.0 (darwin/arm64)  2026-10-29 09:42  203.0.113.24  5a4c1e9f-2b7d-4e30-9c18-6f0d3a2b8e71" \
+"         ci-runner-04  norcube 0.16.0 (linux/amd64)   2026-10-28 23:10  198.51.100.7  0e7b93d2-4a6c-41f8-b5d0-9c2e7a1f6b34"
   ;;
-"backup download "*)
-  sleep 0.4
-  for pct in 18 42 71 100; do
-    mib=$(printf '%s' "$pct 5.5" | awk '{printf "%.1f", $1*$2/100}')
-    printf '\r\033[K%s MiB / 5.5 MiB (%d%%)' "$mib" "$pct" >&2
-    sleep 0.35
-  done
-  printf '\r\033[K' >&2
-  echo "Downloaded prod-postgres-full-20260812.dump.gz (5.5 MiB)."
-  ;;
-"backup restore-test run "*)
+"langsync namespace list")
   sleep 0.5
-  echo "Restore test queued (restore job 4f2a9c1e-8b3d-4e67-a012-6c5d9e8f7a3b)."
-  echo "Track it with \`norcube backup list\`; the verdict appears in the TEST column." >&2
+  printf '%s\n' \
+"${B}NAME${R}       ${B}DEFAULT_LANG${R}  ${B}LANGUAGES${R}  ${B}CONTEXT${R}              ${B}ID${R}" \
+"webapp     en            3          Product UI           3f9c2a71-6d4e-4b8a-a1c5-0e2f7b9d4c61" \
+"marketing  en            5          Marketing site copy  8b1e4d07-c3a9-4f26-9e5b-2d7a6c0f1e93"
   ;;
 "langsync sync")
-  B=$'\033[1m'    # bold
-  C=$'\033[36m'   # cyan
-  # One dashboard row updated in place, like the real sync renderer.
-  row() { printf '▸ %s%-8s%s  %s  %s\n' "$B" "webapp" "$R" "$1" "$2"; }
+  # One dashboard row redrawn in place, like the real sync renderer.
+  row() { printf '▸ %swebapp%s  %s  %s\n' "$B" "$R" "$1" "$2"; }
   up() { printf '\033[1A\r\033[J'; }
-  row "${C}reading        ${R}" "42 local marks across 3 language file(s) in i18n/webapp"
+  row "${BL}reading        ${R}" "42 local marks across 3 language file(s) in i18n/webapp"
   sleep 0.9; up
-  row "${C}planning       ${R}" "computing diff"
+  row "${BL}planning       ${R}" "computing diff"
   sleep 0.8; up
   for done_n in 9 23 31 38; do
     filled=$((done_n * 18 / 38))
-    bar=""
+    fill="" track=""
     for ((i = 0; i < 18; i++)); do
-      if ((i < filled)); then bar+="█"; else bar+="░"; fi
+      if ((i < filled)); then fill+="█"; else track+="░"; fi
     done
-    row "${C}autotranslating${R}" "$bar  ${done_n}/38  translating cells"
+    row "${BL}autotranslating${R}" "${BL}${fill}${R}${D}${track}${R}  ${done_n}/38  translating cells"
     sleep 0.55; up
   done
-  row "${G}done           ${R}" "4 created, 2 updated, 38 cells translated, 3 files written  ${D}(6.2s)${R}"
+  row "${GB}done           ${R}" "4 created, 2 updated, 38 cells translated, 3 files written  ${D}(6.2s)${R}"
   ;;
 *)
   echo "demo stub: no canned output for: $*" >&2

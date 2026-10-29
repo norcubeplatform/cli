@@ -5,7 +5,7 @@ Output demo/demo-langsync.gif
 
 Set FontSize 16
 Set Width 1120
-Set Height 240
+Set Height 320
 Set Padding 16
 Set Theme "Catppuccin Mocha"
 Set TypingSpeed 45ms
@@ -14,6 +14,11 @@ Hide
 Type "export PATH=demo/bin:$PATH && clear"
 Enter
 Show
+
+Type "norcube langsync namespace list"
+Sleep 400ms
+Enter
+Sleep 2s
 
 Type "norcube langsync sync"
 Sleep 500ms
