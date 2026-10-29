@@ -1,0 +1,17 @@
+- available: false
+  cacheHit: true
+  checkedAt: "2026-10-28T09:01:00Z"
+  domain: acme.com
+  expiryDate: "2027-03-01T00:00:00Z"
+  method: rdap
+  registrar: Example Registrar, Inc.
+  status: registered
+- available: true
+  checkedAt: "2026-10-28T09:01:00Z"
+  domain: acme.io
+  method: rdap
+  status: available
+- checkedAt: "2026-10-28T09:01:00Z"
+  domain: acme.zzz
+  error: unsupported TLD
+  method: whois

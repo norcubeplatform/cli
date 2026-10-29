@@ -380,34 +380,44 @@ are unaffected. Use --yes to skip the confirmation in scripts.`,
 // to the languages already attached to ns, so removing a non-attached
 // language fails fast with a useful error.
 func resolveLanguageAttached(ctx context.Context, c *langsyncContext, ns, input string) (int, string, error) {
-	input = strings.TrimSpace(input)
-	if input == "" {
-		return 0, "", fmt.Errorf("language code or id is required")
-	}
-	attached, err := listAttachedLanguages(ctx, c, ns)
+	conn, err := resolveConnection(ctx, c, ns, input)
 	if err != nil {
 		return 0, "", err
 	}
-	// Numeric form first.
+	if conn.LanguageId == nil {
+		return 0, "", fmt.Errorf("language %q is missing an id in the backend response", input)
+	}
+	return *conn.LanguageId, languageLabel(langsync.DtoDTOLanguage{
+		Id: conn.LanguageId, Code: conn.LanguageCode, Name: conn.LanguageName,
+	}), nil
+}
+
+// resolveConnection finds the language a code or numeric id names among
+// the languages attached to ns, as the namespace's connection to it (the
+// translation endpoints address a language through its connection id).
+func resolveConnection(ctx context.Context, c *langsyncContext, ns, input string) (langsync.DtoDTOLanguageConnection, error) {
+	input = strings.TrimSpace(input)
+	if input == "" {
+		return langsync.DtoDTOLanguageConnection{}, clierr.Usage(fmt.Errorf("language code or id is required"))
+	}
+	conns, err := listConnections(ctx, c, ns)
+	if err != nil {
+		return langsync.DtoDTOLanguageConnection{}, err
+	}
 	if id, err := strconv.Atoi(input); err == nil && id > 0 {
-		for _, l := range attached {
-			if l.Id != nil && *l.Id == id {
-				return id, languageLabel(l), nil
+		for _, conn := range conns {
+			if conn.LanguageId != nil && *conn.LanguageId == id {
+				return conn, nil
 			}
 		}
-		return 0, "", fmt.Errorf("language id %d isn't attached to namespace %q", id, ns)
+		return langsync.DtoDTOLanguageConnection{}, clierr.Usage(fmt.Errorf("language id %d isn't attached to namespace %q", id, ns))
 	}
-	// Code form.
-	lc := strings.ToLower(input)
-	for _, l := range attached {
-		if l.Code != nil && strings.ToLower(*l.Code) == lc {
-			if l.Id == nil {
-				return 0, "", fmt.Errorf("language %q is missing an id in the backend response", input)
-			}
-			return *l.Id, languageLabel(l), nil
+	for _, conn := range conns {
+		if conn.LanguageCode != nil && strings.EqualFold(*conn.LanguageCode, input) {
+			return conn, nil
 		}
 	}
-	return 0, "", fmt.Errorf("language %q isn't attached to namespace %q", input, ns)
+	return langsync.DtoDTOLanguageConnection{}, clierr.Usage(fmt.Errorf("language %q isn't attached to namespace %q", input, ns))
 }
 
 func pickLanguageNotAttached(ctx context.Context, c *langsyncContext, ns string) (int, string, error) {
@@ -500,7 +510,9 @@ func listAllLanguages(ctx context.Context, c *langsyncContext) ([]langsync.DtoDT
 	return *res.JSON200, nil
 }
 
-func listAttachedLanguages(ctx context.Context, c *langsyncContext, ns string) ([]langsync.DtoDTOLanguage, error) {
+// listConnections returns the languages attached to ns as connection
+// rows (language plus the connection id the translation endpoints use).
+func listConnections(ctx context.Context, c *langsyncContext, ns string) ([]langsync.DtoDTOLanguageConnection, error) {
 	res, err := c.API.GetLanguagesByNamespaceWithResponse(ctx, ns)
 	if err != nil {
 		return nil, err
@@ -511,14 +523,22 @@ func listAttachedLanguages(ctx context.Context, c *langsyncContext, ns string) (
 		}
 		return nil, apiError(res.HTTPResponse, res.Body, res.JSON400, res.JSON401, res.JSON403, res.JSON404, res.JSON500)
 	}
+	return *res.JSON200, nil
+}
+
+func listAttachedLanguages(ctx context.Context, c *langsyncContext, ns string) ([]langsync.DtoDTOLanguage, error) {
+	conns, err := listConnections(ctx, c, ns)
+	if err != nil {
+		return nil, err
+	}
 	// The per-namespace endpoint returns Connection DTOs (the join row
 	// between language and namespace). Project the language-specific
 	// fields out so callers can treat both endpoints (org-wide and
 	// per-namespace) uniformly. We lose ConnectionID + IsDefault here
 	// because none of the current commands need them; expose those via
 	// a dedicated listing if a future command does.
-	out := make([]langsync.DtoDTOLanguage, 0, len(*res.JSON200))
-	for _, conn := range *res.JSON200 {
+	out := make([]langsync.DtoDTOLanguage, 0, len(conns))
+	for _, conn := range conns {
 		out = append(out, langsync.DtoDTOLanguage{
 			Id:       conn.LanguageId,
 			Code:     conn.LanguageCode,
@@ -577,4 +597,27 @@ type languageAttached struct {
 	Language     string `json:"language" yaml:"language"`
 	LanguageID   int    `json:"languageId,omitempty" yaml:"languageId,omitempty"`
 	ConnectionID *int   `json:"connectionId,omitempty" yaml:"connectionId,omitempty"`
+}
+
+// resolveOrgLanguage finds a language the organization can use (shared or
+// its own custom one) by code or numeric id.
+func resolveOrgLanguage(ctx context.Context, c *langsyncContext, input string) (langsync.DtoDTOLanguage, error) {
+	input = strings.TrimSpace(input)
+	if input == "" {
+		return langsync.DtoDTOLanguage{}, clierr.Usage(fmt.Errorf("language code or id is required"))
+	}
+	all, err := listAllLanguages(ctx, c)
+	if err != nil {
+		return langsync.DtoDTOLanguage{}, err
+	}
+	id, idErr := strconv.Atoi(input)
+	for _, l := range all {
+		if idErr == nil && l.Id != nil && *l.Id == id {
+			return l, nil
+		}
+		if idErr != nil && l.Code != nil && strings.EqualFold(*l.Code, input) {
+			return l, nil
+		}
+	}
+	return langsync.DtoDTOLanguage{}, clierr.Usage(fmt.Errorf("unknown language %q (see `norcube langsync languages list`)", input))
 }

@@ -26,7 +26,7 @@ func newMarkCmd() *cobra.Command {
 text the "mark"). Each term belongs to exactly one namespace of the
 organization.`,
 	}
-	cmd.AddCommand(newMarkAddCmd(), newMarkListCmd(), newMarkDeleteCmd())
+	cmd.AddCommand(newMarkAddCmd(), newMarkListCmd(), newMarkUpdateCmd(), newMarkDeleteCmd(), newImportCmd())
 	return cmd
 }
 
@@ -136,7 +136,11 @@ for partially-translated marks and full-text search.
 
 Pagination is cursor-based: re-run with the --cursor value printed to
 stderr to fetch the next page, or pass --all-pages to follow until
-exhausted.`,
+exhausted.
+
+AI counts the translations that are still exactly what AI translation
+produced; a person editing one clears its label. With -o json each
+translation carries the same flag as "aiGenerated".`,
 		Example: `  norcube langsync terms list --namespace web
   norcube langsync terms list --namespace web --search Save
   norcube langsync terms list --namespace web --has-untranslated
@@ -185,18 +189,19 @@ exhausted.`,
 				return err
 			}
 			return page.Print(cmd, output.Table[langsync.DtoDTOTerm]{
-				Headers: []string{"ID", "MARK", "CONTEXT", "TRANSLATIONS", "CREATED"},
+				Headers: []string{"ID", "MARK", "CONTEXT", "TRANSLATIONS", "AI", "CREATED"},
 				// Don't truncate MARK — the whole point is to see the
 				// source text. CONTEXT still gets a cap because it's
 				// freeform and routinely runs long ("the third button
 				// from the top in the user-settings panel etc.").
-				MaxWidths: []int{0, 0, 32, 0, 0},
+				MaxWidths: []int{0, 0, 32, 0, 0, 0},
 				Rows: func(t langsync.DtoDTOTerm) []string {
 					return []string{
 						fmt.Sprintf("%d", t.Term.Id),
 						t.Term.Mark,
 						t.Term.Context,
 						fmt.Sprintf("%d", len(t.Translations)),
+						strconv.Itoa(aiCount(t.Translations)),
 						compactDate(t.Term.CreatedAt),
 					}
 				},
@@ -209,6 +214,87 @@ exhausted.`,
 	cmd.Flags().BoolVar(&hasUntranslated, "has-untranslated", false, "Only marks with at least one untranslated language")
 	cmd.Flags().IntVar(&untranslatedLang, "untranslated-lang", 0, "Only marks missing the given language id (overrides --has-untranslated semantics)")
 	cmdutil.AddPageFlags(cmd, &pages, defaultMarkPageLimit, maxMarkItems)
+	return cmd
+}
+
+// aiCount is how many translations still carry the AI label.
+func aiCount(ts []langsync.DtoTranslationInfo) int {
+	n := 0
+	for _, t := range ts {
+		if t.AiGenerated {
+			n++
+		}
+	}
+	return n
+}
+
+// termUpdated is what `terms update -o json` prints.
+type termUpdated struct {
+	ID        int     `json:"id" yaml:"id"`
+	Namespace string  `json:"namespace" yaml:"namespace"`
+	Mark      *string `json:"mark,omitempty" yaml:"mark,omitempty"`
+	Context   *string `json:"context,omitempty" yaml:"context,omitempty"`
+}
+
+func newMarkUpdateCmd() *cobra.Command {
+	var (
+		namespaceName string
+		mark, context string
+	)
+	cmd := &cobra.Command{
+		Use:   "update <termId>",
+		Short: "Change a term's source text or context",
+		Long: `Changes the mark (source text) or the translator context of a term.
+Pass only what changes; translations are kept. Find term ids with
+` + "`norcube langsync terms list`" + `.`,
+		Example: `  norcube langsync terms update 1234 --namespace web --mark "Save all changes"
+  norcube langsync terms update 1234 -n web --context "button in the settings dialog"`,
+		Args: cobra.ExactArgs(1),
+		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
+			termID, err := parseTermID(args[0])
+			if err != nil {
+				return nil, err
+			}
+			var body langsync.TermPayloadUpdateRequest
+			if cmd.Flags().Changed("mark") {
+				v := strings.TrimSpace(mark)
+				if v == "" {
+					return nil, clierr.Usage(errors.New("--mark must not be empty"))
+				}
+				body.Mark = &v
+			}
+			if cmd.Flags().Changed("context") {
+				body.Context = &context
+			}
+			if body.Mark == nil && body.Context == nil {
+				return nil, clierr.Usage(errors.New("nothing to update: pass --mark, --context or both"))
+			}
+			c, err := newLangsyncContext(cmd)
+			if err != nil {
+				return nil, err
+			}
+			ns, err := resolveNamespace(cmd.Context(), c, namespaceName, "Update a term in which namespace?")
+			if err != nil {
+				return nil, cancelledOK(cmd, err)
+			}
+			res, err := c.API.UpdateTermWithResponse(cmd.Context(), ns, termID, body)
+			if err != nil {
+				return nil, err
+			}
+			if !ok2xx(res.HTTPResponse) {
+				return nil, namespaceAPIError(c, ns, res.HTTPResponse, res.Body,
+					res.JSON400, res.JSON401, res.JSON403, res.JSON404, res.JSON500)
+			}
+			return output.Done{
+				Message: fmt.Sprintf("Updated term #%d in namespace %q.", termID, ns),
+				Value:   termUpdated{ID: termID, Namespace: ns, Mark: body.Mark, Context: body.Context},
+				Fields:  []output.Field{{Value: strconv.Itoa(termID)}},
+			}, nil
+		}),
+	}
+	cmd.Flags().StringVarP(&namespaceName, "namespace", "n", "", "Namespace name; picker opens when omitted and stdin is a TTY")
+	cmd.Flags().StringVar(&mark, "mark", "", "New source text (unique within the namespace)")
+	cmd.Flags().StringVar(&context, "context", "", `New context note for translators ("" clears it)`)
 	return cmd
 }
 
@@ -233,9 +319,9 @@ Use --yes to skip the interactive confirmation in scripts.`,
 			if err != nil {
 				return err
 			}
-			termID, err := strconv.Atoi(strings.TrimSpace(args[0]))
-			if err != nil || termID <= 0 {
-				return fmt.Errorf("termId must be a positive integer (got %q)", args[0])
+			termID, err := parseTermID(args[0])
+			if err != nil {
+				return err
 			}
 			ns, err := resolveNamespace(cmd.Context(), c, namespaceName, "Delete a mark from which namespace?")
 			if err != nil {

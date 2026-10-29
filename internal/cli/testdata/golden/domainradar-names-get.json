@@ -1,0 +1,11 @@
+{
+  "category": "fintech",
+  "createdAt": "2026-10-25T08:00:00Z",
+  "description": "invoicing for freelancers",
+  "id": "n-1",
+  "maxLength": 8,
+  "size": "small",
+  "status": "completed",
+  "style": "short",
+  "totalNames": 5120
+}

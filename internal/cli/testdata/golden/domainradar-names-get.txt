@@ -1,0 +1,10 @@
+ID:           n-1
+Status:       completed
+Description:  invoicing for freelancers
+Category:     fintech
+Style:        short
+Size:         small
+Max length:   8
+Names:        5120
+Error:        
+Created:      2026-10-25 10:00

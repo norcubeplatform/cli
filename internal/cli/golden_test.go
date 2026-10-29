@@ -65,7 +65,7 @@ var goldenData = map[string]string{ // #nosec G101 -- API fixtures, no credentia
 		{"id":101,"code":"internal-en","name":"Internal English","isCustom":true,"organizationId":"org-1"}
 	]`,
 	"GET /namespaces/web/terms": `{"list":[
-		{"term":{"id":7,"mark":"Save changes","context":"button","created_at":"2026-03-04T05:06:07Z"},"translations":[{"languageId":4,"value":"Save changes"},{"languageId":9,"value":"Uložit změny"}]}
+		{"term":{"id":7,"mark":"Save changes","context":"button","created_at":"2026-03-04T05:06:07Z"},"translations":[{"lang":{"code":"en","id":4},"language_to_namespace_id":40,"value":"Save changes","aiGenerated":false},{"lang":{"code":"cs","id":9},"language_to_namespace_id":90,"value":"Uložit změny","aiGenerated":true}]}
 	],"cursors":{},"meta":{}}`,
 }
 
@@ -143,11 +143,13 @@ func goldenEnv(t *testing.T) string {
 		p.Environment = config.EnvCustom
 		p.Endpoints = map[string]string{
 			config.ServiceAuth: srv.URL, config.ServiceSnapDB: srv.URL, config.ServiceLangsync: srv.URL,
+			config.ServiceDomainradar: srv.URL,
 		}
 		p.User = config.User{ID: "user-1", Name: "Dev Eloper", Email: "dev@example.com"}
 		p.SetActiveOrg(config.Organization{ID: homeOrgID, Slug: "home", Name: "Home"})
 	})
 	t.Setenv("NORCUBE_LANGSYNC_URL", "")
+	t.Setenv("NORCUBE_DOMAINRADAR_URL", "")
 	if err := auth.SaveRefreshToken(config.DefaultProfileName, srv.URL, "refresh-0"); err != nil {
 		t.Fatal(err)
 	}

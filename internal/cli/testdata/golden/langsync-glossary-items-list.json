@@ -1,0 +1,28 @@
+[
+  {
+    "context": "the company",
+    "createdAt": "2026-10-01T09:00:00Z",
+    "defaultLanguageValue": "Norcube",
+    "enabledLanguagesCount": 2,
+    "glossaryId": "g-1",
+    "id": "gi-1",
+    "isCaseSensitive": true,
+    "isTranslatable": false,
+    "translatedCount": 0,
+    "translationPercentage": 0,
+    "type": "n/a"
+  },
+  {
+    "context": "a bill sent to a customer",
+    "createdAt": "2026-10-02T09:00:00Z",
+    "defaultLanguageValue": "invoice",
+    "enabledLanguagesCount": 2,
+    "glossaryId": "g-1",
+    "id": "gi-2",
+    "isCaseSensitive": false,
+    "isTranslatable": true,
+    "translatedCount": 1,
+    "translationPercentage": 50,
+    "type": "noun"
+  }
+]

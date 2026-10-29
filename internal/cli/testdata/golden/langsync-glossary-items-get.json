@@ -1,0 +1,25 @@
+{
+  "glossaryItem": {
+    "context": "a bill sent to a customer",
+    "createdAt": "2026-10-02T09:00:00Z",
+    "defaultLanguageValue": "invoice",
+    "enabledLanguagesCount": 2,
+    "glossaryId": "g-1",
+    "id": "gi-2",
+    "isCaseSensitive": false,
+    "isTranslatable": true,
+    "translatedCount": 1,
+    "translationPercentage": 50,
+    "type": "noun"
+  },
+  "glossaryItemTranslations": [
+    {
+      "createdAt": "2026-10-02T10:00:00Z",
+      "glossaryItemId": "gi-2",
+      "languageCode": "cs",
+      "languageId": 9,
+      "languageName": "Czech",
+      "value": "faktura"
+    }
+  ]
+}

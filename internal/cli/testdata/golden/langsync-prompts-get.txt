@@ -1,0 +1,7 @@
+ID:          p-1
+Name:        Friendly tone
+Visibility:  shared
+Created:     2026-10-01 11:00
+Updated:     2026-10-02 11:00
+Prompt:      Use an informal, friendly tone.
+             Address the reader as you.

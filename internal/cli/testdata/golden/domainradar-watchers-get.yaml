@@ -1,0 +1,10 @@
+aiContentCheck: true
+allowlist:
+    - acme.com
+    - acme.io
+createdAt: "2026-10-01T08:00:00Z"
+enabled: true
+id: w-1
+minNotificationScore: 60
+notificationEmail: security@acme.com
+word: acme

@@ -1,0 +1,4 @@
+DOMAIN    AVAILABILITY  METHOD  EXPIRES     REGISTRAR                CACHE
+acme.com  registered    rdap    2027-03-01  Example Registrar, Inc.  cached
+acme.io   available     rdap                                         
+acme.zzz  error         whois                                        

@@ -1,0 +1,12 @@
+Domain:       acme-login.example
+Score:        88 (high)
+Match:        contains
+Keyword:      acme
+Watcher:      w-1
+Issuer:       Example CA
+Registered:   2026-10-26
+AI risk:      high
+AI review:    Login form imitating the brand.
+Other names:  acme-login.example, www.acme-login.example
+Seen:         2026-10-28 09:00
+ID:           h-1

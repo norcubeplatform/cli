@@ -1,0 +1,3 @@
+DOMAIN        AVAILABILITY  METHOD  EXPIRES  REGISTRAR  CACHE
+acme.com      registered    rdap                        
+freshname.io  available     rdap                        

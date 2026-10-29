@@ -35,9 +35,8 @@ func TestEveryCommandHasAnExample(t *testing.T) {
 // through cmdutil.Print, which honors -o and --query. These are the
 // places allowed to touch stdout directly.
 var stdoutAllowed = map[string]string{
-	"authcmd.go":       "term.IsTerminal(cmd.OutOrStdout())",    // only asks whether it is a terminal
-	"config.go":        "os.Stdin, os.Stdout, os.Stderr",        // the user's editor runs on the terminal
-	"backup/backup.go": "io.Copy(cmd.OutOrStdout(), resp.Body)", // download --file - streams the artifact
+	"authcmd.go": "term.IsTerminal(cmd.OutOrStdout())", // only asks whether it is a terminal
+	"config.go":  "os.Stdin, os.Stdout, os.Stderr",     // the user's editor runs on the terminal
 }
 
 var stdoutWrite = regexp.MustCompile(`OutOrStdout\(\)|os\.Stdout|fmt\.Print(f|ln)?\(`)

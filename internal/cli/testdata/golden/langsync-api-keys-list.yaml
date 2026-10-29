@@ -1,0 +1,17 @@
+- createdAt: "2026-09-01T09:00:00Z"
+  createdBy: user-1
+  id: k-1
+  lastUsedAt: "2026-10-28T11:00:00Z"
+  name: production-web
+  preview: lsk_8f2a
+  revokedAt: null
+  status: active
+- createdAt: "2026-08-01T09:00:00Z"
+  createdBy: user-1
+  id: k-2
+  lastUsedAt: null
+  name: old-preview
+  preview: lsk_1b9c
+  revokedAt: "2026-09-02T09:00:00Z"
+  revokedBy: user-1
+  status: revoked

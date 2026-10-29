@@ -21,7 +21,8 @@ func NewCmd() *cobra.Command {
 		Use:   "langsync",
 		Short: "Manage LangSync namespaces, terms, languages and translations",
 	}
-	cmd.AddCommand(newMarkCmd(), newNamespaceCmd(), newLangCmd(), newInitCmd(), newSyncCmd(), newPullCmd())
+	cmd.AddCommand(newMarkCmd(), newTranslationsCmd(), newNamespaceCmd(), newLangCmd(), newPromptsCmd(),
+		newGlossaryCmd(), newAPIKeysCmd(), newAuditCmd(), newInitCmd(), newSyncCmd(), newPullCmd())
 	registerCompletions(cmd)
 	return cmd
 }

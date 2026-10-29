@@ -1,0 +1,15 @@
+aiReasoning: Login form imitating the brand.
+aiRisk: high
+allDomains:
+    - acme-login.example
+    - www.acme-login.example
+createdAt: "2026-10-28T07:00:00Z"
+domain: acme-login.example
+id: h-1
+issuer: Example CA
+keyword: acme
+matchReason: contains
+registrationDate: "2026-10-26T00:00:00Z"
+score: 88
+scoreLevel: high
+watcherId: w-1

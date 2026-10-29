@@ -96,3 +96,24 @@ func TestQuery(t *testing.T) {
 		t.Errorf("valid expression rejected: %v", err)
 	}
 }
+
+func TestTableKeepsRowsOnOneLine(t *testing.T) {
+	var b bytes.Buffer
+	err := Table[string]{
+		Headers: []string{"A", "B"},
+		Rows:    func(s string) []string { return []string{"x", s} },
+		Items:   []string{"line one\nline two\r\nthree"},
+		Style:   NoStyle,
+	}.writeTable(&b)
+	if err != nil || b.String() != "A  B\nx  line one line two three\n" {
+		t.Fatalf("%q, %v", b.String(), err)
+	}
+}
+
+func TestObjectAlignsMultiLineValues(t *testing.T) {
+	var b bytes.Buffer
+	err := Object{Fields: []Field{{Name: "Name", Value: "x"}, {Name: "Prompt", Value: "first\nsecond"}}}.writeTable(&b)
+	if err != nil || b.String() != "Name:    x\nPrompt:  first\n         second\n" {
+		t.Fatalf("%q, %v", b.String(), err)
+	}
+}

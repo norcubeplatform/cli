@@ -49,6 +49,24 @@ type Client[T any] struct {
 	Output string
 }
 
+// Streaming returns the same API client built on the streaming transport:
+// no limit on the total response time (a server-sent event stream or a
+// large export may take as long as it needs), but a body that stops
+// sending data for the idle timeout fails. Use it only for those
+// endpoints; regular requests keep the per-request timeout of API.
+func (c *Client[T]) Streaming(ctor Constructor[T]) (T, error) {
+	var zero T
+	httpc, err := c.Flags.DownloadClient()
+	if err != nil {
+		return zero, err
+	}
+	client, err := ctor(c.Config.Endpoint(c.Service.Key), httpc, c.Tokens.BearerInjector())
+	if err != nil {
+		return zero, fmt.Errorf("%s client: %w", c.Service.Name, err)
+	}
+	return client, nil
+}
+
 // OrgLabel names the target organization for messages: its slug when
 // known, otherwise its id.
 func (c *Client[T]) OrgLabel() string {

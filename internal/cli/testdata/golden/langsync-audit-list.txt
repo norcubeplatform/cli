@@ -1,0 +1,4 @@
+TIME              ACTOR                         ACTION              TARGET     TARGET ID
+2026-10-28 11:00  Dev Eloper <dev@example.com>  namespace.updated   namespace  ns-1
+2026-10-27 11:00  system                        sync_job.completed  sync_job   job-9
+2026-09-01 11:00  Dev Eloper                    apikey.created      apikey     k-1

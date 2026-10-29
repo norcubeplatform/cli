@@ -322,18 +322,25 @@ func newNamespaceUpdateCmd() *cobra.Command {
 		rename          string
 		context         string
 		defaultLanguage string // accept code OR id; resolve below
+		defaultPrompt   string
 	)
 	cmd := &cobra.Command{
 		Use:   "update <name>",
-		Short: "Update a namespace's name, context, or default language",
+		Short: "Update a namespace's name, context, default language or default prompt",
 		Long: `Partial update of a namespace. Pass only the fields you want to
 change — omitted flags leave existing values alone.
 
 --default-language accepts either a language code (e.g. en, cs) or the
 numeric language id. The CLI resolves codes via /languages before
-sending the request — the underlying endpoint wants the id form.`,
+sending the request (the underlying endpoint wants the id form).
+
+--default-prompt sets the custom prompt every automatic translation in
+the namespace uses unless a run names another (see
+` + "`norcube langsync prompts list`" + `); "none" removes it.`,
 		Example: `  norcube langsync namespaces update web --rename website
-  norcube langsync namespaces update web --default-language cs`,
+  norcube langsync namespaces update web --default-language cs
+  norcube langsync namespaces update web --default-prompt 5f0c2a9e-1d2b-4c3d-8e9f-0a1b2c3d4e5f
+  norcube langsync namespaces update web --default-prompt none`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			c, err := newLangsyncContext(cmd)
@@ -363,8 +370,15 @@ sending the request — the underlying endpoint wants the id form.`,
 					body.DefaultLanguageCode = &code
 				}
 			}
-			if body.Name == nil && body.Context == nil && body.DefaultLanguageId == nil && body.DefaultLanguageCode == nil {
-				return fmt.Errorf("nothing to update — pass at least one of --rename, --context, --default-language")
+			if cmd.Flags().Changed("default-prompt") {
+				id, err := promptRef(defaultPrompt)
+				if err != nil {
+					return err
+				}
+				body.DefaultCustomPromptId = &id
+			}
+			if body.Name == nil && body.Context == nil && body.DefaultLanguageId == nil && body.DefaultLanguageCode == nil && body.DefaultCustomPromptId == nil {
+				return clierr.Usage(errors.New("nothing to update: pass at least one of --rename, --context, --default-language, --default-prompt"))
 			}
 
 			res, err := c.API.UpdateNamespaceWithResponse(cmd.Context(), name, body)
@@ -388,6 +402,7 @@ sending the request — the underlying endpoint wants the id form.`,
 			if cmd.Flags().Changed("default-language") {
 				updated.DefaultLanguage = defaultLanguage
 			}
+			updated.DefaultPromptID = body.DefaultCustomPromptId
 			return cmdutil.Print(cmd, output.Done{
 				Message: fmt.Sprintf("Updated namespace %q.", name),
 				Value:   updated,
@@ -398,6 +413,7 @@ sending the request — the underlying endpoint wants the id form.`,
 	cmd.Flags().StringVar(&rename, "rename", "", "New name for the namespace (URL slug)")
 	cmd.Flags().StringVar(&context, "context", "", "New context description")
 	cmd.Flags().StringVar(&defaultLanguage, "default-language", "", "New default language — accepts either the code (e.g. en) or the numeric id; codes are resolved to ids client-side")
+	cmd.Flags().StringVar(&defaultPrompt, "default-prompt", "", `Custom prompt id for the namespace's automatic translations, or "none" to remove it`)
 	return cmd
 }
 
@@ -496,4 +512,7 @@ type namespaceResult struct {
 	Name            string `json:"name" yaml:"name"`
 	DefaultLanguage string `json:"defaultLanguage,omitempty" yaml:"defaultLanguage,omitempty"`
 	Context         string `json:"context,omitempty" yaml:"context,omitempty"`
+	// DefaultPromptID is set when the update changed the default prompt;
+	// "" means it was removed.
+	DefaultPromptID *string `json:"defaultPromptId,omitempty" yaml:"defaultPromptId,omitempty"`
 }

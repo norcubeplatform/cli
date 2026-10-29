@@ -1,0 +1,16 @@
+[
+  {
+    "available": false,
+    "checkedAt": "2026-10-28T09:00:00Z",
+    "domain": "acme.com",
+    "maxAge": "",
+    "method": "rdap"
+  },
+  {
+    "available": true,
+    "checkedAt": "2026-10-28T09:00:00Z",
+    "domain": "freshname.io",
+    "maxAge": "",
+    "method": "rdap"
+  }
+]

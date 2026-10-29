@@ -1,0 +1,8 @@
+ID:            gi-2
+Term:          invoice
+Type:          noun
+Case:          any
+Translatable:  yes
+Context:       a bill sent to a customer
+Created:       2026-10-02 11:00
+cs:            faktura
