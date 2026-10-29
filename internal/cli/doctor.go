@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"github.com/norcubeplatform/cli/internal/clierr"
 	"net"
 	"net/http"
 	"net/url"
@@ -130,7 +131,7 @@ func runDoctor(ctx context.Context, flags *clictx.Flags, offline bool) []doctorC
 	} else {
 		add("organization", checkWarn, "none set; run `norcube org use <slug>` or pass --org")
 	}
-	checks = append(checks, credentialCheck(res, cfg))
+	checks = append(checks, credentialCheck(flags, res, cfg))
 	checks = append(checks, proxyChecks()...)
 
 	if offline {
@@ -183,8 +184,15 @@ func configChecks() []doctorCheck {
 	return []doctorCheck{{"config file", checkOK, path}}
 }
 
-func credentialCheck(res *resolve.Result, cfg *config.Config) doctorCheck {
+func credentialCheck(flags *clictx.Flags, res *resolve.Result, cfg *config.Config) doctorCheck {
 	c := doctorCheck{Check: "credentials"}
+	if _, err := flags.CIToken(cfg); err != nil {
+		c.Status, c.Detail = checkFail, err.Error()
+		return c
+	} else if static, _ := flags.StaticToken(); auth.IsCIToken(static) {
+		c.Status, c.Detail = checkOK, "CI token from "+staticSource(res)
+		return c
+	}
 	switch res.Credentials.Value {
 	case resolve.CredentialTokenFile:
 		c.Status, c.Detail = checkOK, "access token from --token-file"
@@ -319,6 +327,9 @@ func probeEndpoint(ctx context.Context, client *http.Client, key, endpoint strin
 // when it works and an organization is set, mints a token for every
 // service the CLI calls.
 func sessionAndTokenChecks(ctx context.Context, flags *clictx.Flags, cfg *config.Config, res *resolve.Result) []doctorCheck {
+	if ci, err := flags.CIToken(cfg); err == nil && ci != nil {
+		return ciTokenChecks(ctx, ci)
+	}
 	if res.Credentials.Value == resolve.CredentialTokenFile || res.Credentials.Value == config.CredentialEnv {
 		return []doctorCheck{{"session", checkSkip, "a static access token is in use"}}
 	}
@@ -371,4 +382,49 @@ func latestKnownVersion() string {
 		return ""
 	}
 	return c.LatestVersion
+}
+
+// staticSource names where a static token comes from.
+func staticSource(res *resolve.Result) string {
+	if res.Credentials.Value == resolve.CredentialTokenFile {
+		return "--token-file"
+	}
+	return resolve.EnvToken
+}
+
+// ciTokenChecks exchanges the CI token for every service the CLI calls.
+// A service the token has no scope for is expected (tokens are narrow on
+// purpose) and is reported as skipped; a refused token fails.
+func ciTokenChecks(ctx context.Context, ci *auth.CIExchanger) []doctorCheck {
+	var out []doctorCheck
+	for _, s := range registry.Callable() {
+		if s.Audience == auth.AudienceAuth {
+			continue
+		}
+		c := doctorCheck{Check: "token " + s.Command}
+		tctx, cancel := context.WithTimeout(ctx, sessionCheckTimeout)
+		g, err := ci.Grant(tctx, s.Audience)
+		cancel()
+		var ce *clierr.Error
+		switch {
+		case err == nil:
+			c.Status = checkOK
+			c.Detail = fmt.Sprintf("%s in %s (%s)", s.Audience, firstNonEmptyStr(g.OrgSlug, g.OrgID), strings.Join(g.Scopes, ", "))
+		case errors.As(err, &ce) && ce.Code == clierr.CodeInsufficientScope:
+			c.Status, c.Detail = checkSkip, "the CI token has no scope for this service"
+		default:
+			c.Status, c.Detail = checkFail, err.Error()
+		}
+		out = append(out, c)
+	}
+	return out
+}
+
+func firstNonEmptyStr(values ...string) string {
+	for _, v := range values {
+		if v != "" {
+			return v
+		}
+	}
+	return ""
 }

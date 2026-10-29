@@ -1,0 +1,4 @@
+SCOPE          PRODUCT   ACCESS  YOU MAY GRANT  DESCRIPTION
+langsync.sync  langsync  write   yes            Run nrc langsync sync.
+backup.read    backup    read    yes            List data sources and backup jobs.
+cms.write      cms       write   no             Edit and publish CMS content.

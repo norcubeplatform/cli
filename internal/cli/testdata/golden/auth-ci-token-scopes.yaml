@@ -1,0 +1,18 @@
+- available: true
+  description: Run nrc langsync sync.
+  label: Sync translation files
+  product: langsync
+  scope: langsync.sync
+  write: true
+- available: true
+  description: List data sources and backup jobs.
+  label: Read backups
+  product: backup
+  scope: backup.read
+  write: false
+- available: false
+  description: Edit and publish CMS content.
+  label: Edit content
+  product: cms
+  scope: cms.write
+  write: true

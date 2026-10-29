@@ -5,6 +5,7 @@ package clictx
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -69,6 +70,10 @@ type Flags struct {
 	httpClient *http.Client
 	dlClient   *http.Client
 	httpErr    error
+
+	ciOnce sync.Once
+	ci     *auth.CIExchanger
+	ciErr  error
 }
 
 // Flag names shared with the root command.
@@ -343,6 +348,12 @@ func (g *Flags) TokenSource(cfg *config.Config, audience, orgID string) (*auth.T
 	ts := auth.NewTokenSource(g.ResolveAuth(cfg), audience, orgID)
 	ts.Profile = cfg.Profile
 	ts.HTTP = httpc
+	if ci, err := g.CIToken(cfg); err != nil {
+		return nil, err
+	} else if ci != nil {
+		ts.CI = ci
+		return ts, nil
+	}
 	if static, err := g.StaticToken(); err != nil {
 		return nil, err
 	} else if static != "" {
@@ -390,6 +401,51 @@ func (g *Flags) StaticToken() (string, error) {
 	return "", nil
 }
 
+// CIToken returns the exchanger for the CI token given by NORCUBE_TOKEN or
+// --token-file, or nil when the invocation doesn't use one (a profile
+// session, or a plain access token). A value that starts like a CI token
+// but fails the local checksum is a usage error, so a truncated paste is
+// caught before any request. One exchanger serves the whole invocation,
+// so each service's access token is fetched once.
+func (g *Flags) CIToken(cfg *config.Config) (*auth.CIExchanger, error) {
+	g.ciOnce.Do(func() {
+		static, err := g.StaticToken()
+		if err != nil {
+			g.ciErr = err
+			return
+		}
+		if !auth.IsCIToken(static) {
+			return
+		}
+		if err := auth.ValidateCIToken(static); err != nil {
+			g.ciErr = clierr.Usage(fmt.Errorf("%s holds a CI token that isn't complete or was mistyped (its checksum doesn't match); copy it again from where it was created", g.staticTokenSource()))
+			return
+		}
+		httpc, err := g.HTTPClient()
+		if err != nil {
+			g.ciErr = err
+			return
+		}
+		ex := auth.NewCIExchanger(g.ResolveAuth(cfg), static)
+		ex.HTTP = httpc
+		g.ci = ex
+	})
+	return g.ci, g.ciErr
+}
+
+// staticTokenSource names where the static token came from, for messages.
+func (g *Flags) staticTokenSource() string {
+	if res, err := g.Resolve(); err == nil && res.Credentials.Value == resolve.CredentialTokenFile {
+		return "--token-file " + res.TokenFile
+	}
+	return resolve.EnvToken
+}
+
+// ErrNeedsUserLogin is returned by commands that act as a person (whoami,
+// org, sessions, configure) when the invocation authenticates with a CI
+// token, which belongs to an organization, not to a user.
+var ErrNeedsUserLogin = clierr.Usage(errors.New("this command needs a user sign-in (`norcube login`); a CI token (NORCUBE_TOKEN) can only call Norcube services. `norcube auth status` shows the token's organization"))
+
 // ResolveAuth returns the auth-service base URL of this invocation.
 func (g *Flags) ResolveAuth(cfg *config.Config) string { return cfg.Auth }
 
@@ -414,6 +470,11 @@ func (g *Flags) Org(ctx context.Context, cfg *config.Config) (api.Organization, 
 	// profile that has neither.
 	if err := g.RequireSession(cfg); err != nil {
 		return api.Organization{}, err
+	}
+	if ci, err := g.CIToken(cfg); err != nil {
+		return api.Organization{}, err
+	} else if ci != nil {
+		return api.Organization{}, ErrNeedsUserLogin
 	}
 	active := api.Organization{ID: cfg.ActiveOrg.ID, Slug: cfg.ActiveOrg.Slug, Name: cfg.ActiveOrg.Name}
 	value := g.orgOverride()
@@ -468,6 +529,13 @@ func (g *Flags) RequireSession(cfg *config.Config) error {
 		return nil
 	}
 	return auth.ErrNotLoggedIn
+}
+
+// OrgFlag is the organization given by --org or NORCUBE_ORG ("" when
+// neither is set).
+func (g *Flags) OrgFlag() string {
+	_, _ = g.Resolve()
+	return g.orgOverride()
 }
 
 // HasOrgFlag reports whether the organization was given for this command

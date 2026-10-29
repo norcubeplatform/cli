@@ -49,3 +49,16 @@ func StdinIsTerminal() bool { return xterm.IsTerminal(int(os.Stdin.Fd())) }
 // StderrIsTerminal reports whether progress, spinners and hints meant for a
 // person may be written to stderr.
 func StderrIsTerminal() bool { return xterm.IsTerminal(int(os.Stderr.Fd())) }
+
+// Width is w's width in columns, or 0 when w isn't a terminal.
+func Width(w io.Writer) int {
+	f, ok := w.(*os.File)
+	if !ok {
+		return 0
+	}
+	cols, _, err := xterm.GetSize(int(f.Fd()))
+	if err != nil {
+		return 0
+	}
+	return cols
+}
