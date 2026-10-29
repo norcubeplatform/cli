@@ -5,6 +5,25 @@ this file collects what users and scripts need to know.
 
 ## Unreleased
 
+### New
+
+- CI tokens: `NORCUBE_TOKEN` (or `--token-file`) accepts an organization's
+  CI token (`nrc_ci_…`). The CLI checks its checksum locally, exchanges it
+  for a short-lived token per service and keeps those in memory only.
+  `norcube auth ci-token create | list | revoke | scopes` manages them;
+  `norcube auth status` shows the token's organization, scopes and expiry.
+- `norcube login --device`: approve the sign-in on another device (a phone
+  works) with a short code, for SSH and headless machines.
+
+### Changes for scripts
+
+- With a CI token, `--org` / `NORCUBE_ORG` / `.langsync.json` must name the
+  token's own organization (a usage error otherwise), and commands that act
+  as a person (`whoami`, `org …`, `auth sessions …`) explain that they need
+  `norcube login`.
+
+## 0.16.0 and 0.17.0 (2026-10-29)
+
 ### Changes for scripts
 
 - `backup datasources list --query <text>` is now `--search <text>`:

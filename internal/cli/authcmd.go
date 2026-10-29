@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"sort"
@@ -24,9 +25,9 @@ import (
 func newAuthCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "auth",
-		Short: "Check the session, manage CLI sessions and get access tokens for scripts",
+		Short: "Check the session, manage CLI sessions and CI tokens, and get access tokens for scripts",
 	}
-	cmd.AddCommand(newAuthStatusCmd(), newAuthTokenCmd(), newAuthSessionsCmd())
+	cmd.AddCommand(newAuthStatusCmd(), newAuthTokenCmd(), newAuthSessionsCmd(), newAuthCITokenCmd())
 	return cmd
 }
 
@@ -47,9 +48,21 @@ type authStatus struct {
 	User            string            `json:"user,omitempty" yaml:"user,omitempty"`
 	Organization    string            `json:"organization,omitempty" yaml:"organization,omitempty"`
 	AccessExpiresAt *time.Time        `json:"accessExpiresAt,omitempty" yaml:"accessExpiresAt,omitempty"`
+	// CIToken describes the CI token in NORCUBE_TOKEN / --token-file, when
+	// the invocation uses one (learned from its exchanges).
+	CIToken *ciTokenStatus `json:"ciToken,omitempty" yaml:"ciToken,omitempty"`
 
 	cfg      *config.Config
 	checkErr error
+}
+
+// ciTokenStatus is what Norcube Auth says about a CI token.
+type ciTokenStatus struct {
+	ID        string    `json:"id" yaml:"id"`
+	Name      string    `json:"name" yaml:"name"`
+	ExpiresAt time.Time `json:"expiresAt" yaml:"expiresAt"`
+	// Scopes are the token's scopes, gathered service by service.
+	Scopes []string `json:"scopes" yaml:"scopes"`
 }
 
 func newAuthStatusCmd() *cobra.Command {
@@ -108,6 +121,16 @@ exits 0.`,
 			}
 			if !offline {
 				checkSessions(cmd.Context(), flags, rows)
+				if ci, err := flags.CIToken(res.Config()); err != nil {
+					return err
+				} else if ci != nil {
+					// The CI token belongs to this invocation's profile.
+					for i := range rows {
+						if rows[i].Profile == res.Config().Profile {
+							checkCIToken(cmd.Context(), ci, &rows[i])
+						}
+					}
+				}
 			}
 			for _, s := range rows {
 				if s.Session == auth.SessionUnknown {
@@ -131,6 +154,8 @@ exits 0.`,
 				return nil
 			}
 			switch {
+			case rows[0].Session == auth.SessionEnded && rows[0].checkErr != nil && rows[0].cfg == nil:
+				return rows[0].checkErr
 			case rows[0].Session == auth.SessionEnded:
 				return fmt.Errorf("%w: Norcube Auth ended the session of profile %s (revoked or expired)", auth.ErrLoginRequired, rows[0].Profile)
 			case !rows[0].SignedIn && rows[0].Session != auth.SessionUnknown:
@@ -165,7 +190,7 @@ func statusOf(r *resolve.Result) authStatus {
 	cfg := r.Config()
 	s := authStatus{
 		Profile:         cfg.Profile,
-		Environment:     cfg.Environment,
+		Environment:     effectiveEnvironment(r),
 		AuthURL:         cfg.Auth,
 		CredentialStore: r.Credentials.Value,
 		Organization:    orgLabel(cfg.ActiveOrg),
@@ -215,6 +240,65 @@ func checkSessions(ctx context.Context, flags *clictx.Flags, rows []authStatus) 
 		}()
 	}
 	wg.Wait()
+}
+
+// ciAudiences are the services a CI token can be exchanged for.
+var ciAudiences = []string{auth.AudienceLangsync, auth.AudienceSnapDB, auth.AudienceDomainradar, auth.AudienceBilling, auth.AudienceCMS}
+
+// checkCIToken exchanges the CI token for every service it may reach, in
+// parallel, and fills s with the token's organization, name, expiry and
+// scopes. A service it has no scope for is expected; the token is "ended"
+// only when Norcube Auth refuses the token itself.
+func checkCIToken(ctx context.Context, ci *auth.CIExchanger, s *authStatus) {
+	ctx, cancel := context.WithTimeout(ctx, sessionCheckTimeout)
+	defer cancel()
+	type result struct {
+		g   *auth.CIGrant
+		err error
+	}
+	results := make([]result, len(ciAudiences))
+	var wg sync.WaitGroup
+	for i, aud := range ciAudiences {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			g, err := ci.Grant(ctx, aud)
+			results[i] = result{g, err}
+		}()
+	}
+	wg.Wait()
+
+	var info *ciTokenStatus
+	var refused, other error
+	for _, r := range results {
+		var ce *clierr.Error
+		switch {
+		case r.err == nil:
+			if info == nil {
+				info = &ciTokenStatus{ID: r.g.TokenID, Name: r.g.TokenName, ExpiresAt: r.g.TokenExpiresAt}
+				s.Organization = firstNonEmptyStr(r.g.OrgSlug, r.g.OrgID)
+			}
+			info.Scopes = append(info.Scopes, r.g.Scopes...)
+		case errors.As(r.err, &ce) && ce.Code == clierr.CodeInsufficientScope:
+		case errors.As(r.err, &ce) && ce.Code == clierr.CodeLoginRequired:
+			refused = r.err
+		default:
+			other = r.err
+		}
+	}
+	switch {
+	case info != nil:
+		sort.Strings(info.Scopes)
+		s.CIToken = info
+		s.Session, s.SignedIn = auth.SessionActive, true
+		s.User = "CI token · " + info.Name
+		exp := info.ExpiresAt
+		s.AccessExpiresAt = &exp
+	case refused != nil:
+		s.Session, s.SignedIn, s.checkErr = auth.SessionEnded, false, refused
+	default:
+		s.Session, s.checkErr = auth.SessionUnknown, other
+	}
 }
 
 // sessionCheckTimeout bounds one profile's server check in login and
@@ -284,6 +368,11 @@ you in that organization.`,
 			if err != nil {
 				return err
 			}
+			if ci, err := flags.CIToken(cfg); err != nil {
+				return err
+			} else if ci != nil {
+				return printCIAccessToken(cmd, flags, ci, audience, aud)
+			}
 			org, err := flags.Org(cmd.Context(), cfg)
 			if err != nil {
 				return err
@@ -319,4 +408,39 @@ type tokenResult struct {
 	Audience     string     `json:"audience" yaml:"audience"`
 	Organization string     `json:"organization,omitempty" yaml:"organization,omitempty"`
 	ExpiresAt    *time.Time `json:"expiresAt,omitempty" yaml:"expiresAt,omitempty"`
+}
+
+// printCIAccessToken prints an access token minted from the invocation's CI
+// token, which only works in its own organization.
+func printCIAccessToken(cmd *cobra.Command, flags *clictx.Flags, ci *auth.CIExchanger, name, aud string) error {
+	if aud == auth.AudienceAuth || aud == auth.AudiencePrompthub {
+		return clierr.Usage(fmt.Errorf("a CI token can't be exchanged for %s; pick one of langsync, backup, domainradar, billing", name))
+	}
+	g, err := ci.Grant(cmd.Context(), aud)
+	if err != nil {
+		return err
+	}
+	if want := flags.OrgFlag(); want != "" && want != g.OrgID && !strings.EqualFold(want, g.OrgSlug) {
+		return clierr.Usage(fmt.Errorf("the CI token belongs to organization %s, not %s", firstNonEmptyStr(g.OrgSlug, g.OrgID), want))
+	}
+	if term.IsTerminal(cmd.OutOrStdout()) {
+		fmt.Fprintln(cmd.ErrOrStderr(), "This token acts as the CI token; treat it like a password.")
+	}
+	exp := g.ExpiresAt
+	res := tokenResult{AccessToken: g.AccessToken, Audience: name, Organization: g.OrgID, ExpiresAt: &exp}
+	return cmdutil.Print(cmd, output.Done{Message: g.AccessToken, Value: res, Fields: []output.Field{{Value: g.AccessToken}}})
+}
+
+// effectiveEnvironment is the profile's environment, or "custom" when any
+// endpoint comes from somewhere other than that environment's built-in set
+// (NORCUBE_<SVC>_URL, --endpoint-url, profile endpoints): that's what the
+// commands actually talk to.
+func effectiveEnvironment(r *resolve.Result) string {
+	builtIn := "environment " + r.Environment.Value
+	for _, v := range r.Endpoints {
+		if v.Source != builtIn {
+			return config.EnvCustom
+		}
+	}
+	return r.Environment.Value
 }

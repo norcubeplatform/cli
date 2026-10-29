@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -100,7 +101,16 @@ func New[T any](cmd *cobra.Command, key string, ctor Constructor[T], opts ...Opt
 	if err != nil {
 		return nil, err
 	}
-	org, err := targetOrg(cmd.Context(), flags, cfg, o)
+	ci, err := flags.CIToken(cfg)
+	if err != nil {
+		return nil, err
+	}
+	var org api.Organization
+	if ci != nil {
+		org, err = ciOrg(cmd.Context(), flags, ci, svc.Audience, o)
+	} else {
+		org, err = targetOrg(cmd.Context(), flags, cfg, o)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -154,4 +164,50 @@ func targetOrg(ctx context.Context, flags *clictx.Flags, cfg *config.Config, o o
 		return api.Organization{}, ErrNoOrganization
 	}
 	return org, nil
+}
+
+// ciOrg is the organization a CI token belongs to, learned from its first
+// exchange for the service. A CI token can't act anywhere else, so an
+// organization named by --org, NORCUBE_ORG, the command or a project file
+// must be that one: running a deploy step against another organization
+// than the one written in the config is an error, not something to paper
+// over.
+func ciOrg(ctx context.Context, flags *clictx.Flags, ci *auth.CIExchanger, audience string, o options) (api.Organization, error) {
+	g, err := ci.Grant(ctx, audience)
+	if err != nil {
+		return api.Organization{}, err
+	}
+	org := api.Organization{ID: g.OrgID, Slug: g.OrgSlug, Name: g.OrgName}
+	mismatch := func(source, want string) error {
+		return clierr.Usage(fmt.Errorf("the CI token belongs to organization %s, but %s names %s. A CI token only works in its own organization: drop %s or use a token created in %s",
+			orgName(org), source, want, source, want))
+	}
+	switch {
+	case o.orgID != "":
+		if o.orgID != org.ID {
+			return api.Organization{}, mismatch("the command", firstNonEmpty(o.orgSlug, o.orgID))
+		}
+	case flags.OrgFlag() != "":
+		if want := flags.OrgFlag(); want != org.ID && !strings.EqualFold(want, org.Slug) {
+			return api.Organization{}, mismatch("--org / NORCUBE_ORG", want)
+		}
+	case o.orgDefault != nil:
+		if want, ok := o.orgDefault(); ok && want.ID != "" && want.ID != org.ID {
+			return api.Organization{}, mismatch("the project file", firstNonEmpty(want.Slug, want.ID))
+		}
+	}
+	return org, nil
+}
+
+func orgName(o api.Organization) string {
+	return firstNonEmpty(o.Slug, o.ID)
+}
+
+func firstNonEmpty(values ...string) string {
+	for _, v := range values {
+		if v != "" {
+			return v
+		}
+	}
+	return ""
 }

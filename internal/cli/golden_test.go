@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/norcubeplatform/cli/internal/auth"
@@ -25,12 +26,21 @@ import (
 var update = flag.Bool("update", false, "rewrite the golden files")
 
 // goldenData is what the fake services answer, keyed by "METHOD path".
-var goldenData = map[string]string{
+var goldenData = map[string]string{ // #nosec G101 -- API fixtures, no credentials
 	"GET /auth/me": `{"id":"user-1","name":"Dev Eloper","email":"dev@example.com","avatarUrl":""}`,
 	"GET /auth/me/sessions": `[
 		{"id":"sess-1","kind":"cli","hostname":"dev-laptop","client":{"name":"norcube","version":"0.17.0","os":"darwin","arch":"arm64"},"ip_address":"203.0.113.24","created_at":"2026-10-16T09:00:00Z","last_used_at":"2026-10-28T11:42:00Z","expires_at":"2026-11-27T11:42:00Z","current":true},
 		{"id":"sess-2","kind":"cli","hostname":"ci-runner-04","client":{"name":"norcube","version":"0.16.0","os":"linux","arch":"amd64"},"ip_address":"198.51.100.7","created_at":"2026-09-28T08:00:00Z","last_used_at":"2026-10-27T03:10:00Z","expires_at":"2026-11-26T03:10:00Z","current":false},
 		{"id":"sess-3","kind":"cli","hostname":null,"client":{"name":null,"version":null,"os":null,"arch":null},"ip_address":null,"created_at":"2026-08-29T10:00:00Z","last_used_at":"2026-10-19T10:00:00Z","expires_at":"2026-11-18T10:00:00Z","current":false}
+	]`,
+	"GET /iam/ci-tokens": `[
+		{"id":"0b7a4c8e-2d3f-4a1b-9c6d-5e4f3a2b1c0d","name":"GitHub Actions deploy","preview":"x7Kq","scopes":["langsync.sync"],"created_by":"user-1","created_at":"2026-10-01T09:00:00Z","expires_at":"2026-12-30T09:00:00Z","last_used_at":"2026-10-28T11:42:00Z","last_used_ip":"203.0.113.24","revoked_at":null,"revoked_by":null,"status":"active"},
+		{"id":"5c1d2e3f-4a5b-4c6d-8e7f-9a0b1c2d3e4f","name":"nightly backup check","preview":"Pq2w","scopes":["backup.read"],"created_by":"user-1","created_at":"2026-08-01T09:00:00Z","expires_at":"2026-09-01T09:00:00Z","last_used_at":null,"last_used_ip":null,"revoked_at":null,"revoked_by":null,"status":"expired"}
+	]`,
+	"GET /iam/ci-tokens/scopes": `[
+		{"scope":"langsync.sync","label":"Sync translation files","description":"Run nrc langsync sync.","product":"langsync","write":true,"available":true},
+		{"scope":"backup.read","label":"Read backups","description":"List data sources and backup jobs.","product":"backup","write":false,"available":true},
+		{"scope":"cms.write","label":"Edit content","description":"Edit and publish CMS content.","product":"cms","write":true,"available":false}
 	]`,
 	"DELETE /auth/me/sessions/sess-2":      ``,
 	"POST /auth/me/sessions/revoke-others": `{"revoked":2}`,
@@ -78,6 +88,13 @@ func (g *goldenBackend) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	key := r.Method + " " + r.URL.Path
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("X-Request-Id", "req-golden")
+	goldenDynamicMu.Lock()
+	h, ok := goldenDynamic[key]
+	goldenDynamicMu.Unlock()
+	if ok {
+		h(w, r)
+		return
+	}
 	if e, ok := goldenErrors[key]; ok {
 		w.WriteHeader(e.status)
 		fmt.Fprint(w, e.body)
@@ -89,6 +106,30 @@ func (g *goldenBackend) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Fprint(w, body)
+}
+
+// goldenDynamic are per-test handlers for requests that need to look at
+// the request or answer differently (registered with goldenHandlers).
+var (
+	goldenDynamicMu sync.Mutex
+	goldenDynamic   = map[string]http.HandlerFunc{}
+)
+
+// goldenHandlers registers handlers (keyed "METHOD /path") for the test.
+func goldenHandlers(t *testing.T, hs map[string]http.HandlerFunc) {
+	t.Helper()
+	goldenDynamicMu.Lock()
+	defer goldenDynamicMu.Unlock()
+	for k, h := range hs {
+		goldenDynamic[k] = h
+	}
+	t.Cleanup(func() {
+		goldenDynamicMu.Lock()
+		defer goldenDynamicMu.Unlock()
+		for k := range hs {
+			delete(goldenDynamic, k)
+		}
+	})
 }
 
 // goldenEnv starts the fake services and a signed-in profile using them.
@@ -159,6 +200,8 @@ func TestGoldenOutput(t *testing.T) {
 		{"langsync-mark-list", []string{"langsync", "mark", "list", "--namespace", "web"}},
 		{"configure-get", []string{"configure", "get", "environment"}},
 		{"auth-sessions-list", []string{"auth", "sessions", "list"}},
+		{"auth-ci-token-list", []string{"auth", "ci-token", "list"}},
+		{"auth-ci-token-scopes", []string{"auth", "ci-token", "scopes"}},
 	}
 	for _, c := range commands {
 		for format, ext := range goldenFormats {

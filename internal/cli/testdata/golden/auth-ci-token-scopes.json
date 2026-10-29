@@ -1,0 +1,26 @@
+[
+  {
+    "scope": "langsync.sync",
+    "label": "Sync translation files",
+    "description": "Run nrc langsync sync.",
+    "product": "langsync",
+    "write": true,
+    "available": true
+  },
+  {
+    "scope": "backup.read",
+    "label": "Read backups",
+    "description": "List data sources and backup jobs.",
+    "product": "backup",
+    "write": false,
+    "available": true
+  },
+  {
+    "scope": "cms.write",
+    "label": "Edit content",
+    "description": "Edit and publish CMS content.",
+    "product": "cms",
+    "write": true,
+    "available": false
+  }
+]

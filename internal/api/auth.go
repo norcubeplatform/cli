@@ -139,6 +139,87 @@ func (c *AuthClient) RevokeOtherSessions(ctx context.Context) (int64, error) {
 	return out.Revoked, nil
 }
 
+// CIToken is an organization's CI token as Norcube Auth lists it. The
+// secret itself is only ever returned once, by CreateCIToken.
+type CIToken struct {
+	ID         string     `json:"id"`
+	Name       string     `json:"name"`
+	Preview    string     `json:"preview"`
+	Scopes     []string   `json:"scopes"`
+	CreatedBy  *string    `json:"created_by"`
+	CreatedAt  time.Time  `json:"created_at"`
+	ExpiresAt  time.Time  `json:"expires_at"`
+	LastUsedAt *time.Time `json:"last_used_at"`
+	LastUsedIP *string    `json:"last_used_ip"`
+	RevokedAt  *time.Time `json:"revoked_at"`
+	// Status is active, expired or revoked.
+	Status string `json:"status"`
+}
+
+// CITokenScope is a scope a CI token can carry, and whether the caller's
+// role allows granting it.
+type CITokenScope struct {
+	Scope       string `json:"scope"`
+	Label       string `json:"label"`
+	Description string `json:"description"`
+	Product     string `json:"product"`
+	Write       bool   `json:"write"`
+	Available   bool   `json:"available"`
+}
+
+// CreatedCIToken is a new CI token plus its secret, shown once.
+type CreatedCIToken struct {
+	Token  CIToken `json:"token"`
+	Secret string  `json:"secret"`
+}
+
+// ListCITokens lists the organization's CI tokens (the organization of the
+// client's token).
+func (c *AuthClient) ListCITokens(ctx context.Context) ([]CIToken, error) {
+	var out []CIToken
+	if err := c.do(ctx, http.MethodGet, "/iam/ci-tokens", nil, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ListCITokenScopes lists every CI token scope and whether the caller may
+// grant it.
+func (c *AuthClient) ListCITokenScopes(ctx context.Context) ([]CITokenScope, error) {
+	var out []CITokenScope
+	if err := c.do(ctx, http.MethodGet, "/iam/ci-tokens/scopes", nil, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// CreateCIToken creates a CI token in the organization and returns it with
+// its secret.
+func (c *AuthClient) CreateCIToken(ctx context.Context, name string, scopes []string, expiresAt time.Time) (*CreatedCIToken, error) {
+	body, err := json.Marshal(struct {
+		Name      string    `json:"name"`
+		Scopes    []string  `json:"scopes"`
+		ExpiresAt time.Time `json:"expires_at"`
+	}{name, scopes, expiresAt.UTC()})
+	if err != nil {
+		return nil, err
+	}
+	var out CreatedCIToken
+	if err := c.do(ctx, http.MethodPost, "/iam/ci-tokens", bytes.NewReader(body), &out); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// RevokeCIToken revokes a CI token; revoking a revoked token is a no-op.
+func (c *AuthClient) RevokeCIToken(ctx context.Context, id string) (*CIToken, error) {
+	var out CIToken
+	if err := c.do(ctx, http.MethodDelete, "/iam/ci-tokens/"+url.PathEscape(id), nil, &out); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *AuthClient) do(ctx context.Context, method, path string, body io.Reader, out any) error {
 	token, err := c.Token(ctx)
 	if err != nil {

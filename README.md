@@ -93,6 +93,27 @@ Homebrew prints how). Add `-o json` and `--query` to any command for
 scripting, and `--org <slug>` to target another organization for one
 command.
 
+## In CI and on servers
+
+Create a CI token for the organization (scopes limit what it can do, and it
+always expires), store it as the secret `NORCUBE_TOKEN`, and run commands
+as usual:
+
+```bash
+norcube auth ci-token create --name "GitHub Actions" --scopes langsync.sync -o text | gh secret set NORCUBE_TOKEN
+```
+
+```yaml
+- uses: norcubeplatform/setup-norcube@v1
+  with:
+    token: ${{ secrets.NORCUBE_TOKEN }}
+- run: nrc langsync sync
+```
+
+On a machine without a browser, `norcube login --device` signs you in with a
+code you approve on your phone or laptop. See
+[CI and automation](https://docs.norcube.com/platform/cli#ci-and-automation).
+
 ## Documentation
 
 - [CLI guide](https://docs.norcube.com/platform/cli): login, profiles,

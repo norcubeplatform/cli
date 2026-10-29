@@ -32,6 +32,7 @@ const (
 	AudienceLangsync    = "langsync-api"
 	AudienceDomainradar = "domainradar"
 	AudiencePrompthub   = "prompthub"
+	AudienceCMS         = "cms-api"
 )
 
 // TokenSource returns a valid Bearer access token for a (audience, organization)
@@ -53,6 +54,9 @@ type TokenSource struct {
 	// Static, when set, is returned as the token for every request and
 	// nothing is exchanged or stored (NORCUBE_TOKEN, --token-file).
 	Static string
+	// CI, when set, mints the token from a CI token instead: one exchange
+	// per service, cached in memory (NORCUBE_TOKEN=nrc_ci_…).
+	CI *CIExchanger
 
 	// ProbeOrgID is an organization the user is known to belong to (the
 	// active org). When an exchange for OrgID is refused, one exchange for
@@ -176,6 +180,9 @@ func (t *TokenSource) BearerInjector() func(ctx context.Context, req *http.Reque
 // each exchange. The user only sees `nrc login --force` again if they
 // stay completely inactive for the full TTL window.
 func (t *TokenSource) Token(ctx context.Context) (string, error) {
+	if t.CI != nil {
+		return t.CI.Token(ctx, t.Audience)
+	}
 	if t.Static != "" {
 		return t.Static, nil
 	}
