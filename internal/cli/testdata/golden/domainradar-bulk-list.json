@@ -1,0 +1,25 @@
+[
+  {
+    "completedDomains": 3,
+    "createdAt": "2026-10-28T09:00:00Z",
+    "id": "bulk-1",
+    "mode": "verified",
+    "status": "completed",
+    "tlds": [
+      "com",
+      "io"
+    ],
+    "totalDomains": 3
+  },
+  {
+    "completedDomains": 250,
+    "createdAt": "2026-10-28T10:00:00Z",
+    "id": "bulk-2",
+    "mode": "bloom",
+    "status": "running",
+    "tlds": [
+      "dev"
+    ],
+    "totalDomains": 1000
+  }
+]

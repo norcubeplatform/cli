@@ -1,0 +1,23 @@
+[
+  {
+    "id": "k-1",
+    "name": "production-web",
+    "preview": "lsk_8f2a",
+    "status": "active",
+    "createdAt": "2026-09-01T09:00:00Z",
+    "createdBy": "user-1",
+    "lastUsedAt": "2026-10-28T11:00:00Z",
+    "revokedAt": null
+  },
+  {
+    "id": "k-2",
+    "name": "old-preview",
+    "preview": "lsk_1b9c",
+    "status": "revoked",
+    "createdAt": "2026-08-01T09:00:00Z",
+    "createdBy": "user-1",
+    "lastUsedAt": null,
+    "revokedAt": "2026-09-02T09:00:00Z",
+    "revokedBy": "user-1"
+  }
+]

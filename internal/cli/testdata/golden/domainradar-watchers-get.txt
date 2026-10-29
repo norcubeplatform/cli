@@ -1,0 +1,8 @@
+ID:         w-1
+Word:       acme
+Status:     active
+Min score:  60
+AI check:   on
+Allowlist:  acme.com, acme.io
+Created:    2026-10-01 10:00
+Notify:     security@acme.com

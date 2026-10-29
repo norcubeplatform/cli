@@ -1,0 +1,6 @@
+ID:        bulk-1
+Status:    completed
+Mode:      verified
+Progress:  3/3 (100%)
+TLDs:      com, io
+Created:   2026-10-28 11:00

@@ -2,19 +2,17 @@ package backup
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"path"
 
 	"github.com/spf13/cobra"
 
 	"github.com/norcubeplatform/cli/internal/api/snapdb"
 	"github.com/norcubeplatform/cli/internal/clictx"
+	"github.com/norcubeplatform/cli/internal/clierr"
 	"github.com/norcubeplatform/cli/internal/cmdutil"
 	"github.com/norcubeplatform/cli/internal/output"
 )
@@ -214,7 +212,7 @@ func streamDownload(cmd *cobra.Command, rawURL string, sizeBytes *int, jobID, fi
 	// --file - streams raw bytes to stdout for piping; no progress, no
 	// completion message on stdout (that would corrupt the stream).
 	if filePath == "-" {
-		_, err := io.Copy(cmd.OutOrStdout(), resp.Body)
+		_, err := cmdutil.SaveStream(cmd, resp.Body, "-", 0)
 		return err
 	}
 
@@ -223,41 +221,28 @@ func streamDownload(cmd *cobra.Command, rawURL string, sizeBytes *int, jobID, fi
 		dest = objectBasename(rawURL, jobID)
 	}
 
-	// 0600: the artifact is a database dump; nobody else on the machine
-	// has any business reading it.
-	f, err := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
-	if err != nil {
-		if os.IsExist(err) {
-			return fmt.Errorf("%s already exists; pass --file to pick another name", dest)
-		}
-		return err
-	}
-
 	var src io.Reader = resp.Body
 	stderr := cmd.ErrOrStderr()
 	if output.IsInteractive(stderr) {
 		src = &progressReader{r: resp.Body, total: cmdutil.Deref(sizeBytes), out: stderr}
 	}
 
-	sum := sha256.New()
-	written, err := io.Copy(io.MultiWriter(f, sum), src)
-	if cerr := f.Close(); err == nil {
-		err = cerr
-	}
-	if err != nil {
-		// Don't leave a truncated artifact lying around looking like a
-		// valid backup.
-		_ = os.Remove(dest)
-		return fmt.Errorf("download: %w", err)
-	}
+	// 0600: the artifact is a database dump; nobody else on the machine
+	// has any business reading it.
+	saved, err := cmdutil.SaveStream(cmd, src, dest, 0o600)
 	if output.IsInteractive(stderr) {
 		fmt.Fprint(stderr, "\r\033[K")
 	}
-	digest := hex.EncodeToString(sum.Sum(nil))
+	if err != nil {
+		if clierr.IsUsage(err) {
+			return fmt.Errorf("%s already exists; pass --file to pick another name", dest)
+		}
+		return fmt.Errorf("download: %w", err)
+	}
 	return cmdutil.Print(cmd, output.Done{
-		Message: fmt.Sprintf("Downloaded %s (%s, sha256 %s).", dest, formatBytes(int(written)), digest),
-		Value:   downloadResult{Path: dest, Bytes: written, SHA256: digest},
-		Fields:  []output.Field{{Value: dest}, {Value: fmt.Sprint(written)}, {Value: digest}},
+		Message: fmt.Sprintf("Downloaded %s (%s, sha256 %s).", saved.Path, formatBytes(int(saved.Bytes)), saved.SHA256),
+		Value:   saved,
+		Fields:  []output.Field{{Value: saved.Path}, {Value: fmt.Sprint(saved.Bytes)}, {Value: saved.SHA256}},
 	})
 }
 
@@ -297,11 +282,4 @@ func (p *progressReader) Read(buf []byte) (int, error) {
 		fmt.Fprintf(p.out, "\r\033[K%s", formatBytes(int(p.written)))
 	}
 	return n, err
-}
-
-// downloadResult is what `backup jobs download -o json` prints.
-type downloadResult struct {
-	Path   string `json:"path" yaml:"path"`
-	Bytes  int64  `json:"bytes" yaml:"bytes"`
-	SHA256 string `json:"sha256" yaml:"sha256"`
 }

@@ -1,0 +1,2538 @@
+{
+  "components": {
+    "schemas": {
+      "brandmonitorhandler.createWatcherRequest": {
+        "properties": {
+          "aiContentCheck": {
+            "type": "boolean"
+          },
+          "allowlist": {
+            "example": [
+              "norcube.com",
+              "norcu.be"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "minNotificationScore": {
+            "example": 30,
+            "type": "integer"
+          },
+          "notificationEmail": {
+            "example": "alerts@norcube.com",
+            "type": "string"
+          },
+          "word": {
+            "example": "norcube",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "brandmonitorhandler.listHitsResponse": {
+        "properties": {
+          "list": {
+            "items": {
+              "$ref": "#/components/schemas/dto.MonitorHit"
+            },
+            "type": "array"
+          },
+          "next": {
+            "type": "string"
+          },
+          "prev": {
+            "type": "string"
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "brandmonitorhandler.updateWatcherRequest": {
+        "properties": {
+          "aiContentCheck": {
+            "type": "boolean"
+          },
+          "allowlist": {
+            "example": [
+              "norcube.com",
+              "norcu.be"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "minNotificationScore": {
+            "example": 30,
+            "type": "integer"
+          },
+          "notificationEmail": {
+            "type": "string"
+          },
+          "word": {
+            "example": "norcube",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "checkhandler.bulkCheckRequest": {
+        "properties": {
+          "domains": {
+            "example": [
+              "example.com",
+              "example.org"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "maxAge": {
+            "example": "1h",
+            "type": "string"
+          },
+          "mode": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/constants.CheckMode"
+              }
+            ],
+            "example": "verified"
+          }
+        },
+        "type": "object"
+      },
+      "checkhandler.checkRequest": {
+        "properties": {
+          "domain": {
+            "example": "example.com",
+            "type": "string"
+          },
+          "maxAge": {
+            "example": "1h",
+            "type": "string"
+          },
+          "mode": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/constants.CheckMode"
+              }
+            ],
+            "example": "verified"
+          }
+        },
+        "type": "object"
+      },
+      "constants.AIRisk": {
+        "enum": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "AIRiskLow",
+          "AIRiskMedium",
+          "AIRiskHigh"
+        ]
+      },
+      "constants.CheckMode": {
+        "enum": [
+          "bloom",
+          "verified",
+          "info",
+          "full"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "CheckModeBloom",
+          "CheckModeVerified",
+          "CheckModeInfo",
+          "CheckModeFull"
+        ]
+      },
+      "constants.NameGenSortBy": {
+        "enum": [
+          "name",
+          "length"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "NameGenSortByName",
+          "NameGenSortByLength"
+        ]
+      },
+      "constants.NameGeneratorJobStatus": {
+        "enum": [
+          "generating",
+          "completed",
+          "failed"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "NameGenStatusGenerating",
+          "NameGenStatusCompleted",
+          "NameGenStatusFailed"
+        ]
+      },
+      "constants.NameGeneratorSize": {
+        "enum": [
+          "small",
+          "medium",
+          "large"
+        ],
+        "type": "string",
+        "x-enum-comments": {
+          "NameGenSizeLarge": "~100-200k names",
+          "NameGenSizeMedium": "~30-50k names",
+          "NameGenSizeSmall": "~5-10k names"
+        },
+        "x-enum-varnames": [
+          "NameGenSizeSmall",
+          "NameGenSizeMedium",
+          "NameGenSizeLarge"
+        ]
+      },
+      "constants.SavedDomainSortBy": {
+        "enum": [
+          "domain",
+          "created_at",
+          "expiry_date",
+          "registrar"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "SavedDomainSortByDomain",
+          "SavedDomainSortByCreatedAt",
+          "SavedDomainSortByExpiryDate",
+          "SavedDomainSortByRegistrar"
+        ]
+      },
+      "constants.SortDir": {
+        "enum": [
+          "asc",
+          "desc"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "SortAsc",
+          "SortDesc"
+        ]
+      },
+      "dto.BulkCheckJob": {
+        "properties": {
+          "completedDomains": {
+            "example": 10,
+            "type": "integer"
+          },
+          "createdAt": {
+            "example": "2026-04-18T12:00:00Z",
+            "type": "string"
+          },
+          "id": {
+            "example": "a3bb189e-8bf9-3888-9912-ace4e6543002",
+            "type": "string"
+          },
+          "maxAge": {
+            "example": "1h0m0s",
+            "type": "string"
+          },
+          "mode": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/constants.CheckMode"
+              }
+            ],
+            "example": "verified"
+          },
+          "status": {
+            "example": "processing",
+            "type": "string"
+          },
+          "tlds": {
+            "example": [
+              "com",
+              "net",
+              "eu"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "totalDomains": {
+            "example": 10,
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "dto.DomainCheck": {
+        "properties": {
+          "available": {
+            "example": false,
+            "type": "boolean"
+          },
+          "cacheHit": {
+            "type": "boolean"
+          },
+          "checkedAt": {
+            "example": "2026-04-18T12:00:00Z",
+            "type": "string"
+          },
+          "createdDate": {
+            "example": "2020-01-15",
+            "type": "string"
+          },
+          "dnsRecords": {
+            "additionalProperties": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "type": "object"
+          },
+          "domain": {
+            "example": "example.com",
+            "type": "string"
+          },
+          "error": {
+            "example": "timeout",
+            "type": "string"
+          },
+          "expiryDate": {
+            "example": "2025-01-15",
+            "type": "string"
+          },
+          "isSaved": {
+            "type": "boolean"
+          },
+          "maxAge": {
+            "example": "1h",
+            "type": "string"
+          },
+          "method": {
+            "example": "rdap",
+            "type": "string"
+          },
+          "processingTimeMs": {
+            "example": 142,
+            "type": "integer"
+          },
+          "rawRdapResponse": {
+            "type": "string"
+          },
+          "rawWhoisResponse": {
+            "type": "string"
+          },
+          "rdapSourceServer": {
+            "type": "string"
+          },
+          "registrar": {
+            "example": "GoDaddy.com, LLC",
+            "type": "string"
+          },
+          "status": {
+            "example": "registered",
+            "type": "string"
+          },
+          "updatedDate": {
+            "example": "2024-06-10",
+            "type": "string"
+          },
+          "whoisSourceServer": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "dto.GeneratedName": {
+        "properties": {
+          "length": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "dto.MonitorHit": {
+        "properties": {
+          "aiBrandImpersonation": {
+            "type": "boolean"
+          },
+          "aiCheckedAt": {
+            "type": "string"
+          },
+          "aiIndicators": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "aiReasoning": {
+            "type": "string"
+          },
+          "aiRisk": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/constants.AIRisk"
+              }
+            ],
+            "example": "high"
+          },
+          "allDomains": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "ctLog": {
+            "type": "string"
+          },
+          "domain": {
+            "example": "n0rcube-verify.com",
+            "type": "string"
+          },
+          "domainCheckId": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "issuer": {
+            "example": "Let's Encrypt",
+            "type": "string"
+          },
+          "keyword": {
+            "example": "norcube",
+            "type": "string"
+          },
+          "matchReason": {
+            "example": "substring",
+            "type": "string"
+          },
+          "notificationSent": {
+            "type": "boolean"
+          },
+          "registrationDate": {
+            "type": "string"
+          },
+          "score": {
+            "example": 40,
+            "type": "integer"
+          },
+          "scoreLevel": {
+            "example": "high",
+            "type": "string"
+          },
+          "watcherId": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "dto.NameGeneratorJob": {
+        "properties": {
+          "category": {
+            "type": "string"
+          },
+          "completedAt": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "error": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "maxLength": {
+            "type": "integer"
+          },
+          "size": {
+            "$ref": "#/components/schemas/constants.NameGeneratorSize"
+          },
+          "status": {
+            "$ref": "#/components/schemas/constants.NameGeneratorJobStatus"
+          },
+          "style": {
+            "type": "string"
+          },
+          "totalNames": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "dto.SavedDomain": {
+        "properties": {
+          "domain": {
+            "example": "norcube.com",
+            "type": "string"
+          },
+          "latestCheck": {
+            "$ref": "#/components/schemas/dto.DomainCheck"
+          },
+          "notes": {
+            "example": "our main domain",
+            "type": "string"
+          },
+          "savedAt": {
+            "type": "string"
+          },
+          "tld": {
+            "example": "com",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "dto.Watcher": {
+        "properties": {
+          "aiContentCheck": {
+            "type": "boolean"
+          },
+          "allowlist": {
+            "example": [
+              "norcube.com",
+              "norcu.be"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "string"
+          },
+          "minNotificationScore": {
+            "example": 30,
+            "type": "integer"
+          },
+          "notificationEmail": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "word": {
+            "example": "norcube",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "namegenhandler.checkNamesRequest": {
+        "properties": {
+          "maxAge": {
+            "example": "1h",
+            "type": "string"
+          },
+          "mode": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/constants.CheckMode"
+              }
+            ],
+            "example": "verified"
+          },
+          "names": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "tlds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "namegenhandler.createJobRequest": {
+        "properties": {
+          "category": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "maxLength": {
+            "type": "integer"
+          },
+          "size": {
+            "$ref": "#/components/schemas/constants.NameGeneratorSize"
+          },
+          "style": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "response.APIError": {
+        "properties": {
+          "data": {},
+          "fields": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "msg": {
+            "example": "see fields",
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "type": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/response.Type"
+              }
+            ],
+            "example": "VALIDATION_FAILED"
+          }
+        },
+        "required": [
+          "msg",
+          "type"
+        ],
+        "type": "object"
+      },
+      "response.APIResponsePaginationCursors": {
+        "properties": {
+          "next": {
+            "example": "eyJpZCI6InUuLi4ifQ==",
+            "type": "string"
+          },
+          "prev": {
+            "example": "eyJpZCI6InUuLi4ifQ==",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "response.APIResponsePaginationMeta": {
+        "properties": {
+          "timestamp": {
+            "example": "2025-01-08T17:29:30.663Z",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "response.APIResponseWithPagination": {
+        "properties": {
+          "cursors": {
+            "$ref": "#/components/schemas/response.APIResponsePaginationCursors"
+          },
+          "list": {},
+          "meta": {
+            "$ref": "#/components/schemas/response.APIResponsePaginationMeta"
+          }
+        },
+        "required": [
+          "cursors",
+          "list",
+          "meta"
+        ],
+        "type": "object"
+      },
+      "response.Type": {
+        "enum": [
+          "INVALID_PAYLOAD",
+          "VALIDATION_FAILED",
+          "NOT_FOUND",
+          "CONFLICT",
+          "INTERNAL_ERROR",
+          "UNAUTHORIZED",
+          "FORBIDDEN",
+          "MISSING_ORGANIZATION_ID",
+          "MISSING_USER_ID",
+          "ORG_BLOCKED",
+          "TOO_MANY_REQUESTS"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "ErrInvalidPayload",
+          "ErrValidationFailed",
+          "ErrNotFound",
+          "ErrConflict",
+          "ErrInternal",
+          "ErrUnauthorized",
+          "ErrForbidden",
+          "ErrMissingOrganizationID",
+          "ErrMissingUserID",
+          "ErrOrgBlocked",
+          "ErrTooManyRequests"
+        ]
+      },
+      "saveddomainhandler.saveRequest": {
+        "properties": {
+          "domain": {
+            "example": "norcube.com",
+            "type": "string"
+          },
+          "notes": {
+            "example": "our main domain",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "contact": {
+      "email": "jan@jetlio.com",
+      "name": "Jan Švábík"
+    },
+    "description": "Domain intelligence API — check availability, WHOIS/RDAP data, and DNS records.",
+    "title": "Norcube DomainRadar API",
+    "version": ""
+  },
+  "openapi": "3.0.3",
+  "paths": {
+    "/brand-monitor/hits": {
+      "get": {
+        "description": "Returns a cursor-paginated, filterable list of brand monitor hits.",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "scoreMax",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "scoreMin",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "watcherIDs",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/brandmonitorhandler.listHitsResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "List hits",
+        "tags": [
+          "Brand Monitor"
+        ]
+      }
+    },
+    "/brand-monitor/hits/{id}": {
+      "get": {
+        "description": "Returns details of a single CT certificate hit including AI analysis.",
+        "parameters": [
+          {
+            "description": "Hit ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.MonitorHit"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Get CT hit detail",
+        "tags": [
+          "Brand Monitor"
+        ]
+      }
+    },
+    "/brand-monitor/watchers": {
+      "get": {
+        "description": "Returns all watchers for the organization.",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/dto.Watcher"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "List watchers",
+        "tags": [
+          "Brand Monitor"
+        ]
+      },
+      "post": {
+        "description": "Adds a keyword to monitor in Certificate Transparency logs.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/brandmonitorhandler.createWatcherRequest"
+              }
+            }
+          },
+          "description": "Watcher configuration",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.Watcher"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Create a watcher",
+        "tags": [
+          "Brand Monitor"
+        ]
+      }
+    },
+    "/brand-monitor/watchers/{id}": {
+      "delete": {
+        "description": "Removes a watcher and all associated hits.",
+        "parameters": [
+          {
+            "description": "Watcher ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Delete a watcher",
+        "tags": [
+          "Brand Monitor"
+        ]
+      },
+      "get": {
+        "description": "Returns a single watcher by ID.",
+        "parameters": [
+          {
+            "description": "Watcher ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.Watcher"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Get watcher detail",
+        "tags": [
+          "Brand Monitor"
+        ]
+      },
+      "put": {
+        "description": "Updates a watcher's configuration.",
+        "parameters": [
+          {
+            "description": "Watcher ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/brandmonitorhandler.updateWatcherRequest"
+              }
+            }
+          },
+          "description": "Updated configuration",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.Watcher"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Update a watcher",
+        "tags": [
+          "Brand Monitor"
+        ]
+      }
+    },
+    "/brand-monitor/watchers/{id}/hits": {
+      "get": {
+        "description": "Returns a cursor-paginated, filterable list of hits for a specific watcher.",
+        "parameters": [
+          {
+            "description": "Watcher ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "scoreMax",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "scoreMin",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "watcherIDs",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/brandmonitorhandler.listHitsResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "List hits by watcher",
+        "tags": [
+          "Brand Monitor"
+        ]
+      }
+    },
+    "/brand-monitor/watchers/{id}/hits/count": {
+      "get": {
+        "description": "Returns the total number of CT hits for a specific watcher.",
+        "parameters": [
+          {
+            "description": "Watcher ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Count hits for a watcher",
+        "tags": [
+          "Brand Monitor"
+        ]
+      }
+    },
+    "/check": {
+      "post": {
+        "description": "Checks domain availability using the specified mode.",
+        "operationId": "checkDomain",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/checkhandler.checkRequest"
+              }
+            }
+          },
+          "description": "Domain to check",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.DomainCheck"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Check a single domain",
+        "tags": [
+          "Domain Check"
+        ]
+      }
+    },
+    "/check/bulk": {
+      "get": {
+        "description": "Returns a cursor-paginated list of bulk check jobs for the authenticated organization.",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/response.APIResponseWithPagination"
+                    },
+                    {
+                      "properties": {
+                        "list": {
+                          "items": {
+                            "$ref": "#/components/schemas/dto.BulkCheckJob"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "List bulk check jobs",
+        "tags": [
+          "Bulk Check"
+        ]
+      },
+      "post": {
+        "description": "Starts an asynchronous bulk domain check job with a specified mode.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/checkhandler.bulkCheckRequest"
+              }
+            }
+          },
+          "description": "Domains to check",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.BulkCheckJob"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Start a bulk domain check",
+        "tags": [
+          "Bulk Check"
+        ]
+      }
+    },
+    "/check/bulk/{id}": {
+      "delete": {
+        "description": "Deletes a bulk check job, cancels pending queue items, and removes all results (cascade).",
+        "parameters": [
+          {
+            "description": "Bulk check job ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Delete a bulk check job",
+        "tags": [
+          "Bulk Check"
+        ]
+      },
+      "get": {
+        "description": "Returns the current state of a bulk check job.",
+        "parameters": [
+          {
+            "description": "Bulk check job ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.BulkCheckJob"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Get bulk check job detail",
+        "tags": [
+          "Bulk Check"
+        ]
+      }
+    },
+    "/check/bulk/{id}/cancel": {
+      "post": {
+        "description": "Removes all pending queue items and marks the job as cancelled.",
+        "parameters": [
+          {
+            "description": "Bulk check job ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.BulkCheckJob"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Cancel a bulk check job",
+        "tags": [
+          "Bulk Check"
+        ]
+      }
+    },
+    "/check/bulk/{id}/export": {
+      "get": {
+        "description": "Streams every domain check result for a bulk job as a CSV file. Honors the same filters as /results so the export matches the current dashboard view.",
+        "parameters": [
+          {
+            "description": "Bulk check job ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "available",
+            "schema": {
+              "items": {
+                "type": "boolean"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tld",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "CSV data"
+          },
+          "400": {
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Export bulk check results as CSV",
+        "tags": [
+          "Bulk Check"
+        ]
+      }
+    },
+    "/check/bulk/{id}/results": {
+      "get": {
+        "description": "Returns cursor-paginated results for a bulk check job.",
+        "parameters": [
+          {
+            "description": "Bulk check job ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "available",
+            "schema": {
+              "items": {
+                "type": "boolean"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tld",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/response.APIResponseWithPagination"
+                    },
+                    {
+                      "properties": {
+                        "list": {
+                          "items": {
+                            "$ref": "#/components/schemas/dto.DomainCheck"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "List bulk check results",
+        "tags": [
+          "Bulk Check"
+        ]
+      }
+    },
+    "/check/bulk/{id}/stream": {
+      "get": {
+        "description": "Opens a Server-Sent Events stream for a bulk check job.",
+        "parameters": [
+          {
+            "description": "Bulk check job ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.DomainCheck"
+                }
+              }
+            },
+            "description": "SSE data events with check results"
+          },
+          "400": {
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Stream bulk check results via SSE",
+        "tags": [
+          "Bulk Check"
+        ]
+      }
+    },
+    "/domains/saved": {
+      "get": {
+        "description": "Returns a cursor-paginated list of saved domains with latest check data.",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "available",
+            "schema": {
+              "items": {
+                "type": "boolean"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "expiryAfter",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "expiryBefore",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "registrar",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sortBy",
+            "schema": {
+              "enum": [
+                "domain",
+                "created_at",
+                "expiry_date",
+                "registrar"
+              ],
+              "type": "string"
+            },
+            "x-enum-varnames": [
+              "SavedDomainSortByDomain",
+              "SavedDomainSortByCreatedAt",
+              "SavedDomainSortByExpiryDate",
+              "SavedDomainSortByRegistrar"
+            ]
+          },
+          {
+            "in": "query",
+            "name": "sortDir",
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            },
+            "x-enum-varnames": [
+              "SortAsc",
+              "SortDesc"
+            ]
+          },
+          {
+            "in": "query",
+            "name": "tld",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/response.APIResponseWithPagination"
+                    },
+                    {
+                      "properties": {
+                        "list": {
+                          "items": {
+                            "$ref": "#/components/schemas/dto.SavedDomain"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "List saved domains",
+        "tags": [
+          "Saved Domains"
+        ]
+      },
+      "post": {
+        "description": "Saves (stars) a domain for the organization.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/saveddomainhandler.saveRequest"
+              }
+            }
+          },
+          "description": "Domain to save",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Save a domain",
+        "tags": [
+          "Saved Domains"
+        ]
+      }
+    },
+    "/domains/saved/{domain}": {
+      "delete": {
+        "description": "Removes a domain from the organization's saved list.",
+        "parameters": [
+          {
+            "description": "Domain name",
+            "in": "path",
+            "name": "domain",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Remove a saved domain",
+        "tags": [
+          "Saved Domains"
+        ]
+      }
+    },
+    "/name-generator/jobs": {
+      "get": {
+        "description": "Returns a cursor-paginated list of name generation jobs for the authenticated organization.",
+        "parameters": [
+          {
+            "description": "Results per page (default 20, max 100)",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Pagination cursor",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/response.APIResponseWithPagination"
+                    },
+                    {
+                      "properties": {
+                        "list": {
+                          "items": {
+                            "$ref": "#/components/schemas/dto.NameGeneratorJob"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "List name generation jobs",
+        "tags": [
+          "Name Generator"
+        ]
+      },
+      "post": {
+        "description": "Creates an async job that uses AI to generate brandable domain name candidates from a description, category, and style.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/namegenhandler.createJobRequest"
+              }
+            }
+          },
+          "description": "Generation parameters",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.NameGeneratorJob"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Start a name generation job",
+        "tags": [
+          "Name Generator"
+        ]
+      }
+    },
+    "/name-generator/jobs/{jobId}": {
+      "delete": {
+        "description": "Deletes a name generation job and all its generated names (cascade).",
+        "parameters": [
+          {
+            "description": "Job ID (UUID)",
+            "in": "path",
+            "name": "jobId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Delete a name generation job",
+        "tags": [
+          "Name Generator"
+        ]
+      },
+      "get": {
+        "description": "Returns the details of a specific name generation job including status and configuration.",
+        "parameters": [
+          {
+            "description": "Job ID (UUID)",
+            "in": "path",
+            "name": "jobId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.NameGeneratorJob"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Get name generation job detail",
+        "tags": [
+          "Name Generator"
+        ]
+      }
+    },
+    "/name-generator/jobs/{jobId}/check": {
+      "post": {
+        "description": "Creates a bulk check job from generated names. If names is empty, all generated names from the job are used. Each name is combined with each TLD to produce the domain list.",
+        "parameters": [
+          {
+            "description": "Name generator job ID (UUID)",
+            "in": "path",
+            "name": "jobId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/namegenhandler.checkNamesRequest"
+              }
+            }
+          },
+          "description": "Check parameters",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.BulkCheckJob"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Check generated names",
+        "tags": [
+          "Name Generator"
+        ]
+      }
+    },
+    "/name-generator/jobs/{jobId}/names": {
+      "get": {
+        "description": "Returns a cursor-paginated list of generated domain name candidates. Supports regex search via the search parameter (e.g. ^cloud, hub$, ^cl.*od$).",
+        "parameters": [
+          {
+            "description": "Job ID (UUID)",
+            "in": "path",
+            "name": "jobId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "maxLength",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "minLength",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sortBy",
+            "schema": {
+              "enum": [
+                "name",
+                "length"
+              ],
+              "type": "string"
+            },
+            "x-enum-varnames": [
+              "NameGenSortByName",
+              "NameGenSortByLength"
+            ]
+          },
+          {
+            "in": "query",
+            "name": "sortDir",
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            },
+            "x-enum-varnames": [
+              "SortAsc",
+              "SortDesc"
+            ]
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/response.APIResponseWithPagination"
+                    },
+                    {
+                      "properties": {
+                        "list": {
+                          "items": {
+                            "$ref": "#/components/schemas/dto.GeneratedName"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "List generated names for a job",
+        "tags": [
+          "Name Generator"
+        ]
+      }
+    }
+  }
+}

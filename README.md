@@ -12,7 +12,7 @@ What it's best at: proving you're never locked in to Norcube Backup. `norcube ba
 
 <sub>Scripted demo with sanitized names: whoami, Backup health, scripting with `-o json --query`, any endpoint with `norcube api`, and your CLI sessions. The tape and stub live in [`demo/`](demo/).</sub>
 
-> **Status**: pre-1.0. Norcube Backup (data sources, backup jobs and downloads, restore tests, health, policies), LangSync (namespaces, terms, languages, project sync), organizations, profiles, and `norcube api` for everything else. See the [changelog](CHANGELOG.md).
+> **Status**: pre-1.0. Norcube Backup (data sources, backup jobs and downloads, restore tests, health, policies), LangSync (namespaces, terms, translations, languages, prompts, glossary, API keys, CSV import, audit log, project sync), DomainRadar (domain checks, bulk checks, saved domains, brand monitoring, name generation), organizations, profiles, and `norcube api` for everything else. See the [changelog](CHANGELOG.md).
 
 ## Install
 
@@ -85,6 +85,7 @@ norcube org use my-org              # target another organization
 norcube backup jobs list            # every backup job in the organization
 norcube backup health               # which backups actually restore
 norcube langsync namespaces list    # LangSync namespaces
+norcube domainradar check acme.dev  # is a domain free?
 norcube doctor                      # something not working? start here
 ```
 
@@ -121,9 +122,10 @@ code you approve on your phone or laptop. See
   troubleshooting.
 - [Command reference](https://docs.norcube.com/platform/cli-reference):
   every command and flag, generated from this repository.
-- [Backup CLI](https://docs.norcube.com/backup/cli) and
+- [Backup CLI](https://docs.norcube.com/backup/cli),
   [LangSync CLI](https://docs.norcube.com/langsync/cli), including
-  [project sync](https://docs.norcube.com/langsync/cli/project-sync).
+  [project sync](https://docs.norcube.com/langsync/cli/project-sync), and
+  [DomainRadar CLI](https://docs.norcube.com/domainradar/cli).
 - `norcube <command> --help` shows the same reference offline.
 
 ## Contributing and security

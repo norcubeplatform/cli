@@ -5,6 +5,36 @@ this file collects what users and scripts need to know.
 
 ## Unreleased
 
+## 0.19.0 (2026-10-29)
+
+### New
+
+- DomainRadar: `norcube domainradar check <domain>...` (args, `--file` or
+  stdin; `--mode`, `--max-age`), `bulk create | list | get | results |
+  watch | export | cancel | delete` (`--wait` on create, a live stream with
+  `watch`, CSV or JSON with `export`), `saved list | add | remove`,
+  `watchers` and `hits` for brand monitoring, and `names generate | list |
+  get | results | check`.
+- LangSync: `terms update`, `terms import <file.csv>` (columns mapped by
+  header, `--column` for the rest, `--dry-run`), `translations set |
+  suggest | translate-missing`, `prompts list | get | create | update |
+  delete`, `namespaces update --default-prompt <id|none>`, `glossary get`
+  and `glossary items list | get | create | translate | delete`,
+  `api-keys list | create | revoke` and `audit list`.
+- `langsync terms list` shows an AI column: translations still exactly as
+  AI produced them (`aiGenerated` in JSON).
+
+### Changes for scripts
+
+- `langsync namespaces update` with nothing to change, and an invalid term
+  id in `langsync terms delete`, are usage errors (exit 2) instead of 1.
+- `langsync terms list` has a new AI column before CREATED; `-o text`
+  consumers that read CREATED by position need the next field.
+- Tables print a line break inside a value as a space, so every row stays
+  on one line.
+
+## 0.18.0 (2026-10-29)
+
 ### New
 
 - CI tokens: `NORCUBE_TOKEN` (or `--token-file`) accepts an organization's

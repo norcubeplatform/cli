@@ -11,6 +11,7 @@ import (
 	"github.com/norcubeplatform/cli/internal/auth"
 	"github.com/norcubeplatform/cli/internal/buildinfo"
 	"github.com/norcubeplatform/cli/internal/cli/backup"
+	"github.com/norcubeplatform/cli/internal/cli/domainradar"
 	"github.com/norcubeplatform/cli/internal/cli/langsync"
 	"github.com/norcubeplatform/cli/internal/clictx"
 	"github.com/norcubeplatform/cli/internal/clierr"
@@ -91,6 +92,7 @@ func NewRootCmd() *cobra.Command {
 		newDoctorCmd(),
 		backup.NewCmd(),
 		langsync.NewCmd(),
+		domainradar.NewCmd(),
 	)
 	markUsageErrors(cmd)
 	completion.Bind(flags)

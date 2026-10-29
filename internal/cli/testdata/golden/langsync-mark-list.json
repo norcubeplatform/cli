@@ -10,19 +10,19 @@
       {
         "aiGenerated": false,
         "lang": {
-          "code": "",
-          "id": 0
+          "code": "en",
+          "id": 4
         },
-        "language_to_namespace_id": 0,
+        "language_to_namespace_id": 40,
         "value": "Save changes"
       },
       {
-        "aiGenerated": false,
+        "aiGenerated": true,
         "lang": {
-          "code": "",
-          "id": 0
+          "code": "cs",
+          "id": 9
         },
-        "language_to_namespace_id": 0,
+        "language_to_namespace_id": 90,
         "value": "Uložit změny"
       }
     ]

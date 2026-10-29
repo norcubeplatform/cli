@@ -1,0 +1,25 @@
+[
+  {
+    "aiRisk": "high",
+    "createdAt": "2026-10-28T07:00:00Z",
+    "domain": "acme-login.example",
+    "id": "h-1",
+    "issuer": "Example CA",
+    "keyword": "acme",
+    "matchReason": "contains",
+    "score": 88,
+    "scoreLevel": "high",
+    "watcherId": "w-1"
+  },
+  {
+    "createdAt": "2026-10-27T07:00:00Z",
+    "domain": "acmee.example",
+    "id": "h-2",
+    "issuer": "Example CA",
+    "keyword": "acme",
+    "matchReason": "typo",
+    "score": 41,
+    "scoreLevel": "medium",
+    "watcherId": "w-1"
+  }
+]

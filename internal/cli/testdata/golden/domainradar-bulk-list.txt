@@ -1,0 +1,3 @@
+ID      STATUS     MODE      PROGRESS        CREATED
+bulk-1  completed  verified  3/3 (100%)      2026-10-28 11:00
+bulk-2  running    bloom     250/1000 (25%)  2026-10-28 12:00

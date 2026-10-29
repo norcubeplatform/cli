@@ -92,3 +92,12 @@ func cancelledOK(cmd *cobra.Command, err error) error {
 	}
 	return err
 }
+
+// cancelledIfDeclined turns a declined confirmation (no error) into
+// ErrCancelled, so cancelledOK reports both the same way.
+func cancelledIfDeclined(err error) error {
+	if err == nil {
+		return cmdutil.ErrCancelled
+	}
+	return err
+}

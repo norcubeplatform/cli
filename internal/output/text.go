@@ -37,9 +37,22 @@ type Field struct {
 func (o Object) exposeItems() any { return o.Value }
 
 func (o Object) writeTable(w io.Writer) error {
-	return Table[Field]{
-		Rows:  func(f Field) []string { return []string{f.Name + ":", f.Value} },
-		Items: o.Fields,
+	// A multi-line value (a prompt, a translation) continues on the next
+	// lines, aligned under the first.
+	type line struct{ label, value string }
+	var lines []line
+	for _, f := range o.Fields {
+		for i, v := range strings.Split(strings.ReplaceAll(f.Value, "\r\n", "\n"), "\n") {
+			l := line{value: v}
+			if i == 0 {
+				l.label = f.Name + ":"
+			}
+			lines = append(lines, l)
+		}
+	}
+	return Table[line]{
+		Rows:  func(l line) []string { return []string{l.label, l.value} },
+		Items: lines,
 		Style: NoStyle,
 	}.writeTable(w)
 }

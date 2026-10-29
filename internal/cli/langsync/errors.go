@@ -69,3 +69,19 @@ func typedOf(e *langsync.ResponseAPIError) *apierror.Typed {
 	}
 	return &apierror.Typed{Msg: e.Msg, Type: string(e.Type)}
 }
+
+// namespaceAPIError is apiError for a namespace-scoped endpoint: a typed
+// body that reads as a namespace denial becomes namespaceAccessError.
+func namespaceAPIError(c *langsyncContext, ns string, resp *http.Response, body []byte, typed ...*langsync.ResponseAPIError) error {
+	for _, t := range typed {
+		if isNamespaceForbidden(t) {
+			return namespaceAccessError(c.OrgLabel(), ns)
+		}
+	}
+	return apiError(resp, body, typed...)
+}
+
+// ok2xx reports a successful response.
+func ok2xx(resp *http.Response) bool {
+	return resp != nil && resp.StatusCode >= 200 && resp.StatusCode <= 299
+}

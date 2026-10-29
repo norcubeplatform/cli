@@ -1,0 +1,3 @@
+ID   NAME           VISIBILITY  UPDATED           PROMPT
+p-1  Friendly tone  shared      2026-10-02 11:00  Use an informal, friendly tone. …
+p-2  Legal          private     2026-10-03 11:00  Keep legal terms exact.

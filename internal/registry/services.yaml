@@ -50,6 +50,7 @@ services:
     spec:
       app: domainradar
       file: app_swagger.json
+    package: domainradar
 
   - key: billing
     name: Norcube Billing

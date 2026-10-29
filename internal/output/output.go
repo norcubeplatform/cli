@@ -43,6 +43,10 @@ type Table[T any] struct {
 	Rows      func(T) []string
 	Items     []T
 	MaxWidths []int
+	// MinWidths pads columns to at least these widths (parallel to
+	// Headers). Tables printed one row at a time (a live stream) set it so
+	// their columns line up.
+	MinWidths []int
 	Style     Style
 }
 
@@ -105,7 +109,7 @@ func (t Table[T]) writeTable(w io.Writer) error {
 	for _, item := range t.Items {
 		cells := t.Rows(item)
 		for i, c := range cells {
-			cells[i] = truncate(tableCell(c), t.maxWidthAt(i))
+			cells[i] = truncate(oneLineCell(tableCell(c)), t.maxWidthAt(i))
 		}
 		plain = append(plain, cells)
 	}
@@ -122,6 +126,11 @@ func (t Table[T]) writeTable(w io.Writer) error {
 		}
 	}
 	widths := make([]int, nCols)
+	for i := range widths {
+		if i < len(t.MinWidths) {
+			widths[i] = t.MinWidths[i]
+		}
+	}
 	for _, r := range plain {
 		for i, c := range r {
 			if n := utf8.RuneCountInString(c); n > widths[i] {
@@ -189,4 +198,13 @@ func truncate(s string, max int) string {
 		out = append(out, r)
 	}
 	return string(out) + "…"
+}
+
+// oneLineCell keeps a row on one line: line breaks in a cell become
+// spaces.
+func oneLineCell(s string) string {
+	if !strings.ContainsAny(s, "\r\n") {
+		return s
+	}
+	return strings.Join(strings.Fields(strings.NewReplacer("\r\n", " ", "\n", " ", "\r", " ").Replace(s)), " ")
 }

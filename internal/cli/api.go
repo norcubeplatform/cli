@@ -74,7 +74,7 @@ nextCursorCreatedAt/nextCursorId pair) and merges the arrays of every page.`,
   norcube api domainradar POST /check -f domain=example.com --org acme
 
   # Every bulk check, all pages, only the ids
-  norcube api domainradar /check/bulk --paginate --query "jobs[].jobId"
+  norcube api domainradar /check/bulk --paginate --query "list[].id"
 
   # A request body from a file
   norcube api langsync POST /namespaces --input namespace.json`,

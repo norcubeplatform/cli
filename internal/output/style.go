@@ -65,15 +65,15 @@ func (s styling) styleStatus(v string) string {
 		return v
 	}
 	switch strings.ToLower(strings.TrimSpace(v)) {
-	case "success", "ok", "succeeded", "passed", "active", "ready", "completed", "done":
+	case "success", "ok", "succeeded", "passed", "active", "ready", "completed", "done", "available":
 		return successStyle.Render(v)
 	case "failed", "error", "errored", "denied", "rejected":
 		return failureStyle.Render(v)
-	case "running", "pending", "queued", "in_progress", "starting", "scheduled":
+	case "running", "pending", "queued", "in_progress", "starting", "scheduled", "processing", "generating":
 		return runningStyle.Render(v)
 	case "partial", "warning", "deprecated":
 		return infoStyle.Render(v)
-	case "inactive", "disabled", "off", "paused", "stopped":
+	case "inactive", "disabled", "off", "paused", "stopped", "cancelled":
 		return dimStyle.Render(v)
 	}
 	return v

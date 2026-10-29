@@ -103,6 +103,16 @@ func legacyRefreshKey(api string) string { return api + "|refresh" }
 // that keeps rotating it can't leave a stale copy behind (presenting a
 // refresh token twice ends the whole session). saveCredentials then moves
 // it into the profile's item.
+// credsMu serializes this process's access to the credential store. A
+// profile's session is one record that SaveRefreshToken and
+// SaveAccessTokenUntil read, modify and write back, so concurrent requests
+// (to several services, or many to one) would otherwise lose each other's
+// updates; stores aren't required to be safe for concurrent use either.
+// Other processes are kept out by the refresh lock file (see
+// TokenSource.lock). loadCredentials and saveCredentials expect the
+// caller to hold credsMu.
+var credsMu sync.RWMutex
+
 func loadCredentials(profile, api string) (*credentials, error) {
 	st := storeFor(profile)
 	v, err := st.Get(profileKey(profile))
@@ -158,6 +168,8 @@ func saveCredentials(profile string, c *credentials) error {
 // SaveRefreshToken stores the profile's refresh token for api. Cached
 // access tokens of another auth URL are dropped.
 func SaveRefreshToken(profile, api, token string) error {
+	credsMu.Lock()
+	defer credsMu.Unlock()
 	c, err := loadCredentials(profile, api)
 	if err != nil {
 		return err
@@ -169,6 +181,8 @@ func SaveRefreshToken(profile, api, token string) error {
 // LoadRefreshToken returns the profile's refresh token for api, or
 // ErrNotLoggedIn.
 func LoadRefreshToken(profile, api string) (string, error) {
+	credsMu.RLock()
+	defer credsMu.RUnlock()
 	c, err := loadCredentials(profile, api)
 	if err != nil {
 		return "", err
@@ -184,6 +198,8 @@ func accessKey(audience, orgID string) string { return audience + "|" + orgID }
 // SaveAccessTokenUntil caches token as valid until expiresAt. A zero
 // expiresAt falls back to the token's exp claim.
 func SaveAccessTokenUntil(profile, api, audience, orgID, token string, expiresAt time.Time) error {
+	credsMu.Lock()
+	defer credsMu.Unlock()
 	if expiresAt.IsZero() {
 		expiresAt = jwtExpiry(token)
 	}
@@ -207,6 +223,8 @@ func SaveAccessTokenUntil(profile, api, audience, orgID, token string, expiresAt
 // loadAccess returns the cached token and its expiry, or "" when none is
 // cached.
 func loadAccess(profile, api, audience, orgID string) (string, time.Time, error) {
+	credsMu.RLock()
+	defer credsMu.RUnlock()
 	c, err := loadCredentials(profile, api)
 	if err != nil {
 		return "", time.Time{}, err
@@ -227,6 +245,8 @@ func DeleteCredentials(profile, api string) error {
 
 // DeleteCredentialsFrom is DeleteCredentials on a given store.
 func DeleteCredentialsFrom(s Store, profile, api string) error {
+	credsMu.Lock()
+	defer credsMu.Unlock()
 	if err := s.Delete(profileKey(profile)); err != nil {
 		return err
 	}

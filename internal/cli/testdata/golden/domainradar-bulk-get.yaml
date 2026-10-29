@@ -1,0 +1,9 @@
+completedDomains: 3
+createdAt: "2026-10-28T09:00:00Z"
+id: bulk-1
+mode: verified
+status: completed
+tlds:
+    - com
+    - io
+totalDomains: 3
