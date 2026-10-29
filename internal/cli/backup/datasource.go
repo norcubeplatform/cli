@@ -13,8 +13,8 @@ import (
 
 func newDataSourceCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "datasource",
-		Aliases: []string{"datasources", "ds"},
+		Use:     "datasources",
+		Aliases: []string{"datasource", "ds"},
 		Short:   "Manage Norcube Backup data sources",
 	}
 	cmd.AddCommand(
@@ -35,8 +35,8 @@ enqueuing jobs for any policy attached to this data source until you run
 "resume". History and attachments are preserved.
 
 If no id is given and stdin is a terminal, an interactive picker is shown.`,
-		Example: `  norcube backup datasource pause 9f8e7d6c-…
-  norcube backup datasource pause   # pick interactively`,
+		Example: `  norcube backup datasources pause 9f8e7d6c-…
+  norcube backup datasources pause   # pick interactively`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return setDataSourceActive(cmd, args, false, "Pause which data source?", "Paused %q.")
@@ -52,7 +52,7 @@ func newDataSourceResumeCmd() *cobra.Command {
 pick up its attached policies on the next tick.
 
 If no id is given and stdin is a terminal, an interactive picker is shown.`,
-		Example: `  norcube backup datasource resume 9f8e7d6c-…`,
+		Example: `  norcube backup datasources resume 9f8e7d6c-…`,
 		Args:    cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return setDataSourceActive(cmd, args, true, "Resume which data source?", "Resumed %q.")
@@ -70,14 +70,14 @@ func setDataSourceActive(cmd *cobra.Command, args []string, active bool, pickerT
 	}
 	id, pickedName, err := resolveDataSourceID(cmd.Context(), c, args, pickerTitle)
 	if err != nil {
-		if err == ErrCancelled {
+		if err == cmdutil.ErrCancelled {
 			fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 			return nil
 		}
 		return err
 	}
 
-	res, err := c.client.UpdateDataSourceWithResponse(cmd.Context(), id, snapdb.UpdateDataSourceJSONRequestBody{
+	res, err := c.API.UpdateDataSourceWithResponse(cmd.Context(), id, snapdb.UpdateDataSourceJSONRequestBody{
 		IsActive: &active,
 	})
 	if err != nil {
@@ -106,9 +106,9 @@ func newDataSourceListCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List data sources in the active organization",
-		Example: `  norcube backup datasource list
-  norcube backup datasource list --search prod --all-pages
-  norcube backup datasource list -o json --query "[?!isActive].id"`,
+		Example: `  norcube backup datasources list
+  norcube backup datasources list --search prod --all-pages
+  norcube backup datasources list -o json --query "[?!isActive].id"`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			c, err := newSnapdbContext(cmd)
 			if err != nil {
@@ -122,7 +122,7 @@ func newDataSourceListCmd() *cobra.Command {
 				if cursor != "" {
 					params.Cursor = &cursor
 				}
-				res, err := c.client.ListWithResponse(ctx, params)
+				res, err := c.API.ListWithResponse(ctx, params)
 				if err != nil {
 					return nil, "", err
 				}
@@ -165,15 +165,15 @@ func newDataSourceGetCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "get <id>",
 		Short: "Show a single data source",
-		Example: `  norcube backup datasource get 9f8e7d6c-…
-  norcube backup datasource get 9f8e7d6c-… -o json`,
+		Example: `  norcube backup datasources get 9f8e7d6c-…
+  norcube backup datasources get 9f8e7d6c-… -o json`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			c, err := newSnapdbContext(cmd)
 			if err != nil {
 				return err
 			}
-			res, err := c.client.GetWithResponse(cmd.Context(), args[0])
+			res, err := c.API.GetWithResponse(cmd.Context(), args[0])
 			if err != nil {
 				return err
 			}

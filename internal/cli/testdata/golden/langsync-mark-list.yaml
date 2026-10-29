@@ -4,12 +4,14 @@
     id: 7
     mark: Save changes
   translations:
-    - lang:
+    - aiGenerated: false
+      lang:
         code: ""
         id: 0
       language_to_namespace_id: 0
       value: Save changes
-    - lang:
+    - aiGenerated: false
+      lang:
         code: ""
         id: 0
       language_to_namespace_id: 0

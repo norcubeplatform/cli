@@ -20,6 +20,181 @@
         },
         "type": "object"
       },
+      "audit.payloadActor": {
+        "properties": {
+          "email": {
+            "example": "alice@example.com",
+            "type": "string"
+          },
+          "id": {
+            "example": "7d7a739e-b9fd-4a4f-85df-880264d3422c",
+            "type": "string"
+          },
+          "name": {
+            "example": "Alice",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "audit.payloadAuditLogEntry": {
+        "properties": {
+          "action": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/constants.AuditAction"
+              }
+            ],
+            "example": "namespace.created"
+          },
+          "actorEmail": {
+            "example": "alice@example.com",
+            "type": "string"
+          },
+          "actorId": {
+            "example": "7d7a739e-b9fd-4a4f-85df-880264d3422c",
+            "type": "string"
+          },
+          "actorName": {
+            "example": "Alice",
+            "type": "string"
+          },
+          "actorType": {
+            "example": "user",
+            "type": "string"
+          },
+          "createdAt": {
+            "example": "2026-05-20T01:31:43Z",
+            "type": "string"
+          },
+          "id": {
+            "example": "a7c11d1a-6f3e-4e3f-8b62-4e6c3b51b9e2",
+            "type": "string"
+          },
+          "ip": {
+            "example": "127.0.0.1",
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "organizationId": {
+            "example": "c392d4a7-1c2b-4688-abd6-73ee06cc381a",
+            "type": "string"
+          },
+          "targetId": {
+            "example": "1af086d9-1bcb-494e-b3b0-06ebd420233d",
+            "type": "string"
+          },
+          "targetType": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/constants.AuditTargetType"
+              }
+            ],
+            "example": "namespace"
+          },
+          "userAgent": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "audit.payloadListResponse": {
+        "properties": {
+          "list": {
+            "items": {
+              "$ref": "#/components/schemas/audit.payloadAuditLogEntry"
+            },
+            "type": "array"
+          },
+          "nextCursorCreatedAt": {
+            "example": "2026-05-20T01:31:43Z",
+            "type": "string"
+          },
+          "nextCursorId": {
+            "example": "a7c11d1a-6f3e-4e3f-8b62-4e6c3b51b9e2",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "constants.AuditAction": {
+        "enum": [
+          "namespace.created",
+          "namespace.updated",
+          "namespace.deleted",
+          "namespace.language_added",
+          "namespace.language_removed",
+          "apikey.created",
+          "apikey.deleted",
+          "glossary.created",
+          "glossary.language_attached",
+          "glossary_item.created",
+          "glossary_item.updated",
+          "glossary_item.deleted",
+          "custom_language.created",
+          "custom_language.deleted",
+          "custom_prompt.created",
+          "custom_prompt.updated",
+          "custom_prompt.deleted",
+          "sync_job.created",
+          "sync_job.completed",
+          "sync_job.failed",
+          "term_import.finished",
+          "migrator.imported"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "AuditActionNamespaceCreated",
+          "AuditActionNamespaceUpdated",
+          "AuditActionNamespaceDeleted",
+          "AuditActionNamespaceLanguageAdded",
+          "AuditActionNamespaceLanguageRemoved",
+          "AuditActionAPIKeyCreated",
+          "AuditActionAPIKeyDeleted",
+          "AuditActionGlossaryCreated",
+          "AuditActionGlossaryLanguageAttached",
+          "AuditActionGlossaryItemCreated",
+          "AuditActionGlossaryItemUpdated",
+          "AuditActionGlossaryItemDeleted",
+          "AuditActionCustomLanguageCreated",
+          "AuditActionCustomLanguageDeleted",
+          "AuditActionCustomPromptCreated",
+          "AuditActionCustomPromptUpdated",
+          "AuditActionCustomPromptDeleted",
+          "AuditActionSyncJobCreated",
+          "AuditActionSyncJobCompleted",
+          "AuditActionSyncJobFailed",
+          "AuditActionTermImportFinished",
+          "AuditActionMigratorImported"
+        ]
+      },
+      "constants.AuditTargetType": {
+        "enum": [
+          "namespace",
+          "apikey",
+          "glossary",
+          "glossary_item",
+          "custom_language",
+          "custom_prompt",
+          "sync_job",
+          "term_import",
+          "migrator"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "AuditTargetNamespace",
+          "AuditTargetAPIKey",
+          "AuditTargetGlossary",
+          "AuditTargetGlossaryItem",
+          "AuditTargetCustomLanguage",
+          "AuditTargetCustomPrompt",
+          "AuditTargetSyncJob",
+          "AuditTargetTermImport",
+          "AuditTargetMigrator"
+        ]
+      },
       "constants.GlossaryItemType": {
         "enum": [
           "noun",
@@ -47,23 +222,6 @@
           "GlosasryItemTypePhrase",
           "GlossaryItemTypeIdiom",
           "GlossaryItemTypeNotApplicable"
-        ]
-      },
-      "constants.IntegrationHelpjuiceChangeTranslationStatus": {
-        "enum": [
-          "new",
-          "pending",
-          "in_progress",
-          "completed",
-          "failed"
-        ],
-        "type": "string",
-        "x-enum-varnames": [
-          "IntegrationHelpjuiceChangeTranslationStatusNew",
-          "IntegrationHelpjuiceChangeTranslationStatusPending",
-          "IntegrationHelpjuiceChangeTranslationStatusInProgress",
-          "IntegrationHelpjuiceChangeTranslationStatusCompleted",
-          "IntegrationHelpjuiceChangeTranslationStatusFailed"
         ]
       },
       "constants.TermBulkImportStatus": {
@@ -253,6 +411,10 @@
             "type": "string"
           },
           "created_by": {
+            "type": "string"
+          },
+          "defaultCustomPromptId": {
+            "description": "DefaultCustomPromptID is the shared custom prompt every automatic\ntranslation in this namespace uses unless a request names another.",
             "type": "string"
           },
           "defaultLanguageId": {
@@ -578,50 +740,6 @@
         ],
         "type": "object"
       },
-      "dto.IntegrationHelpjuiceChange": {
-        "properties": {
-          "articleId": {
-            "type": "string"
-          },
-          "articleTitle": {
-            "type": "string"
-          },
-          "changeType": {
-            "type": "string"
-          },
-          "createdAt": {
-            "type": "string"
-          },
-          "id": {
-            "type": "string"
-          },
-          "setupId": {
-            "type": "string"
-          },
-          "translationCompletedAt": {
-            "type": "string"
-          },
-          "translationStartedAt": {
-            "type": "string"
-          },
-          "translationStartedBy": {
-            "type": "string"
-          },
-          "translationStatus": {
-            "$ref": "#/components/schemas/constants.IntegrationHelpjuiceChangeTranslationStatus"
-          }
-        },
-        "required": [
-          "articleId",
-          "articleTitle",
-          "changeType",
-          "createdAt",
-          "id",
-          "setupId",
-          "translationStatus"
-        ],
-        "type": "object"
-      },
       "dto.LangInfo": {
         "properties": {
           "code": {
@@ -639,6 +757,10 @@
       },
       "dto.TranslationInfo": {
         "properties": {
+          "aiGenerated": {
+            "description": "AIGenerated is true while the value is exactly what AI translation\nproduced; a person changing it clears the flag. The field order\nmirrors the translation_info composite type.",
+            "type": "boolean"
+          },
           "created_at": {
             "type": "string"
           },
@@ -656,6 +778,7 @@
           }
         },
         "required": [
+          "aiGenerated",
           "lang",
           "language_to_namespace_id",
           "value"
@@ -761,73 +884,6 @@
         },
         "required": [
           "value"
-        ],
-        "type": "object"
-      },
-      "helpjuice.createRequestBody": {
-        "properties": {
-          "helpjuiceApiKey": {
-            "type": "string"
-          },
-          "helpjuiceSubdomain": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "helpjuiceApiKey",
-          "helpjuiceSubdomain",
-          "title"
-        ],
-        "type": "object"
-      },
-      "helpjuice.createResponseBody": {
-        "properties": {
-          "createId": {
-            "type": "string"
-          },
-          "webhookUrl": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "createId",
-          "webhookUrl"
-        ],
-        "type": "object"
-      },
-      "helpjuice.updateSettingRequestBody": {
-        "properties": {
-          "customPrompt": {
-            "type": "string"
-          },
-          "enableAutomaticTranslations": {
-            "type": "boolean"
-          },
-          "targetLanguages": {
-            "items": {
-              "type": "integer"
-            },
-            "type": "array"
-          },
-          "title": {
-            "type": "string"
-          },
-          "watchedLanguages": {
-            "items": {
-              "type": "integer"
-            },
-            "type": "array"
-          }
-        },
-        "required": [
-          "customPrompt",
-          "enableAutomaticTranslations",
-          "targetLanguages",
-          "title",
-          "watchedLanguages"
         ],
         "type": "object"
       },
@@ -942,6 +998,10 @@
       "namespace.payloadUpdateNamespaceRequest": {
         "properties": {
           "context": {
+            "type": "string"
+          },
+          "defaultCustomPromptId": {
+            "description": "DefaultCustomPromptID sets the shared custom prompt that every\nautomatic translation in the namespace uses. Omit to keep the\ncurrent one; send an empty string to remove it.",
             "type": "string"
           },
           "defaultLanguageCode": {
@@ -1067,6 +1127,7 @@
           "OTP_INVALID",
           "UNAUTHORIZED",
           "FORBIDDEN",
+          "ORG_BLOCKED",
           "TOO_MANY_REQUESTS",
           "INSUFFICIENT_PERMISSIONS",
           "INVALID_PAYLOAD",
@@ -1076,6 +1137,8 @@
           "CONNECTION_ALREADY_EXISTS",
           "CONFLICT",
           "NO_TRANSLATION_SOURCE",
+          "INVALID_CUSTOM_PROMPT",
+          "CUSTOM_PROMPT_NOT_SHARED",
           "EMAIL_REQUIRED",
           "MISSING_NEW_PASSWORD",
           "USER_NOT_FOUND",
@@ -1115,6 +1178,7 @@
           "ErrOTPInvalid",
           "ErrUnauthorized",
           "ErrForbidden",
+          "ErrOrgBlocked",
           "ErrTooManyRequests",
           "ErrInsufficientPermissions",
           "ErrPayloadInvalid",
@@ -1124,6 +1188,8 @@
           "ErrConnectionAlreadyExists",
           "ErrConflict",
           "ErrNoTranslationSource",
+          "ErrInvalidCustomPrompt",
+          "ErrCustomPromptNotShared",
           "ErrEmailRequired",
           "ErrMissingNewPassword",
           "ErrUserNotFound",
@@ -1220,6 +1286,10 @@
               }
             ],
             "description": "CSV specific setup"
+          },
+          "customPromptId": {
+            "description": "Custom prompt for the automatic translations of this import. Nil\nuses the namespace's default prompt (if any).",
+            "type": "string"
           },
           "overwriteExisting": {
             "description": "Whether to overwrite existing terms with the same mark in the namespace",
@@ -1365,6 +1435,10 @@
       },
       "term.payloadRecommendMagicTranslationRequest": {
         "properties": {
+          "customPromptId": {
+            "description": "CustomPromptID overrides the namespace's default custom prompt for\nthis suggestion.",
+            "type": "string"
+          },
           "prompt": {
             "type": "string"
           },
@@ -1404,6 +1478,10 @@
       },
       "term.payloadUpdateTranslationRequest": {
         "properties": {
+          "aiGenerated": {
+            "description": "AIGenerated is true when the value is an AI suggestion saved without\nchanges, so it keeps its AI label. Omit (false) for a value a person\nwrote or changed.",
+            "type": "boolean"
+          },
           "value": {
             "type": "string"
           }
@@ -1412,6 +1490,10 @@
       },
       "term.translateMissingTranslationsRequest": {
         "properties": {
+          "customPromptId": {
+            "description": "CustomPromptID overrides the namespace's default custom prompt for\nthis run.",
+            "type": "string"
+          },
           "languageIds": {
             "items": {
               "type": "integer"
@@ -1787,6 +1869,176 @@
         "summary": "Delete API key",
         "tags": [
           "API keys"
+        ]
+      }
+    },
+    "/audit-log": {
+      "get": {
+        "description": "Returns audit_log rows for the calling organization, newest first. Cursor-paginated via (createdAt, id) — pass nextCursorCreatedAt + nextCursorId from a response into the next request's cursorCreatedAt + cursorId to fetch the following page. Actor identity is resolved at read time via auth.BatchGetUsers; rows whose account has been anonymised (right-to-erasure) return empty actorEmail + actorName. Send \"system\" inside actorIds to filter to background-worker rows.",
+        "operationId": "listAuditLogs",
+        "parameters": [
+          {
+            "description": "Page size (1-200, default 50)",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Cursor from prior response — RFC3339 timestamp",
+            "in": "query",
+            "name": "cursorCreatedAt",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Cursor from prior response — UUID tiebreaker for same-timestamp rows",
+            "in": "query",
+            "name": "cursorId",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filter to rows with createdAt \u003e= since (RFC3339)",
+            "in": "query",
+            "name": "since",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filter to rows with createdAt \u003c until (RFC3339)",
+            "in": "query",
+            "name": "until",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filter to one or more exact actions (repeated)",
+            "in": "query",
+            "name": "actions",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Filter by one or more exact target_types (repeated)",
+            "in": "query",
+            "name": "targetTypes",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Filter by exact target uuid",
+            "in": "query",
+            "name": "targetId",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filter by one or more actor user ids (repeated); pass \\",
+            "in": "query",
+            "name": "actorIds",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/audit.payloadListResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "List Audit Log",
+        "tags": [
+          "Audit"
+        ]
+      }
+    },
+    "/audit-log/actors": {
+      "get": {
+        "description": "Returns every distinct actor who has ever written an audit row for the calling organization, resolved via auth.BatchGetUsers. Anonymised accounts come back with empty email/name. Includes a synthetic \"system\" entry when the org has any background-worker-written rows. Used to populate the audit-log Actor filter dropdown.",
+        "operationId": "listAuditLogActors",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/audit.payloadActor"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "List Audit Log Actors",
+        "tags": [
+          "Audit"
         ]
       }
     },
@@ -2381,245 +2633,6 @@
         "summary": "Attach Language to Glossary",
         "tags": [
           "Glossary"
-        ]
-      }
-    },
-    "/integrations/helpjuice/changes": {
-      "get": {
-        "description": "Retrieves a list of changes from the Helpjuice integration.",
-        "operationId": "listHelpjuiceChanges",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/response.APIResponseWithPagination"
-                    },
-                    {
-                      "properties": {
-                        "list": {
-                          "items": {
-                            "$ref": "#/components/schemas/dto.IntegrationHelpjuiceChange"
-                          },
-                          "type": "array"
-                        }
-                      },
-                      "type": "object"
-                    }
-                  ]
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/response.APIError"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/response.APIError"
-                }
-              }
-            },
-            "description": "Internal Server Error"
-          }
-        },
-        "summary": "Lists Helpjuice Changes",
-        "tags": [
-          "Helpjuice"
-        ]
-      }
-    },
-    "/integrations/helpjuice/changes/{changeId}/translate": {
-      "post": {
-        "description": "Initiates translation for a specific change in the Helpjuice integration.",
-        "operationId": "translateHelpjuiceChange",
-        "parameters": [
-          {
-            "description": "Change ID",
-            "in": "path",
-            "name": "changeId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/response.APIResponseEmpty"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/response.APIError"
-                }
-              }
-            },
-            "description": "Bad Request"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/response.APIError"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/response.APIError"
-                }
-              }
-            },
-            "description": "Internal Server Error"
-          }
-        },
-        "summary": "Translates a Helpjuice Change",
-        "tags": [
-          "Helpjuice"
-        ]
-      }
-    },
-    "/integrations/helpjuice/create": {
-      "post": {
-        "description": "Sets up the Helpjuice integration with the provided API key and subdomain.",
-        "operationId": "createHelpjuiceIntegration",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/helpjuice.createRequestBody"
-              }
-            }
-          },
-          "description": "Helpjuice Setup Request Body",
-          "required": true,
-          "x-originalParamName": "createRequestBody"
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/helpjuice.createResponseBody"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/response.APIError"
-                }
-              }
-            },
-            "description": "Bad Request"
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/response.APIError"
-                }
-              }
-            },
-            "description": "Internal Server Error"
-          }
-        },
-        "summary": "Creates Helpjuice Integration",
-        "tags": [
-          "Helpjuice"
-        ]
-      }
-    },
-    "/integrations/helpjuice/{setupId}/settings": {
-      "put": {
-        "description": "Updates the settings of an existing Helpjuice integration.",
-        "operationId": "updateHelpjuiceSettings",
-        "parameters": [
-          {
-            "description": "Setup ID",
-            "in": "path",
-            "name": "setupId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/helpjuice.updateSettingRequestBody"
-              }
-            }
-          },
-          "description": "Helpjuice Update Settings Request Body",
-          "required": true,
-          "x-originalParamName": "updateSettingRequestBody"
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/response.APIResponseEmpty"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/response.APIError"
-                }
-              }
-            },
-            "description": "Bad Request"
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/response.APIError"
-                }
-              }
-            },
-            "description": "Internal Server Error"
-          }
-        },
-        "summary": "Updates Helpjuice Integration Settings",
-        "tags": [
-          "Helpjuice"
         ]
       }
     },

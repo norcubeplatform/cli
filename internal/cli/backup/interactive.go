@@ -10,6 +10,7 @@ import (
 
 	"github.com/norcubeplatform/cli/internal/api/snapdb"
 	"github.com/norcubeplatform/cli/internal/clierr"
+	"github.com/norcubeplatform/cli/internal/cmdutil"
 	"github.com/norcubeplatform/cli/internal/term"
 )
 
@@ -18,7 +19,7 @@ import (
 // accept an optional positional argument — when the caller passes an id
 // we run directly; when they don't and stdin is interactive, we pick.
 func pickDataSource(ctx context.Context, c *snapdbContext, title string) (*snapdb.DtoDataSource, error) {
-	res, err := c.client.ListWithResponse(ctx, &snapdb.ListParams{})
+	res, err := c.API.ListWithResponse(ctx, &snapdb.ListParams{})
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +51,7 @@ func pickDataSource(ctx context.Context, c *snapdbContext, title string) (*snapd
 		Run()
 	if err != nil {
 		if errors.Is(err, huh.ErrUserAborted) {
-			return nil, ErrCancelled
+			return nil, cmdutil.ErrCancelled
 		}
 		return nil, err
 	}
@@ -84,34 +85,3 @@ func resolveDataSourceID(ctx context.Context, c *snapdbContext, args []string, p
 	}
 	return ds.Id, ds.Name, nil
 }
-
-// confirm prompts the user with a yes/no question. --yes answers it
-// without prompting; without a TTY it fails and asks for --yes, so a
-// script never deletes anything by accident.
-func confirm(prompt string, yesFlag bool) (bool, error) {
-	if yesFlag {
-		return true, nil
-	}
-	if !term.StdinIsTerminal() {
-		return false, clierr.Usage(fmt.Errorf("%s: pass --yes to confirm non-interactively", prompt))
-	}
-	var ok bool
-	err := huh.NewConfirm().
-		Title(prompt).
-		Affirmative("Yes").
-		Negative("Cancel").
-		Value(&ok).
-		Run()
-	if err != nil {
-		if errors.Is(err, huh.ErrUserAborted) {
-			return false, ErrCancelled
-		}
-		return false, err
-	}
-	return ok, nil
-}
-
-// ErrCancelled is returned by interactive helpers when the user dismisses
-// the prompt. Commands turn it into "Cancelled." rather than a stack
-// trace.
-var ErrCancelled = errors.New("cancelled by user")

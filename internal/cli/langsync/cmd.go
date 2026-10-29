@@ -1,145 +1,61 @@
 // Package langsync implements the `norcube langsync ...` command tree.
-// Mirrors the structure of internal/cli/backup — owns the wiring between
-// the CLI's TokenSource (audience: langsync-api) and the generated
-// langsync HTTP client.
 package langsync
 
 import (
-	"errors"
 	"fmt"
+	"net/http"
 	"os"
 
 	"github.com/spf13/cobra"
 
+	"github.com/norcubeplatform/cli/internal/api"
 	"github.com/norcubeplatform/cli/internal/api/langsync"
-	"github.com/norcubeplatform/cli/internal/auth"
 	"github.com/norcubeplatform/cli/internal/cli/langsync/projectcfg"
-	"github.com/norcubeplatform/cli/internal/clictx"
-	"github.com/norcubeplatform/cli/internal/clierr"
 	"github.com/norcubeplatform/cli/internal/config"
+	"github.com/norcubeplatform/cli/internal/service"
 )
 
 // NewCmd returns the `langsync` parent command with all subcommands wired up.
 func NewCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "langsync",
-		Short: "Manage Langsync namespaces, marks (terms), and translations",
+		Short: "Manage LangSync namespaces, terms, languages and translations",
 	}
 	cmd.AddCommand(newMarkCmd(), newNamespaceCmd(), newLangCmd(), newInitCmd(), newSyncCmd(), newPullCmd())
+	registerCompletions(cmd)
 	return cmd
 }
 
-// langsyncContext bundles per-invocation state used across langsync
-// subcommands — resolved config, the typed client, and the requested
-// output format. Built once per RunE so child commands don't repeat
-// the wiring.
-type langsyncContext struct {
-	cfg    *config.Config
-	flags  *clictx.Flags
-	client *langsync.ClientWithResponses
-	output string
-}
+// langsyncContext is the LangSync API client plus the profile,
+// organization and output format of the invocation.
+type langsyncContext = service.Client[*langsync.ClientWithResponses]
 
+// newLangsyncContext targets --org / NORCUBE_ORG, else the organization a
+// .langsync.json in this directory or above pins, else the profile's. The
+// project file wins over the profile so a developer working in several
+// organizations' repositories always hits the right one; an explicit
+// --org still overrides it.
 func newLangsyncContext(cmd *cobra.Command) (*langsyncContext, error) {
-	cfg, err := clictx.Get(cmd).Config()
-	if err != nil {
-		return nil, err
-	}
-	flags := clictx.Get(cmd)
-
-	// Org precedence:
-	//   1. --org flag (explicit user override)
-	//   2. .langsync.json organization (project-pinned, if a config
-	//      exists in cwd or any ancestor)
-	//   3. cfg.ActiveOrg (CLI's persisted active org)
-	//
-	// The project-config override is what makes a multi-org dev
-	// safe: if I'm inside `~/work/acme-project`, running any
-	// langsync command in that tree hits acme's org regardless of
-	// what `nrc org use` last set. --org still wins so an explicit
-	// override (e.g. for debugging) is always available.
-	//
-	// We deliberately do NOT print a "operating on org X" note
-	// when the project override kicks in. The project config IS
-	// the source of truth — restating it on every command is just
-	// noise and pushes the actual command output down. If a user
-	// ever needs to confirm which org a command is hitting,
-	// `nrc whoami` and the .langsync.json contents are
-	// authoritative.
-	var orgID, orgSlug string
-	if projOrgID, projSlug, ok := tryReadProjectOrg(); ok && !flags.HasOrgFlag() {
-		orgID, orgSlug = projOrgID, projSlug
-	} else {
-		org, err := flags.Org(cmd.Context(), cfg)
-		if err != nil {
-			return nil, err
-		}
-		orgID = org.ID
-	}
-	if orgID == "" {
-		return nil, clierr.Usage(errors.New("no active organization. Run `norcube org use <slug>` or pass --org <slug>"))
-	}
-
-	ts, err := flags.TokenSource(cfg, auth.AudienceLangsync, orgID)
-	if err != nil {
-		return nil, err
-	}
-	if orgSlug != "" {
-		ts.OrgLabel = orgSlug
-	}
-
-	client, err := langsync.NewClientWithResponses(
-		cfg.Langsync,
-		langsync.WithHTTPClient(ts.HTTP),
-		langsync.WithRequestEditorFn(ts.BearerInjector()),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("langsync client: %w", err)
-	}
-
-	return &langsyncContext{
-		cfg:    cfg,
-		flags:  flags,
-		client: client,
-		output: flags.Output,
-	}, nil
+	return service.New(cmd, config.ServiceLangsync, newLangsyncAPI,
+		service.WithOrgDefault(func() (api.Organization, bool) {
+			id, slug, ok := tryReadProjectOrg()
+			return api.Organization{ID: id, Slug: slug}, ok
+		}))
 }
 
-// newLangsyncContextForOrg is the explicit-org constructor used by
-// init, which decides the target org BEFORE the client exists (so
-// the picker/auth dance happens against the right org from the
-// outset). All other callers should use newLangsyncContext, which
-// resolves the org via the flag/project-config/active-org chain.
+// newLangsyncContextForOrg is used by init, which picks the organization
+// before any client exists.
 func newLangsyncContextForOrg(cmd *cobra.Command, orgID string) (*langsyncContext, error) {
 	if orgID == "" {
 		return nil, fmt.Errorf("orgID must not be empty")
 	}
-	cfg, err := clictx.Get(cmd).Config()
-	if err != nil {
-		return nil, err
-	}
-	flags := clictx.Get(cmd)
+	return service.New(cmd, config.ServiceLangsync, newLangsyncAPI, service.ForOrg(orgID, ""))
+}
 
-	ts, err := flags.TokenSource(cfg, auth.AudienceLangsync, orgID)
-	if err != nil {
-		return nil, err
-	}
-
-	client, err := langsync.NewClientWithResponses(
-		cfg.Langsync,
-		langsync.WithHTTPClient(ts.HTTP),
-		langsync.WithRequestEditorFn(ts.BearerInjector()),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("langsync client: %w", err)
-	}
-
-	return &langsyncContext{
-		cfg:    cfg,
-		flags:  flags,
-		client: client,
-		output: flags.Output,
-	}, nil
+func newLangsyncAPI(baseURL string, httpc *http.Client, edit service.RequestEditor) (*langsync.ClientWithResponses, error) {
+	return langsync.NewClientWithResponses(baseURL,
+		langsync.WithHTTPClient(httpc),
+		langsync.WithRequestEditorFn(edit))
 }
 
 // tryReadProjectOrg walks up from cwd looking for a .langsync.json
@@ -151,7 +67,7 @@ func newLangsyncContextForOrg(cmd *cobra.Command, orgID string) (*langsyncContex
 // is a convenience, not a hard requirement. If the file is broken,
 // other langsync commands (sync, pull) will surface a clearer error
 // when they explicitly load the config; we don't want every
-// `langsync namespace list` to fail just because a colleague's
+// `langsync namespaces list` to fail just because a colleague's
 // committed file is malformed.
 func tryReadProjectOrg() (orgID, slug string, ok bool) {
 	cwd, err := os.Getwd()

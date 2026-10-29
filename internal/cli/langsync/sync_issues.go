@@ -9,6 +9,7 @@ import (
 	"github.com/norcubeplatform/cli/internal/api/langsync"
 	"github.com/norcubeplatform/cli/internal/cli/langsync/projectcfg"
 	"github.com/norcubeplatform/cli/internal/cli/langsync/projectcfg/translations"
+	"github.com/norcubeplatform/cli/internal/cmdutil"
 )
 
 // syncResult captures everything we need to know about a namespace's
@@ -51,9 +52,9 @@ func collectIssues(ctx context.Context, c *langsyncContext, cfg *projectcfg.File
 		// Backend-reported failures from the failures array.
 		if r.finalJob.Failures != nil {
 			for _, f := range *r.finalJob.Failures {
-				msg := derefStr(f.Error)
-				phase := derefStr(f.Phase)
-				mark := derefStr(f.Mark)
+				msg := cmdutil.Deref(f.Error)
+				phase := cmdutil.Deref(f.Phase)
+				mark := cmdutil.Deref(f.Mark)
 				prefix := fmt.Sprintf("[%s] %s", r.namespace, phase)
 				if mark != "" {
 					lines = append(lines, fmt.Sprintf("%s — %s: %s", prefix, mark, msg))
@@ -64,7 +65,7 @@ func collectIssues(ctx context.Context, c *langsyncContext, cfg *projectcfg.File
 		}
 
 		// "X cells still empty" diagnosis.
-		stillEmpty := derefInt(r.finalJob.StillUntranslatedCount)
+		stillEmpty := cmdutil.Deref(r.finalJob.StillUntranslatedCount)
 		if stillEmpty == 0 {
 			continue
 		}
@@ -83,7 +84,7 @@ func collectIssues(ctx context.Context, c *langsyncContext, cfg *projectcfg.File
 		const maxShown = 6
 		for i, line := range diagnose {
 			if i >= maxShown {
-				lines = append(lines, fmt.Sprintf("[%s] …and %d more empty cells (run `nrc langsync mark list --namespace %s --has-untranslated` to see all)", r.namespace, len(diagnose)-maxShown, r.namespace))
+				lines = append(lines, fmt.Sprintf("[%s] …and %d more empty cells (run `nrc langsync terms list --namespace %s --has-untranslated` to see all)", r.namespace, len(diagnose)-maxShown, r.namespace))
 				break
 			}
 			lines = append(lines, fmt.Sprintf("[%s] %s", r.namespace, line))
@@ -96,7 +97,7 @@ func collectIssues(ctx context.Context, c *langsyncContext, cfg *projectcfg.File
 // marks and labels each by likely cause. Most common cause: the
 // mark's source value (in the default language) is blank.
 //
-// One round trip per namespace via the existing `mark list
+// One round trip per namespace via the existing `terms list
 // --has-untranslated` path; bounded by maxDiagnosePages so a huge
 // namespace doesn't trigger a long blocking diagnostic.
 func diagnoseEmptyCells(ctx context.Context, c *langsyncContext, ns projectcfg.Namespace, configPath string) []string {
@@ -119,7 +120,7 @@ func diagnoseEmptyCells(ctx context.Context, c *langsyncContext, ns projectcfg.N
 			Limit:              pageLimit,
 			HasAnyUntranslated: &truthy,
 		}
-		res, err := c.client.ListByNamespaceWithResponse(ctx, ns.Namespace, params)
+		res, err := c.API.ListByNamespaceWithResponse(ctx, ns.Namespace, params)
 		if err != nil || res.JSON200 == nil {
 			return out
 		}

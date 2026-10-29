@@ -6,6 +6,7 @@ package clictx
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -51,6 +52,11 @@ type Flags struct {
 
 	// HTTP behavior. Each wins over its NORCUBE_* variable only when the
 	// flag was given on the command line (see CaptureChanged).
+	// Debug traces HTTP requests to stderr (--debug, NORCUBE_DEBUG=1).
+	Debug bool
+	// DebugOut receives the trace; nil means stderr.
+	DebugOut io.Writer
+
 	ReadTimeoutSecs    int
 	ConnectTimeoutSecs int
 	MaxAttempts        int
@@ -278,6 +284,12 @@ func (g *Flags) Transport() (transport.Config, error) {
 	}
 	if g.maxAttemptsSet {
 		cfg.MaxAttempts = max(g.MaxAttempts, 1)
+	}
+	if g.Debug || os.Getenv(transport.EnvDebug) == "1" {
+		cfg.Debug = g.DebugOut
+		if cfg.Debug == nil {
+			cfg.Debug = os.Stderr
+		}
 	}
 	return cfg, nil
 }

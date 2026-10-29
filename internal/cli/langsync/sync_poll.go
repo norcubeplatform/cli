@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/norcubeplatform/cli/internal/api/langsync"
+	"github.com/norcubeplatform/cli/internal/cmdutil"
 )
 
 // pollSyncJobDashboard polls one sync job and reports state to the
@@ -34,13 +35,13 @@ func pollSyncJobDashboard(ctx context.Context, c *langsyncContext, d *dashboard,
 		}
 		lastJob = job
 
-		phase := derefStr(job.Status)
+		phase := cmdutil.Deref(job.Status)
 		current, total, detail := phaseDisplay(phase, job)
 		d.Update(namespace, phase, current, total, detail)
 
 		if isTerminal(phase) {
 			if phase == "failed" {
-				return job, fmt.Errorf("%s", derefStr(job.ErrorMessage))
+				return job, fmt.Errorf("%s", cmdutil.Deref(job.ErrorMessage))
 			}
 			return job, nil
 		}
@@ -59,13 +60,13 @@ func pollSyncJobDashboard(ctx context.Context, c *langsyncContext, d *dashboard,
 }
 
 func fetchSyncJob(ctx context.Context, c *langsyncContext, namespace, jobID string) (*langsync.DtoDTOSyncJob, error) {
-	res, err := c.client.GetNamespacesNamespaceNameSyncJobIdWithResponse(ctx, namespace, jobID)
+	res, err := c.API.GetNamespacesNamespaceNameSyncJobIdWithResponse(ctx, namespace, jobID)
 	if err != nil {
 		return nil, err
 	}
 	if res.JSON200 == nil {
 		if isNamespaceForbidden(res.JSON403) || isNamespaceForbidden(res.JSON404) {
-			return nil, namespaceAccessError(c.cfg.ActiveOrg.Slug, namespace)
+			return nil, namespaceAccessError(c.OrgLabel(), namespace)
 		}
 		return nil, apiError(res.HTTPResponse, res.Body,
 			res.JSON400, res.JSON401, res.JSON403, res.JSON404, res.JSON500)
@@ -80,15 +81,15 @@ func fetchSyncJob(ctx context.Context, c *langsyncContext, namespace, jobID stri
 func phaseDisplay(phase string, job *langsync.DtoDTOSyncJob) (current, total int, detail string) {
 	switch phase {
 	case "pushing":
-		return derefInt(job.PushDone), derefInt(job.PushTotal), ""
+		return cmdutil.Deref(job.PushDone), cmdutil.Deref(job.PushTotal), ""
 	case "autotranslating":
 		// During autotranslating the progress bar still benefits
 		// from a denominator (it's a bar — fraction is the point),
 		// but the *label* should not invite "but I only created N
 		// marks" confusion. So we say "translating cells" and let
 		// the bar do the talking.
-		t := derefInt(job.AutotranslateTotal)
-		done := derefInt(job.AutotranslateDone)
+		t := cmdutil.Deref(job.AutotranslateTotal)
+		done := cmdutil.Deref(job.AutotranslateDone)
 		if t > 0 && done > t {
 			done = t
 		}
@@ -112,13 +113,13 @@ func summarizeForFinishLine(job *langsync.DtoDTOSyncJob, filesWritten int) strin
 		return "no result"
 	}
 	parts := []string{}
-	if v := derefInt(job.CreatedCount); v > 0 {
+	if v := cmdutil.Deref(job.CreatedCount); v > 0 {
 		parts = append(parts, fmt.Sprintf("%d created", v))
 	}
-	if v := derefInt(job.UpdatedCount); v > 0 {
+	if v := cmdutil.Deref(job.UpdatedCount); v > 0 {
 		parts = append(parts, fmt.Sprintf("%d updated", v))
 	}
-	if v := derefInt(job.DeletedCount); v > 0 {
+	if v := cmdutil.Deref(job.DeletedCount); v > 0 {
 		parts = append(parts, fmt.Sprintf("%d deleted", v))
 	}
 	// "N cells translated" + "M still empty" is the user-facing
@@ -127,10 +128,10 @@ func summarizeForFinishLine(job *langsync.DtoDTOSyncJob, filesWritten int) strin
 	// add information and only invites "but I only created 4
 	// marks, why is the total 19?" confusion. The numbers that
 	// matter are what the LLM filled and what's still empty.
-	if v := derefInt(job.AutotranslateDone); v > 0 {
+	if v := cmdutil.Deref(job.AutotranslateDone); v > 0 {
 		parts = append(parts, fmt.Sprintf("%d cells translated", v))
 	}
-	if v := derefInt(job.StillUntranslatedCount); v > 0 {
+	if v := cmdutil.Deref(job.StillUntranslatedCount); v > 0 {
 		parts = append(parts, fmt.Sprintf("%d still empty", v))
 	}
 	if filesWritten > 0 {
@@ -148,20 +149,6 @@ func isTerminal(s string) bool {
 		return true
 	}
 	return false
-}
-
-func derefStr(p *string) string {
-	if p == nil {
-		return ""
-	}
-	return *p
-}
-
-func derefInt(p *int) int {
-	if p == nil {
-		return 0
-	}
-	return *p
 }
 
 func joinComma(parts []string) string {

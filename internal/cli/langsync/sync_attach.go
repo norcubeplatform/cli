@@ -13,6 +13,7 @@ import (
 	"github.com/norcubeplatform/cli/internal/api/langsync"
 	"github.com/norcubeplatform/cli/internal/cli/langsync/projectcfg"
 	"github.com/norcubeplatform/cli/internal/cli/langsync/projectcfg/translations"
+	"github.com/norcubeplatform/cli/internal/cmdutil"
 	"github.com/norcubeplatform/cli/internal/term"
 )
 
@@ -155,7 +156,7 @@ func preflightAttachOne(ctx context.Context, c *langsyncContext, ns *projectcfg.
 			// Multiple candidates or none at all → prompt.
 			alias, err := promptResolveAmbiguousLang(ctx, c, ns.Namespace, code, match.unique(), orgLangs)
 			if err != nil {
-				if errors.Is(err, ErrCancelled) {
+				if errors.Is(err, cmdutil.ErrCancelled) {
 					fmt.Fprintf(os.Stderr, "[%s] attach prompt cancelled — remaining files will be skipped\n", ns.Namespace)
 					return newAliases, nil
 				}
@@ -393,7 +394,7 @@ func promptResolveAmbiguousLang(ctx context.Context, c *langsyncContext, namespa
 	)).Run()
 	if err != nil {
 		if errors.Is(err, huh.ErrUserAborted) {
-			return ambiguousResolution{}, ErrCancelled
+			return ambiguousResolution{}, cmdutil.ErrCancelled
 		}
 		return ambiguousResolution{}, err
 	}
@@ -423,13 +424,13 @@ func promptResolveAmbiguousLang(ctx context.Context, c *langsyncContext, namespa
 		if target == nil {
 			return ambiguousResolution{}, fmt.Errorf("internal: picked language id %s not found", picked)
 		}
-		if err := attachOneLanguage(ctx, c, namespace, derefOr(target.Code, fileCode), target); err != nil {
+		if err := attachOneLanguage(ctx, c, namespace, cmdutil.DerefOr(target.Code, fileCode), target); err != nil {
 			fmt.Fprintf(os.Stderr, "[%s] attach %s failed: %v\n", namespace, languageDisplayLabel(*target), err)
 			return ambiguousResolution{}, nil
 		}
 		fmt.Fprintf(os.Stderr, "[%s] mapped %s.json → %s and attached (alias persisted to .langsync.json)\n",
 			namespace, fileCode, languageDisplayLabel(*target))
-		return ambiguousResolution{serverCode: derefOr(target.Code, "")}, nil
+		return ambiguousResolution{serverCode: cmdutil.DerefOr(target.Code, "")}, nil
 	}
 	return ambiguousResolution{}, fmt.Errorf("internal: unrecognised picker selection %q", picked)
 }
@@ -440,7 +441,7 @@ func promptResolveAmbiguousLang(ctx context.Context, c *langsyncContext, namespa
 // prompt resolution path.
 func attachOneLanguage(ctx context.Context, c *langsyncContext, namespace, code string, existing *langsync.DtoDTOLanguage) error {
 	if existing == nil {
-		createRes, err := c.client.CreateCustomLanguageWithResponse(ctx,
+		createRes, err := c.API.CreateCustomLanguageWithResponse(ctx,
 			langsync.CreateCustomLanguageJSONRequestBody{
 				Code: code,
 				Name: code,
@@ -463,7 +464,7 @@ func attachOneLanguage(ctx context.Context, c *langsyncContext, namespace, code 
 		c := code
 		body.LanguageCode = &c
 	}
-	res, err := c.client.AddLanguageWithResponse(ctx, namespace, body)
+	res, err := c.API.AddLanguageWithResponse(ctx, namespace, body)
 	if err != nil {
 		return err
 	}
@@ -512,20 +513,20 @@ func warnUnattachedLocalLangs(ctx context.Context, c *langsyncContext, cfg *proj
 		}
 		sort.Strings(unattached)
 		fmt.Fprintf(os.Stderr,
-			"[%s] warning: %d local lang file(s) (%s) have no matching attached language — they will be skipped this sync. Run `nrc langsync sync` interactively to resolve, or pre-attach with `nrc langsync lang add <code> -n %s`.\n",
+			"[%s] warning: %d local lang file(s) (%s) have no matching attached language — they will be skipped this sync. Run `nrc langsync sync` interactively to resolve, or pre-attach with `nrc langsync languages add <code> -n %s`.\n",
 			ns.Namespace, len(unattached), strings.Join(unattached, ", "), ns.Namespace)
 	}
 	return nil
 }
 
 func fetchAttachedLanguageCodes(ctx context.Context, c *langsyncContext, namespace string) ([]string, error) {
-	res, err := c.client.GetLanguagesByNamespaceWithResponse(ctx, namespace)
+	res, err := c.API.GetLanguagesByNamespaceWithResponse(ctx, namespace)
 	if err != nil {
 		return nil, err
 	}
 	if res.JSON200 == nil {
 		if isNamespaceForbidden(res.JSON403) || isNamespaceForbidden(res.JSON404) {
-			return nil, namespaceAccessError(c.cfg.ActiveOrg.Slug, namespace)
+			return nil, namespaceAccessError(c.OrgLabel(), namespace)
 		}
 		return nil, apiError(res.HTTPResponse, res.Body,
 			res.JSON400, res.JSON401, res.JSON403, res.JSON404, res.JSON500)
@@ -540,7 +541,7 @@ func fetchAttachedLanguageCodes(ctx context.Context, c *langsyncContext, namespa
 }
 
 func fetchOrgLanguageList(ctx context.Context, c *langsyncContext) ([]langsync.DtoDTOLanguage, error) {
-	res, err := c.client.ListLanguagesForOrgWithResponse(ctx)
+	res, err := c.API.ListLanguagesForOrgWithResponse(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -548,11 +549,4 @@ func fetchOrgLanguageList(ctx context.Context, c *langsyncContext) ([]langsync.D
 		return nil, apiError(res.HTTPResponse, res.Body, res.JSON401, res.JSON500)
 	}
 	return *res.JSON200, nil
-}
-
-func derefOr(s *string, fallback string) string {
-	if s == nil {
-		return fallback
-	}
-	return *s
 }

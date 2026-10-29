@@ -19,8 +19,8 @@ import (
 
 func newLangCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "lang",
-		Aliases: []string{"langs", "language", "languages"},
+		Use:     "languages",
+		Aliases: []string{"language", "lang", "langs"},
 		Short:   "Manage the languages attached to a namespace",
 		Long: `A namespace has one default language (the source of truth for marks)
 and zero or more "additional" languages — each translation row attaches
@@ -42,8 +42,8 @@ func newLangListCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List languages — every language available to the active org by default; pass -n <namespace> for the namespace's attached subset",
-		Example: `  norcube langsync lang list
-  norcube langsync lang list -o json --query "[].code"`,
+		Example: `  norcube langsync languages list
+  norcube langsync languages list -o json --query "[].code"`,
 		Long: `Without --namespace, lists every language visible to the active org:
 every shared ("global") language plus every custom language this org
 has created.
@@ -106,8 +106,8 @@ must start with a letter and contain only lowercase letters, digits,
 hyphens, or underscores (max 32 chars). Codes are unique per-org —
 shared codes can coexist (the resolver prefers your custom one).
 `,
-		Example: `  norcube langsync lang create internal-en "Internal English"
-  norcube langsync lang create internal-en "Internal English" -o json --query id`,
+		Example: `  norcube langsync languages create internal-en "Internal English"
+  norcube langsync languages create internal-en "Internal English" -o json --query id`,
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			c, err := newLangsyncContext(cmd)
@@ -120,7 +120,7 @@ shared codes can coexist (the resolver prefers your custom one).
 				return fmt.Errorf("both <code> and <name> are required and non-empty")
 			}
 
-			res, err := c.client.CreateCustomLanguageWithResponse(cmd.Context(),
+			res, err := c.API.CreateCustomLanguageWithResponse(cmd.Context(),
 				langsync.CreateCustomLanguageJSONRequestBody{
 					Code: code,
 					Name: name,
@@ -146,11 +146,12 @@ shared codes can coexist (the resolver prefers your custom one).
 func newLangDeleteCmd() *cobra.Command {
 	var yes bool
 	cmd := &cobra.Command{
-		Use:     "delete <id>",
-		Aliases: []string{"rm"},
-		Short:   "Delete a custom language owned by the active organization",
-		Example: `  norcube langsync lang delete 42
-  norcube langsync lang delete 42 --yes   # scripts`,
+		// No short alias: `rm` belongs to `remove`, which only detaches a
+		// language from a namespace, so an abbreviation never deletes.
+		Use:   "delete <id>",
+		Short: "Delete a custom language owned by the active organization",
+		Example: `  norcube langsync languages delete 42
+  norcube langsync languages delete 42 --yes   # scripts`,
 		Long: `Permanently removes a custom language. Shared (global) languages are
 never deletable through this command — the backend ignores the id.
 Fails with a 409 if the language is still attached to any namespace
@@ -167,12 +168,12 @@ Use --yes to skip confirmation in scripts.`,
 			if err != nil || id <= 0 {
 				return fmt.Errorf("language id must be a positive integer (got %q)", args[0])
 			}
-			ok, err := confirm(
+			ok, err := cmdutil.Confirm(
 				fmt.Sprintf("Delete custom language id %d? This cannot be undone.", id),
 				yes,
 			)
 			if err != nil {
-				if errors.Is(err, ErrCancelled) {
+				if errors.Is(err, cmdutil.ErrCancelled) {
 					fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 					return nil
 				}
@@ -183,7 +184,7 @@ Use --yes to skip confirmation in scripts.`,
 				return nil
 			}
 
-			res, err := c.client.DeleteCustomLanguageWithResponse(cmd.Context(), id)
+			res, err := c.API.DeleteCustomLanguageWithResponse(cmd.Context(), id)
 			if err != nil {
 				return err
 			}
@@ -208,8 +209,8 @@ func newLangAddCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add [code-or-id]",
 		Short: "Attach a language to a namespace",
-		Example: `  norcube langsync lang add cs --namespace web
-  norcube langsync lang add 17 -n web`,
+		Example: `  norcube langsync languages add cs --namespace web
+  norcube langsync languages add 17 -n web`,
 		Long: `Adds a language to the namespace so terms can be translated into it.
 You can pass either a language code ("en", "cs", "de") or the numeric
 language id. With no positional argument and an interactive shell, a
@@ -222,7 +223,7 @@ picker lists every language that isn't already attached.`,
 			}
 			ns, err := resolveNamespace(cmd.Context(), c, namespaceName, "Add a language to which namespace?")
 			if err != nil {
-				if errors.Is(err, ErrCancelled) {
+				if errors.Is(err, cmdutil.ErrCancelled) {
 					fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 					return nil
 				}
@@ -251,7 +252,7 @@ picker lists every language that isn't already attached.`,
 				// chosen value comes back as a numeric id either way.
 				langID, label, perr := pickLanguageNotAttached(cmd.Context(), c, ns)
 				if perr != nil {
-					if errors.Is(perr, ErrCancelled) {
+					if errors.Is(perr, cmdutil.ErrCancelled) {
 						fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 						return nil
 					}
@@ -261,13 +262,13 @@ picker lists every language that isn't already attached.`,
 				langLabel = label
 			}
 
-			res, err := c.client.AddLanguageWithResponse(cmd.Context(), ns, body)
+			res, err := c.API.AddLanguageWithResponse(cmd.Context(), ns, body)
 			if err != nil {
 				return err
 			}
 			if res.JSON200 == nil {
 				if isNamespaceForbidden(res.JSON403) || isNamespaceForbidden(res.JSON404) {
-					return namespaceAccessError(c.cfg.ActiveOrg.Slug, ns)
+					return namespaceAccessError(c.OrgLabel(), ns)
 				}
 				return apiError(res.HTTPResponse, res.Body,
 					res.JSON400, res.JSON401, res.JSON403, res.JSON404, res.JSON500)
@@ -296,8 +297,8 @@ func newLangRemoveCmd() *cobra.Command {
 		Use:     "remove [code-or-id]",
 		Aliases: []string{"rm"},
 		Short:   "Remove a language from a namespace (and every translation in that language)",
-		Example: `  norcube langsync lang remove cs --namespace web
-  norcube langsync lang remove cs -n web --yes   # scripts`,
+		Example: `  norcube langsync languages remove cs --namespace web
+  norcube langsync languages remove cs -n web --yes   # scripts`,
 		Long: `Detaches a language from the namespace. The translation rows for
 that language are removed by the backend; the source marks themselves
 are unaffected. Use --yes to skip the confirmation in scripts.`,
@@ -309,7 +310,7 @@ are unaffected. Use --yes to skip the confirmation in scripts.`,
 			}
 			ns, err := resolveNamespace(cmd.Context(), c, namespaceName, "Remove a language from which namespace?")
 			if err != nil {
-				if errors.Is(err, ErrCancelled) {
+				if errors.Is(err, cmdutil.ErrCancelled) {
 					fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 					return nil
 				}
@@ -328,7 +329,7 @@ are unaffected. Use --yes to skip the confirmation in scripts.`,
 			} else {
 				langID, langLabel, err = pickLanguageAttached(cmd.Context(), c, ns)
 				if err != nil {
-					if errors.Is(err, ErrCancelled) {
+					if errors.Is(err, cmdutil.ErrCancelled) {
 						fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 						return nil
 					}
@@ -336,12 +337,12 @@ are unaffected. Use --yes to skip the confirmation in scripts.`,
 				}
 			}
 
-			ok, err := confirm(
+			ok, err := cmdutil.Confirm(
 				fmt.Sprintf("Remove %s from namespace %q? Every translation in that language will be deleted.", langLabel, ns),
 				yes,
 			)
 			if err != nil {
-				if errors.Is(err, ErrCancelled) {
+				if errors.Is(err, cmdutil.ErrCancelled) {
 					fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 					return nil
 				}
@@ -352,13 +353,13 @@ are unaffected. Use --yes to skip the confirmation in scripts.`,
 				return nil
 			}
 
-			res, err := c.client.RemoveLanguageWithResponse(cmd.Context(), ns, langID)
+			res, err := c.API.RemoveLanguageWithResponse(cmd.Context(), ns, langID)
 			if err != nil {
 				return err
 			}
 			if res.HTTPResponse.StatusCode != 200 && res.HTTPResponse.StatusCode != 204 {
 				if isNamespaceForbidden(res.JSON403) || isNamespaceForbidden(res.JSON404) {
-					return namespaceAccessError(c.cfg.ActiveOrg.Slug, ns)
+					return namespaceAccessError(c.OrgLabel(), ns)
 				}
 				return apiError(res.HTTPResponse, res.Body,
 					res.JSON400, res.JSON401, res.JSON403, res.JSON404, res.JSON500)
@@ -440,7 +441,7 @@ func pickLanguageNotAttached(ctx context.Context, c *langsyncContext, ns string)
 	var pickedID int
 	if err := huh.NewSelect[int]().Title("Add which language?").Options(opts...).Value(&pickedID).Run(); err != nil {
 		if errors.Is(err, huh.ErrUserAborted) {
-			return 0, "", ErrCancelled
+			return 0, "", cmdutil.ErrCancelled
 		}
 		return 0, "", err
 	}
@@ -473,7 +474,7 @@ func pickLanguageAttached(ctx context.Context, c *langsyncContext, ns string) (i
 	var pickedID int
 	if err := huh.NewSelect[int]().Title("Remove which language?").Options(opts...).Value(&pickedID).Run(); err != nil {
 		if errors.Is(err, huh.ErrUserAborted) {
-			return 0, "", ErrCancelled
+			return 0, "", cmdutil.ErrCancelled
 		}
 		return 0, "", err
 	}
@@ -489,7 +490,7 @@ func listAllLanguages(ctx context.Context, c *langsyncContext) ([]langsync.DtoDT
 	// GET /languages now returns shared + this org's custom languages
 	// (operationId renamed to `listLanguagesForOrg`). Authentication is
 	// the standard Bearer token; org context comes from the JWT.
-	res, err := c.client.ListLanguagesForOrgWithResponse(ctx)
+	res, err := c.API.ListLanguagesForOrgWithResponse(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -500,13 +501,13 @@ func listAllLanguages(ctx context.Context, c *langsyncContext) ([]langsync.DtoDT
 }
 
 func listAttachedLanguages(ctx context.Context, c *langsyncContext, ns string) ([]langsync.DtoDTOLanguage, error) {
-	res, err := c.client.GetLanguagesByNamespaceWithResponse(ctx, ns)
+	res, err := c.API.GetLanguagesByNamespaceWithResponse(ctx, ns)
 	if err != nil {
 		return nil, err
 	}
 	if res.JSON200 == nil {
 		if isNamespaceForbidden(res.JSON403) || isNamespaceForbidden(res.JSON404) {
-			return nil, namespaceAccessError(c.cfg.ActiveOrg.Slug, ns)
+			return nil, namespaceAccessError(c.OrgLabel(), ns)
 		}
 		return nil, apiError(res.HTTPResponse, res.Body, res.JSON400, res.JSON401, res.JSON403, res.JSON404, res.JSON500)
 	}
@@ -563,14 +564,14 @@ type deletedResult struct {
 	Deleted bool   `json:"deleted" yaml:"deleted"`
 }
 
-// languageDetached is what `lang remove -o json` prints.
+// languageDetached is what `languages remove -o json` prints.
 type languageDetached struct {
 	Namespace  string `json:"namespace" yaml:"namespace"`
 	LanguageID int    `json:"languageId" yaml:"languageId"`
 	Removed    bool   `json:"removed" yaml:"removed"`
 }
 
-// languageAttached is what `lang add -o json` prints.
+// languageAttached is what `languages add -o json` prints.
 type languageAttached struct {
 	Namespace    string `json:"namespace" yaml:"namespace"`
 	Language     string `json:"language" yaml:"language"`

@@ -10,17 +10,14 @@ import (
 
 	"github.com/norcubeplatform/cli/internal/api/langsync"
 	"github.com/norcubeplatform/cli/internal/clierr"
+	"github.com/norcubeplatform/cli/internal/cmdutil"
 	"github.com/norcubeplatform/cli/internal/term"
 )
-
-// ErrCancelled is returned by interactive helpers when the user dismisses
-// the prompt. Commands turn it into "Cancelled." rather than a stack trace.
-var ErrCancelled = errors.New("cancelled by user")
 
 // pickNamespace lists every namespace in the active organization and
 // returns the name (the `:namespaceName` URL segment) of the chosen one.
 func pickNamespace(ctx context.Context, c *langsyncContext, title string) (string, error) {
-	res, err := c.client.ListNamespacesWithResponse(ctx)
+	res, err := c.API.ListNamespacesWithResponse(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -58,7 +55,7 @@ func pickNamespace(ctx context.Context, c *langsyncContext, title string) (strin
 	)).Run()
 	if err != nil {
 		if errors.Is(err, huh.ErrUserAborted) {
-			return "", ErrCancelled
+			return "", cmdutil.ErrCancelled
 		}
 		return "", err
 	}
@@ -82,34 +79,6 @@ func resolveNamespace(ctx context.Context, c *langsyncContext, flagValue, picker
 	return pickNamespace(ctx, c, pickerTitle)
 }
 
-// confirm prompts the user with a yes/no question. --yes answers it
-// without prompting; without a TTY it fails and asks for --yes, so a
-// script never deletes anything by accident. Same contract as the backup
-// package's helper.
-func confirm(prompt string, yesFlag bool) (bool, error) {
-	if yesFlag {
-		return true, nil
-	}
-	if !term.StdinIsTerminal() {
-		return false, clierr.Usage(fmt.Errorf("%s: pass --yes to confirm non-interactively", prompt))
-	}
-	var ok bool
-	err := newWizard(huh.NewGroup(
-		huh.NewConfirm().
-			Title(prompt).
-			Affirmative("Yes").
-			Negative("Cancel").
-			Value(&ok),
-	)).Run()
-	if err != nil {
-		if errors.Is(err, huh.ErrUserAborted) {
-			return false, ErrCancelled
-		}
-		return false, err
-	}
-	return ok, nil
-}
-
 // silence unused-import lint when we only need types from the langsync
 // package via the rest of the file's references.
 var _ = langsync.DtoDTONamespace{}
@@ -117,7 +86,7 @@ var _ = langsync.DtoDTONamespace{}
 // cancelledOK turns a dismissed prompt into "Cancelled." on stderr and a
 // clean exit; any other error passes through.
 func cancelledOK(cmd *cobra.Command, err error) error {
-	if errors.Is(err, ErrCancelled) {
+	if errors.Is(err, cmdutil.ErrCancelled) {
 		fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 		return nil
 	}

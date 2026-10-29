@@ -12,8 +12,8 @@ import (
 
 func newPolicyCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "policy",
-		Aliases: []string{"policies", "p"},
+		Use:     "policies",
+		Aliases: []string{"policy", "p"},
 		Short:   "Manage backup-policy attachments on a data source",
 		Long: `A "policy attachment" is the join row between a data source and a
 backup policy. The same backup policy can be attached to many data
@@ -35,8 +35,8 @@ func newPolicyListCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List policy attachments on a data source",
-		Example: `  norcube backup policy list --datasource 9f8e7d6c-…
-  norcube backup policy list --datasource 9f8e7d6c-… -o json --query "[?!isEnabled].id"`,
+		Example: `  norcube backup policies list --datasource 9f8e7d6c-…
+  norcube backup policies list --datasource 9f8e7d6c-… -o json --query "[?!isEnabled].id"`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			c, err := newSnapdbContext(cmd)
 			if err != nil {
@@ -46,7 +46,7 @@ func newPolicyListCmd() *cobra.Command {
 				return fmt.Errorf("--datasource is required")
 			}
 
-			res, err := c.client.ListPoliciesWithResponse(cmd.Context(), datasourceID)
+			res, err := c.API.ListPoliciesWithResponse(cmd.Context(), datasourceID)
 			if err != nil {
 				return err
 			}
@@ -85,7 +85,7 @@ func newPolicyPauseCmd() *cobra.Command {
 		Long: `Sets enabled=false on the attachment row. Schedule history, cron
 expression, and jitter are preserved — flip it back with "resume".
 Other policies on the same data source continue to run.`,
-		Example: `  norcube backup policy pause --datasource 9f8e7d6c-… --policy 1a2b3c4d-…`,
+		Example: `  norcube backup policies pause --datasource 9f8e7d6c-… --policy 1a2b3c4d-…`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			return setAttachmentEnabled(cmd, datasourceID, policyID, false, "Paused policy %q on data source %q.")
 		},
@@ -102,7 +102,7 @@ func newPolicyResumeCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "resume",
 		Short:   "Re-enable a previously paused policy attachment",
-		Example: `  norcube backup policy resume --datasource 9f8e7d6c-… --policy 1a2b3c4d-…`,
+		Example: `  norcube backup policies resume --datasource 9f8e7d6c-… --policy 1a2b3c4d-…`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			return setAttachmentEnabled(cmd, datasourceID, policyID, true, "Resumed policy %q on data source %q.")
 		},
@@ -119,7 +119,7 @@ func setAttachmentEnabled(cmd *cobra.Command, dsID, polID string, enabled bool, 
 	if err != nil {
 		return err
 	}
-	res, err := c.client.UpdatePolicyAttachmentWithResponse(cmd.Context(), dsID, polID,
+	res, err := c.API.UpdatePolicyAttachmentWithResponse(cmd.Context(), dsID, polID,
 		snapdb.UpdatePolicyAttachmentJSONRequestBody{
 			Enabled: &enabled,
 		},
@@ -150,19 +150,19 @@ removed. Past backup jobs are unaffected.
 Prefer "pause" if you only want to halt this schedule temporarily — it
 preserves the cron expression and jitter values. Use "detach" when the
 attachment was a mistake or is permanently obsolete.`,
-		Example: `  norcube backup policy detach --datasource 9f8e7d6c-… --policy 1a2b3c4d-…
-  norcube backup policy detach --datasource 9f8e7d6c-… --policy 1a2b3c4d-… --yes   # scripts`,
+		Example: `  norcube backup policies detach --datasource 9f8e7d6c-… --policy 1a2b3c4d-…
+  norcube backup policies detach --datasource 9f8e7d6c-… --policy 1a2b3c4d-… --yes   # scripts`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			c, err := newSnapdbContext(cmd)
 			if err != nil {
 				return err
 			}
-			ok, err := confirm(
+			ok, err := cmdutil.Confirm(
 				fmt.Sprintf("Detach policy %q from data source %q?", policyID, datasourceID),
 				yes,
 			)
 			if err != nil {
-				if err == ErrCancelled {
+				if err == cmdutil.ErrCancelled {
 					fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 					return nil
 				}
@@ -173,7 +173,7 @@ attachment was a mistake or is permanently obsolete.`,
 				return nil
 			}
 
-			res, err := c.client.DeleteDatasourcesDatasourceIdPoliciesPolicyIdWithResponse(
+			res, err := c.API.DeleteDatasourcesDatasourceIdPoliciesPolicyIdWithResponse(
 				cmd.Context(), datasourceID, policyID,
 			)
 			if err != nil {

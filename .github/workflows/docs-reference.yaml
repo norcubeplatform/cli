@@ -1,0 +1,71 @@
+name: docs-reference
+
+# Keeps the docs site's command reference in step with the CLI: on every
+# release tag it regenerates the MDX pages (`make docs`) in a checkout of
+# the docs repository and opens a pull request there when they changed.
+#
+# Configure in the repository settings:
+#   - vars.DOCS_REPO: the docs repository, owner/name
+#   - secrets.DOCS_REPO_TOKEN: a token that can push branches and open
+#     pull requests there
+# Without them the job skips with a notice.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reference:
+    runs-on: ubuntu-latest
+    env:
+      DOCS_REPO: ${{ vars.DOCS_REPO }}
+      HAS_TOKEN: ${{ secrets.DOCS_REPO_TOKEN != '' }}
+    steps:
+      - name: Check the configuration
+        id: config
+        run: |
+          if [ -n "$DOCS_REPO" ] && [ "$HAS_TOKEN" = "true" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::DOCS_REPO or DOCS_REPO_TOKEN is not configured; skipping the reference update."
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.config.outputs.ready == 'true'
+
+      - uses: actions/checkout@v4
+        if: steps.config.outputs.ready == 'true'
+        with:
+          repository: ${{ vars.DOCS_REPO }}
+          token: ${{ secrets.DOCS_REPO_TOKEN }}
+          path: .docs
+
+      - uses: actions/setup-go@v5
+        if: steps.config.outputs.ready == 'true'
+        with:
+          go-version-file: go.mod
+
+      - name: Regenerate the command reference
+        if: steps.config.outputs.ready == 'true'
+        run: make docs DOCS=.docs
+
+      - name: Open a pull request on the docs repository
+        if: steps.config.outputs.ready == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          path: .docs
+          token: ${{ secrets.DOCS_REPO_TOKEN }}
+          branch: chore/cli-reference-${{ github.ref_name }}
+          commit-message: "docs(cli): command reference for ${{ github.ref_name }}"
+          title: "docs(cli): command reference for ${{ github.ref_name }}"
+          body: |
+            Regenerated from the CLI's help text at ${{ github.ref_name }}
+            (`make docs` in the CLI repository). Review the hand-written
+            guides for anything the new release changed.
+          add-paths: content/docs/platform/cli-reference/**

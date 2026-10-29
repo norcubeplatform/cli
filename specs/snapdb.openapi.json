@@ -2013,7 +2013,9 @@
           "MISSING_ORGANIZATION_ID",
           "MISSING_USER_ID",
           "INTERNAL_SERVER_ERROR",
-          "ORG_BLOCKED"
+          "ORG_BLOCKED",
+          "QUOTA_EXCEEDED",
+          "INSUFFICIENT_SCOPE"
         ],
         "type": "string",
         "x-enum-varnames": [
@@ -2027,7 +2029,9 @@
           "ErrMissingOrganizationID",
           "ErrMissingUserID",
           "ErrInternalServer",
-          "ErrOrgBlocked"
+          "ErrOrgBlocked",
+          "ErrQuotaExceeded",
+          "ErrInsufficientScope"
         ]
       },
       "restorehandler.payloadCreateRequest": {
@@ -2166,7 +2170,7 @@
       "name": "Jan Švábík"
     },
     "description": "This documents the backend service used by the frontend platform.",
-    "title": "JDS SnapDB App Backend",
+    "title": "JDS Backup App Backend",
     "version": ""
   },
   "openapi": "3.0.3",
@@ -2716,6 +2720,16 @@
             },
             "description": "Bad Request"
           },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "QUOTA_EXCEEDED — org is at its max-datasources entitlement"
+          },
           "500": {
             "content": {
               "application/json": {
@@ -2769,6 +2783,16 @@
               }
             },
             "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "QUOTA_EXCEEDED — org is at its max-datasources entitlement"
           },
           "500": {
             "content": {
@@ -3090,6 +3114,76 @@
           }
         },
         "summary": "Delete one backup",
+        "tags": [
+          "Data Sources"
+        ]
+      },
+      "get": {
+        "description": "Returns a single backup job of the datasource, with the same shape as the listBackupJobs rows. jobStatus is one of queued, running, success, failed, partial, canceled. A job of another datasource or organization is reported as 404.",
+        "operationId": "getBackupJob",
+        "parameters": [
+          {
+            "description": "Data Source ID",
+            "in": "path",
+            "name": "datasourceId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Backup job ID (UUID)",
+            "in": "path",
+            "name": "jobId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.BackupJob"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Get one backup job",
         "tags": [
           "Data Sources"
         ]

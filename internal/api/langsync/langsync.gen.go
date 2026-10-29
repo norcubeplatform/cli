@@ -17,6 +17,123 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
+// Defines values for ConstantsAuditAction.
+const (
+	AuditActionAPIKeyCreated            ConstantsAuditAction = "apikey.created"
+	AuditActionAPIKeyDeleted            ConstantsAuditAction = "apikey.deleted"
+	AuditActionCustomLanguageCreated    ConstantsAuditAction = "custom_language.created"
+	AuditActionCustomLanguageDeleted    ConstantsAuditAction = "custom_language.deleted"
+	AuditActionCustomPromptCreated      ConstantsAuditAction = "custom_prompt.created"
+	AuditActionCustomPromptDeleted      ConstantsAuditAction = "custom_prompt.deleted"
+	AuditActionCustomPromptUpdated      ConstantsAuditAction = "custom_prompt.updated"
+	AuditActionGlossaryCreated          ConstantsAuditAction = "glossary.created"
+	AuditActionGlossaryItemCreated      ConstantsAuditAction = "glossary_item.created"
+	AuditActionGlossaryItemDeleted      ConstantsAuditAction = "glossary_item.deleted"
+	AuditActionGlossaryItemUpdated      ConstantsAuditAction = "glossary_item.updated"
+	AuditActionGlossaryLanguageAttached ConstantsAuditAction = "glossary.language_attached"
+	AuditActionMigratorImported         ConstantsAuditAction = "migrator.imported"
+	AuditActionNamespaceCreated         ConstantsAuditAction = "namespace.created"
+	AuditActionNamespaceDeleted         ConstantsAuditAction = "namespace.deleted"
+	AuditActionNamespaceLanguageAdded   ConstantsAuditAction = "namespace.language_added"
+	AuditActionNamespaceLanguageRemoved ConstantsAuditAction = "namespace.language_removed"
+	AuditActionNamespaceUpdated         ConstantsAuditAction = "namespace.updated"
+	AuditActionSyncJobCompleted         ConstantsAuditAction = "sync_job.completed"
+	AuditActionSyncJobCreated           ConstantsAuditAction = "sync_job.created"
+	AuditActionSyncJobFailed            ConstantsAuditAction = "sync_job.failed"
+	AuditActionTermImportFinished       ConstantsAuditAction = "term_import.finished"
+)
+
+// Valid indicates whether the value is a known member of the ConstantsAuditAction enum.
+func (e ConstantsAuditAction) Valid() bool {
+	switch e {
+	case AuditActionAPIKeyCreated:
+		return true
+	case AuditActionAPIKeyDeleted:
+		return true
+	case AuditActionCustomLanguageCreated:
+		return true
+	case AuditActionCustomLanguageDeleted:
+		return true
+	case AuditActionCustomPromptCreated:
+		return true
+	case AuditActionCustomPromptDeleted:
+		return true
+	case AuditActionCustomPromptUpdated:
+		return true
+	case AuditActionGlossaryCreated:
+		return true
+	case AuditActionGlossaryItemCreated:
+		return true
+	case AuditActionGlossaryItemDeleted:
+		return true
+	case AuditActionGlossaryItemUpdated:
+		return true
+	case AuditActionGlossaryLanguageAttached:
+		return true
+	case AuditActionMigratorImported:
+		return true
+	case AuditActionNamespaceCreated:
+		return true
+	case AuditActionNamespaceDeleted:
+		return true
+	case AuditActionNamespaceLanguageAdded:
+		return true
+	case AuditActionNamespaceLanguageRemoved:
+		return true
+	case AuditActionNamespaceUpdated:
+		return true
+	case AuditActionSyncJobCompleted:
+		return true
+	case AuditActionSyncJobCreated:
+		return true
+	case AuditActionSyncJobFailed:
+		return true
+	case AuditActionTermImportFinished:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ConstantsAuditTargetType.
+const (
+	AuditTargetAPIKey         ConstantsAuditTargetType = "apikey"
+	AuditTargetCustomLanguage ConstantsAuditTargetType = "custom_language"
+	AuditTargetCustomPrompt   ConstantsAuditTargetType = "custom_prompt"
+	AuditTargetGlossary       ConstantsAuditTargetType = "glossary"
+	AuditTargetGlossaryItem   ConstantsAuditTargetType = "glossary_item"
+	AuditTargetMigrator       ConstantsAuditTargetType = "migrator"
+	AuditTargetNamespace      ConstantsAuditTargetType = "namespace"
+	AuditTargetSyncJob        ConstantsAuditTargetType = "sync_job"
+	AuditTargetTermImport     ConstantsAuditTargetType = "term_import"
+)
+
+// Valid indicates whether the value is a known member of the ConstantsAuditTargetType enum.
+func (e ConstantsAuditTargetType) Valid() bool {
+	switch e {
+	case AuditTargetAPIKey:
+		return true
+	case AuditTargetCustomLanguage:
+		return true
+	case AuditTargetCustomPrompt:
+		return true
+	case AuditTargetGlossary:
+		return true
+	case AuditTargetGlossaryItem:
+		return true
+	case AuditTargetMigrator:
+		return true
+	case AuditTargetNamespace:
+		return true
+	case AuditTargetSyncJob:
+		return true
+	case AuditTargetTermImport:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ConstantsGlossaryItemType.
 const (
 	GlosasryItemTypePhrase        ConstantsGlossaryItemType = "phrase"
@@ -56,33 +173,6 @@ func (e ConstantsGlossaryItemType) Valid() bool {
 	case GlossaryItemTypePronoun:
 		return true
 	case GlossaryItemTypeVerb:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for ConstantsIntegrationHelpjuiceChangeTranslationStatus.
-const (
-	IntegrationHelpjuiceChangeTranslationStatusCompleted  ConstantsIntegrationHelpjuiceChangeTranslationStatus = "completed"
-	IntegrationHelpjuiceChangeTranslationStatusFailed     ConstantsIntegrationHelpjuiceChangeTranslationStatus = "failed"
-	IntegrationHelpjuiceChangeTranslationStatusInProgress ConstantsIntegrationHelpjuiceChangeTranslationStatus = "in_progress"
-	IntegrationHelpjuiceChangeTranslationStatusNew        ConstantsIntegrationHelpjuiceChangeTranslationStatus = "new"
-	IntegrationHelpjuiceChangeTranslationStatusPending    ConstantsIntegrationHelpjuiceChangeTranslationStatus = "pending"
-)
-
-// Valid indicates whether the value is a known member of the ConstantsIntegrationHelpjuiceChangeTranslationStatus enum.
-func (e ConstantsIntegrationHelpjuiceChangeTranslationStatus) Valid() bool {
-	switch e {
-	case IntegrationHelpjuiceChangeTranslationStatusCompleted:
-		return true
-	case IntegrationHelpjuiceChangeTranslationStatusFailed:
-		return true
-	case IntegrationHelpjuiceChangeTranslationStatusInProgress:
-		return true
-	case IntegrationHelpjuiceChangeTranslationStatusNew:
-		return true
-	case IntegrationHelpjuiceChangeTranslationStatusPending:
 		return true
 	default:
 		return false
@@ -167,6 +257,7 @@ const (
 	ErrColumnCountMismatch        ResponseType = "COLUMN_COUNT_MISMATCH"
 	ErrConflict                   ResponseType = "CONFLICT"
 	ErrConnectionAlreadyExists    ResponseType = "CONNECTION_ALREADY_EXISTS"
+	ErrCustomPromptNotShared      ResponseType = "CUSTOM_PROMPT_NOT_SHARED"
 	ErrDuplicate                  ResponseType = "DUPLICATE"
 	ErrEmailRequired              ResponseType = "EMAIL_REQUIRED"
 	ErrEmpty                      ResponseType = "EMPTY"
@@ -175,6 +266,7 @@ const (
 	ErrInnovationAgencyIDRequired ResponseType = "INNOVATION_AGENCY_ID_REQUIRED"
 	ErrInsufficientPermissions    ResponseType = "INSUFFICIENT_PERMISSIONS"
 	ErrInternalServer             ResponseType = "INTERNAL_SERVER_ERROR"
+	ErrInvalidCustomPrompt        ResponseType = "INVALID_CUSTOM_PROMPT"
 	ErrInvalidImportStatus        ResponseType = "INVALID_IMPORT_STATUS"
 	ErrInvalidName                ResponseType = "INVALID_NAME"
 	ErrInvalidOldPassword         ResponseType = "INVALID_OLD_PASSWORD"
@@ -196,6 +288,7 @@ const (
 	ErrNotImplemented             ResponseType = "NOT_IMPLEMENTED"
 	ErrOTPInvalid                 ResponseType = "OTP_INVALID"
 	ErrOldPasswordRequired        ResponseType = "OLD_PASSWORD_REQUIRED"
+	ErrOrgBlocked                 ResponseType = "ORG_BLOCKED"
 	ErrOrganizationMissing        ResponseType = "ORGANIZATION_MISSING"
 	ErrPasswordRequired           ResponseType = "PASSWORD_REQUIRED"
 	ErrPayloadInvalid             ResponseType = "INVALID_PAYLOAD"
@@ -221,6 +314,8 @@ func (e ResponseType) Valid() bool {
 		return true
 	case ErrConnectionAlreadyExists:
 		return true
+	case ErrCustomPromptNotShared:
+		return true
 	case ErrDuplicate:
 		return true
 	case ErrEmailRequired:
@@ -236,6 +331,8 @@ func (e ResponseType) Valid() bool {
 	case ErrInsufficientPermissions:
 		return true
 	case ErrInternalServer:
+		return true
+	case ErrInvalidCustomPrompt:
 		return true
 	case ErrInvalidImportStatus:
 		return true
@@ -279,6 +376,8 @@ func (e ResponseType) Valid() bool {
 		return true
 	case ErrOldPasswordRequired:
 		return true
+	case ErrOrgBlocked:
+		return true
 	case ErrOrganizationMissing:
 		return true
 	case ErrPasswordRequired:
@@ -319,11 +418,45 @@ type ApikeyPayloadCreateResponse struct {
 	Value *string `json:"value,omitempty"`
 }
 
+// AuditPayloadActor defines model for audit.payloadActor.
+type AuditPayloadActor struct {
+	Email *string `json:"email,omitempty"`
+	Id    *string `json:"id,omitempty"`
+	Name  *string `json:"name,omitempty"`
+}
+
+// AuditPayloadAuditLogEntry defines model for audit.payloadAuditLogEntry.
+type AuditPayloadAuditLogEntry struct {
+	Action         *ConstantsAuditAction     `json:"action,omitempty"`
+	ActorEmail     *string                   `json:"actorEmail,omitempty"`
+	ActorId        *string                   `json:"actorId,omitempty"`
+	ActorName      *string                   `json:"actorName,omitempty"`
+	ActorType      *string                   `json:"actorType,omitempty"`
+	CreatedAt      *string                   `json:"createdAt,omitempty"`
+	Id             *string                   `json:"id,omitempty"`
+	Ip             *string                   `json:"ip,omitempty"`
+	Metadata       *map[string]interface{}   `json:"metadata,omitempty"`
+	OrganizationId *string                   `json:"organizationId,omitempty"`
+	TargetId       *string                   `json:"targetId,omitempty"`
+	TargetType     *ConstantsAuditTargetType `json:"targetType,omitempty"`
+	UserAgent      *string                   `json:"userAgent,omitempty"`
+}
+
+// AuditPayloadListResponse defines model for audit.payloadListResponse.
+type AuditPayloadListResponse struct {
+	List                *[]AuditPayloadAuditLogEntry `json:"list,omitempty"`
+	NextCursorCreatedAt *string                      `json:"nextCursorCreatedAt,omitempty"`
+	NextCursorId        *string                      `json:"nextCursorId,omitempty"`
+}
+
+// ConstantsAuditAction defines model for constants.AuditAction.
+type ConstantsAuditAction string
+
+// ConstantsAuditTargetType defines model for constants.AuditTargetType.
+type ConstantsAuditTargetType string
+
 // ConstantsGlossaryItemType defines model for constants.GlossaryItemType.
 type ConstantsGlossaryItemType string
-
-// ConstantsIntegrationHelpjuiceChangeTranslationStatus defines model for constants.IntegrationHelpjuiceChangeTranslationStatus.
-type ConstantsIntegrationHelpjuiceChangeTranslationStatus string
 
 // ConstantsTermBulkImportStatus defines model for constants.TermBulkImportStatus.
 type ConstantsTermBulkImportStatus string
@@ -393,17 +526,21 @@ type DtoDTOLanguageConnection struct {
 
 // DtoDTONamespace defines model for dto.DTONamespace.
 type DtoDTONamespace struct {
-	Context           *string   `json:"context,omitempty"`
-	CreatedAt         *string   `json:"created_at,omitempty"`
-	CreatedBy         *string   `json:"created_by,omitempty"`
-	DefaultLanguageId *int      `json:"defaultLanguageId,omitempty"`
-	Id                *string   `json:"id,omitempty"`
-	Languages         *[]string `json:"languages,omitempty"`
-	Name              *string   `json:"name,omitempty"`
-	OrganizationId    *string   `json:"organization_id,omitempty"`
-	Progress          *float32  `json:"progress,omitempty"`
-	TotalTerms        *int      `json:"total_terms,omitempty"`
-	UpdatedAt         *string   `json:"updated_at,omitempty"`
+	Context   *string `json:"context,omitempty"`
+	CreatedAt *string `json:"created_at,omitempty"`
+	CreatedBy *string `json:"created_by,omitempty"`
+
+	// DefaultCustomPromptId DefaultCustomPromptID is the shared custom prompt every automatic
+	// translation in this namespace uses unless a request names another.
+	DefaultCustomPromptId *string   `json:"defaultCustomPromptId,omitempty"`
+	DefaultLanguageId     *int      `json:"defaultLanguageId,omitempty"`
+	Id                    *string   `json:"id,omitempty"`
+	Languages             *[]string `json:"languages,omitempty"`
+	Name                  *string   `json:"name,omitempty"`
+	OrganizationId        *string   `json:"organization_id,omitempty"`
+	Progress              *float32  `json:"progress,omitempty"`
+	TotalTerms            *int      `json:"total_terms,omitempty"`
+	UpdatedAt             *string   `json:"updated_at,omitempty"`
 }
 
 // DtoDTOSyncJob defines model for dto.DTOSyncJob.
@@ -527,20 +664,6 @@ type DtoGlossaryItemTranslation struct {
 	Value          string  `json:"value"`
 }
 
-// DtoIntegrationHelpjuiceChange defines model for dto.IntegrationHelpjuiceChange.
-type DtoIntegrationHelpjuiceChange struct {
-	ArticleId              string                                               `json:"articleId"`
-	ArticleTitle           string                                               `json:"articleTitle"`
-	ChangeType             string                                               `json:"changeType"`
-	CreatedAt              string                                               `json:"createdAt"`
-	Id                     string                                               `json:"id"`
-	SetupId                string                                               `json:"setupId"`
-	TranslationCompletedAt *string                                              `json:"translationCompletedAt,omitempty"`
-	TranslationStartedAt   *string                                              `json:"translationStartedAt,omitempty"`
-	TranslationStartedBy   *string                                              `json:"translationStartedBy,omitempty"`
-	TranslationStatus      ConstantsIntegrationHelpjuiceChangeTranslationStatus `json:"translationStatus"`
-}
-
 // DtoLangInfo defines model for dto.LangInfo.
 type DtoLangInfo struct {
 	Code string `json:"code"`
@@ -549,6 +672,10 @@ type DtoLangInfo struct {
 
 // DtoTranslationInfo defines model for dto.TranslationInfo.
 type DtoTranslationInfo struct {
+	// AiGenerated AIGenerated is true while the value is exactly what AI translation
+	// produced; a person changing it clears the flag. The field order
+	// mirrors the translation_info composite type.
+	AiGenerated           bool        `json:"aiGenerated"`
 	CreatedAt             *string     `json:"created_at,omitempty"`
 	Lang                  DtoLangInfo `json:"lang"`
 	LanguageToNamespaceId int         `json:"language_to_namespace_id"`
@@ -595,28 +722,6 @@ type GlossaryPayloadGetItemResponse struct {
 // GlossaryUpdateTranslationRequest defines model for glossary.updateTranslationRequest.
 type GlossaryUpdateTranslationRequest struct {
 	Value string `json:"value"`
-}
-
-// HelpjuiceCreateRequestBody defines model for helpjuice.createRequestBody.
-type HelpjuiceCreateRequestBody struct {
-	HelpjuiceApiKey    string `json:"helpjuiceApiKey"`
-	HelpjuiceSubdomain string `json:"helpjuiceSubdomain"`
-	Title              string `json:"title"`
-}
-
-// HelpjuiceCreateResponseBody defines model for helpjuice.createResponseBody.
-type HelpjuiceCreateResponseBody struct {
-	CreateId   string `json:"createId"`
-	WebhookUrl string `json:"webhookUrl"`
-}
-
-// HelpjuiceUpdateSettingRequestBody defines model for helpjuice.updateSettingRequestBody.
-type HelpjuiceUpdateSettingRequestBody struct {
-	CustomPrompt                string `json:"customPrompt"`
-	EnableAutomaticTranslations bool   `json:"enableAutomaticTranslations"`
-	TargetLanguages             []int  `json:"targetLanguages"`
-	Title                       string `json:"title"`
-	WatchedLanguages            []int  `json:"watchedLanguages"`
 }
 
 // LanguagePayloadCreateLanguageRequest defines model for language.payloadCreateLanguageRequest.
@@ -676,8 +781,13 @@ type NamespacePayloadCreateNamespaceRequest struct {
 
 // NamespacePayloadUpdateNamespaceRequest defines model for namespace.payloadUpdateNamespaceRequest.
 type NamespacePayloadUpdateNamespaceRequest struct {
-	Context             *string `json:"context,omitempty"`
-	DefaultLanguageCode *string `json:"defaultLanguageCode,omitempty"`
+	Context *string `json:"context,omitempty"`
+
+	// DefaultCustomPromptId DefaultCustomPromptID sets the shared custom prompt that every
+	// automatic translation in the namespace uses. Omit to keep the
+	// current one; send an empty string to remove it.
+	DefaultCustomPromptId *string `json:"defaultCustomPromptId,omitempty"`
+	DefaultLanguageCode   *string `json:"defaultLanguageCode,omitempty"`
 
 	// DefaultLanguageId Preferred new fields — pass exactly one. The CLI/frontend should
 	// emit these going forward.
@@ -765,6 +875,10 @@ type SharedTermImportSetup struct {
 	// Csv CSV specific setup
 	Csv *SharedTermImportCSVSetup `json:"csv,omitempty"`
 
+	// CustomPromptId Custom prompt for the automatic translations of this import. Nil
+	// uses the namespace's default prompt (if any).
+	CustomPromptId *string `json:"customPromptId,omitempty"`
+
 	// OverwriteExisting Whether to overwrite existing terms with the same mark in the namespace
 	OverwriteExisting bool `json:"overwriteExisting"`
 
@@ -833,8 +947,11 @@ type TermPayloadAddRequest struct {
 
 // TermPayloadRecommendMagicTranslationRequest defines model for term.payloadRecommendMagicTranslationRequest.
 type TermPayloadRecommendMagicTranslationRequest struct {
-	Prompt       string `json:"prompt"`
-	SourceLangId *int   `json:"sourceLangId,omitempty"`
+	// CustomPromptId CustomPromptID overrides the namespace's default custom prompt for
+	// this suggestion.
+	CustomPromptId *string `json:"customPromptId,omitempty"`
+	Prompt         string  `json:"prompt"`
+	SourceLangId   *int    `json:"sourceLangId,omitempty"`
 }
 
 // TermPayloadRecommendMagicTranslationResponse defines model for term.payloadRecommendMagicTranslationResponse.
@@ -853,12 +970,19 @@ type TermPayloadUpdateResponse = map[string]interface{}
 
 // TermPayloadUpdateTranslationRequest defines model for term.payloadUpdateTranslationRequest.
 type TermPayloadUpdateTranslationRequest struct {
-	Value *string `json:"value,omitempty"`
+	// AiGenerated AIGenerated is true when the value is an AI suggestion saved without
+	// changes, so it keeps its AI label. Omit (false) for a value a person
+	// wrote or changed.
+	AiGenerated *bool   `json:"aiGenerated,omitempty"`
+	Value       *string `json:"value,omitempty"`
 }
 
 // TermTranslateMissingTranslationsRequest defines model for term.translateMissingTranslationsRequest.
 type TermTranslateMissingTranslationsRequest struct {
-	LanguageIds *[]int `json:"languageIds,omitempty"`
+	// CustomPromptId CustomPromptID overrides the namespace's default custom prompt for
+	// this run.
+	CustomPromptId *string `json:"customPromptId,omitempty"`
+	LanguageIds    *[]int  `json:"languageIds,omitempty"`
 }
 
 // TermTranslateMissingTranslationsResponse defines model for term.translateMissingTranslationsResponse.
@@ -921,6 +1045,36 @@ type TypesLanguageRef struct {
 	Id *int `json:"id,omitempty"`
 }
 
+// ListAuditLogsParams defines parameters for ListAuditLogs.
+type ListAuditLogsParams struct {
+	// Limit Page size (1-200, default 50)
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// CursorCreatedAt Cursor from prior response — RFC3339 timestamp
+	CursorCreatedAt *string `form:"cursorCreatedAt,omitempty" json:"cursorCreatedAt,omitempty"`
+
+	// CursorId Cursor from prior response — UUID tiebreaker for same-timestamp rows
+	CursorId *string `form:"cursorId,omitempty" json:"cursorId,omitempty"`
+
+	// Since Filter to rows with createdAt >= since (RFC3339)
+	Since *string `form:"since,omitempty" json:"since,omitempty"`
+
+	// Until Filter to rows with createdAt < until (RFC3339)
+	Until *string `form:"until,omitempty" json:"until,omitempty"`
+
+	// Actions Filter to one or more exact actions (repeated)
+	Actions *[]string `form:"actions,omitempty" json:"actions,omitempty"`
+
+	// TargetTypes Filter by one or more exact target_types (repeated)
+	TargetTypes *[]string `form:"targetTypes,omitempty" json:"targetTypes,omitempty"`
+
+	// TargetId Filter by exact target uuid
+	TargetId *string `form:"targetId,omitempty" json:"targetId,omitempty"`
+
+	// ActorIds Filter by one or more actor user ids (repeated); pass \
+	ActorIds *[]string `form:"actorIds,omitempty" json:"actorIds,omitempty"`
+}
+
 // ListGlossaryItemsParams defines parameters for ListGlossaryItems.
 type ListGlossaryItemsParams struct {
 	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
@@ -956,12 +1110,6 @@ type AddTranslationToGlossaryItemJSONRequestBody = GlossaryAddTranslationRequest
 
 // UpdateGlossaryItemTranslationJSONRequestBody defines body for UpdateGlossaryItemTranslation for application/json ContentType.
 type UpdateGlossaryItemTranslationJSONRequestBody = GlossaryUpdateTranslationRequest
-
-// CreateHelpjuiceIntegrationJSONRequestBody defines body for CreateHelpjuiceIntegration for application/json ContentType.
-type CreateHelpjuiceIntegrationJSONRequestBody = HelpjuiceCreateRequestBody
-
-// UpdateHelpjuiceSettingsJSONRequestBody defines body for UpdateHelpjuiceSettings for application/json ContentType.
-type UpdateHelpjuiceSettingsJSONRequestBody = HelpjuiceUpdateSettingRequestBody
 
 // CreateCustomLanguageJSONRequestBody defines body for CreateCustomLanguage for application/json ContentType.
 type CreateCustomLanguageJSONRequestBody = LanguagePayloadCreateLanguageRequest
@@ -1098,6 +1246,12 @@ type ClientInterface interface {
 	// DeleteAPIKey request
 	DeleteAPIKey(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListAuditLogs request
+	ListAuditLogs(ctx context.Context, params *ListAuditLogsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListAuditLogActors request
+	ListAuditLogActors(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetGlossary request
 	GetGlossary(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -1132,22 +1286,6 @@ type ClientInterface interface {
 
 	// AttachLanguageToGlossary request
 	AttachLanguageToGlossary(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// ListHelpjuiceChanges request
-	ListHelpjuiceChanges(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// TranslateHelpjuiceChange request
-	TranslateHelpjuiceChange(ctx context.Context, changeId string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// CreateHelpjuiceIntegrationWithBody request with any body
-	CreateHelpjuiceIntegrationWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	CreateHelpjuiceIntegration(ctx context.Context, body CreateHelpjuiceIntegrationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// UpdateHelpjuiceSettingsWithBody request with any body
-	UpdateHelpjuiceSettingsWithBody(ctx context.Context, setupId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	UpdateHelpjuiceSettings(ctx context.Context, setupId string, body UpdateHelpjuiceSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListLanguagesForOrg request
 	ListLanguagesForOrg(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -1317,6 +1455,30 @@ func (c *Client) DeleteAPIKey(ctx context.Context, id string, reqEditors ...Requ
 	return c.Client.Do(req)
 }
 
+func (c *Client) ListAuditLogs(ctx context.Context, params *ListAuditLogsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAuditLogsRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListAuditLogActors(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAuditLogActorsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetGlossary(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetGlossaryRequest(c.Server)
 	if err != nil {
@@ -1463,78 +1625,6 @@ func (c *Client) UpdateGlossaryItemTranslation(ctx context.Context, itemId strin
 
 func (c *Client) AttachLanguageToGlossary(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewAttachLanguageToGlossaryRequest(c.Server)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) ListHelpjuiceChanges(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewListHelpjuiceChangesRequest(c.Server)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) TranslateHelpjuiceChange(ctx context.Context, changeId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewTranslateHelpjuiceChangeRequest(c.Server, changeId)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) CreateHelpjuiceIntegrationWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCreateHelpjuiceIntegrationRequestWithBody(c.Server, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) CreateHelpjuiceIntegration(ctx context.Context, body CreateHelpjuiceIntegrationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCreateHelpjuiceIntegrationRequest(c.Server, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) UpdateHelpjuiceSettingsWithBody(ctx context.Context, setupId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUpdateHelpjuiceSettingsRequestWithBody(c.Server, setupId, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) UpdateHelpjuiceSettings(ctx context.Context, setupId string, body UpdateHelpjuiceSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUpdateHelpjuiceSettingsRequest(c.Server, setupId, body)
 	if err != nil {
 		return nil, err
 	}
@@ -2186,6 +2276,183 @@ func NewDeleteAPIKeyRequest(server string, id string) (*http.Request, error) {
 	return req, nil
 }
 
+// NewListAuditLogsRequest generates requests for ListAuditLogs
+func NewListAuditLogsRequest(server string, params *ListAuditLogsParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/audit-log")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
+		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
+
+		if params.Limit != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "limit", *params.Limit, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.CursorCreatedAt != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "cursorCreatedAt", *params.CursorCreatedAt, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.CursorId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "cursorId", *params.CursorId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Since != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "since", *params.Since, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Until != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "until", *params.Until, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Actions != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "actions", *params.Actions, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "array", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.TargetTypes != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "targetTypes", *params.TargetTypes, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "array", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.TargetId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "targetId", *params.TargetId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.ActorIds != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "actorIds", *params.ActorIds, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "array", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListAuditLogActorsRequest generates requests for ListAuditLogActors
+func NewListAuditLogActorsRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/audit-log/actors")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetGlossaryRequest generates requests for GetGlossary
 func NewGetGlossaryRequest(server string) (*http.Request, error) {
 	var err error
@@ -2551,154 +2818,6 @@ func NewAttachLanguageToGlossaryRequest(server string) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	return req, nil
-}
-
-// NewListHelpjuiceChangesRequest generates requests for ListHelpjuiceChanges
-func NewListHelpjuiceChangesRequest(server string) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/integrations/helpjuice/changes")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewTranslateHelpjuiceChangeRequest generates requests for TranslateHelpjuiceChange
-func NewTranslateHelpjuiceChangeRequest(server string, changeId string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "changeId", changeId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/integrations/helpjuice/changes/%s/translate", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest(http.MethodPost, queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewCreateHelpjuiceIntegrationRequest calls the generic CreateHelpjuiceIntegration builder with application/json body
-func NewCreateHelpjuiceIntegrationRequest(server string, body CreateHelpjuiceIntegrationJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewCreateHelpjuiceIntegrationRequestWithBody(server, "application/json", bodyReader)
-}
-
-// NewCreateHelpjuiceIntegrationRequestWithBody generates requests for CreateHelpjuiceIntegration with any type of body
-func NewCreateHelpjuiceIntegrationRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/integrations/helpjuice/create")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewUpdateHelpjuiceSettingsRequest calls the generic UpdateHelpjuiceSettings builder with application/json body
-func NewUpdateHelpjuiceSettingsRequest(server string, setupId string, body UpdateHelpjuiceSettingsJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewUpdateHelpjuiceSettingsRequestWithBody(server, setupId, "application/json", bodyReader)
-}
-
-// NewUpdateHelpjuiceSettingsRequestWithBody generates requests for UpdateHelpjuiceSettings with any type of body
-func NewUpdateHelpjuiceSettingsRequestWithBody(server string, setupId string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "setupId", setupId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/integrations/helpjuice/%s/settings", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest(http.MethodPut, queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -4016,6 +4135,12 @@ type ClientWithResponsesInterface interface {
 	// DeleteAPIKeyWithResponse request
 	DeleteAPIKeyWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*DeleteAPIKeyResponse, error)
 
+	// ListAuditLogsWithResponse request
+	ListAuditLogsWithResponse(ctx context.Context, params *ListAuditLogsParams, reqEditors ...RequestEditorFn) (*ListAuditLogsResponse, error)
+
+	// ListAuditLogActorsWithResponse request
+	ListAuditLogActorsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListAuditLogActorsResponse, error)
+
 	// GetGlossaryWithResponse request
 	GetGlossaryWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetGlossaryResponse, error)
 
@@ -4050,22 +4175,6 @@ type ClientWithResponsesInterface interface {
 
 	// AttachLanguageToGlossaryWithResponse request
 	AttachLanguageToGlossaryWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*AttachLanguageToGlossaryResponse, error)
-
-	// ListHelpjuiceChangesWithResponse request
-	ListHelpjuiceChangesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListHelpjuiceChangesResponse, error)
-
-	// TranslateHelpjuiceChangeWithResponse request
-	TranslateHelpjuiceChangeWithResponse(ctx context.Context, changeId string, reqEditors ...RequestEditorFn) (*TranslateHelpjuiceChangeResponse, error)
-
-	// CreateHelpjuiceIntegrationWithBodyWithResponse request with any body
-	CreateHelpjuiceIntegrationWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateHelpjuiceIntegrationResponse, error)
-
-	CreateHelpjuiceIntegrationWithResponse(ctx context.Context, body CreateHelpjuiceIntegrationJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateHelpjuiceIntegrationResponse, error)
-
-	// UpdateHelpjuiceSettingsWithBodyWithResponse request with any body
-	UpdateHelpjuiceSettingsWithBodyWithResponse(ctx context.Context, setupId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateHelpjuiceSettingsResponse, error)
-
-	UpdateHelpjuiceSettingsWithResponse(ctx context.Context, setupId string, body UpdateHelpjuiceSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateHelpjuiceSettingsResponse, error)
 
 	// ListLanguagesForOrgWithResponse request
 	ListLanguagesForOrgWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListLanguagesForOrgResponse, error)
@@ -4289,6 +4398,70 @@ func (r DeleteAPIKeyResponse) StatusCode() int {
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
 func (r DeleteAPIKeyResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type ListAuditLogsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *AuditPayloadListResponse
+	JSON400      *ResponseAPIError
+	JSON500      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r ListAuditLogsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListAuditLogsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r ListAuditLogsResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type ListAuditLogActorsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]AuditPayloadActor
+	JSON400      *ResponseAPIError
+	JSON500      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r ListAuditLogActorsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListAuditLogActorsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r ListAuditLogActorsResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
@@ -4590,139 +4763,6 @@ func (r AttachLanguageToGlossaryResponse) StatusCode() int {
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
 func (r AttachLanguageToGlossaryResponse) ContentType() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Header.Get("Content-Type")
-	}
-	return ""
-}
-
-type ListHelpjuiceChangesResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		Cursors ResponseAPIResponsePaginationCursors `json:"cursors"`
-		List    []DtoIntegrationHelpjuiceChange      `json:"list"`
-		Meta    ResponseAPIResponsePaginationMeta    `json:"meta"`
-	}
-	JSON401 *ResponseAPIError
-	JSON500 *ResponseAPIError
-}
-
-// Status returns HTTPResponse.Status
-func (r ListHelpjuiceChangesResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r ListHelpjuiceChangesResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r ListHelpjuiceChangesResponse) ContentType() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Header.Get("Content-Type")
-	}
-	return ""
-}
-
-type TranslateHelpjuiceChangeResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *ResponseAPIResponseEmpty
-	JSON400      *ResponseAPIError
-	JSON401      *ResponseAPIError
-	JSON500      *ResponseAPIError
-}
-
-// Status returns HTTPResponse.Status
-func (r TranslateHelpjuiceChangeResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r TranslateHelpjuiceChangeResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r TranslateHelpjuiceChangeResponse) ContentType() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Header.Get("Content-Type")
-	}
-	return ""
-}
-
-type CreateHelpjuiceIntegrationResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *HelpjuiceCreateResponseBody
-	JSON400      *ResponseAPIError
-	JSON500      *ResponseAPIError
-}
-
-// Status returns HTTPResponse.Status
-func (r CreateHelpjuiceIntegrationResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r CreateHelpjuiceIntegrationResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r CreateHelpjuiceIntegrationResponse) ContentType() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Header.Get("Content-Type")
-	}
-	return ""
-}
-
-type UpdateHelpjuiceSettingsResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *ResponseAPIResponseEmpty
-	JSON400      *ResponseAPIError
-	JSON500      *ResponseAPIError
-}
-
-// Status returns HTTPResponse.Status
-func (r UpdateHelpjuiceSettingsResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r UpdateHelpjuiceSettingsResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r UpdateHelpjuiceSettingsResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
@@ -5765,6 +5805,24 @@ func (c *ClientWithResponses) DeleteAPIKeyWithResponse(ctx context.Context, id s
 	return ParseDeleteAPIKeyResponse(rsp)
 }
 
+// ListAuditLogsWithResponse request returning *ListAuditLogsResponse
+func (c *ClientWithResponses) ListAuditLogsWithResponse(ctx context.Context, params *ListAuditLogsParams, reqEditors ...RequestEditorFn) (*ListAuditLogsResponse, error) {
+	rsp, err := c.ListAuditLogs(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAuditLogsResponse(rsp)
+}
+
+// ListAuditLogActorsWithResponse request returning *ListAuditLogActorsResponse
+func (c *ClientWithResponses) ListAuditLogActorsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListAuditLogActorsResponse, error) {
+	rsp, err := c.ListAuditLogActors(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAuditLogActorsResponse(rsp)
+}
+
 // GetGlossaryWithResponse request returning *GetGlossaryResponse
 func (c *ClientWithResponses) GetGlossaryWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetGlossaryResponse, error) {
 	rsp, err := c.GetGlossary(ctx, reqEditors...)
@@ -5876,58 +5934,6 @@ func (c *ClientWithResponses) AttachLanguageToGlossaryWithResponse(ctx context.C
 		return nil, err
 	}
 	return ParseAttachLanguageToGlossaryResponse(rsp)
-}
-
-// ListHelpjuiceChangesWithResponse request returning *ListHelpjuiceChangesResponse
-func (c *ClientWithResponses) ListHelpjuiceChangesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListHelpjuiceChangesResponse, error) {
-	rsp, err := c.ListHelpjuiceChanges(ctx, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseListHelpjuiceChangesResponse(rsp)
-}
-
-// TranslateHelpjuiceChangeWithResponse request returning *TranslateHelpjuiceChangeResponse
-func (c *ClientWithResponses) TranslateHelpjuiceChangeWithResponse(ctx context.Context, changeId string, reqEditors ...RequestEditorFn) (*TranslateHelpjuiceChangeResponse, error) {
-	rsp, err := c.TranslateHelpjuiceChange(ctx, changeId, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseTranslateHelpjuiceChangeResponse(rsp)
-}
-
-// CreateHelpjuiceIntegrationWithBodyWithResponse request with arbitrary body returning *CreateHelpjuiceIntegrationResponse
-func (c *ClientWithResponses) CreateHelpjuiceIntegrationWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateHelpjuiceIntegrationResponse, error) {
-	rsp, err := c.CreateHelpjuiceIntegrationWithBody(ctx, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseCreateHelpjuiceIntegrationResponse(rsp)
-}
-
-func (c *ClientWithResponses) CreateHelpjuiceIntegrationWithResponse(ctx context.Context, body CreateHelpjuiceIntegrationJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateHelpjuiceIntegrationResponse, error) {
-	rsp, err := c.CreateHelpjuiceIntegration(ctx, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseCreateHelpjuiceIntegrationResponse(rsp)
-}
-
-// UpdateHelpjuiceSettingsWithBodyWithResponse request with arbitrary body returning *UpdateHelpjuiceSettingsResponse
-func (c *ClientWithResponses) UpdateHelpjuiceSettingsWithBodyWithResponse(ctx context.Context, setupId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateHelpjuiceSettingsResponse, error) {
-	rsp, err := c.UpdateHelpjuiceSettingsWithBody(ctx, setupId, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUpdateHelpjuiceSettingsResponse(rsp)
-}
-
-func (c *ClientWithResponses) UpdateHelpjuiceSettingsWithResponse(ctx context.Context, setupId string, body UpdateHelpjuiceSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateHelpjuiceSettingsResponse, error) {
-	rsp, err := c.UpdateHelpjuiceSettings(ctx, setupId, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUpdateHelpjuiceSettingsResponse(rsp)
 }
 
 // ListLanguagesForOrgWithResponse request returning *ListLanguagesForOrgResponse
@@ -6499,6 +6505,86 @@ func ParseDeleteAPIKeyResponse(rsp *http.Response) (*DeleteAPIKeyResponse, error
 	return response, nil
 }
 
+// ParseListAuditLogsResponse parses an HTTP response from a ListAuditLogsWithResponse call
+func ParseListAuditLogsResponse(rsp *http.Response) (*ListAuditLogsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListAuditLogsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest AuditPayloadListResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListAuditLogActorsResponse parses an HTTP response from a ListAuditLogActorsWithResponse call
+func ParseListAuditLogActorsResponse(rsp *http.Response) (*ListAuditLogActorsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListAuditLogActorsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []AuditPayloadActor
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetGlossaryResponse parses an HTTP response from a GetGlossaryWithResponse call
 func ParseGetGlossaryResponse(rsp *http.Response) (*GetGlossaryResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -6913,177 +6999,6 @@ func ParseAttachLanguageToGlossaryResponse(rsp *http.Response) (*AttachLanguageT
 			return nil, err
 		}
 		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest ResponseAPIError
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseListHelpjuiceChangesResponse parses an HTTP response from a ListHelpjuiceChangesWithResponse call
-func ParseListHelpjuiceChangesResponse(rsp *http.Response) (*ListHelpjuiceChangesResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &ListHelpjuiceChangesResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			Cursors ResponseAPIResponsePaginationCursors `json:"cursors"`
-			List    []DtoIntegrationHelpjuiceChange      `json:"list"`
-			Meta    ResponseAPIResponsePaginationMeta    `json:"meta"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest ResponseAPIError
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest ResponseAPIError
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseTranslateHelpjuiceChangeResponse parses an HTTP response from a TranslateHelpjuiceChangeWithResponse call
-func ParseTranslateHelpjuiceChangeResponse(rsp *http.Response) (*TranslateHelpjuiceChangeResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &TranslateHelpjuiceChangeResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest ResponseAPIResponseEmpty
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest ResponseAPIError
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest ResponseAPIError
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest ResponseAPIError
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseCreateHelpjuiceIntegrationResponse parses an HTTP response from a CreateHelpjuiceIntegrationWithResponse call
-func ParseCreateHelpjuiceIntegrationResponse(rsp *http.Response) (*CreateHelpjuiceIntegrationResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &CreateHelpjuiceIntegrationResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest HelpjuiceCreateResponseBody
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest ResponseAPIError
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest ResponseAPIError
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseUpdateHelpjuiceSettingsResponse parses an HTTP response from a UpdateHelpjuiceSettingsWithResponse call
-func ParseUpdateHelpjuiceSettingsResponse(rsp *http.Response) (*UpdateHelpjuiceSettingsResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &UpdateHelpjuiceSettingsResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest ResponseAPIResponseEmpty
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest ResponseAPIError
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest ResponseAPIError

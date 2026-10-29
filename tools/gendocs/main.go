@@ -1,9 +1,14 @@
-// Command gendocs generates shell completions and man pages for release
-// archives. GoReleaser runs it as a before-hook (see .goreleaser.yaml); the
-// output directories are gitignored and rebuilt on every release.
+// Command gendocs turns the CLI's help text into documentation, so the
+// command tree is the only place flags and examples are written down.
+//
+// Without flags it writes shell completions and man pages for release
+// archives; GoReleaser runs it as a before-hook (see .goreleaser.yaml) and
+// the output directories are gitignored. With -mdx DIR it writes the
+// command reference for the docs site instead (`make docs`).
 package main
 
 import (
+	"flag"
 	"log"
 	"os"
 
@@ -13,7 +18,17 @@ import (
 )
 
 func main() {
+	mdxDir := flag.String("mdx", "", "write the MDX command reference into this directory instead")
+	base := flag.String("base", "/platform/cli-reference", "docs URL the MDX reference is served under")
+	flag.Parse()
 	root := cli.NewRootCmd()
+
+	if *mdxDir != "" {
+		if err := genMDX(root, *mdxDir, *base); err != nil {
+			log.Fatal(err)
+		}
+		return
+	}
 
 	if err := os.MkdirAll("completions", 0o755); err != nil {
 		log.Fatal(err)

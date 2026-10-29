@@ -9,6 +9,7 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"os"
@@ -60,6 +61,9 @@ type Config struct {
 	CABundle string
 	// UserAgent is sent on requests that don't set their own.
 	UserAgent string
+	// Debug, when set, receives a trace of every HTTP attempt with
+	// credentials redacted (--debug, NORCUBE_DEBUG=1).
+	Debug io.Writer
 }
 
 // Defaults returns the built-in configuration.
@@ -143,7 +147,7 @@ func New(cfg Config) (*http.Client, error) {
 	// No ResponseHeaderTimeout: the per-attempt timer already covers
 	// waiting for headers, and reports it as a TimeoutError.
 	return &http.Client{Transport: &retryTransport{
-		base:        base,
+		base:        withDebug(base, cfg.Debug),
 		maxAttempts: cfg.MaxAttempts,
 		attemptTTL:  cfg.ReadTimeout,
 		userAgent:   cfg.UserAgent,
@@ -162,7 +166,7 @@ func NewDownload(cfg Config) (*http.Client, error) {
 	}
 	base.ResponseHeaderTimeout = cfg.ReadTimeout
 	return &http.Client{Transport: &retryTransport{
-		base:        base,
+		base:        withDebug(base, cfg.Debug),
 		maxAttempts: cfg.MaxAttempts,
 		idleTTL:     cfg.IdleTimeout,
 		userAgent:   cfg.UserAgent,
@@ -174,6 +178,13 @@ func NewDownload(cfg Config) (*http.Client, error) {
 func Default() *http.Client {
 	c, _ := New(Defaults()) // only a CA bundle can fail, and Defaults has none
 	return c
+}
+
+func withDebug(base http.RoundTripper, w io.Writer) http.RoundTripper {
+	if w == nil {
+		return base
+	}
+	return &debugTransport{base: base, w: w}
 }
 
 func baseTransport(cfg Config) (*http.Transport, error) {

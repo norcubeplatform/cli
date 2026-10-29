@@ -4,12 +4,12 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"reflect"
 	"regexp"
 	"strings"
 	"testing"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 // Every command a user can run documents itself with an example.
@@ -21,8 +21,7 @@ func TestEveryCommandHasAnExample(t *testing.T) {
 		}
 		// Command groups only answer with help (unknownSubcommand); the
 		// commands under them carry the examples.
-		group := c.RunE != nil && reflect.ValueOf(c.RunE).Pointer() == reflect.ValueOf(unknownSubcommand).Pointer()
-		if c.Runnable() && !group && c.Example == "" && c.Parent() != nil {
+		if c.Runnable() && !IsGroup(c) && c.Example == "" && c.Parent() != nil {
 			t.Errorf("%s has no Example", c.CommandPath())
 		}
 		for _, s := range c.Commands() {
@@ -67,4 +66,39 @@ func TestNoDirectStdoutWrites(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+// The command reference is generated from the help text, so every command
+// a user can see has a one-line summary in sentence style and every flag
+// says what it does. Removing a description fails here, not in the docs.
+func TestHelpTextIsComplete(t *testing.T) {
+	var walk func(c *cobra.Command)
+	walk = func(c *cobra.Command) {
+		if c.Hidden || c.Name() == "help" || c.Name() == "completion" {
+			return
+		}
+		path := c.CommandPath()
+		switch short := strings.TrimSpace(c.Short); {
+		case short == "":
+			t.Errorf("%s has no Short", path)
+		case strings.HasSuffix(short, "."):
+			t.Errorf("%s: Short ends with a period: %q", path, short)
+		case strings.ToUpper(short[:1]) != short[:1]:
+			t.Errorf("%s: Short starts in lowercase: %q", path, short)
+		}
+		c.LocalNonPersistentFlags().VisitAll(func(f *pflag.Flag) {
+			if !f.Hidden && strings.TrimSpace(f.Usage) == "" {
+				t.Errorf("%s --%s has no description", path, f.Name)
+			}
+		})
+		c.PersistentFlags().VisitAll(func(f *pflag.Flag) {
+			if !f.Hidden && strings.TrimSpace(f.Usage) == "" {
+				t.Errorf("%s --%s has no description", path, f.Name)
+			}
+		})
+		for _, s := range c.Commands() {
+			walk(s)
+		}
+	}
+	walk(NewRootCmd())
 }

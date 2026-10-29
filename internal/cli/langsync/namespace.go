@@ -19,8 +19,8 @@ import (
 
 func newNamespaceCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "namespace",
-		Aliases: []string{"namespaces", "ns"},
+		Use:     "namespaces",
+		Aliases: []string{"namespace", "ns"},
 		Short:   "Manage Langsync namespaces in the active organization",
 	}
 	cmd.AddCommand(
@@ -36,14 +36,14 @@ func newNamespaceListCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "list",
 		Short: "List namespaces in the active organization",
-		Example: `  norcube langsync namespace list
-  norcube langsync namespace list -o json --query "[].name"`,
+		Example: `  norcube langsync namespaces list
+  norcube langsync namespaces list -o json --query "[].name"`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			c, err := newLangsyncContext(cmd)
 			if err != nil {
 				return err
 			}
-			res, err := c.client.ListNamespacesWithResponse(cmd.Context())
+			res, err := c.API.ListNamespacesWithResponse(cmd.Context())
 			if err != nil {
 				return err
 			}
@@ -57,7 +57,7 @@ func newNamespaceListCmd() *cobra.Command {
 			// shows its code. JSON/YAML keep the raw API shape. If the
 			// lookup fails, the table falls back to the id.
 			var codes map[int]string
-			if c.output == output.FormatTable {
+			if c.Output == output.FormatTable {
 				codes, _ = fetchLanguageCodesByID(cmd.Context(), c)
 			}
 
@@ -96,8 +96,8 @@ maps it to an actual language record on creation.
 
 In an interactive shell, omitting any value pops a prompt; in a script
 the name positional + --default-language are both required.`,
-		Example: `  norcube langsync namespace create web --default-language en
-  norcube langsync namespace create marketing --default-language cs --context "Marketing site copy"`,
+		Example: `  norcube langsync namespaces create web --default-language en
+  norcube langsync namespaces create marketing --default-language cs --context "Marketing site copy"`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			c, err := newLangsyncContext(cmd)
@@ -121,7 +121,7 @@ the name positional + --default-language are both required.`,
 			}
 			name, defaultLanguage, context, err = resolveCreateFields(name, defaultLanguage, context, orgLangs)
 			if err != nil {
-				if errors.Is(err, ErrCancelled) {
+				if errors.Is(err, cmdutil.ErrCancelled) {
 					fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 					return nil
 				}
@@ -142,7 +142,7 @@ the name positional + --default-language are both required.`,
 				body.DefaultLanguageCode = &code
 			}
 
-			res, err := c.client.CreateNamespaceWithResponse(cmd.Context(), body)
+			res, err := c.API.CreateNamespaceWithResponse(cmd.Context(), body)
 			if err != nil {
 				return err
 			}
@@ -293,7 +293,7 @@ func resolveCreateFields(name, lang, ctx string, orgLangs []langsync.DtoDTOLangu
 	err := newWizard(groups...).Run()
 	if err != nil {
 		if errors.Is(err, huh.ErrUserAborted) {
-			return "", "", "", ErrCancelled
+			return "", "", "", cmdutil.ErrCancelled
 		}
 		return "", "", "", err
 	}
@@ -332,8 +332,8 @@ change — omitted flags leave existing values alone.
 --default-language accepts either a language code (e.g. en, cs) or the
 numeric language id. The CLI resolves codes via /languages before
 sending the request — the underlying endpoint wants the id form.`,
-		Example: `  norcube langsync namespace update web --rename website
-  norcube langsync namespace update web --default-language cs`,
+		Example: `  norcube langsync namespaces update web --rename website
+  norcube langsync namespaces update web --default-language cs`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			c, err := newLangsyncContext(cmd)
@@ -367,13 +367,13 @@ sending the request — the underlying endpoint wants the id form.`,
 				return fmt.Errorf("nothing to update — pass at least one of --rename, --context, --default-language")
 			}
 
-			res, err := c.client.UpdateNamespaceWithResponse(cmd.Context(), name, body)
+			res, err := c.API.UpdateNamespaceWithResponse(cmd.Context(), name, body)
 			if err != nil {
 				return err
 			}
 			if res.HTTPResponse.StatusCode != 200 && res.HTTPResponse.StatusCode != 204 {
 				if isNamespaceForbidden(res.JSON403) || isNamespaceForbidden(res.JSON404) {
-					return namespaceAccessError(c.cfg.ActiveOrg.Slug, name)
+					return namespaceAccessError(c.OrgLabel(), name)
 				}
 				return apiError(res.HTTPResponse, res.Body,
 					res.JSON400, res.JSON401, res.JSON403, res.JSON404, res.JSON500)
@@ -409,8 +409,8 @@ func newNamespaceDeleteCmd() *cobra.Command {
 		Long: `Permanently removes the namespace, every mark, and every per-language
 translation. There is no undo. Use --yes to skip the confirmation prompt
 in scripts.`,
-		Example: `  norcube langsync namespace delete old-site
-  norcube langsync namespace delete old-site --yes   # scripts`,
+		Example: `  norcube langsync namespaces delete old-site
+  norcube langsync namespaces delete old-site --yes   # scripts`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			c, err := newLangsyncContext(cmd)
@@ -421,12 +421,12 @@ in scripts.`,
 			if name == "" {
 				return fmt.Errorf("namespace name must not be empty")
 			}
-			ok, err := confirm(
+			ok, err := cmdutil.Confirm(
 				fmt.Sprintf("Delete namespace %q (and every mark + translation in it)? This cannot be undone.", name),
 				yes,
 			)
 			if err != nil {
-				if errors.Is(err, ErrCancelled) {
+				if errors.Is(err, cmdutil.ErrCancelled) {
 					fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 					return nil
 				}
@@ -437,13 +437,13 @@ in scripts.`,
 				return nil
 			}
 
-			res, err := c.client.DeleteNamespaceWithResponse(cmd.Context(), name)
+			res, err := c.API.DeleteNamespaceWithResponse(cmd.Context(), name)
 			if err != nil {
 				return err
 			}
 			if res.HTTPResponse.StatusCode != 200 && res.HTTPResponse.StatusCode != 204 {
 				if isNamespaceForbidden(res.JSON403) || isNamespaceForbidden(res.JSON404) {
-					return namespaceAccessError(c.cfg.ActiveOrg.Slug, name)
+					return namespaceAccessError(c.OrgLabel(), name)
 				}
 				return apiError(res.HTTPResponse, res.Body,
 					res.JSON400, res.JSON401, res.JSON403, res.JSON404, res.JSON500)
