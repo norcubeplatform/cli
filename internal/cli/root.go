@@ -56,6 +56,10 @@ func NewRootCmd() *cobra.Command {
 				// names it even when it is the default.
 				selectedProfileExplicit = !strings.HasPrefix(res.Profile.Source, "default")
 			}
+			usingCIToken = false
+			if static, err := flags.StaticToken(); err == nil {
+				usingCIToken = auth.IsCIToken(static)
+			}
 			clictx.Attach(cmd, ctx, flags)
 			StartUpdateCheck(ctx, cmd.Name())
 			return nil

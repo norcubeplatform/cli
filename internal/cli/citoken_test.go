@@ -70,6 +70,10 @@ func (b *ciBackend) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			"organization_id": acmeOrgID, "organization_slug": "acme", "organization_name": "Acme Inc",
 			"ci_token_id": "tok-1", "ci_token_name": "GitHub Actions deploy", "ci_token_expires_at": "2027-01-27T09:00:00Z",
 		})
+	case "/datasources":
+		// IAM refuses what no CI token scope grants.
+		w.WriteHeader(http.StatusForbidden)
+		fmt.Fprint(w, `{"type":"FORBIDDEN","msg":"Insufficient permissions"}`)
 	case "/backups":
 		b.backups++
 		fmt.Fprint(w, `{"list":[],"cursors":{},"meta":{}}`)
@@ -161,6 +165,22 @@ func TestCITokenMissingScopeExits5(t *testing.T) {
 	e := Describe(err)
 	if e.ExitCode() != clierr.ExitAccess || !strings.Contains(e.Message, "no scope for LangSync") {
 		t.Fatalf("got exit %d message %q", e.ExitCode(), e.Message)
+	}
+}
+
+// A refusal under a CI token says that some actions always need a person,
+// and the same refusal for a signed-in person doesn't.
+func TestCITokenRefusalExplains(t *testing.T) {
+	ciEnv(t, testCISecret)
+	_, _, err := run(t, "api", "backup", "POST", "/datasources", "-f", "name=x")
+	e := Describe(err)
+	if e.Code != clierr.CodePermissionDenied || !strings.Contains(e.Hint, "always need a person") {
+		t.Fatalf("code %q hint %q", e.Code, e.Hint)
+	}
+
+	usingCIToken = false
+	if h := Describe(&clierr.Error{Code: clierr.CodePermissionDenied, Message: "denied"}).Hint; h != "" {
+		t.Fatalf("hint without a CI token: %q", h)
 	}
 }
 
