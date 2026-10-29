@@ -162,7 +162,9 @@ notarize:
         # base64 of the App Store Connect API key (.p8).
         key: '{{ envOrDefault "MACOS_NOTARY_KEY" "" }}'
         wait: true
-        timeout: 20m
+        # Apple usually answers within minutes, but a new team's first
+        # submissions can take hours; the release waits rather than fails.
+        timeout: 2h
 
 snapshot:
   # Used when running `goreleaser release --snapshot` for testing — bumps
