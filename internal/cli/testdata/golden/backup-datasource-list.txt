@@ -1,0 +1,3 @@
+NAME       ENGINE    ENV         ACTIVE    ID
+prod-db    postgres  production  active    ds-1
+analytics  mongodb   staging     inactive  ds-2

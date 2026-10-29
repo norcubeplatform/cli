@@ -1,6 +1,9 @@
 package backup
 
 import (
+	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,6 +15,7 @@ import (
 
 	"github.com/norcubeplatform/cli/internal/api/snapdb"
 	"github.com/norcubeplatform/cli/internal/clictx"
+	"github.com/norcubeplatform/cli/internal/cmdutil"
 	"github.com/norcubeplatform/cli/internal/output"
 )
 
@@ -30,10 +34,7 @@ const defaultPageLimit = 50
 
 func newBackupListCmd() *cobra.Command {
 	var datasourceIDs []string
-	var limit int
-	var cursor string
-	var allPages bool
-	var maxItems int
+	var pages cmdutil.PageFlags
 
 	cmd := &cobra.Command{
 		Use:   "list",
@@ -42,69 +43,43 @@ func newBackupListCmd() *cobra.Command {
 across every data source in the active organization — pass --datasource
 one or more times to filter to a subset. The backend paginates
 with an opaque "next" cursor; by default this command fetches one page
-and prints a hint to stderr if there are more results. Use --all-pages
-to follow the cursor until exhausted, with a safety cap of --max-items.`,
+and prints the next cursor to stderr if there are more results. Use
+--all-pages to follow the cursor until exhausted, with a safety cap of
+--max-items.`,
+		Example: `  norcube backup list
+  norcube backup list --datasource 9f8e7d6c-… --all-pages
+  norcube backup list -o json --query "[?jobStatus=='failed'].jobId"`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			c, err := newSnapdbContext(cmd)
 			if err != nil {
 				return err
 			}
-
-			cap := maxItems
-			if cap <= 0 {
-				cap = maxBackupItems
-			}
-
-			// Initialise non-nil so `-o json` on an empty result prints "[]"
-			// rather than "null" — saves every downstream `jq` invocation
-			// from having to handle both shapes.
-			jobs := []snapdb.DtoBackupJob{}
-			nextCursor := cursor
-			truncated := false
-
-			for {
-				params := &snapdb.GetBackupsParams{}
-				effectiveLimit := limit
-				if effectiveLimit <= 0 {
-					effectiveLimit = defaultPageLimit
-				}
-				params.Limit = &effectiveLimit
-				if nextCursor != "" {
-					params.Cursor = &nextCursor
+			page, err := cmdutil.Paginate(cmd.Context(), pages, func(ctx context.Context, cursor string, size int) ([]snapdb.DtoBackupJob, string, error) {
+				params := &snapdb.GetBackupsParams{Limit: &size}
+				if cursor != "" {
+					params.Cursor = &cursor
 				}
 				if len(datasourceIDs) > 0 {
 					ids := append([]string(nil), datasourceIDs...)
 					params.DatasourceIDs = &ids
 				}
-
-				res, err := c.client.GetBackupsWithResponse(cmd.Context(), params)
+				res, err := c.client.GetBackupsWithResponse(ctx, params)
 				if err != nil {
-					return err
+					return nil, "", err
 				}
 				if res.JSON200 == nil {
-					return apiError(res.HTTPResponse, res.Body, res.JSON400, res.JSON500)
+					return nil, "", apiError(res.HTTPResponse, res.Body, res.JSON400, res.JSON500)
 				}
-				jobs = append(jobs, res.JSON200.List...)
-
-				next := res.JSON200.Cursors.Next
-				if !allPages || next == nil || *next == "" {
-					if next != nil && *next != "" {
-						nextCursor = *next
-					} else {
-						nextCursor = ""
-					}
-					break
+				next := ""
+				if n := res.JSON200.Cursors.Next; n != nil {
+					next = *n
 				}
-				if len(jobs) >= cap {
-					truncated = true
-					nextCursor = *next
-					break
-				}
-				nextCursor = *next
+				return res.JSON200.List, next, nil
+			})
+			if err != nil {
+				return err
 			}
-
-			flags := clictx.Get(cmd)
-			err = output.PrintPaged(cmd.OutOrStdout(), c.output, flags.NoPager, output.Table[snapdb.DtoBackupJob]{
+			return page.Print(cmd, output.Table[snapdb.DtoBackupJob]{
 				Headers:   []string{"DATASOURCE", "STATUS", "TEST", "TRIGGER", "STARTED", "DURATION", "SIZE", "JOB_ID"},
 				MaxWidths: []int{32, 0, 0, 0, 0, 0, 0, 0},
 				Style:     output.Style{StatusColumn: 1},
@@ -120,34 +95,12 @@ to follow the cursor until exhausted, with a safety cap of --max-items.`,
 						j.JobId,
 					}
 				},
-				Items: jobs,
+				Items: page.Items,
 			})
-			if err != nil {
-				return err
-			}
-
-			// Hints go to stderr so piping the table to jq / grep stays
-			// clean. Skip in JSON/YAML modes and when stderr isn't a TTY.
-			stderr := cmd.ErrOrStderr()
-			if c.output == output.FormatTable && output.IsInteractive(stderr) {
-				if truncated {
-					fmt.Fprintf(stderr,
-						"\nStopped at --max-items=%d. Re-run with --max-items 0 (no cap) or a higher value to fetch the rest.\n",
-						cap)
-				} else if !allPages && nextCursor != "" {
-					fmt.Fprintf(stderr,
-						"\nMore results available. Re-run with --cursor %s, or --all-pages to follow until exhausted.\n",
-						nextCursor)
-				}
-			}
-			return nil
 		},
 	}
 	cmd.Flags().StringSliceVar(&datasourceIDs, "datasource", nil, "Filter to one or more data source IDs (repeatable; default: every data source in the active org)")
-	cmd.Flags().IntVar(&limit, "limit", 0, "Max items per page (0 = backend default)")
-	cmd.Flags().StringVar(&cursor, "cursor", "", "Continue from a previous page's `next` cursor")
-	cmd.Flags().BoolVar(&allPages, "all-pages", false, "Follow `next` cursors and return every page (may be many requests)")
-	cmd.Flags().IntVar(&maxItems, "max-items", 0, "Safety cap for --all-pages (0 = use built-in default, currently 10000)")
+	cmdutil.AddPageFlags(cmd, &pages, defaultPageLimit, maxBackupItems)
 	return cmd
 }
 
@@ -245,7 +198,11 @@ func streamDownload(cmd *cobra.Command, rawURL string, sizeBytes *int, jobID, fi
 	if err != nil {
 		return err
 	}
-	resp, err := http.DefaultClient.Do(req)
+	httpc, err := clictx.Get(cmd).DownloadClient()
+	if err != nil {
+		return err
+	}
+	resp, err := httpc.Do(req)
 	if err != nil {
 		return fmt.Errorf("download: %w", err)
 	}
@@ -282,7 +239,8 @@ func streamDownload(cmd *cobra.Command, rawURL string, sizeBytes *int, jobID, fi
 		src = &progressReader{r: resp.Body, total: derefInt(sizeBytes), out: stderr}
 	}
 
-	written, err := io.Copy(f, src)
+	sum := sha256.New()
+	written, err := io.Copy(io.MultiWriter(f, sum), src)
 	if cerr := f.Close(); err == nil {
 		err = cerr
 	}
@@ -295,8 +253,12 @@ func streamDownload(cmd *cobra.Command, rawURL string, sizeBytes *int, jobID, fi
 	if output.IsInteractive(stderr) {
 		fmt.Fprint(stderr, "\r\033[K")
 	}
-	fmt.Fprintf(cmd.OutOrStdout(), "Downloaded %s (%s).\n", dest, formatBytes(int(written)))
-	return nil
+	digest := hex.EncodeToString(sum.Sum(nil))
+	return cmdutil.Print(cmd, output.Done{
+		Message: fmt.Sprintf("Downloaded %s (%s, sha256 %s).", dest, formatBytes(int(written)), digest),
+		Value:   downloadResult{Path: dest, Bytes: written, SHA256: digest},
+		Fields:  []output.Field{{Value: dest}, {Value: fmt.Sprint(written)}, {Value: digest}},
+	})
 }
 
 // objectBasename derives a local filename from the presigned URL's object
@@ -335,4 +297,11 @@ func (p *progressReader) Read(buf []byte) (int, error) {
 		fmt.Fprintf(p.out, "\r\033[K%s", formatBytes(int(p.written)))
 	}
 	return n, err
+}
+
+// downloadResult is what `backup download -o json` prints.
+type downloadResult struct {
+	Path   string `json:"path" yaml:"path"`
+	Bytes  int64  `json:"bytes" yaml:"bytes"`
+	SHA256 string `json:"sha256" yaml:"sha256"`
 }

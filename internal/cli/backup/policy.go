@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/norcubeplatform/cli/internal/api/snapdb"
-	"github.com/norcubeplatform/cli/internal/clictx"
+	"github.com/norcubeplatform/cli/internal/cmdutil"
 	"github.com/norcubeplatform/cli/internal/output"
 )
 
@@ -35,6 +35,8 @@ func newPolicyListCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List policy attachments on a data source",
+		Example: `  norcube backup policy list --datasource 9f8e7d6c-…
+  norcube backup policy list --datasource 9f8e7d6c-… -o json --query "[?!isEnabled].id"`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			c, err := newSnapdbContext(cmd)
 			if err != nil {
@@ -53,8 +55,7 @@ func newPolicyListCmd() *cobra.Command {
 			}
 			items := *res.JSON200
 
-			flags := clictx.Get(cmd)
-			return output.PrintPaged(cmd.OutOrStdout(), c.output, flags.NoPager, output.Table[snapdb.DtoDatasourcePolicy]{
+			return cmdutil.Print(cmd, output.Table[snapdb.DtoDatasourcePolicy]{
 				Headers:   []string{"POLICY", "ENABLED", "PRIORITY", "DESTINATION", "ATTACHMENT_ID"},
 				MaxWidths: []int{32, 0, 0, 32, 0},
 				Style:     output.Style{StatusColumn: 1}, // ENABLED
@@ -84,6 +85,7 @@ func newPolicyPauseCmd() *cobra.Command {
 		Long: `Sets enabled=false on the attachment row. Schedule history, cron
 expression, and jitter are preserved — flip it back with "resume".
 Other policies on the same data source continue to run.`,
+		Example: `  norcube backup policy pause --datasource 9f8e7d6c-… --policy 1a2b3c4d-…`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			return setAttachmentEnabled(cmd, datasourceID, policyID, false, "Paused policy %q on data source %q.")
 		},
@@ -98,8 +100,9 @@ Other policies on the same data source continue to run.`,
 func newPolicyResumeCmd() *cobra.Command {
 	var datasourceID, policyID string
 	cmd := &cobra.Command{
-		Use:   "resume",
-		Short: "Re-enable a previously paused policy attachment",
+		Use:     "resume",
+		Short:   "Re-enable a previously paused policy attachment",
+		Example: `  norcube backup policy resume --datasource 9f8e7d6c-… --policy 1a2b3c4d-…`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			return setAttachmentEnabled(cmd, datasourceID, policyID, true, "Resumed policy %q on data source %q.")
 		},
@@ -127,8 +130,11 @@ func setAttachmentEnabled(cmd *cobra.Command, dsID, polID string, enabled bool, 
 	if res.HTTPResponse.StatusCode != 204 && res.HTTPResponse.StatusCode != 200 {
 		return apiError(res.HTTPResponse, res.Body, nil, nil)
 	}
-	fmt.Fprintf(cmd.OutOrStdout(), successFmt+"\n", polID, dsID)
-	return nil
+	return cmdutil.Print(cmd, output.Done{
+		Message: fmt.Sprintf(successFmt, polID, dsID),
+		Value:   attachmentState{DatasourceID: dsID, PolicyID: polID, Enabled: enabled},
+		Fields:  []output.Field{{Value: dsID}, {Value: polID}, {Value: enabledStr(enabled)}},
+	})
 }
 
 func newPolicyDetachCmd() *cobra.Command {
@@ -144,6 +150,8 @@ removed. Past backup jobs are unaffected.
 Prefer "pause" if you only want to halt this schedule temporarily — it
 preserves the cron expression and jitter values. Use "detach" when the
 attachment was a mistake or is permanently obsolete.`,
+		Example: `  norcube backup policy detach --datasource 9f8e7d6c-… --policy 1a2b3c4d-…
+  norcube backup policy detach --datasource 9f8e7d6c-… --policy 1a2b3c4d-… --yes   # scripts`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			c, err := newSnapdbContext(cmd)
 			if err != nil {
@@ -155,13 +163,13 @@ attachment was a mistake or is permanently obsolete.`,
 			)
 			if err != nil {
 				if err == ErrCancelled {
-					fmt.Fprintln(cmd.OutOrStdout(), "Cancelled.")
+					fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 					return nil
 				}
 				return err
 			}
 			if !ok {
-				fmt.Fprintln(cmd.OutOrStdout(), "Cancelled.")
+				fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 				return nil
 			}
 
@@ -174,8 +182,11 @@ attachment was a mistake or is permanently obsolete.`,
 			if res.HTTPResponse.StatusCode != 204 && res.HTTPResponse.StatusCode != 200 {
 				return apiError(res.HTTPResponse, res.Body, nil, nil)
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "Detached policy %q from data source %q.\n", policyID, datasourceID)
-			return nil
+			return cmdutil.Print(cmd, output.Done{
+				Message: fmt.Sprintf("Detached policy %q from data source %q.", policyID, datasourceID),
+				Value:   attachmentDetached{DatasourceID: datasourceID, PolicyID: policyID, Detached: true},
+				Fields:  []output.Field{{Value: datasourceID}, {Value: policyID}},
+			})
 		},
 	}
 	cmd.Flags().StringVar(&datasourceID, "datasource", "", "Data source ID (required)")
@@ -191,4 +202,18 @@ func enabledStr(b bool) string {
 		return "active"
 	}
 	return "paused"
+}
+
+// attachmentState is what policy pause/resume print with -o json.
+type attachmentState struct {
+	DatasourceID string `json:"datasourceId" yaml:"datasourceId"`
+	PolicyID     string `json:"policyId" yaml:"policyId"`
+	Enabled      bool   `json:"enabled" yaml:"enabled"`
+}
+
+// attachmentDetached is what policy detach prints with -o json.
+type attachmentDetached struct {
+	DatasourceID string `json:"datasourceId" yaml:"datasourceId"`
+	PolicyID     string `json:"policyId" yaml:"policyId"`
+	Detached     bool   `json:"detached" yaml:"detached"`
 }

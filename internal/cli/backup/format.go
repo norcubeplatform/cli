@@ -5,26 +5,17 @@ import (
 	"time"
 
 	"github.com/norcubeplatform/cli/internal/api/snapdb"
+	"github.com/norcubeplatform/cli/internal/output"
 )
 
-// formatTimestamp renders a nullable RFC3339 string as a compact "YYYY-MM-DD
-// HH:MM:SS" in UTC. Sub-second precision and the trailing "Z" are dropped —
-// they're rarely useful in a terminal table and they push rows past the
-// terminal width. Returns "—" for nil/empty/unparseable values.
+// formatTimestamp renders a nullable RFC 3339 string as a table cell:
+// "YYYY-MM-DD HH:MM:SS" in the reader's local time zone (RFC 3339 UTC with
+// -o text). Nil or empty is "—"; an unparseable value is shown as it is.
 func formatTimestamp(s *string) string {
-	if s == nil || *s == "" {
+	if s == nil {
 		return "—"
 	}
-	t, err := time.Parse(time.RFC3339Nano, *s)
-	if err != nil {
-		// Fall back to the first 19 chars so we still produce stable-width
-		// output for shapes we don't recognise.
-		if len(*s) > 19 {
-			return (*s)[:19]
-		}
-		return *s
-	}
-	return t.UTC().Format("2006-01-02 15:04:05")
+	return output.WhenStringSeconds(*s)
 }
 
 // formatBytes renders a byte count in IEC units. Stays under 8 chars for

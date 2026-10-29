@@ -4,24 +4,18 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 
 	"github.com/charmbracelet/huh"
-	"golang.org/x/term"
+	"github.com/spf13/cobra"
 
 	"github.com/norcubeplatform/cli/internal/api/langsync"
+	"github.com/norcubeplatform/cli/internal/clierr"
+	"github.com/norcubeplatform/cli/internal/term"
 )
 
 // ErrCancelled is returned by interactive helpers when the user dismisses
 // the prompt. Commands turn it into "Cancelled." rather than a stack trace.
 var ErrCancelled = errors.New("cancelled by user")
-
-// stdinIsInteractive reports whether stdin is a terminal. We only prompt
-// when there's a human at the keyboard — pipes, CI, and redirected stdin
-// skip the picker and get a clear "namespace required" error instead.
-func stdinIsInteractive() bool {
-	return term.IsTerminal(int(os.Stdin.Fd()))
-}
 
 // pickNamespace lists every namespace in the active organization and
 // returns the name (the `:namespaceName` URL segment) of the chosen one.
@@ -82,22 +76,22 @@ func resolveNamespace(ctx context.Context, c *langsyncContext, flagValue, picker
 	if flagValue != "" {
 		return flagValue, nil
 	}
-	if !stdinIsInteractive() {
-		return "", fmt.Errorf("--namespace is required (pass it explicitly or run interactively)")
+	if !term.StdinIsTerminal() {
+		return "", clierr.Usage(errors.New("--namespace is required (pass it explicitly or run interactively)"))
 	}
 	return pickNamespace(ctx, c, pickerTitle)
 }
 
-// confirm prompts the user with a yes/no question. When stdin is not
-// interactive or --yes was already passed, returns true without prompting
-// so scripts work without surprise. Identical contract to the snapdb
+// confirm prompts the user with a yes/no question. --yes answers it
+// without prompting; without a TTY it fails and asks for --yes, so a
+// script never deletes anything by accident. Same contract as the backup
 // package's helper.
 func confirm(prompt string, yesFlag bool) (bool, error) {
 	if yesFlag {
 		return true, nil
 	}
-	if !stdinIsInteractive() {
-		return false, fmt.Errorf("%s — pass --yes to confirm non-interactively", prompt)
+	if !term.StdinIsTerminal() {
+		return false, clierr.Usage(fmt.Errorf("%s: pass --yes to confirm non-interactively", prompt))
 	}
 	var ok bool
 	err := newWizard(huh.NewGroup(
@@ -119,3 +113,13 @@ func confirm(prompt string, yesFlag bool) (bool, error) {
 // silence unused-import lint when we only need types from the langsync
 // package via the rest of the file's references.
 var _ = langsync.DtoDTONamespace{}
+
+// cancelledOK turns a dismissed prompt into "Cancelled." on stderr and a
+// clean exit; any other error passes through.
+func cancelledOK(cmd *cobra.Command, err error) error {
+	if errors.Is(err, ErrCancelled) {
+		fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
+		return nil
+	}
+	return err
+}

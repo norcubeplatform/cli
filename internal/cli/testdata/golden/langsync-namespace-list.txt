@@ -1,0 +1,2 @@
+NAME  DEFAULT_LANG  LANGUAGES  CONTEXT         ID
+web   en            2          Marketing site  ns-1

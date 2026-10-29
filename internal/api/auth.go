@@ -8,7 +8,11 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"time"
+
+	"github.com/norcubeplatform/cli/internal/api/apierror"
+	"github.com/norcubeplatform/cli/internal/transport"
 )
 
 // AuthClient talks to the auth service (/auth/me, /organizations, ...).
@@ -22,7 +26,7 @@ type AuthClient struct {
 func NewAuthClient(baseURL string, token func(ctx context.Context) (string, error)) *AuthClient {
 	return &AuthClient{
 		BaseURL: baseURL,
-		HTTP:    &http.Client{Timeout: 30 * time.Second},
+		HTTP:    transport.Default(),
 		Token:   token,
 	}
 }
@@ -84,9 +88,55 @@ func (c *AuthClient) CreateOrganization(ctx context.Context, name string, slug *
 	return &resp.Organization, nil
 }
 
-type apiError struct {
-	Type string `json:"type"`
-	Msg  string `json:"msg"`
+// Session is one signed-in CLI session of the caller (GET /auth/me/sessions).
+type Session struct {
+	ID         string        `json:"id"`
+	Kind       string        `json:"kind"`
+	Hostname   *string       `json:"hostname"`
+	Client     SessionClient `json:"client"`
+	IPAddress  *string       `json:"ip_address"`
+	CreatedAt  time.Time     `json:"created_at"`
+	LastUsedAt time.Time     `json:"last_used_at"`
+	ExpiresAt  time.Time     `json:"expires_at"`
+	// Current marks the session the request's own token belongs to.
+	Current bool `json:"current"`
+}
+
+// SessionClient is what the session's CLI reported about itself; fields
+// are nil for CLIs that didn't identify themselves.
+type SessionClient struct {
+	Name    *string `json:"name"`
+	Version *string `json:"version"`
+	OS      *string `json:"os"`
+	Arch    *string `json:"arch"`
+}
+
+// ListSessions lists the caller's live CLI sessions, most recently used
+// first.
+func (c *AuthClient) ListSessions(ctx context.Context) ([]Session, error) {
+	var out []Session
+	if err := c.do(ctx, http.MethodGet, "/auth/me/sessions", nil, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// RevokeSession ends one of the caller's sessions. Idempotent for the
+// caller's own sessions; an unknown id is a not-found error.
+func (c *AuthClient) RevokeSession(ctx context.Context, id string) error {
+	return c.do(ctx, http.MethodDelete, "/auth/me/sessions/"+url.PathEscape(id), nil, nil)
+}
+
+// RevokeOtherSessions ends every session of the caller except the one the
+// request's own token belongs to, and returns how many it ended.
+func (c *AuthClient) RevokeOtherSessions(ctx context.Context) (int64, error) {
+	var out struct {
+		Revoked int64 `json:"revoked"`
+	}
+	if err := c.do(ctx, http.MethodPost, "/auth/me/sessions/revoke-others", nil, &out); err != nil {
+		return 0, err
+	}
+	return out.Revoked, nil
 }
 
 func (c *AuthClient) do(ctx context.Context, method, path string, body io.Reader, out any) error {
@@ -113,12 +163,7 @@ func (c *AuthClient) do(ctx context.Context, method, path string, body io.Reader
 
 	raw, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode >= 400 {
-		var apiErr apiError
-		_ = json.Unmarshal(raw, &apiErr)
-		if apiErr.Msg != "" {
-			return fmt.Errorf("%s %s: %s (%d)", method, path, apiErr.Msg, resp.StatusCode)
-		}
-		return fmt.Errorf("%s %s: status %d", method, path, resp.StatusCode)
+		return apierror.Format("auth", resp, raw)
 	}
 	if out == nil {
 		return nil

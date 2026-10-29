@@ -1,216 +1,242 @@
+// Package config reads and writes the CLI's configuration file.
+//
+// One TOML file (schema version 2) holds named profiles. A profile picks
+// an environment (production, or custom endpoints), an
+// organization, and where its credentials live. Secrets never go in this
+// file: refresh and access tokens live in the credential store the profile
+// names (the OS keyring by default).
+//
+//	schema_version = 2
+//	default_profile = "work"
+//
+//	[defaults]
+//	output = "table"
+//
+//	[profiles.work]
+//	environment = "production"
+//	organization = "acme"
+//	org_id = "0b9d2b8e-…"
+//
+//	[profiles.selfhosted]
+//	environment = "custom"
+//	organization = "acme"
+//
+// Which profile, organization and endpoints a command uses is decided by
+// package resolve, from flags, environment variables and this file.
 package config
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
-	"sync"
-
-	"github.com/knadh/koanf/parsers/toml/v2"
-	"github.com/knadh/koanf/providers/file"
-	"github.com/knadh/koanf/v2"
 )
 
-// Config is the on-disk user configuration. It deliberately holds only
-// non-secret state — refresh and access tokens live in the OS keyring.
-type Config struct {
-	// Auth is the base URL of the auth service (e.g. https://auth.api.norcube.com).
-	// This is the source of identity for the CLI; every per-service token
-	// is minted from a refresh token issued here.
-	Auth string `koanf:"auth"`
-	// WebApp is the base URL of the Norcube web app, used to open /cli-login during browser auth.
-	WebApp string `koanf:"web_app"`
-	// SnapDB / Langsync / Domainradar / Billing / Prompthub base URLs are optional overrides.
-	SnapDB      string `koanf:"snapdb"`
-	Langsync    string `koanf:"langsync"`
-	Domainradar string `koanf:"domainradar"`
-	Billing     string `koanf:"billing"`
-	Prompthub   string `koanf:"prompthub"`
+// SchemaVersion is the version this CLI writes. Files without a version
+// are the flat version 1 format and are migrated on load.
+const SchemaVersion = 2
 
-	User      User         `koanf:"user"`
-	ActiveOrg Organization `koanf:"active_org"`
-}
+// DefaultProfileName is used when nothing names a profile.
+const DefaultProfileName = "default"
 
-type User struct {
-	ID    string `koanf:"id"`
-	Name  string `koanf:"name"`
-	Email string `koanf:"email"`
-}
-
-type Organization struct {
-	ID   string `koanf:"id"`
-	Slug string `koanf:"slug"`
-	Name string `koanf:"name"`
-}
-
-// Defaults applied when no config file exists yet. Override via env or flags.
-//
-// These point at the production Norcube environment. To target a non-prod
-// environment, pass --auth-url / --web-app on `norcube login` and the
-// values are persisted to the user's config file, or set the
-// NORCUBE_AUTH_URL / NORCUBE_WEB_APP / NORCUBE_*_URL env vars per command.
+// Credential stores a profile can use.
 const (
-	DefaultAuth        = "https://auth.api.norcube.com"
-	DefaultWebApp      = "https://app.norcube.com"
-	DefaultSnapDB      = "https://snapdb.api.norcube.com/app/v1"
-	DefaultLangsync    = "https://langsync.api.norcube.com"
-	DefaultDomainradar = "https://domainradar.api.norcube.com/app/v1"
-	DefaultBilling     = "https://billing.api.norcube.com/app/v1"
-	DefaultPrompthub   = "https://prompthub.api.norcube.com"
+	CredentialKeyring = "keyring"
+	CredentialFile    = "file"
+	// CredentialEnv reads an access token from NORCUBE_TOKEN and never
+	// writes anything.
+	CredentialEnv = "env"
 )
 
-// ResetServiceURLs overwrites every per-service URL with the current defaults
-// while leaving the auth API URL, web-app URL, user, and active-org alone.
-// Used by `norcube config reset-urls` to refresh installs whose persisted
-// values predate a default change.
-func (c *Config) ResetServiceURLs() {
-	c.SnapDB = DefaultSnapDB
-	c.Langsync = DefaultLangsync
-	c.Domainradar = DefaultDomainradar
-	c.Billing = DefaultBilling
-	c.Prompthub = DefaultPrompthub
+// IsCredentialStore reports whether v names a credential store.
+func IsCredentialStore(v string) bool {
+	return v == CredentialKeyring || v == CredentialFile || v == CredentialEnv
 }
 
-var (
-	loadOnce sync.Once
-	loaded   *Config
-	loadErr  error
-)
-
-// Load reads (or initializes) the user config from $XDG_CONFIG_HOME/norcube/config.toml.
-func Load() (*Config, error) {
-	loadOnce.Do(func() {
-		path, err := Path()
-		if err != nil {
-			loadErr = err
-			return
-		}
-
-		k := koanf.New(".")
-
-		if _, err := os.Stat(path); err == nil {
-			if err := k.Load(file.Provider(path), toml.Parser()); err != nil {
-				loadErr = fmt.Errorf("read %s: %w", path, err)
-				return
-			}
-		} else if !errors.Is(err, os.ErrNotExist) {
-			loadErr = err
-			return
-		}
-
-		cfg := &Config{
-			Auth:     DefaultAuth,
-			WebApp:   DefaultWebApp,
-			SnapDB:   DefaultSnapDB,
-			Langsync: DefaultLangsync,
-		}
-		if err := k.Unmarshal("", cfg); err != nil {
-			loadErr = fmt.Errorf("decode config: %w", err)
-			return
-		}
-
-		// Allow env overrides for every URL the CLI talks to. Useful when
-		// pointing the CLI at a non-prod environment (local dev, staging)
-		// without permanently rewriting the config file.
-		applyEnvURL(&cfg.Auth, "NORCUBE_AUTH_URL")
-		applyEnvURL(&cfg.WebApp, "NORCUBE_WEB_APP")
-		applyEnvURL(&cfg.SnapDB, "NORCUBE_SNAPDB_URL")
-		applyEnvURL(&cfg.Langsync, "NORCUBE_LANGSYNC_URL")
-		applyEnvURL(&cfg.Domainradar, "NORCUBE_DOMAINRADAR_URL")
-		applyEnvURL(&cfg.Billing, "NORCUBE_BILLING_URL")
-		applyEnvURL(&cfg.Prompthub, "NORCUBE_PROMPTHUB_URL")
-
-		loaded = cfg
-	})
-	return loaded, loadErr
+// File is the on-disk configuration.
+type File struct {
+	SchemaVersion  int                 `toml:"schema_version"`
+	DefaultProfile string              `toml:"default_profile"`
+	Defaults       Defaults            `toml:"defaults"`
+	Profiles       map[string]*Profile `toml:"profiles"`
 }
 
-// Save persists the current config back to disk, creating the directory if needed.
-func Save(cfg *Config) error {
-	path, err := Path()
-	if err != nil {
-		return err
-	}
-	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
-		return err
-	}
-
-	k := koanf.New(".")
-	if err := k.Load(structProvider(cfg), nil); err != nil {
-		return fmt.Errorf("encode config: %w", err)
-	}
-	out, err := k.Marshal(toml.Parser())
-	if err != nil {
-		return fmt.Errorf("marshal config: %w", err)
-	}
-	// Atomic write: temp file in the same directory, then rename. Two
-	// concurrent CLI invocations can otherwise interleave WriteFile and
-	// leave a half-written TOML behind (rename on the same filesystem is
-	// atomic on POSIX; on Windows os.Rename replaces the target too).
-	tmp, err := os.CreateTemp(filepath.Dir(path), ".config-*.toml")
-	if err != nil {
-		return fmt.Errorf("create temp config: %w", err)
-	}
-	tmpName := tmp.Name()
-	defer func() { _ = os.Remove(tmpName) }() // no-op after a successful rename
-	if err := tmp.Chmod(0o600); err != nil {
-		_ = tmp.Close()
-		return fmt.Errorf("chmod temp config: %w", err)
-	}
-	if _, err := tmp.Write(out); err != nil {
-		_ = tmp.Close()
-		return fmt.Errorf("write temp config: %w", err)
-	}
-	if err := tmp.Close(); err != nil {
-		return fmt.Errorf("close temp config: %w", err)
-	}
-	return os.Rename(tmpName, path)
+// Defaults apply to every profile unless the profile, an environment
+// variable or a flag says otherwise.
+type Defaults struct {
+	Output string `toml:"output"`
+	// Pager turns automatic paging of long tables on or off; nil means on.
+	Pager          *bool  `toml:"pager"`
+	MaxAttempts    int    `toml:"max_attempts"`
+	ReadTimeout    string `toml:"read_timeout"`
+	ConnectTimeout string `toml:"connect_timeout"`
 }
 
-// applyEnvURL overwrites *target with the value of envvar when the latter is
-// non-empty. Pulled out as a helper so the URL-override block stays readable.
-func applyEnvURL(target *string, envvar string) {
-	if v := os.Getenv(envvar); v != "" {
-		*target = v
+// Profile is one named set of environment, organization and credentials.
+type Profile struct {
+	// Environment is production or custom.
+	Environment string `toml:"environment"`
+	// Organization is what the user chose (usually the slug); OrgID and
+	// OrgName are what the CLI resolved it to.
+	Organization string `toml:"organization"`
+	OrgID        string `toml:"org_id"`
+	OrgName      string `toml:"org_name"`
+	// CredentialStore is keyring (default), file or env.
+	CredentialStore string `toml:"credential_store"`
+	Output          string `toml:"output"`
+	// Endpoints override the environment's URL per service key.
+	Endpoints map[string]string `toml:"endpoints"`
+	// User is who signed in with this profile, recorded at login.
+	User User `toml:"user"`
+}
+
+// User is the signed-in account.
+type User struct {
+	ID    string `toml:"id"`
+	Name  string `toml:"name"`
+	Email string `toml:"email"`
+}
+
+// Organization is an organization as the CLI knows it.
+type Organization struct {
+	ID   string
+	Slug string
+	Name string
+}
+
+// Profile returns the named profile, creating it in f if missing.
+func (f *File) Profile(name string) *Profile {
+	if f.Profiles == nil {
+		f.Profiles = map[string]*Profile{}
+	}
+	p, ok := f.Profiles[name]
+	if !ok || p == nil {
+		p = &Profile{}
+		f.Profiles[name] = p
+	}
+	return p
+}
+
+// ActiveOrg returns the profile's organization.
+func (p *Profile) ActiveOrg() Organization {
+	o := Organization{ID: p.OrgID, Slug: p.Organization, Name: p.OrgName}
+	if o.Slug == o.ID {
+		// An organization given by id: no slug known.
+		o.Slug = ""
+	}
+	return o
+}
+
+// SetActiveOrg records the profile's organization.
+func (p *Profile) SetActiveOrg(o Organization) {
+	p.Organization = o.Slug
+	if p.Organization == "" {
+		p.Organization = o.ID
+	}
+	p.OrgID = o.ID
+	p.OrgName = o.Name
+}
+
+// Config is the configuration one command runs with: the selected profile
+// with every endpoint resolved. Package resolve builds it.
+type Config struct {
+	Profile     string
+	Environment string
+
+	Auth        string
+	WebApp      string
+	SnapDB      string
+	Langsync    string
+	Domainradar string
+	Billing     string
+	Prompthub   string
+
+	User      User
+	ActiveOrg Organization
+}
+
+// Endpoint returns the resolved URL of a service.
+func (c *Config) Endpoint(service string) string {
+	switch service {
+	case ServiceAuth:
+		return c.Auth
+	case ServiceWebApp:
+		return c.WebApp
+	case ServiceSnapDB:
+		return c.SnapDB
+	case ServiceLangsync:
+		return c.Langsync
+	case ServiceDomainradar:
+		return c.Domainradar
+	case ServiceBilling:
+		return c.Billing
+	case ServicePrompthub:
+		return c.Prompthub
+	}
+	return ""
+}
+
+// SetEndpoint sets the resolved URL of a service.
+func (c *Config) SetEndpoint(service, url string) {
+	switch service {
+	case ServiceAuth:
+		c.Auth = url
+	case ServiceWebApp:
+		c.WebApp = url
+	case ServiceSnapDB:
+		c.SnapDB = url
+	case ServiceLangsync:
+		c.Langsync = url
+	case ServiceDomainradar:
+		c.Domainradar = url
+	case ServiceBilling:
+		c.Billing = url
+	case ServicePrompthub:
+		c.Prompthub = url
 	}
 }
 
-// Path returns the canonical config file location. Honors XDG_CONFIG_HOME.
+// EnvConfigFile names the config file explicitly.
+const EnvConfigFile = "NORCUBE_CONFIG_FILE"
+
+// Path returns the config file location: NORCUBE_CONFIG_FILE, else
+// $XDG_CONFIG_HOME/norcube/config.toml (on every OS), else the OS user
+// config directory (~/.config on Linux, ~/Library/Application Support on
+// macOS, %AppData% on Windows).
 func Path() (string, error) {
-	dir, err := os.UserConfigDir()
+	if p := os.Getenv(EnvConfigFile); p != "" {
+		return p, nil
+	}
+	osDir, osErr := os.UserConfigDir()
+	osPath := ""
+	if osErr == nil {
+		osPath = filepath.Join(osDir, "norcube", "config.toml")
+	}
+	if x := os.Getenv("XDG_CONFIG_HOME"); x != "" && filepath.IsAbs(x) {
+		xdgPath := filepath.Join(x, "norcube", "config.toml")
+		// Older releases ignored XDG_CONFIG_HOME on macOS and Windows: keep
+		// using a config that already lives in the OS directory.
+		if osPath != "" && osPath != xdgPath && !exists(xdgPath) && exists(osPath) {
+			return osPath, nil
+		}
+		return xdgPath, nil
+	}
+	if osErr != nil {
+		return "", osErr
+	}
+	return osPath, nil
+}
+
+// Dir is the directory holding the config file, its lock files and the
+// file credential store.
+func Dir() (string, error) {
+	p, err := Path()
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(dir, "norcube", "config.toml"), nil
+	return filepath.Dir(p), nil
 }
 
-// structProvider lets us round-trip a Config through koanf without an
-// intermediate TOML string. It is a minimal Provider implementation.
-type structProviderImpl struct{ cfg *Config }
-
-func structProvider(cfg *Config) *structProviderImpl { return &structProviderImpl{cfg: cfg} }
-
-func (s *structProviderImpl) ReadBytes() ([]byte, error) { return nil, errors.New("not used") }
-
-func (s *structProviderImpl) Read() (map[string]any, error) {
-	return map[string]any{
-		"auth":        s.cfg.Auth,
-		"web_app":     s.cfg.WebApp,
-		"snapdb":      s.cfg.SnapDB,
-		"langsync":    s.cfg.Langsync,
-		"domainradar": s.cfg.Domainradar,
-		"billing":     s.cfg.Billing,
-		"prompthub":   s.cfg.Prompthub,
-		"user": map[string]any{
-			"id":    s.cfg.User.ID,
-			"name":  s.cfg.User.Name,
-			"email": s.cfg.User.Email,
-		},
-		"active_org": map[string]any{
-			"id":   s.cfg.ActiveOrg.ID,
-			"slug": s.cfg.ActiveOrg.Slug,
-			"name": s.cfg.ActiveOrg.Name,
-		},
-	}, nil
+func exists(path string) bool {
+	_, err := os.Stat(path) // #nosec G703 -- a config path the user controls
+	return err == nil || !errors.Is(err, os.ErrNotExist)
 }

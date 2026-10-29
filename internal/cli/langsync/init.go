@@ -15,6 +15,9 @@ import (
 
 	"github.com/norcubeplatform/cli/internal/api/langsync"
 	"github.com/norcubeplatform/cli/internal/cli/langsync/projectcfg"
+	"github.com/norcubeplatform/cli/internal/cmdutil"
+	"github.com/norcubeplatform/cli/internal/output"
+	"github.com/norcubeplatform/cli/internal/term"
 )
 
 func newInitCmd() *cobra.Command {
@@ -70,15 +73,14 @@ After writing the config, init runs a follow-up action controlled by
 
 Any seed mode only applies to newly-added namespaces; entries
 already in .langsync.json from a previous init are left alone.
---force counts every picked namespace as new.
-
-Examples:
-  norcube langsync init
+--force counts every picked namespace as new.`,
+		Example: `  norcube langsync init
   norcube langsync init -n web -n marketing --dir i18n
   norcube langsync init --force
   norcube langsync init --seed push-all       # use my local JSON files as the source of truth
   norcube langsync init --seed push-default   # only my default-lang file; AI does the rest
-  norcube langsync init --seed none           # config only, do nothing else`,
+  norcube langsync init --seed none           # config only, do nothing else
+  norcube langsync init -n web --seed none -o json   # the written config as JSON`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			// We always write the config to the current working
 			// directory. Walking up to find an existing one would
@@ -104,7 +106,7 @@ Examples:
 			org, err := resolveInitOrg(cmd, existing)
 			if err != nil {
 				if errors.Is(err, ErrCancelled) {
-					fmt.Fprintln(cmd.OutOrStdout(), "Cancelled.")
+					fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 					return nil
 				}
 				return err
@@ -126,14 +128,14 @@ Examples:
 			// command. Non-interactive shells still get a clear
 			// error pointing at the explicit create command.
 			if len(namespaces) == 0 {
-				if !stdinIsInteractive() {
+				if !term.StdinIsTerminal() {
 					return fmt.Errorf("no namespaces in org %q — run `nrc langsync namespace create` first (non-interactive shell can't show the prompt)", org.Slug)
 				}
-				fmt.Fprintf(cmd.OutOrStdout(), "Organization %q has no namespaces yet — creating one to seed this project.\n", org.Slug)
+				fmt.Fprintf(cmd.ErrOrStderr(), "Organization %q has no namespaces yet — creating one to seed this project.\n", org.Slug)
 				ns, err := createNamespaceInteractive(cmd.Context(), c)
 				if err != nil {
 					if errors.Is(err, ErrCancelled) {
-						fmt.Fprintln(cmd.OutOrStdout(), "Cancelled.")
+						fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 						return nil
 					}
 					return err
@@ -148,20 +150,20 @@ Examples:
 			picked, err := resolveInitNamespaceSelection(cmd.Context(), c, namespaces, nsFlags, existing)
 			if err != nil {
 				if errors.Is(err, ErrCancelled) {
-					fmt.Fprintln(cmd.OutOrStdout(), "Cancelled.")
+					fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 					return nil
 				}
 				return err
 			}
 			if len(picked) == 0 {
-				fmt.Fprintln(cmd.OutOrStdout(), "Nothing selected. Nothing written.")
+				fmt.Fprintln(cmd.ErrOrStderr(), "Nothing selected. Nothing written.")
 				return nil
 			}
 
 			additions, err := buildInitEntries(picked, langByID, existing, dirFlag, localLangCode)
 			if err != nil {
 				if errors.Is(err, ErrCancelled) {
-					fmt.Fprintln(cmd.OutOrStdout(), "Cancelled.")
+					fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 					return nil
 				}
 				return err
@@ -179,15 +181,33 @@ Examples:
 				return err
 			}
 
-			out := cmd.OutOrStdout()
 			rel, _ := filepath.Rel(cwd, cfgPath)
 			if rel == "" {
 				rel = cfgPath
 			}
-			fmt.Fprintf(out, "Wrote %s with %d namespace(s):\n", rel, len(final.Namespaces))
-			for _, ns := range final.Namespaces {
-				fmt.Fprintf(out, "  • %s  (dir: %s, default local lang: %s)\n", ns.Namespace, ns.Dir, ns.DefaultLocalLanguage)
+			result := initResult{
+				ConfigPath:   cfgPath,
+				Organization: orgSummary{ID: org.ID, Slug: org.Slug, Name: org.Name},
+				Namespaces:   make([]initNamespace, 0, len(final.Namespaces)),
+				Seed:         seedFlag,
 			}
+			var wrote strings.Builder
+			fmt.Fprintf(&wrote, "Wrote %s with %d namespace(s):", rel, len(final.Namespaces))
+			for _, ns := range final.Namespaces {
+				fmt.Fprintf(&wrote, "\n  • %s  (dir: %s, default local lang: %s)", ns.Namespace, ns.Dir, ns.DefaultLocalLanguage)
+				result.Namespaces = append(result.Namespaces, initNamespace{
+					Namespace: ns.Namespace, Dir: ns.Dir, DefaultLocalLanguage: ns.DefaultLocalLanguage,
+				})
+			}
+			// A person sees what was written right away; a script gets
+			// everything, seed results included, as one value at the end.
+			if cmdutil.Human(cmd) {
+				if err := cmdutil.Print(cmd, output.Done{Message: wrote.String()}); err != nil {
+					return err
+				}
+			}
+			// Seed progress is for the person at the terminal.
+			out := cmd.ErrOrStderr()
 
 			// Seed pass: only run on newly-added namespaces.
 			// Already-configured entries are assumed in sync;
@@ -206,24 +226,24 @@ Examples:
 				fmt.Fprintln(out, "\nNo newly-added namespaces to seed.")
 			case seed == seedModePull:
 				fmt.Fprintf(out, "\nPulling current server state for %d namespace(s):\n", len(toSeed))
-				if err := runInitSeed(cmd, c, final, cfgPath, toSeed, seedModePull); err != nil {
+				if result.Seeded, err = runInitSeed(cmd, c, final, cfgPath, toSeed, seedModePull); err != nil {
 					fmt.Fprintf(out, "Pull encountered errors — run `norcube langsync pull` to retry.\n")
-					return err
+					return printInitResult(cmd, result, err)
 				}
 			case seed == seedModePushAll:
 				fmt.Fprintf(out, "\nPushing every local <lang>.json for %d namespace(s) and waiting for autotranslate:\n", len(toSeed))
-				if err := runInitSeed(cmd, c, final, cfgPath, toSeed, seedModePushAll); err != nil {
+				if result.Seeded, err = runInitSeed(cmd, c, final, cfgPath, toSeed, seedModePushAll); err != nil {
 					fmt.Fprintf(out, "Push encountered errors — run `norcube langsync sync` to retry.\n")
-					return err
+					return printInitResult(cmd, result, err)
 				}
 			case seed == seedModePushDefault:
 				fmt.Fprintf(out, "\nPushing only the default-language file for %d namespace(s); AI will fill the rest:\n", len(toSeed))
-				if err := runInitSeed(cmd, c, final, cfgPath, toSeed, seedModePushDefault); err != nil {
+				if result.Seeded, err = runInitSeed(cmd, c, final, cfgPath, toSeed, seedModePushDefault); err != nil {
 					fmt.Fprintf(out, "Push encountered errors — run `norcube langsync sync` to retry.\n")
-					return err
+					return printInitResult(cmd, result, err)
 				}
 			}
-			return nil
+			return printInitResult(cmd, result, nil)
 		},
 	}
 	cmd.Flags().StringVar(&dirFlag, "dir", "", "Parent directory for translation files (each picked namespace becomes <dir>/<namespace>); skips the per-namespace dir prompt")
@@ -290,7 +310,7 @@ func parseSeedMode(s string) (seedMode, error) {
 // strategy + pushDefaultOnly bits are derived from the seedMode and
 // passed into runParallelSync; the rest of the parallel-sync code
 // is the same for every seed mode.
-func runInitSeed(cmd *cobra.Command, c *langsyncContext, cfg *projectcfg.File, cfgPath string, toSeed []projectcfg.Namespace, mode seedMode) error {
+func runInitSeed(cmd *cobra.Command, c *langsyncContext, cfg *projectcfg.File, cfgPath string, toSeed []projectcfg.Namespace, mode seedMode) ([]syncSummary, error) {
 	opts := syncOptions{
 		wait:        true,
 		waitTimeout: 5 * time.Minute,
@@ -306,7 +326,7 @@ func runInitSeed(cmd *cobra.Command, c *langsyncContext, cfg *projectcfg.File, c
 		opts.strategy = strategyLocal
 		opts.pushDefaultOnly = true
 	default:
-		return fmt.Errorf("internal: runInitSeed called with non-seed mode %q", mode)
+		return nil, fmt.Errorf("internal: runInitSeed called with non-seed mode %q", mode)
 	}
 	return runParallelSync(cmd, c, cfg, cfgPath, toSeed, opts)
 }
@@ -385,7 +405,7 @@ func resolveInitNamespaceSelection(ctx context.Context, c *langsyncContext, all 
 		return picked, nil
 	}
 
-	if !stdinIsInteractive() {
+	if !term.StdinIsTerminal() {
 		return nil, fmt.Errorf("pass --namespace <name> one or more times — interactive picker requires a TTY")
 	}
 
@@ -632,7 +652,7 @@ func buildInitEntries(picked []langsync.DtoDTONamespace, langByID map[int]string
 		}
 
 		dir := suggestNamespaceDir(name, dirFlag, existingByName[name])
-		if dirFlag == "" && stdinIsInteractive() {
+		if dirFlag == "" && term.StdinIsTerminal() {
 			// Ask the user to confirm or change the suggested dir.
 			input := dir
 			err := huh.NewInput().
@@ -758,6 +778,41 @@ func createNamespaceInteractive(ctx context.Context, c *langsyncContext) (*langs
 		return nil, apiError(getRes.HTTPResponse, getRes.Body,
 			getRes.JSON400, getRes.JSON401, getRes.JSON403, getRes.JSON404, getRes.JSON500)
 	}
-	fmt.Printf("Created namespace %q (default language %q).\n", name, lang)
+	fmt.Fprintf(os.Stderr, "Created namespace %q (default language %q).\n", name, lang)
 	return getRes.JSON200, nil
+}
+
+// initResult is what `init -o json` prints.
+type initResult struct {
+	ConfigPath   string          `json:"configPath" yaml:"configPath"`
+	Organization orgSummary      `json:"organization" yaml:"organization"`
+	Namespaces   []initNamespace `json:"namespaces" yaml:"namespaces"`
+	Seed         string          `json:"seed" yaml:"seed"`
+	Seeded       []syncSummary   `json:"seeded" yaml:"seeded"`
+}
+
+type orgSummary struct {
+	ID   string `json:"id" yaml:"id"`
+	Slug string `json:"slug,omitempty" yaml:"slug,omitempty"`
+	Name string `json:"name,omitempty" yaml:"name,omitempty"`
+}
+
+type initNamespace struct {
+	Namespace            string `json:"namespace" yaml:"namespace"`
+	Dir                  string `json:"dir" yaml:"dir"`
+	DefaultLocalLanguage string `json:"defaultLocalLanguage" yaml:"defaultLocalLanguage"`
+}
+
+// printInitResult prints init's result for scripts (a person already saw
+// it) and passes err through.
+func printInitResult(cmd *cobra.Command, r initResult, err error) error {
+	if r.Seeded == nil {
+		r.Seeded = []syncSummary{}
+	}
+	if !cmdutil.Human(cmd) {
+		if perr := cmdutil.Print(cmd, output.Done{Value: r, Fields: []output.Field{{Value: r.ConfigPath}}}); perr != nil && err == nil {
+			err = perr
+		}
+	}
+	return err
 }

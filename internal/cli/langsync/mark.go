@@ -1,18 +1,20 @@
 package langsync
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/charmbracelet/huh"
 	"github.com/spf13/cobra"
 
 	"github.com/norcubeplatform/cli/internal/api/langsync"
-	"github.com/norcubeplatform/cli/internal/clictx"
+	"github.com/norcubeplatform/cli/internal/clierr"
+	"github.com/norcubeplatform/cli/internal/cmdutil"
 	"github.com/norcubeplatform/cli/internal/output"
+	"github.com/norcubeplatform/cli/internal/term"
 )
 
 func newMarkCmd() *cobra.Command {
@@ -43,15 +45,13 @@ for the namespace's default language. With --auto-translate, the backend
 will try to fill in every other configured language using your AI
 translation provider.
 
-Examples:
-  norcube langsync mark add --namespace web "Save changes"
-  norcube langsync mark add --namespace web "Email" --context "form label" --default-value "E-mail"
-  norcube langsync mark add --namespace web "Welcome" --default-value "Welcome" --auto-translate
-
 The positional source string and --namespace are both optional in
 interactive shells — pickers/prompts fill in anything that's missing.
 In scripts and pipes (stdin not a terminal), both must be passed
 explicitly or the command errors out before touching the network.`,
+		Example: `  norcube langsync mark add --namespace web "Save changes"
+  norcube langsync mark add --namespace web "Email" --context "form label" --default-value "E-mail"
+  norcube langsync mark add --namespace web "Welcome" --default-value "Welcome" --auto-translate`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			c, err := newLangsyncContext(cmd)
@@ -65,7 +65,7 @@ explicitly or the command errors out before touching the network.`,
 			ns, err := resolveNamespace(cmd.Context(), c, namespaceName, "Add the new mark to which namespace?")
 			if err != nil {
 				if errors.Is(err, ErrCancelled) {
-					fmt.Fprintln(cmd.OutOrStdout(), "Cancelled.")
+					fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 					return nil
 				}
 				return err
@@ -74,7 +74,7 @@ explicitly or the command errors out before touching the network.`,
 			mark, err := resolveMark(args)
 			if err != nil {
 				if errors.Is(err, ErrCancelled) {
-					fmt.Fprintln(cmd.OutOrStdout(), "Cancelled.")
+					fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 					return nil
 				}
 				return err
@@ -97,12 +97,11 @@ explicitly or the command errors out before touching the network.`,
 					res.JSON400, res.JSON401, res.JSON403, res.JSON404, res.JSON500)
 			}
 
-			out := cmd.OutOrStdout()
-			fmt.Fprintf(out, "Added mark %q to namespace %q.\n", mark, ns)
+			msg := fmt.Sprintf("Added mark %q to namespace %q.", mark, ns)
 			if autoTranslate {
-				fmt.Fprintln(out, "Auto-translation requested; check `norcube langsync mark list` to see progress.")
+				msg += "\nAuto-translation requested; check `norcube langsync mark list` to see progress."
 			}
-			return nil
+			return cmdutil.Print(cmd, output.Done{Message: msg, Value: res.JSON200})
 		},
 	}
 	cmd.Flags().StringVarP(&namespaceName, "namespace", "n", "", "Namespace name (the URL slug); picker opens when omitted and stdin is a TTY")
@@ -125,10 +124,7 @@ func newMarkListCmd() *cobra.Command {
 	var (
 		namespaceName    string
 		search           string
-		limit            int
-		cursor           string
-		allPages         bool
-		maxItems         int
+		pages            cmdutil.PageFlags
 		hasUntranslated  bool
 		untranslatedLang int
 	)
@@ -138,14 +134,14 @@ func newMarkListCmd() *cobra.Command {
 		Long: `Lists marks (source strings) in a namespace, with optional filters
 for partially-translated marks and full-text search.
 
-Examples:
-  norcube langsync mark list --namespace web
+Pagination is cursor-based: re-run with the --cursor value printed to
+stderr to fetch the next page, or pass --all-pages to follow until
+exhausted.`,
+		Example: `  norcube langsync mark list --namespace web
   norcube langsync mark list --namespace web --search Save
   norcube langsync mark list --namespace web --has-untranslated
   norcube langsync mark list --namespace web --untranslated-lang 17
-
-Pagination is cursor-based — re-run with the printed --cursor value to
-fetch the next page, or pass --all-pages to follow until exhausted.`,
+  norcube langsync mark list -n web --all-pages -o json --query "[].term.mark"`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			c, err := newLangsyncContext(cmd)
 			if err != nil {
@@ -153,32 +149,13 @@ fetch the next page, or pass --all-pages to follow until exhausted.`,
 			}
 			ns, err := resolveNamespace(cmd.Context(), c, namespaceName, "List marks from which namespace?")
 			if err != nil {
-				if errors.Is(err, ErrCancelled) {
-					fmt.Fprintln(cmd.OutOrStdout(), "Cancelled.")
-					return nil
-				}
-				return err
+				return cancelledOK(cmd, err)
 			}
 
-			cap := maxItems
-			if cap <= 0 {
-				cap = maxMarkItems
-			}
-
-			// Initialise non-nil so `-o json` on an empty result prints "[]"
-			// rather than "null". Same rule as snapdb's backup list.
-			items := []langsync.DtoDTOTerm{}
-			nextCursor := cursor
-			truncated := false
-
-			for {
-				effectiveLimit := limit
-				if effectiveLimit <= 0 {
-					effectiveLimit = defaultMarkPageLimit
-				}
+			page, err := cmdutil.Paginate(cmd.Context(), pages, func(ctx context.Context, cursor string, size int) ([]langsync.DtoDTOTerm, string, error) {
 				params := &langsync.ListByNamespaceParams{
-					Cursor: nextCursor,
-					Limit:  effectiveLimit,
+					Cursor: cursor,
+					Limit:  size,
 					Search: search,
 				}
 				if cmd.Flags().Changed("has-untranslated") {
@@ -187,39 +164,27 @@ fetch the next page, or pass --all-pages to follow until exhausted.`,
 				if cmd.Flags().Changed("untranslated-lang") {
 					params.UntranslatedLangId = &untranslatedLang
 				}
-
-				res, err := c.client.ListByNamespaceWithResponse(cmd.Context(), ns, params)
+				res, err := c.client.ListByNamespaceWithResponse(ctx, ns, params)
 				if err != nil {
-					return err
+					return nil, "", err
 				}
 				if res.JSON200 == nil {
 					if isNamespaceForbidden(res.JSON403) || isNamespaceForbidden(res.JSON404) {
-						return namespaceAccessError(c.cfg.ActiveOrg.Slug, ns)
+						return nil, "", namespaceAccessError(c.cfg.ActiveOrg.Slug, ns)
 					}
-					return apiError(res.HTTPResponse, res.Body,
+					return nil, "", apiError(res.HTTPResponse, res.Body,
 						res.JSON400, res.JSON401, res.JSON403, res.JSON404, res.JSON500)
 				}
-				items = append(items, res.JSON200.List...)
-
-				next := res.JSON200.Cursors.Next
-				if !allPages || next == nil || *next == "" {
-					if next != nil && *next != "" {
-						nextCursor = *next
-					} else {
-						nextCursor = ""
-					}
-					break
+				next := ""
+				if n := res.JSON200.Cursors.Next; n != nil {
+					next = *n
 				}
-				if len(items) >= cap {
-					truncated = true
-					nextCursor = *next
-					break
-				}
-				nextCursor = *next
+				return res.JSON200.List, next, nil
+			})
+			if err != nil {
+				return err
 			}
-
-			flags := clictx.Get(cmd)
-			err = output.PrintPaged(cmd.OutOrStdout(), c.output, flags.NoPager, output.Table[langsync.DtoDTOTerm]{
+			return page.Print(cmd, output.Table[langsync.DtoDTOTerm]{
 				Headers: []string{"ID", "MARK", "CONTEXT", "TRANSLATIONS", "CREATED"},
 				// Don't truncate MARK — the whole point is to see the
 				// source text. CONTEXT still gets a cap because it's
@@ -235,35 +200,15 @@ fetch the next page, or pass --all-pages to follow until exhausted.`,
 						compactDate(t.Term.CreatedAt),
 					}
 				},
-				Items: items,
+				Items: page.Items,
 			})
-			if err != nil {
-				return err
-			}
-
-			stderr := cmd.ErrOrStderr()
-			if c.output == output.FormatTable && output.IsInteractive(stderr) {
-				if truncated {
-					fmt.Fprintf(stderr,
-						"\nStopped at --max-items=%d. Re-run with --max-items 0 (no cap) or a higher value to fetch the rest.\n",
-						cap)
-				} else if !allPages && nextCursor != "" {
-					fmt.Fprintf(stderr,
-						"\nMore results available. Re-run with --cursor %s, or --all-pages to follow until exhausted.\n",
-						nextCursor)
-				}
-			}
-			return nil
 		},
 	}
 	cmd.Flags().StringVarP(&namespaceName, "namespace", "n", "", "Namespace name; picker opens when omitted and stdin is a TTY")
 	cmd.Flags().StringVar(&search, "search", "", "Full-text search across mark + context")
 	cmd.Flags().BoolVar(&hasUntranslated, "has-untranslated", false, "Only marks with at least one untranslated language")
 	cmd.Flags().IntVar(&untranslatedLang, "untranslated-lang", 0, "Only marks missing the given language id (overrides --has-untranslated semantics)")
-	cmd.Flags().IntVar(&limit, "limit", 0, "Max items per page (0 = CLI default, currently 50)")
-	cmd.Flags().StringVar(&cursor, "cursor", "", "Continue from a previous page's cursor")
-	cmd.Flags().BoolVar(&allPages, "all-pages", false, "Follow cursors until exhausted (capped by --max-items)")
-	cmd.Flags().IntVar(&maxItems, "max-items", 0, "Safety cap for --all-pages (0 = built-in default, currently 10000)")
+	cmdutil.AddPageFlags(cmd, &pages, defaultMarkPageLimit, maxMarkItems)
 	return cmd
 }
 
@@ -280,6 +225,8 @@ This action is irreversible — the mark, its context, and every
 per-language translation row are deleted from the database.
 
 Use --yes to skip the interactive confirmation in scripts.`,
+		Example: `  norcube langsync mark delete 1234 --namespace web
+  norcube langsync mark delete 1234 --namespace web --yes   # scripts`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			c, err := newLangsyncContext(cmd)
@@ -293,7 +240,7 @@ Use --yes to skip the interactive confirmation in scripts.`,
 			ns, err := resolveNamespace(cmd.Context(), c, namespaceName, "Delete a mark from which namespace?")
 			if err != nil {
 				if errors.Is(err, ErrCancelled) {
-					fmt.Fprintln(cmd.OutOrStdout(), "Cancelled.")
+					fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 					return nil
 				}
 				return err
@@ -305,13 +252,13 @@ Use --yes to skip the interactive confirmation in scripts.`,
 			)
 			if err != nil {
 				if errors.Is(err, ErrCancelled) {
-					fmt.Fprintln(cmd.OutOrStdout(), "Cancelled.")
+					fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 					return nil
 				}
 				return err
 			}
 			if !ok {
-				fmt.Fprintln(cmd.OutOrStdout(), "Cancelled.")
+				fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 				return nil
 			}
 
@@ -327,8 +274,11 @@ Use --yes to skip the interactive confirmation in scripts.`,
 				return apiError(res.HTTPResponse, res.Body,
 					res.JSON400, res.JSON401, res.JSON403, res.JSON404, res.JSON500)
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "Deleted mark #%d from namespace %q.\n", termID, ns)
-			return nil
+			return cmdutil.Print(cmd, output.Done{
+				Message: fmt.Sprintf("Deleted mark #%d from namespace %q.", termID, ns),
+				Value:   deletedResult{ID: strconv.Itoa(termID), Deleted: true},
+				Fields:  []output.Field{{Value: strconv.Itoa(termID)}},
+			})
 		},
 	}
 	cmd.Flags().StringVarP(&namespaceName, "namespace", "n", "", "Namespace name; picker opens when omitted and stdin is a TTY")
@@ -336,20 +286,11 @@ Use --yes to skip the interactive confirmation in scripts.`,
 	return cmd
 }
 
-// compactDate trims an RFC3339 timestamp to a more table-friendly form
-// ("2026-05-11 09:42") when parseable; otherwise returns the first 16
-// characters or the original, whichever is shorter.
+// compactDate renders an RFC 3339 timestamp as a table cell
+// ("2026-05-11 09:42" in the reader's local time zone, RFC 3339 UTC with
+// -o text). Empty is "—"; an unparseable value is shown as it is.
 func compactDate(s string) string {
-	if s == "" {
-		return "—"
-	}
-	if t, err := time.Parse(time.RFC3339Nano, s); err == nil {
-		return t.UTC().Format("2006-01-02 15:04")
-	}
-	if len(s) >= 16 {
-		return s[:16]
-	}
-	return s
+	return output.WhenString(s)
 }
 
 // resolveMark returns the mark string the user wants to add. Precedence:
@@ -369,8 +310,8 @@ func resolveMark(args []string) (string, error) {
 		}
 		return v, nil
 	}
-	if !stdinIsInteractive() {
-		return "", fmt.Errorf("mark (source string) is required: pass it as a positional argument or run interactively")
+	if !term.StdinIsTerminal() {
+		return "", clierr.Usage(errors.New("mark (source string) is required: pass it as a positional argument or run interactively"))
 	}
 	var v string
 	err := huh.NewInput().

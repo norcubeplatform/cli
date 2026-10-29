@@ -21,7 +21,7 @@ jobs:
       - name: Vet
         run: go vet ./...
       - name: Test
-        run: go test ./...
+        run: go test -race ./...
 
   lint:
     runs-on: ubuntu-latest
@@ -33,4 +33,5 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v8
         with:
-          version: latest
+          # Pinned: a new linter release must not turn CI red on its own.
+          version: v2.12.2

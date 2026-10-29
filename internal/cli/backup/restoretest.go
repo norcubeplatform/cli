@@ -4,6 +4,9 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+
+	"github.com/norcubeplatform/cli/internal/cmdutil"
+	"github.com/norcubeplatform/cli/internal/output"
 )
 
 // newRestoreTestCmd is the CLI trigger for an on-demand restore test: the
@@ -55,9 +58,14 @@ backup in ` + "`norcube backup list`" + ` and rolls into
 			}
 
 			restoreJobID := deref(res.JSON202.RestoreJobId)
-			fmt.Fprintf(cmd.OutOrStdout(), "Restore test queued (restore job %s).\n", restoreJobID)
-			fmt.Fprintln(cmd.ErrOrStderr(), "Track it with `norcube backup list`; the verdict appears in the TEST column.")
-			return nil
+			if cmdutil.Human(cmd) {
+				fmt.Fprintln(cmd.ErrOrStderr(), "Track it with `norcube backup list`; the verdict appears in the TEST column.")
+			}
+			return cmdutil.Print(cmd, output.Done{
+				Message: fmt.Sprintf("Restore test queued (restore job %s).", restoreJobID),
+				Value:   res.JSON202,
+				Fields:  []output.Field{{Value: restoreJobID}},
+			})
 		},
 	}
 	cmd.Flags().StringVarP(&datasourceID, "datasource", "d", "", "Datasource the backup belongs to (id)")

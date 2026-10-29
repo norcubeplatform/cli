@@ -1,0 +1,4 @@
+CURRENT  DEVICE        CLIENT                         LAST USED         IP            ID
+*        dev-laptop    norcube 0.17.0 (darwin/arm64)  2026-10-28 13:42  203.0.113.24  sess-1
+         ci-runner-04  norcube 0.16.0 (linux/amd64)   2026-10-27 05:10  198.51.100.7  sess-2
+         -             -                              2026-10-19 12:00  -             sess-3

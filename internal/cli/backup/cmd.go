@@ -5,6 +5,7 @@
 package backup
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -12,6 +13,7 @@ import (
 	"github.com/norcubeplatform/cli/internal/api/snapdb"
 	"github.com/norcubeplatform/cli/internal/auth"
 	"github.com/norcubeplatform/cli/internal/clictx"
+	"github.com/norcubeplatform/cli/internal/clierr"
 	"github.com/norcubeplatform/cli/internal/config"
 )
 
@@ -45,22 +47,30 @@ type snapdbContext struct {
 	output string
 }
 
+var errNoActiveOrg = clierr.Usage(errors.New("no active organization. Run `norcube org use <slug>` or pass --org <slug>"))
+
 func newSnapdbContext(cmd *cobra.Command) (*snapdbContext, error) {
-	cfg, err := config.Load()
+	cfg, err := clictx.Get(cmd).Config()
 	if err != nil {
 		return nil, err
 	}
 	flags := clictx.Get(cmd)
-	apiURL := flags.ResolveAuth(cfg)
-	orgID, _ := flags.ResolveOrg(cfg)
-	if orgID == "" {
-		return nil, fmt.Errorf("no active organization — run `norcube org use <slug>` or pass --org <slug>")
+	org, err := flags.Org(cmd.Context(), cfg)
+	if err != nil {
+		return nil, err
+	}
+	if org.ID == "" {
+		return nil, errNoActiveOrg
 	}
 
-	ts := auth.NewTokenSource(apiURL, auth.AudienceSnapDB, orgID)
+	ts, err := flags.TokenSource(cfg, auth.AudienceSnapDB, org.ID)
+	if err != nil {
+		return nil, err
+	}
 
 	client, err := snapdb.NewClientWithResponses(
 		cfg.SnapDB,
+		snapdb.WithHTTPClient(ts.HTTP),
 		snapdb.WithRequestEditorFn(ts.BearerInjector()),
 	)
 	if err != nil {

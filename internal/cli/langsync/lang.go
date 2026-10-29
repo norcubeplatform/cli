@@ -11,8 +11,10 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/norcubeplatform/cli/internal/api/langsync"
-	"github.com/norcubeplatform/cli/internal/clictx"
+	"github.com/norcubeplatform/cli/internal/clierr"
+	"github.com/norcubeplatform/cli/internal/cmdutil"
 	"github.com/norcubeplatform/cli/internal/output"
+	"github.com/norcubeplatform/cli/internal/term"
 )
 
 func newLangCmd() *cobra.Command {
@@ -40,6 +42,8 @@ func newLangListCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List languages — every language available to the active org by default; pass -n <namespace> for the namespace's attached subset",
+		Example: `  norcube langsync lang list
+  norcube langsync lang list -o json --query "[].code"`,
 		Long: `Without --namespace, lists every language visible to the active org:
 every shared ("global") language plus every custom language this org
 has created.
@@ -65,8 +69,7 @@ namespace (the subset that translations can target inside it).`,
 				}
 			}
 
-			flags := clictx.Get(cmd)
-			return output.PrintPaged(cmd.OutOrStdout(), c.output, flags.NoPager, output.Table[langsync.DtoDTOLanguage]{
+			return cmdutil.Print(cmd, output.Table[langsync.DtoDTOLanguage]{
 				Headers: []string{"CODE", "NAME", "KIND", "ID"},
 				Rows: func(l langsync.DtoDTOLanguage) []string {
 					return []string{deref(l.Code), deref(l.Name), langKind(l), intStr(l.Id)}
@@ -102,9 +105,9 @@ func newLangCreateCmd() *cobra.Command {
 must start with a letter and contain only lowercase letters, digits,
 hyphens, or underscores (max 32 chars). Codes are unique per-org —
 shared codes can coexist (the resolver prefers your custom one).
-
-Example:
-  norcube langsync lang create internal-en "Internal English"`,
+`,
+		Example: `  norcube langsync lang create internal-en "Internal English"
+  norcube langsync lang create internal-en "Internal English" -o json --query id`,
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			c, err := newLangsyncContext(cmd)
@@ -130,9 +133,11 @@ Example:
 					res.JSON400, res.JSON401, res.JSON409, res.JSON500)
 			}
 			created := *res.JSON201
-			fmt.Fprintf(cmd.OutOrStdout(), "Created custom language %q (%s), id %s.\n",
-				name, code, intStr(created.Id))
-			return nil
+			return cmdutil.Print(cmd, output.Done{
+				Message: fmt.Sprintf("Created custom language %q (%s), id %s.", name, code, intStr(created.Id)),
+				Value:   created,
+				Fields:  []output.Field{{Value: intStr(created.Id)}, {Value: code}, {Value: name}},
+			})
 		},
 	}
 	return cmd
@@ -144,6 +149,8 @@ func newLangDeleteCmd() *cobra.Command {
 		Use:     "delete <id>",
 		Aliases: []string{"rm"},
 		Short:   "Delete a custom language owned by the active organization",
+		Example: `  norcube langsync lang delete 42
+  norcube langsync lang delete 42 --yes   # scripts`,
 		Long: `Permanently removes a custom language. Shared (global) languages are
 never deletable through this command — the backend ignores the id.
 Fails with a 409 if the language is still attached to any namespace
@@ -166,13 +173,13 @@ Use --yes to skip confirmation in scripts.`,
 			)
 			if err != nil {
 				if errors.Is(err, ErrCancelled) {
-					fmt.Fprintln(cmd.OutOrStdout(), "Cancelled.")
+					fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 					return nil
 				}
 				return err
 			}
 			if !ok {
-				fmt.Fprintln(cmd.OutOrStdout(), "Cancelled.")
+				fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 				return nil
 			}
 
@@ -185,8 +192,11 @@ Use --yes to skip confirmation in scripts.`,
 				return apiError(res.HTTPResponse, res.Body,
 					res.JSON400, res.JSON401, res.JSON404, res.JSON409, res.JSON500)
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "Deleted custom language id %d.\n", id)
-			return nil
+			return cmdutil.Print(cmd, output.Done{
+				Message: fmt.Sprintf("Deleted custom language id %d.", id),
+				Value:   deletedResult{ID: strconv.Itoa(id), Deleted: true},
+				Fields:  []output.Field{{Value: strconv.Itoa(id)}},
+			})
 		},
 	}
 	cmd.Flags().BoolVar(&yes, "yes", false, "Skip the confirmation prompt (required when stdin isn't a TTY)")
@@ -198,6 +208,8 @@ func newLangAddCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add [code-or-id]",
 		Short: "Attach a language to a namespace",
+		Example: `  norcube langsync lang add cs --namespace web
+  norcube langsync lang add 17 -n web`,
 		Long: `Adds a language to the namespace so terms can be translated into it.
 You can pass either a language code ("en", "cs", "de") or the numeric
 language id. With no positional argument and an interactive shell, a
@@ -211,7 +223,7 @@ picker lists every language that isn't already attached.`,
 			ns, err := resolveNamespace(cmd.Context(), c, namespaceName, "Add a language to which namespace?")
 			if err != nil {
 				if errors.Is(err, ErrCancelled) {
-					fmt.Fprintln(cmd.OutOrStdout(), "Cancelled.")
+					fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 					return nil
 				}
 				return err
@@ -240,7 +252,7 @@ picker lists every language that isn't already attached.`,
 				langID, label, perr := pickLanguageNotAttached(cmd.Context(), c, ns)
 				if perr != nil {
 					if errors.Is(perr, ErrCancelled) {
-						fmt.Fprintln(cmd.OutOrStdout(), "Cancelled.")
+						fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 						return nil
 					}
 					return perr
@@ -260,8 +272,15 @@ picker lists every language that isn't already attached.`,
 				return apiError(res.HTTPResponse, res.Body,
 					res.JSON400, res.JSON401, res.JSON403, res.JSON404, res.JSON500)
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "Attached %s to namespace %q.\n", langLabel, ns)
-			return nil
+			attached := languageAttached{Namespace: ns, Language: langLabel, ConnectionID: res.JSON200.ConnectionId}
+			if body.LanguageId != nil {
+				attached.LanguageID = *body.LanguageId
+			}
+			return cmdutil.Print(cmd, output.Done{
+				Message: fmt.Sprintf("Attached %s to namespace %q.", langLabel, ns),
+				Value:   attached,
+				Fields:  []output.Field{{Value: ns}, {Value: intStr(res.JSON200.ConnectionId)}},
+			})
 		},
 	}
 	cmd.Flags().StringVarP(&namespaceName, "namespace", "n", "", "Namespace name; picker opens when omitted and stdin is a TTY")
@@ -277,6 +296,8 @@ func newLangRemoveCmd() *cobra.Command {
 		Use:     "remove [code-or-id]",
 		Aliases: []string{"rm"},
 		Short:   "Remove a language from a namespace (and every translation in that language)",
+		Example: `  norcube langsync lang remove cs --namespace web
+  norcube langsync lang remove cs -n web --yes   # scripts`,
 		Long: `Detaches a language from the namespace. The translation rows for
 that language are removed by the backend; the source marks themselves
 are unaffected. Use --yes to skip the confirmation in scripts.`,
@@ -289,7 +310,7 @@ are unaffected. Use --yes to skip the confirmation in scripts.`,
 			ns, err := resolveNamespace(cmd.Context(), c, namespaceName, "Remove a language from which namespace?")
 			if err != nil {
 				if errors.Is(err, ErrCancelled) {
-					fmt.Fprintln(cmd.OutOrStdout(), "Cancelled.")
+					fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 					return nil
 				}
 				return err
@@ -308,7 +329,7 @@ are unaffected. Use --yes to skip the confirmation in scripts.`,
 				langID, langLabel, err = pickLanguageAttached(cmd.Context(), c, ns)
 				if err != nil {
 					if errors.Is(err, ErrCancelled) {
-						fmt.Fprintln(cmd.OutOrStdout(), "Cancelled.")
+						fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 						return nil
 					}
 					return err
@@ -321,13 +342,13 @@ are unaffected. Use --yes to skip the confirmation in scripts.`,
 			)
 			if err != nil {
 				if errors.Is(err, ErrCancelled) {
-					fmt.Fprintln(cmd.OutOrStdout(), "Cancelled.")
+					fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 					return nil
 				}
 				return err
 			}
 			if !ok {
-				fmt.Fprintln(cmd.OutOrStdout(), "Cancelled.")
+				fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 				return nil
 			}
 
@@ -342,8 +363,11 @@ are unaffected. Use --yes to skip the confirmation in scripts.`,
 				return apiError(res.HTTPResponse, res.Body,
 					res.JSON400, res.JSON401, res.JSON403, res.JSON404, res.JSON500)
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "Removed %s from namespace %q.\n", langLabel, ns)
-			return nil
+			return cmdutil.Print(cmd, output.Done{
+				Message: fmt.Sprintf("Removed %s from namespace %q.", langLabel, ns),
+				Value:   languageDetached{Namespace: ns, LanguageID: langID, Removed: true},
+				Fields:  []output.Field{{Value: ns}, {Value: strconv.Itoa(langID)}},
+			})
 		},
 	}
 	cmd.Flags().StringVarP(&namespaceName, "namespace", "n", "", "Namespace name; picker opens when omitted and stdin is a TTY")
@@ -386,8 +410,8 @@ func resolveLanguageAttached(ctx context.Context, c *langsyncContext, ns, input 
 }
 
 func pickLanguageNotAttached(ctx context.Context, c *langsyncContext, ns string) (int, string, error) {
-	if !stdinIsInteractive() {
-		return 0, "", fmt.Errorf("language is required: pass code or id as positional arg or run interactively")
+	if !term.StdinIsTerminal() {
+		return 0, "", clierr.Usage(errors.New("language is required: pass code or id as positional arg or run interactively"))
 	}
 	all, err := listAllLanguages(ctx, c)
 	if err != nil {
@@ -429,8 +453,8 @@ func pickLanguageNotAttached(ctx context.Context, c *langsyncContext, ns string)
 }
 
 func pickLanguageAttached(ctx context.Context, c *langsyncContext, ns string) (int, string, error) {
-	if !stdinIsInteractive() {
-		return 0, "", fmt.Errorf("language is required: pass code or id as positional arg or run interactively")
+	if !term.StdinIsTerminal() {
+		return 0, "", clierr.Usage(errors.New("language is required: pass code or id as positional arg or run interactively"))
 	}
 	attached, err := listAttachedLanguages(ctx, c, ns)
 	if err != nil {
@@ -531,4 +555,25 @@ func languageLabel(l langsync.DtoDTOLanguage) string {
 		return fmt.Sprintf("language id %d", *l.Id)
 	}
 	return "<unknown language>"
+}
+
+// deletedResult is what a delete prints with -o json.
+type deletedResult struct {
+	ID      string `json:"id" yaml:"id"`
+	Deleted bool   `json:"deleted" yaml:"deleted"`
+}
+
+// languageDetached is what `lang remove -o json` prints.
+type languageDetached struct {
+	Namespace  string `json:"namespace" yaml:"namespace"`
+	LanguageID int    `json:"languageId" yaml:"languageId"`
+	Removed    bool   `json:"removed" yaml:"removed"`
+}
+
+// languageAttached is what `lang add -o json` prints.
+type languageAttached struct {
+	Namespace    string `json:"namespace" yaml:"namespace"`
+	Language     string `json:"language" yaml:"language"`
+	LanguageID   int    `json:"languageId,omitempty" yaml:"languageId,omitempty"`
+	ConnectionID *int   `json:"connectionId,omitempty" yaml:"connectionId,omitempty"`
 }

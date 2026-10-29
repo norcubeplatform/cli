@@ -1,0 +1,12 @@
+{
+  "error": {
+    "code": "not_found",
+    "message": "data source not found",
+    "status": 404,
+    "service": "backup",
+    "method": "GET",
+    "url": "http://backend/datasources/ds-404",
+    "type": "NOT_FOUND",
+    "requestId": "req-golden"
+  }
+}

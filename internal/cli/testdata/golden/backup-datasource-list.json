@@ -1,0 +1,26 @@
+[
+  {
+    "createdAt": "2026-01-01T00:00:00Z",
+    "engine": "postgres",
+    "environment": "production",
+    "id": "ds-1",
+    "isActive": true,
+    "name": "prod-db",
+    "organizationId": "org-1",
+    "restoreCheckLastAt": "2026-10-01T11:00:00Z",
+    "restoreCheckPassed": 3,
+    "restoreCheckTotal": 4,
+    "restoreCheckWarnings": 1,
+    "updatedAt": "2026-01-01T00:00:00Z"
+  },
+  {
+    "createdAt": "2026-02-01T00:00:00Z",
+    "engine": "mongodb",
+    "environment": "staging",
+    "id": "ds-2",
+    "isActive": false,
+    "name": "analytics",
+    "organizationId": "org-1",
+    "updatedAt": "2026-02-01T00:00:00Z"
+  }
+]

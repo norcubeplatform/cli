@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/norcubeplatform/cli/internal/api/snapdb"
+	"github.com/norcubeplatform/cli/internal/cmdutil"
 	"github.com/norcubeplatform/cli/internal/output"
 )
 
@@ -46,7 +47,7 @@ dash; enable restore testing in the dashboard or run one now with
 			}
 
 			items := res.JSON200.List
-			return output.PrintPaged(cmd.OutOrStdout(), c.output, c.flags.NoPager, output.Table[snapdb.DtoDataSource]{
+			return cmdutil.Print(cmd, output.Table[snapdb.DtoDataSource]{
 				Headers:   []string{"DATASOURCE", "ENGINE", "HEALTH", "TESTS", "WARNINGS", "LAST TESTED"},
 				MaxWidths: []int{32, 0, 0, 0, 0, 0},
 				Rows: func(d snapdb.DtoDataSource) []string {

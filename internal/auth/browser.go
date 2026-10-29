@@ -10,9 +10,13 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/pkg/browser"
+
+	"github.com/norcubeplatform/cli/internal/transport"
 )
 
 // CallbackPayload is what the /cli-login frontend page POSTs to our loopback
@@ -47,6 +51,9 @@ type BrowserLoginOptions struct {
 	Timeout        time.Duration // how long to wait for the user to complete the flow
 	BrowserOpenURL func(string) error
 	OnURLReady     func(string) // called with the URL just before opening the browser, for printing
+	// NoBrowser skips opening a browser: the caller prints the URL (via
+	// OnURLReady) for the user to open anywhere, e.g. over SSH.
+	NoBrowser bool
 }
 
 // BrowserLogin runs the full browser-based login handshake:
@@ -73,10 +80,17 @@ func BrowserLogin(ctx context.Context, opts BrowserLoginOptions) (*CallbackPaylo
 		return nil, fmt.Errorf("generate state: %w", err)
 	}
 
-	// Bind to :0 so the OS picks a free port.
-	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	allowedOrigin, err := originOf(opts.WebApp)
 	if err != nil {
-		return nil, fmt.Errorf("bind loopback: %w", err)
+		return nil, err
+	}
+
+	// Bind to :0 so the OS picks a free port. The web app posts to
+	// http://127.0.0.1:<port>, so it must be IPv4 loopback.
+	listener, err := net.Listen("tcp4", "127.0.0.1:0")
+	if err != nil {
+		return nil, fmt.Errorf("can't open a local port on 127.0.0.1 for the sign-in callback: %w. "+
+			"Browser login needs IPv4 loopback; check that the loopback interface is up and that no firewall blocks local ports", err)
 	}
 	port := listener.Addr().(*net.TCPAddr).Port
 
@@ -85,8 +99,16 @@ func BrowserLogin(ctx context.Context, opts BrowserLoginOptions) (*CallbackPaylo
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/callback", func(w http.ResponseWriter, r *http.Request) {
-		// CORS — the page is served from WebApp, the callback hits 127.0.0.1.
-		w.Header().Set("Access-Control-Allow-Origin", originHeader(r, opts.WebApp))
+		// CORS: only the configured web app may call back. The page is
+		// served from WebApp, the callback hits 127.0.0.1. Any other
+		// site the user has open is refused before it can submit a
+		// payload (the state check would stop it too).
+		w.Header().Set("Vary", "Origin")
+		if origin := r.Header.Get("Origin"); origin != "" && origin != allowedOrigin {
+			http.Error(w, "origin not allowed", http.StatusForbidden)
+			return
+		}
+		w.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
 		w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 		// Chrome's Private Network Access requires this header on requests
@@ -142,7 +164,9 @@ func BrowserLogin(ctx context.Context, opts BrowserLoginOptions) (*CallbackPaylo
 		opts.OnURLReady(loginURL)
 	}
 	// Open failure is not fatal — the user can copy/paste the URL manually.
-	_ = opts.BrowserOpenURL(loginURL)
+	if !opts.NoBrowser {
+		_ = opts.BrowserOpenURL(loginURL)
+	}
 
 	timeoutCtx, cancel := context.WithTimeout(ctx, opts.Timeout)
 	defer cancel()
@@ -166,8 +190,36 @@ func buildLoginURL(webApp string, port int, state string) string {
 	q := u.Query()
 	q.Set("port", fmt.Sprintf("%d", port))
 	q.Set("state", state)
+	// The sign-in page shows the device before you authorize it and
+	// records it on the session, so you can tell your sessions apart
+	// under Account › CLI sessions. Both are optional.
+	if host := deviceName(); host != "" {
+		q.Set("host", host)
+	}
+	q.Set("client", truncate(transport.UserAgent()))
 	u.RawQuery = q.Encode()
 	return u.String()
+}
+
+// maxLoginParam matches what the sign-in page keeps of host and client.
+const maxLoginParam = 256
+
+// deviceName is this machine's hostname, or "" when it can't be read.
+func deviceName() string {
+	host, err := os.Hostname()
+	if err != nil {
+		return ""
+	}
+	return truncate(strings.TrimSpace(host))
+}
+
+// truncate keeps at most maxLoginParam bytes of s without splitting a
+// character.
+func truncate(s string) string {
+	if len(s) <= maxLoginParam {
+		return s
+	}
+	return strings.ToValidUTF8(s[:maxLoginParam], "")
 }
 
 func randomState() (string, error) {
@@ -178,13 +230,12 @@ func randomState() (string, error) {
 	return hex.EncodeToString(b), nil
 }
 
-// originHeader echoes back the request's Origin if it matches the configured
-// web app, otherwise falls back to the configured web app. Echoing is required
-// because Access-Control-Allow-Origin: * is rejected when credentials are used.
-func originHeader(r *http.Request, webApp string) string {
-	origin := r.Header.Get("Origin")
-	if origin != "" {
-		return origin
+// originOf returns the browser Origin ("scheme://host[:port]") of the web
+// app URL, which is what its pages send in the Origin header.
+func originOf(webApp string) (string, error) {
+	u, err := url.Parse(webApp)
+	if err != nil || u.Scheme == "" || u.Host == "" {
+		return "", fmt.Errorf("web app URL %q is not an absolute URL", webApp)
 	}
-	return webApp
+	return strings.ToLower(u.Scheme) + "://" + strings.ToLower(u.Host), nil
 }

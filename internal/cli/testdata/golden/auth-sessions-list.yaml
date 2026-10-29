@@ -1,0 +1,39 @@
+- client:
+    arch: arm64
+    name: norcube
+    os: darwin
+    version: 0.17.0
+  created_at: "2026-10-16T09:00:00Z"
+  current: true
+  expires_at: "2026-11-27T11:42:00Z"
+  hostname: dev-laptop
+  id: sess-1
+  ip_address: 203.0.113.24
+  kind: cli
+  last_used_at: "2026-10-28T11:42:00Z"
+- client:
+    arch: amd64
+    name: norcube
+    os: linux
+    version: 0.16.0
+  created_at: "2026-09-28T08:00:00Z"
+  current: false
+  expires_at: "2026-11-26T03:10:00Z"
+  hostname: ci-runner-04
+  id: sess-2
+  ip_address: 198.51.100.7
+  kind: cli
+  last_used_at: "2026-10-27T03:10:00Z"
+- client:
+    arch: null
+    name: null
+    os: null
+    version: null
+  created_at: "2026-08-29T10:00:00Z"
+  current: false
+  expires_at: "2026-11-18T10:00:00Z"
+  hostname: null
+  id: sess-3
+  ip_address: null
+  kind: cli
+  last_used_at: "2026-10-19T10:00:00Z"

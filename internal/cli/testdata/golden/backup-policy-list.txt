@@ -1,0 +1,2 @@
+POLICY   ENABLED  PRIORITY  DESTINATION  ATTACHMENT_ID
+Nightly  active   1                      att-1

@@ -1,0 +1,6 @@
+{
+  "error": {
+    "code": "org_not_found",
+    "message": "no organization \"nope\" among the ones you belong to. Run `norcube org list` to see them"
+  }
+}

@@ -2,10 +2,11 @@ package output
 
 import (
 	"io"
-	"os"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
+
+	"github.com/norcubeplatform/cli/internal/term"
 )
 
 // Style controls how a Table is rendered. Header bold, status colors, and
@@ -29,13 +30,9 @@ type styling struct {
 }
 
 func styleFor(w io.Writer) styling {
-	// NO_COLOR (https://no-color.org) is the de facto standard: any
-	// non-empty value disables color. Honor it before checking isatty so
-	// users can force-disable even in interactive terminals.
-	if os.Getenv("NO_COLOR") != "" {
-		return styling{enabled: false}
-	}
-	return styling{enabled: isInteractive(w)}
+	// NO_COLOR, CLICOLOR=0 and --no-color switch styling off even on a
+	// terminal (term.Color checks them).
+	return styling{enabled: term.Color(w)}
 }
 
 var (

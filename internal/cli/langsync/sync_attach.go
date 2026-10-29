@@ -13,6 +13,7 @@ import (
 	"github.com/norcubeplatform/cli/internal/api/langsync"
 	"github.com/norcubeplatform/cli/internal/cli/langsync/projectcfg"
 	"github.com/norcubeplatform/cli/internal/cli/langsync/projectcfg/translations"
+	"github.com/norcubeplatform/cli/internal/term"
 )
 
 // preflightAttachLanguages runs before runParallelSync starts the
@@ -35,7 +36,7 @@ import (
 // writes files under the local (aliased) code so the user's
 // preferred spelling stays on disk.
 func preflightAttachLanguages(ctx context.Context, c *langsyncContext, cfg *projectcfg.File, configPath string, targets []projectcfg.Namespace) error {
-	if !stdinIsInteractive() {
+	if !term.StdinIsTerminal() {
 		return warnUnattachedLocalLangs(ctx, c, cfg, configPath, targets)
 	}
 

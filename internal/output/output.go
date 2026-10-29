@@ -1,5 +1,5 @@
-// Package output renders command results in one of three user-selected
-// formats: a human-friendly table, JSON, or YAML.
+// Package output renders command results in one of four user-selected
+// formats: a human-friendly table, JSON, YAML, or tab-separated text.
 //
 // Every service command should hand its result to Print so the global
 // --output flag works uniformly. Table rendering is opt-in per command:
@@ -9,12 +9,9 @@ package output
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"strings"
 	"unicode/utf8"
-
-	"gopkg.in/yaml.v3"
 )
 
 // Format names. Kept as strings so the cobra flag can use them directly.
@@ -59,11 +56,13 @@ func Print(w io.Writer, format string, value any) error {
 		enc.SetIndent("", "  ")
 		return enc.Encode(payload(value))
 	case FormatYAML:
-		return yaml.NewEncoder(w).Encode(payload(value))
+		return encodeYAML(w, payload(value))
 	case FormatTable:
 		return printTable(w, value)
+	case FormatText:
+		return printText(w, value)
 	default:
-		return fmt.Errorf("unknown output format %q (want table | json | yaml)", format)
+		return errUnknownFormat(format)
 	}
 }
 
@@ -106,7 +105,7 @@ func (t Table[T]) writeTable(w io.Writer) error {
 	for _, item := range t.Items {
 		cells := t.Rows(item)
 		for i, c := range cells {
-			cells[i] = truncate(c, t.maxWidthAt(i))
+			cells[i] = truncate(tableCell(c), t.maxWidthAt(i))
 		}
 		plain = append(plain, cells)
 	}

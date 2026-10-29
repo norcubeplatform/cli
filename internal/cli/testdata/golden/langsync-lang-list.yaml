@@ -1,0 +1,13 @@
+- code: en
+  id: 4
+  isCustom: false
+  name: English
+- code: cs
+  id: 9
+  isCustom: false
+  name: Czech
+- code: internal-en
+  id: 101
+  isCustom: true
+  name: Internal English
+  organizationId: org-1

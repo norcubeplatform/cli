@@ -1,12 +1,13 @@
 package backup
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
 
 	"github.com/norcubeplatform/cli/internal/api/snapdb"
-	"github.com/norcubeplatform/cli/internal/clictx"
+	"github.com/norcubeplatform/cli/internal/cmdutil"
 	"github.com/norcubeplatform/cli/internal/output"
 )
 
@@ -34,6 +35,8 @@ enqueuing jobs for any policy attached to this data source until you run
 "resume". History and attachments are preserved.
 
 If no id is given and stdin is a terminal, an interactive picker is shown.`,
+		Example: `  norcube backup datasource pause 9f8e7d6c-…
+  norcube backup datasource pause   # pick interactively`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return setDataSourceActive(cmd, args, false, "Pause which data source?", "Paused %q.")
@@ -49,7 +52,8 @@ func newDataSourceResumeCmd() *cobra.Command {
 pick up its attached policies on the next tick.
 
 If no id is given and stdin is a terminal, an interactive picker is shown.`,
-		Args: cobra.MaximumNArgs(1),
+		Example: `  norcube backup datasource resume 9f8e7d6c-…`,
+		Args:    cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return setDataSourceActive(cmd, args, true, "Resume which data source?", "Resumed %q.")
 		},
@@ -67,7 +71,7 @@ func setDataSourceActive(cmd *cobra.Command, args []string, active bool, pickerT
 	id, pickedName, err := resolveDataSourceID(cmd.Context(), c, args, pickerTitle)
 	if err != nil {
 		if err == ErrCancelled {
-			fmt.Fprintln(cmd.OutOrStdout(), "Cancelled.")
+			fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
 			return nil
 		}
 		return err
@@ -89,41 +93,52 @@ func setDataSourceActive(cmd *cobra.Command, args []string, active bool, pickerT
 	if display == "" {
 		display = id
 	}
-	fmt.Fprintf(cmd.OutOrStdout(), successFmt+"\n", display)
-	return nil
+	return cmdutil.Print(cmd, output.Done{
+		Message: fmt.Sprintf(successFmt, display),
+		Value:   dataSourceState{ID: id, Name: pickedName, IsActive: active},
+		Fields:  []output.Field{{Value: id}, {Value: activeStr(active)}},
+	})
 }
 
 func newDataSourceListCmd() *cobra.Command {
-	var query string
-	var cursor string
+	var search string
+	var pages cmdutil.PageFlags
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List data sources in the active organization",
+		Example: `  norcube backup datasource list
+  norcube backup datasource list --search prod --all-pages
+  norcube backup datasource list -o json --query "[?!isActive].id"`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			c, err := newSnapdbContext(cmd)
 			if err != nil {
 				return err
 			}
-
-			params := &snapdb.ListParams{}
-			if query != "" {
-				params.Query = &query
-			}
-			if cursor != "" {
-				params.Cursor = &cursor
-			}
-
-			res, err := c.client.ListWithResponse(cmd.Context(), params)
+			page, err := cmdutil.Paginate(cmd.Context(), pages, func(ctx context.Context, cursor string, _ int) ([]snapdb.DtoDataSource, string, error) {
+				params := &snapdb.ListParams{}
+				if search != "" {
+					params.Query = &search
+				}
+				if cursor != "" {
+					params.Cursor = &cursor
+				}
+				res, err := c.client.ListWithResponse(ctx, params)
+				if err != nil {
+					return nil, "", err
+				}
+				if res.JSON200 == nil {
+					return nil, "", apiError(res.HTTPResponse, res.Body, res.JSON400, res.JSON500)
+				}
+				next := ""
+				if n := res.JSON200.Cursors.Next; n != nil {
+					next = *n
+				}
+				return res.JSON200.List, next, nil
+			})
 			if err != nil {
 				return err
 			}
-			if res.JSON200 == nil {
-				return apiError(res.HTTPResponse, res.Body, res.JSON400, res.JSON500)
-			}
-
-			items := res.JSON200.List
-			flags := clictx.Get(cmd)
-			return output.PrintPaged(cmd.OutOrStdout(), c.output, flags.NoPager, output.Table[snapdb.DtoDataSource]{
+			return page.Print(cmd, output.Table[snapdb.DtoDataSource]{
 				Headers:   []string{"NAME", "ENGINE", "ENV", "ACTIVE", "ID"},
 				MaxWidths: []int{40, 0, 0, 0, 0},
 				Style:     output.Style{StatusColumn: 3}, // ACTIVE (yes/no rendered via known statuses)
@@ -136,12 +151,13 @@ func newDataSourceListCmd() *cobra.Command {
 						d.Id,
 					}
 				},
-				Items: items,
+				Items: page.Items,
 			})
 		},
 	}
-	cmd.Flags().StringVar(&query, "query", "", "Filter data sources by name substring")
-	cmd.Flags().StringVar(&cursor, "cursor", "", "Cursor for the next page (from a prior list response)")
+	// --search, not --query: the global --query is the JMESPath filter.
+	cmd.Flags().StringVar(&search, "search", "", "Only data sources whose name contains this text")
+	cmdutil.AddPageFlags(cmd, &pages, 0, maxBackupItems)
 	return cmd
 }
 
@@ -149,7 +165,9 @@ func newDataSourceGetCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "get <id>",
 		Short: "Show a single data source",
-		Args:  cobra.ExactArgs(1),
+		Example: `  norcube backup datasource get 9f8e7d6c-…
+  norcube backup datasource get 9f8e7d6c-… -o json`,
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			c, err := newSnapdbContext(cmd)
 			if err != nil {
@@ -159,14 +177,17 @@ func newDataSourceGetCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			// /datasources/:id has no typed 200 wrapper for a single item in
-			// this generation pass (the swagger response schema is empty).
-			// Fall back to printing the body verbatim.
-			if res.HTTPResponse.StatusCode != 200 {
-				return fmt.Errorf("backup service returned %d: %s", res.HTTPResponse.StatusCode, string(res.Body))
+			if res.JSON200 == nil {
+				return apiError(res.HTTPResponse, res.Body, res.JSON400, res.JSON500)
 			}
-			fmt.Fprintln(cmd.OutOrStdout(), string(res.Body))
-			return nil
+			d := *res.JSON200
+			return cmdutil.Print(cmd, output.Object{Value: d, Fields: []output.Field{
+				{Name: "Name", Value: d.Name},
+				{Name: "ID", Value: d.Id},
+				{Name: "Engine", Value: d.Engine},
+				{Name: "Environment", Value: d.Environment},
+				{Name: "Status", Value: activeStr(d.IsActive)},
+			}})
 		},
 	}
 }
@@ -176,4 +197,11 @@ func activeStr(b bool) string {
 		return "active"
 	}
 	return "inactive"
+}
+
+// dataSourceState is what pause/resume print with -o json.
+type dataSourceState struct {
+	ID       string `json:"id" yaml:"id"`
+	Name     string `json:"name,omitempty" yaml:"name,omitempty"`
+	IsActive bool   `json:"isActive" yaml:"isActive"`
 }
