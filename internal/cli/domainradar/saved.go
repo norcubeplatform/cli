@@ -64,21 +64,21 @@ func newSavedListCmd(d deps) *cobra.Command {
 			}
 			f := resultFilters{available: available, registered: registered, search: search, tlds: tlds}
 			page, err := cmdutil.Paginate(cmd.Context(), pages, func(ctx context.Context, cursor string, size int) ([]domainradar.DtoSavedDomain, string, error) {
-				params := &domainradar.GetDomainsSavedParams{
+				params := &domainradar.ListSavedDomainsParams{
 					Limit: &size, Available: f.availability(), Search: f.searchParam(), Tld: f.tldParam(),
 				}
 				if registrar != "" {
 					params.Registrar = &registrar
 				}
 				if sortBy != "" {
-					s := domainradar.GetDomainsSavedParamsSortBy(sortBy)
-					o := domainradar.GetDomainsSavedParamsSortDir(sortDir)
+					s := domainradar.ListSavedDomainsParamsSortBy(sortBy)
+					o := domainradar.ListSavedDomainsParamsSortDir(sortDir)
 					params.SortBy, params.SortDir = &s, &o
 				}
 				if cursor != "" {
 					params.Cursor = &cursor
 				}
-				res, err := c.API.GetDomainsSavedWithResponse(ctx, params)
+				res, err := c.API.ListSavedDomainsWithResponse(ctx, params)
 				if err != nil {
 					return nil, "", err
 				}
@@ -139,11 +139,11 @@ func newSavedAddCmd(d deps) *cobra.Command {
 			if err != nil {
 				return nil, err
 			}
-			body := domainradar.PostDomainsSavedJSONRequestBody{Domain: &domain}
+			body := domainradar.SaveDomainJSONRequestBody{Domain: &domain}
 			if notes != "" {
 				body.Notes = &notes
 			}
-			res, err := c.API.PostDomainsSavedWithResponse(cmd.Context(), body)
+			res, err := c.API.SaveDomainWithResponse(cmd.Context(), body)
 			if err != nil {
 				return nil, err
 			}
@@ -174,7 +174,7 @@ func newSavedRemoveCmd(d deps) *cobra.Command {
 			if err != nil {
 				return nil, err
 			}
-			res, err := c.API.DeleteDomainsSavedDomainWithResponse(cmd.Context(), domain)
+			res, err := c.API.RemoveSavedDomainWithResponse(cmd.Context(), domain)
 			if err != nil {
 				return nil, err
 			}

@@ -6,6 +6,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"os"
@@ -18,12 +19,14 @@ import (
 )
 
 func main() {
-	if len(os.Args) != 2 {
-		fmt.Fprintln(os.Stderr, "usage: swagger2openapi <swagger-2.0.json>")
+	excludeTags := flag.String("exclude-tags", "", "comma-separated tags whose operations are left out (with the schemas only they use)")
+	flag.Parse()
+	if flag.NArg() != 1 {
+		fmt.Fprintln(os.Stderr, "usage: swagger2openapi [-exclude-tags a,b] <swagger-2.0.json>")
 		os.Exit(2)
 	}
 
-	in, err := os.Open(os.Args[1])
+	in, err := os.Open(flag.Arg(0))
 	must(err)
 	defer in.Close()
 
@@ -42,6 +45,10 @@ func main() {
 
 	out, err := json.MarshalIndent(v3, "", "  ")
 	must(err)
+	if tags := splitList(*excludeTags); len(tags) > 0 {
+		out, err = excludeOperations(out, tags)
+		must(err)
+	}
 
 	_, err = os.Stdout.Write(out)
 	must(err)

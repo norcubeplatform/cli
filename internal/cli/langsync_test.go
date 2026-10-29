@@ -28,7 +28,10 @@ func init() {
 			{"id":"p-1","name":"Friendly tone","prompt":"Use an informal, friendly tone.\nAddress the reader as you.","isPrivate":false,"organizationId":"org-1","createdBy":"user-1","createdAt":"2026-10-01T09:00:00Z","updatedAt":"2026-10-02T09:00:00Z"},
 			{"id":"p-2","name":"Legal","prompt":"Keep legal terms exact.","isPrivate":true,"organizationId":"org-1","createdBy":"user-1","createdAt":"2026-10-03T09:00:00Z","updatedAt":"2026-10-03T09:00:00Z"}
 		]`,
-		"GET /glossary": `{"id":"g-1","organizationId":"org-1","defaultLanguageId":4}`,
+		"GET /translations/custom-prompts/p-1":    `{"id":"p-1","name":"Friendly tone","prompt":"Use an informal, friendly tone.\nAddress the reader as you.","isPrivate":false,"organizationId":"org-1","createdBy":"user-1","createdAt":"2026-10-01T09:00:00Z","updatedAt":"2026-10-02T09:00:00Z"}`,
+		"GET /namespaces/web/terms/7":             `{"term":{"id":7,"mark":"Save changes","context":"button","created_at":"2026-03-04T05:06:07Z"},"translations":[{"lang":{"code":"en","id":4},"language_to_namespace_id":40,"value":"Save changes","aiGenerated":false},{"lang":{"code":"cs","id":9},"language_to_namespace_id":90,"value":"Uložit změny","aiGenerated":true}]}`,
+		"GET /namespaces/web/terms/imports/imp-1": `{"id":"imp-1","format":"csv","status":"completed","totalRows":2,"createdAt":"2026-10-28T09:00:00Z","finishedAt":"2026-10-28T09:00:12Z","expiresAt":"2026-10-29T09:00:00Z"}`,
+		"GET /glossary":                           `{"id":"g-1","organizationId":"org-1","defaultLanguageId":4}`,
 		"GET /glossary/items": `{"list":[
 			{"id":"gi-1","glossaryId":"g-1","defaultLanguageValue":"Norcube","context":"the company","type":"n/a","isCaseSensitive":true,"isTranslatable":false,"translatedCount":0,"enabledLanguagesCount":2,"translationPercentage":0,"createdAt":"2026-10-01T09:00:00Z"},
 			{"id":"gi-2","glossaryId":"g-1","defaultLanguageValue":"invoice","context":"a bill sent to a customer","type":"noun","isCaseSensitive":false,"isTranslatable":true,"translatedCount":1,"enabledLanguagesCount":2,"translationPercentage":50,"createdAt":"2026-10-02T09:00:00Z"}
@@ -71,6 +74,8 @@ func TestGoldenLangSync(t *testing.T) {
 		{"langsync-glossary-get", []string{"langsync", "glossary", "get"}},
 		{"langsync-glossary-items-list", []string{"langsync", "glossary", "items", "list"}},
 		{"langsync-glossary-items-get", []string{"langsync", "glossary", "items", "get", "gi-2"}},
+		{"langsync-translations-get", []string{"langsync", "translations", "get", "7", "-n", "web"}},
+		{"langsync-terms-import-status", []string{"langsync", "terms", "import", "status", "imp-1", "-n", "web"}},
 		{"langsync-api-keys-list", []string{"langsync", "api-keys", "list"}},
 		{"langsync-audit-list", []string{"langsync", "audit", "list", "--all-pages"}},
 	}
@@ -548,5 +553,88 @@ func TestLangSyncImportDryRunUploadsNothing(t *testing.T) {
 	}
 	if srv.upload != "" || !strings.Contains(out, "Would import 1 row from strings.csv") || !strings.Contains(out, "cs translation") {
 		t.Fatalf("upload %q out %q", srv.upload, out)
+	}
+}
+
+// importStatuses answers GET of import imp-1 with the next status each
+// time (the last one repeats).
+func importStatuses(statuses ...string) http.HandlerFunc {
+	var n int32
+	return func(w http.ResponseWriter, r *http.Request) {
+		i := int(atomic.AddInt32(&n, 1)) - 1
+		if i >= len(statuses) {
+			i = len(statuses) - 1
+		}
+		fmt.Fprintf(w, `{"id":"imp-1","format":"csv","status":%q,"totalRows":2,"error":"row 2: mark is empty","createdAt":"2026-10-28T09:00:00Z","expiresAt":"2026-10-29T09:00:00Z"}`, statuses[i])
+	}
+}
+
+func TestLangSyncImportWaits(t *testing.T) {
+	goldenEnv(t)
+	srv := &importServer{}
+	hs := srv.handlers(t)
+	hs["GET /namespaces/web/terms/imports/imp-1"] = importStatuses("processing", "completed")
+	goldenHandlers(t, hs)
+	path := writeCSV(t, "strings.csv", "key,en\nsave,Save\n")
+	out, stderr, err := run(t, "langsync", "terms", "import", path, "-n", "web", "--wait", "-o", "json", "--query", "status")
+	if err != nil || strings.TrimSpace(out) != `"completed"` {
+		t.Fatalf("%v %s %s", err, out, stderr)
+	}
+
+	goldenHandlers(t, map[string]http.HandlerFunc{"GET /namespaces/web/terms/imports/imp-1": importStatuses("failed")})
+	_, _, err = run(t, "langsync", "terms", "import", path, "-n", "web", "--wait")
+	if e := Describe(err); e.Code != clierr.CodeJobFailed || !strings.Contains(e.Message, "mark is empty") {
+		t.Fatalf("got %v (code %s)", err, e.Code)
+	}
+	_, _, err = run(t, "langsync", "terms", "import", "status", "imp-1", "-n", "web", "--wait")
+	if e := Describe(err); e.Code != clierr.CodeJobFailed {
+		t.Fatalf("status --wait: got %v (code %s)", err, e.Code)
+	}
+	// Without --wait, a failed import is a result, not an error.
+	out, _, err = run(t, "langsync", "terms", "import", "status", "imp-1", "-n", "web", "-o", "json", "--query", "status")
+	if err != nil || strings.TrimSpace(out) != `"failed"` {
+		t.Fatalf("%v %s", err, out)
+	}
+	if _, _, err := run(t, "langsync", "terms", "import", path, "-n", "web", "--wait", "--dry-run"); !clierr.IsUsage(err) {
+		t.Errorf("--wait with --dry-run: %v", err)
+	}
+}
+
+func TestLangSyncGlossaryLanguagesAttach(t *testing.T) {
+	goldenEnv(t)
+	var body map[string]any
+	goldenHandlers(t, map[string]http.HandlerFunc{"POST /glossary/languages": func(w http.ResponseWriter, r *http.Request) {
+		body = jsonBody(t, r)
+		fmt.Fprint(w, `{}`)
+	}})
+	out, stderr, err := run(t, "langsync", "glossary", "languages", "attach", "CS")
+	if err != nil {
+		t.Fatalf("%v %s", err, stderr)
+	}
+	if body["languageId"] != float64(9) || !strings.Contains(out, "Czech") {
+		t.Fatalf("body %v out %s", body, out)
+	}
+	if _, _, err := run(t, "langsync", "glossary", "languages", "attach", "xx"); !clierr.IsUsage(err) {
+		t.Errorf("unknown language: %v", err)
+	}
+}
+
+func TestLangSyncGlossaryTypes(t *testing.T) {
+	goldenEnv(t)
+	var body map[string]any
+	goldenHandlers(t, map[string]http.HandlerFunc{"POST /glossary/items": func(w http.ResponseWriter, r *http.Request) {
+		body = jsonBody(t, r)
+		w.WriteHeader(http.StatusCreated)
+		fmt.Fprint(w, `{"itemId":"gi-9"}`)
+	}})
+	for in, want := range map[string]string{"other": "n/a", "n/a": "n/a", "Adjective": "adjective", "idiom": "idiom"} {
+		body = nil
+		if _, stderr, err := run(t, "langsync", "glossary", "items", "create", "x", "--type", in); err != nil || body["type"] != want {
+			t.Errorf("--type %s: sent %v (%v %s), want %s", in, body["type"], err, stderr, want)
+		}
+	}
+	body = nil
+	if _, _, err := run(t, "langsync", "glossary", "items", "create", "x", "--type", "adj"); !clierr.IsUsage(err) || body != nil {
+		t.Errorf("--type adj: %v (sent %v)", err, body)
 	}
 }

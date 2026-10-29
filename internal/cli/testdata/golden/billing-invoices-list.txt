@@ -1,0 +1,2 @@
+ID    PERIOD                   STATUS  SUBTOTAL   TAX       TOTAL      BILLED_TO
+1042  2026-09-01 – 2026-09-30  draft   25.00 USD  5.25 USD  30.25 USD  Acme Inc

@@ -1,0 +1,13 @@
+- id: dst-1
+  isActive: true
+  isManaged: true
+  name: Norcube storage
+  region: eu-central-1
+  type: s3
+- bucket: acme-backups
+  id: dst-2
+  isActive: true
+  isManaged: false
+  name: Own bucket
+  region: eu-west-1
+  type: s3

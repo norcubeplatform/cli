@@ -25,7 +25,8 @@ that must never be translated, and words with an agreed translation per
 language. AI translation follows it in every namespace.
 
 The organization has one glossary; it is set up in the dashboard, which
-also chooses the languages it covers.`,
+also chooses its default language. ` + "`glossary languages attach`" + ` adds the
+languages it covers.`,
 	}
 	items := &cobra.Command{
 		Use:     "items",
@@ -34,15 +35,95 @@ also chooses the languages it covers.`,
 	}
 	items.AddCommand(newGlossaryItemListCmd(), newGlossaryItemGetCmd(), newGlossaryItemCreateCmd(),
 		newGlossaryItemTranslateCmd(), newGlossaryItemDeleteCmd())
-	cmd.AddCommand(newGlossaryGetCmd(), items)
+	languages := &cobra.Command{
+		Use:     "languages",
+		Aliases: []string{"language", "lang"},
+		Short:   "Choose the languages the glossary covers",
+	}
+	languages.AddCommand(newGlossaryLanguageAttachCmd())
+	cmd.AddCommand(newGlossaryGetCmd(), items, languages)
 	return cmd
 }
 
-// glossaryItemTypes are the word classes the API accepts; n/a is "not
-// applicable" (a product name, an abbreviation).
-var glossaryItemTypes = []string{
-	"noun", "verb", "adjective", "adverb", "pronoun", "preposition",
-	"conjunction", "interjection", "phrase", "idiom", "n/a",
+func newGlossaryLanguageAttachCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:     "attach <language>",
+		Aliases: []string{"add"},
+		Short:   "Add a language to the glossary",
+		Long: `Adds a language (by code, such as cs, or numeric id) to the glossary, so
+its entries can be given an agreed translation into it
+(` + "`glossary items translate`" + `). Languages are removed in the dashboard.`,
+		Example: `  norcube langsync glossary languages attach cs
+  norcube langsync glossary languages attach 17`,
+		Args: cobra.ExactArgs(1),
+		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
+			c, err := newLangsyncContext(cmd)
+			if err != nil {
+				return nil, err
+			}
+			lang, err := resolveOrgLanguage(cmd.Context(), c, args[0])
+			if err != nil {
+				return nil, err
+			}
+			id, code := cmdutil.Deref(lang.Id), cmdutil.Deref(lang.Code)
+			res, err := c.API.AttachLanguageToGlossaryWithResponse(cmd.Context(), langsync.GlossaryAttachLanguageRequest{LanguageId: id})
+			if err != nil {
+				return nil, err
+			}
+			if !ok2xx(res.HTTPResponse) {
+				return nil, glossaryError(res.HTTPResponse, res.Body, res.JSON400, res.JSON401, res.JSON500)
+			}
+			return output.Done{
+				Message: fmt.Sprintf("Added %s to the glossary.", languageLabel(lang)),
+				Value:   map[string]any{"languageId": id, "language": code, "attached": true},
+				Fields:  []output.Field{{Value: code}},
+			}, nil
+		}),
+	}
+}
+
+// glossaryItemTypes are the word classes the API accepts, in the order the
+// dashboard offers them. The API's catch-all "n/a" (a product name, an
+// abbreviation) is called "other" here, as in the dashboard; "n/a" is
+// accepted too.
+var glossaryItemTypes = []langsync.ConstantsGlossaryItemType{
+	langsync.GlossaryItemTypeNoun, langsync.GlossaryItemTypeVerb, langsync.GlossaryItemTypeAdj,
+	langsync.GlossaryItemTypeAdv, langsync.GlossaryItemTypePronoun, langsync.GlossaryItemTypePreposition,
+	langsync.GlossaryItemTypeConjunction, langsync.GlossaryItemTypeInterjection, langsync.GlossaryItemTypePhrase,
+	langsync.GlossaryItemTypeIdiom, langsync.GlossaryItemTypeNotApplicable,
+}
+
+// glossaryTypeOther is how the CLI names GlossaryItemTypeNotApplicable.
+const glossaryTypeOther = "other"
+
+// glossaryTypeLabel is the name a person sees for an item type.
+func glossaryTypeLabel(t langsync.ConstantsGlossaryItemType) string {
+	if t == langsync.GlossaryItemTypeNotApplicable {
+		return glossaryTypeOther
+	}
+	return string(t)
+}
+
+// glossaryTypeNames are the --type values, as a person writes them.
+func glossaryTypeNames() []string {
+	out := make([]string, len(glossaryItemTypes))
+	for i, t := range glossaryItemTypes {
+		out[i] = glossaryTypeLabel(t)
+	}
+	return out
+}
+
+// parseGlossaryType reads a --type value.
+func parseGlossaryType(s string) (langsync.ConstantsGlossaryItemType, error) {
+	v := strings.ToLower(strings.TrimSpace(s))
+	if v == glossaryTypeOther {
+		return langsync.GlossaryItemTypeNotApplicable, nil
+	}
+	t := langsync.ConstantsGlossaryItemType(v)
+	if !t.Valid() {
+		return "", clierr.Usage(fmt.Errorf("--type must be one of %s", strings.Join(glossaryTypeNames(), ", ")))
+	}
+	return t, nil
 }
 
 // glossaryInfo is what `glossary get` prints.
@@ -138,7 +219,7 @@ stay the same in every language.`,
 						translated = "—"
 					}
 					return []string{
-						i.Id, i.DefaultLanguageValue, string(i.Type),
+						i.Id, i.DefaultLanguageValue, glossaryTypeLabel(i.Type),
 						caseLabel(i.IsCaseSensitive), yesNo(!i.IsTranslatable), translated, i.Context,
 					}
 				},
@@ -195,7 +276,7 @@ func newGlossaryItemGetCmd() *cobra.Command {
 			fields := []output.Field{
 				{Name: "ID", Value: i.Id},
 				{Name: "Term", Value: i.DefaultLanguageValue},
-				{Name: "Type", Value: string(i.Type)},
+				{Name: "Type", Value: glossaryTypeLabel(i.Type)},
 				{Name: "Case", Value: caseLabel(i.IsCaseSensitive)},
 				{Name: "Translatable", Value: yesNo(i.IsTranslatable)},
 				{Name: "Context", Value: i.Context},
@@ -231,8 +312,9 @@ translations.`,
 			if term == "" {
 				return nil, clierr.Usage(errors.New("the term must not be empty"))
 			}
-			if !slices.Contains(glossaryItemTypes, itemType) {
-				return nil, clierr.Usage(fmt.Errorf("--type must be one of %s", strings.Join(glossaryItemTypes, ", ")))
+			typ, err := parseGlossaryType(itemType)
+			if err != nil {
+				return nil, err
 			}
 			c, err := newLangsyncContext(cmd)
 			if err != nil {
@@ -240,7 +322,7 @@ translations.`,
 			}
 			body := langsync.GlossaryCreateItemRequest{
 				DefaultLanguageValue: term,
-				Type:                 langsync.ConstantsGlossaryItemType(itemType),
+				Type:                 typ,
 				IsCaseSensitive:      caseSensitive,
 				IsTranslatable:       !untranslate,
 			}
@@ -256,16 +338,16 @@ translations.`,
 			}
 			return output.Done{
 				Message: fmt.Sprintf("Added %q to the glossary (%s).", term, res.JSON201.ItemId),
-				Value:   map[string]any{"id": res.JSON201.ItemId, "term": term, "type": itemType, "isTranslatable": !untranslate, "isCaseSensitive": caseSensitive},
+				Value:   map[string]any{"id": res.JSON201.ItemId, "term": term, "type": string(typ), "isTranslatable": !untranslate, "isCaseSensitive": caseSensitive},
 				Fields:  []output.Field{{Value: res.JSON201.ItemId}},
 			}, nil
 		}),
 	}
 	cmd.Flags().StringVar(&context, "context", "", "What the term means here, for translators and AI translation")
-	cmd.Flags().StringVar(&itemType, "type", "n/a", "Word class: "+strings.Join(glossaryItemTypes, ", "))
+	cmd.Flags().StringVar(&itemType, "type", glossaryTypeOther, "Word class: "+strings.Join(glossaryTypeNames(), ", "))
 	cmd.Flags().BoolVar(&caseSensitive, "case-sensitive", false, "Match the term only with this exact capitalization")
 	cmd.Flags().BoolVar(&untranslate, "keep", false, "Never translate the term (a product or brand name)")
-	_ = cmd.RegisterFlagCompletionFunc("type", cobra.FixedCompletions(glossaryItemTypes, cobra.ShellCompDirectiveNoFileComp))
+	_ = cmd.RegisterFlagCompletionFunc("type", cobra.FixedCompletions(glossaryTypeNames(), cobra.ShellCompDirectiveNoFileComp))
 	return cmd
 }
 

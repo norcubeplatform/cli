@@ -106,7 +106,7 @@ Each job is billed (see https://norcube.com/domainradar/#pricing).`,
 				return nil, err
 			}
 			sz := domainradar.ConstantsNameGeneratorSize(size)
-			body := domainradar.PostNameGeneratorJobsJSONRequestBody{Description: &description, Size: &sz}
+			body := domainradar.CreateNameJobJSONRequestBody{Description: &description, Size: &sz}
 			if category != "" {
 				body.Category = &category
 			}
@@ -116,7 +116,7 @@ Each job is billed (see https://norcube.com/domainradar/#pricing).`,
 			if maxLength > 0 {
 				body.MaxLength = &maxLength
 			}
-			res, err := c.API.PostNameGeneratorJobsWithResponse(cmd.Context(), body)
+			res, err := c.API.CreateNameJobWithResponse(cmd.Context(), body)
 			if err != nil {
 				return nil, err
 			}
@@ -154,11 +154,21 @@ func waitForNames(cmd *cobra.Command, d deps, c *drContext, id string, timeout t
 		last = job
 		return nameTerminal[string(cmdutil.Deref(job.Status))], nil
 	})
-	return last, err
+	if err != nil {
+		return last, err
+	}
+	if status := string(cmdutil.Deref(last.Status)); status != "completed" {
+		msg := fmt.Sprintf("name generation %s ended %s", id, status)
+		if e := strings.TrimSpace(cmdutil.Deref(last.Error)); e != "" {
+			msg += ": " + e
+		}
+		return last, cmdutil.JobFailed(msg, last)
+	}
+	return last, nil
 }
 
 func getNameJob(ctx context.Context, c *drContext, id string) (domainradar.DtoNameGeneratorJob, error) {
-	res, err := c.API.GetNameGeneratorJobsJobIdWithResponse(ctx, id)
+	res, err := c.API.GetNameJobWithResponse(ctx, id)
 	if err != nil {
 		return domainradar.DtoNameGeneratorJob{}, err
 	}
@@ -180,11 +190,11 @@ func newNameListCmd(d deps) *cobra.Command {
 				return err
 			}
 			page, err := cmdutil.Paginate(cmd.Context(), pages, func(ctx context.Context, cursor string, size int) ([]domainradar.DtoNameGeneratorJob, string, error) {
-				params := &domainradar.GetNameGeneratorJobsParams{Limit: &size}
+				params := &domainradar.ListNameJobsParams{Limit: &size}
 				if cursor != "" {
 					params.Cursor = &cursor
 				}
-				res, err := c.API.GetNameGeneratorJobsWithResponse(ctx, params)
+				res, err := c.API.ListNameJobsWithResponse(ctx, params)
 				if err != nil {
 					return nil, "", err
 				}
@@ -268,7 +278,7 @@ func newNameResultsCmd(d deps) *cobra.Command {
 				return err
 			}
 			page, err := cmdutil.Paginate(cmd.Context(), pages, func(ctx context.Context, cursor string, size int) ([]domainradar.DtoGeneratedName, string, error) {
-				params := &domainradar.GetNameGeneratorJobsJobIdNamesParams{Limit: &size}
+				params := &domainradar.ListNameJobNamesParams{Limit: &size}
 				if search != "" {
 					params.Search = &search
 				}
@@ -279,14 +289,14 @@ func newNameResultsCmd(d deps) *cobra.Command {
 					params.MaxLength = &maxLen
 				}
 				if sortBy != "" {
-					s := domainradar.GetNameGeneratorJobsJobIdNamesParamsSortBy(sortBy)
-					o := domainradar.GetNameGeneratorJobsJobIdNamesParamsSortDir(sortDir)
+					s := domainradar.ListNameJobNamesParamsSortBy(sortBy)
+					o := domainradar.ListNameJobNamesParamsSortDir(sortDir)
 					params.SortBy, params.SortDir = &s, &o
 				}
 				if cursor != "" {
 					params.Cursor = &cursor
 				}
-				res, err := c.API.GetNameGeneratorJobsJobIdNamesWithResponse(ctx, args[0], params)
+				res, err := c.API.ListNameJobNamesWithResponse(ctx, args[0], params)
 				if err != nil {
 					return nil, "", err
 				}
@@ -362,7 +372,7 @@ read it with "bulk results".
 				return nil, err
 			}
 			tl := resultFilters{tlds: tlds}.tldParam()
-			res, err := c.API.PostNameGeneratorJobsJobIdCheckWithResponse(cmd.Context(), args[0], domainradar.PostNameGeneratorJobsJobIdCheckJSONRequestBody{
+			res, err := c.API.CheckNameJobNamesWithResponse(cmd.Context(), args[0], domainradar.CheckNameJobNamesJSONRequestBody{
 				Names: &names, Tlds: tl, Mode: mode, MaxAge: maxAge,
 			})
 			if err != nil {
@@ -400,13 +410,13 @@ func newNameDeleteCmd(d deps) *cobra.Command {
 		Args:    cobra.ExactArgs(1),
 		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
 			if ok, err := cmdutil.Confirm(fmt.Sprintf("Delete name generation job %s and its names? This can't be undone", args[0]), yes); err != nil || !ok {
-				return nil, cancelled(cmd, err)
+				return nil, cmdutil.Cancelled(cmd, err)
 			}
 			c, err := d.client(cmd)
 			if err != nil {
 				return nil, err
 			}
-			res, err := c.API.DeleteNameGeneratorJobsJobIdWithResponse(cmd.Context(), args[0])
+			res, err := c.API.DeleteNameJobWithResponse(cmd.Context(), args[0])
 			if err != nil {
 				return nil, err
 			}

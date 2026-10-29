@@ -1,0 +1,8 @@
+{
+  "alertThresholds": [
+    50,
+    80,
+    100
+  ],
+  "hardCapCents": 50000
+}

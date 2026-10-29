@@ -3,6 +3,7 @@ package langsync
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -97,28 +98,30 @@ func newPromptGetCmd() *cobra.Command {
 			if err != nil {
 				return nil, err
 			}
-			prompts, err := listPrompts(cmd, c)
+			id := strings.TrimSpace(args[0])
+			res, err := c.API.GetCustomPromptWithResponse(cmd.Context(), id)
 			if err != nil {
 				return nil, err
 			}
-			id := strings.TrimSpace(args[0])
-			for _, p := range prompts {
-				if p.Id == id {
-					return output.Object{Value: p, Fields: []output.Field{
-						{Name: "ID", Value: p.Id},
-						{Name: "Name", Value: p.Name},
-						{Name: "Visibility", Value: promptVisibility(p)},
-						{Name: "Created", Value: compactDate(p.CreatedAt)},
-						{Name: "Updated", Value: compactDate(p.UpdatedAt)},
-						{Name: "Prompt", Value: p.Prompt},
-					}}, nil
+			if res.JSON200 == nil {
+				if res.StatusCode() == http.StatusNotFound {
+					return nil, &clierr.Error{
+						Code:    clierr.CodeNotFound,
+						Message: fmt.Sprintf("no custom prompt with id %q", id),
+						Hint:    "`norcube langsync prompts list` shows the prompts you can use; someone else's private prompts aren't listed.",
+					}
 				}
+				return nil, apiError(res.HTTPResponse, res.Body, res.JSON400, res.JSON401, res.JSON403, res.JSON404, res.JSON500)
 			}
-			return nil, &clierr.Error{
-				Code:    clierr.CodeNotFound,
-				Message: fmt.Sprintf("no custom prompt with id %q", id),
-				Hint:    "`norcube langsync prompts list` shows the prompts you can use; someone else's private prompts aren't listed.",
-			}
+			p := *res.JSON200
+			return output.Object{Value: p, Fields: []output.Field{
+				{Name: "ID", Value: p.Id},
+				{Name: "Name", Value: p.Name},
+				{Name: "Visibility", Value: promptVisibility(p)},
+				{Name: "Created", Value: compactDate(p.CreatedAt)},
+				{Name: "Updated", Value: compactDate(p.UpdatedAt)},
+				{Name: "Prompt", Value: p.Prompt},
+			}}, nil
 		}),
 	}
 }
@@ -128,7 +131,7 @@ func promptText(cmd *cobra.Command, text, file string) (string, error) {
 	if cmd.Flags().Changed("text") && file != "" {
 		return "", clierr.Usage(errors.New("pass --text or --file, not both"))
 	}
-	s, err := readText(cmd.InOrStdin(), text, file, "the prompt")
+	s, err := cmdutil.ReadText(cmd.InOrStdin(), text, file, "the prompt")
 	if err != nil {
 		return "", err
 	}

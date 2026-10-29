@@ -1,0 +1,15 @@
+bytesRestored: 2097152
+createdAt: "2026-10-02T08:00:00Z"
+dataSourceId: ds-1
+dataSourceName: prod-db
+durationMs: 180000
+engine: postgres
+finishedAt: "2026-10-02T08:03:05Z"
+hasLog: true
+id: rst-1
+mode: new_database
+sourceBackupId: job-1
+startedAt: "2026-10-02T08:00:05Z"
+status: success
+targetConnectionRef: postgres://…@db.example.com:5432/app_restored
+targetDatabase: app_restored

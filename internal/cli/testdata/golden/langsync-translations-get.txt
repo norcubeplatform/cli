@@ -1,0 +1,6 @@
+ID:       7
+Mark:     Save changes
+Context:  button
+Created:  2026-03-04 07:06
+en:       Save changes
+cs (AI):  Uložit změny

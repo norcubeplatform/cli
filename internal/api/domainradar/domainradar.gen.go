@@ -167,6 +167,7 @@ func (e ConstantsSortDir) Valid() bool {
 const (
 	ErrConflict              ResponseType = "CONFLICT"
 	ErrForbidden             ResponseType = "FORBIDDEN"
+	ErrInsufficientScope     ResponseType = "INSUFFICIENT_SCOPE"
 	ErrInternal              ResponseType = "INTERNAL_ERROR"
 	ErrInvalidPayload        ResponseType = "INVALID_PAYLOAD"
 	ErrMissingOrganizationID ResponseType = "MISSING_ORGANIZATION_ID"
@@ -184,6 +185,8 @@ func (e ResponseType) Valid() bool {
 	case ErrConflict:
 		return true
 	case ErrForbidden:
+		return true
+	case ErrInsufficientScope:
 		return true
 	case ErrInternal:
 		return true
@@ -208,16 +211,16 @@ func (e ResponseType) Valid() bool {
 	}
 }
 
-// Defines values for GetDomainsSavedParamsSortBy.
+// Defines values for ListSavedDomainsParamsSortBy.
 const (
-	CreatedAt  GetDomainsSavedParamsSortBy = "created_at"
-	Domain     GetDomainsSavedParamsSortBy = "domain"
-	ExpiryDate GetDomainsSavedParamsSortBy = "expiry_date"
-	Registrar  GetDomainsSavedParamsSortBy = "registrar"
+	CreatedAt  ListSavedDomainsParamsSortBy = "created_at"
+	Domain     ListSavedDomainsParamsSortBy = "domain"
+	ExpiryDate ListSavedDomainsParamsSortBy = "expiry_date"
+	Registrar  ListSavedDomainsParamsSortBy = "registrar"
 )
 
-// Valid indicates whether the value is a known member of the GetDomainsSavedParamsSortBy enum.
-func (e GetDomainsSavedParamsSortBy) Valid() bool {
+// Valid indicates whether the value is a known member of the ListSavedDomainsParamsSortBy enum.
+func (e ListSavedDomainsParamsSortBy) Valid() bool {
 	switch e {
 	case CreatedAt:
 		return true
@@ -232,32 +235,32 @@ func (e GetDomainsSavedParamsSortBy) Valid() bool {
 	}
 }
 
-// Defines values for GetDomainsSavedParamsSortDir.
+// Defines values for ListSavedDomainsParamsSortDir.
 const (
-	GetDomainsSavedParamsSortDirAsc  GetDomainsSavedParamsSortDir = "asc"
-	GetDomainsSavedParamsSortDirDesc GetDomainsSavedParamsSortDir = "desc"
+	ListSavedDomainsParamsSortDirAsc  ListSavedDomainsParamsSortDir = "asc"
+	ListSavedDomainsParamsSortDirDesc ListSavedDomainsParamsSortDir = "desc"
 )
 
-// Valid indicates whether the value is a known member of the GetDomainsSavedParamsSortDir enum.
-func (e GetDomainsSavedParamsSortDir) Valid() bool {
+// Valid indicates whether the value is a known member of the ListSavedDomainsParamsSortDir enum.
+func (e ListSavedDomainsParamsSortDir) Valid() bool {
 	switch e {
-	case GetDomainsSavedParamsSortDirAsc:
+	case ListSavedDomainsParamsSortDirAsc:
 		return true
-	case GetDomainsSavedParamsSortDirDesc:
+	case ListSavedDomainsParamsSortDirDesc:
 		return true
 	default:
 		return false
 	}
 }
 
-// Defines values for GetNameGeneratorJobsJobIdNamesParamsSortBy.
+// Defines values for ListNameJobNamesParamsSortBy.
 const (
-	Length GetNameGeneratorJobsJobIdNamesParamsSortBy = "length"
-	Name   GetNameGeneratorJobsJobIdNamesParamsSortBy = "name"
+	Length ListNameJobNamesParamsSortBy = "length"
+	Name   ListNameJobNamesParamsSortBy = "name"
 )
 
-// Valid indicates whether the value is a known member of the GetNameGeneratorJobsJobIdNamesParamsSortBy enum.
-func (e GetNameGeneratorJobsJobIdNamesParamsSortBy) Valid() bool {
+// Valid indicates whether the value is a known member of the ListNameJobNamesParamsSortBy enum.
+func (e ListNameJobNamesParamsSortBy) Valid() bool {
 	switch e {
 	case Length:
 		return true
@@ -268,18 +271,18 @@ func (e GetNameGeneratorJobsJobIdNamesParamsSortBy) Valid() bool {
 	}
 }
 
-// Defines values for GetNameGeneratorJobsJobIdNamesParamsSortDir.
+// Defines values for ListNameJobNamesParamsSortDir.
 const (
-	GetNameGeneratorJobsJobIdNamesParamsSortDirAsc  GetNameGeneratorJobsJobIdNamesParamsSortDir = "asc"
-	GetNameGeneratorJobsJobIdNamesParamsSortDirDesc GetNameGeneratorJobsJobIdNamesParamsSortDir = "desc"
+	ListNameJobNamesParamsSortDirAsc  ListNameJobNamesParamsSortDir = "asc"
+	ListNameJobNamesParamsSortDirDesc ListNameJobNamesParamsSortDir = "desc"
 )
 
-// Valid indicates whether the value is a known member of the GetNameGeneratorJobsJobIdNamesParamsSortDir enum.
-func (e GetNameGeneratorJobsJobIdNamesParamsSortDir) Valid() bool {
+// Valid indicates whether the value is a known member of the ListNameJobNamesParamsSortDir enum.
+func (e ListNameJobNamesParamsSortDir) Valid() bool {
 	switch e {
-	case GetNameGeneratorJobsJobIdNamesParamsSortDirAsc:
+	case ListNameJobNamesParamsSortDirAsc:
 		return true
-	case GetNameGeneratorJobsJobIdNamesParamsSortDirDesc:
+	case ListNameJobNamesParamsSortDirDesc:
 		return true
 	default:
 		return false
@@ -311,6 +314,11 @@ type BrandmonitorhandlerUpdateWatcherRequest struct {
 	MinNotificationScore *int      `json:"minNotificationScore,omitempty"`
 	NotificationEmail    *string   `json:"notificationEmail,omitempty"`
 	Word                 *string   `json:"word,omitempty"`
+}
+
+// BrandmonitorhandlerWatcherHitCountResponse defines model for brandmonitorhandler.watcherHitCountResponse.
+type BrandmonitorhandlerWatcherHitCountResponse struct {
+	Count int `json:"count"`
 }
 
 // CheckhandlerBulkCheckRequest defines model for checkhandler.bulkCheckRequest.
@@ -503,34 +511,40 @@ type SaveddomainhandlerSaveRequest struct {
 	Notes  *string `json:"notes,omitempty"`
 }
 
-// GetBrandMonitorHitsParams defines parameters for GetBrandMonitorHits.
-type GetBrandMonitorHitsParams struct {
-	Cursor     *string   `form:"cursor,omitempty" json:"cursor,omitempty"`
-	Limit      *int      `form:"limit,omitempty" json:"limit,omitempty"`
-	ScoreMax   *int      `form:"scoreMax,omitempty" json:"scoreMax,omitempty"`
-	ScoreMin   *int      `form:"scoreMin,omitempty" json:"scoreMin,omitempty"`
-	Search     *string   `form:"search,omitempty" json:"search,omitempty"`
-	WatcherIDs *[]string `form:"watcherIDs,omitempty" json:"watcherIDs,omitempty"`
+// ListBrandHitsParams defines parameters for ListBrandHits.
+type ListBrandHitsParams struct {
+	Cursor   *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Limit    *int    `form:"limit,omitempty" json:"limit,omitempty"`
+	ScoreMax *int    `form:"scoreMax,omitempty" json:"scoreMax,omitempty"`
+	ScoreMin *int    `form:"scoreMin,omitempty" json:"scoreMin,omitempty"`
+	Search   *string `form:"search,omitempty" json:"search,omitempty"`
+
+	// WatcherId WatcherIDs filters to these watchers: repeat the parameter
+	// (watcherId=a&watcherId=b) or comma-separate the ids.
+	WatcherId *[]string `form:"watcherId,omitempty" json:"watcherId,omitempty"`
 }
 
-// GetBrandMonitorWatchersIdHitsParams defines parameters for GetBrandMonitorWatchersIdHits.
-type GetBrandMonitorWatchersIdHitsParams struct {
-	Cursor     *string   `form:"cursor,omitempty" json:"cursor,omitempty"`
-	Limit      *int      `form:"limit,omitempty" json:"limit,omitempty"`
-	ScoreMax   *int      `form:"scoreMax,omitempty" json:"scoreMax,omitempty"`
-	ScoreMin   *int      `form:"scoreMin,omitempty" json:"scoreMin,omitempty"`
-	Search     *string   `form:"search,omitempty" json:"search,omitempty"`
-	WatcherIDs *[]string `form:"watcherIDs,omitempty" json:"watcherIDs,omitempty"`
+// ListBrandWatcherHitsParams defines parameters for ListBrandWatcherHits.
+type ListBrandWatcherHitsParams struct {
+	Cursor   *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Limit    *int    `form:"limit,omitempty" json:"limit,omitempty"`
+	ScoreMax *int    `form:"scoreMax,omitempty" json:"scoreMax,omitempty"`
+	ScoreMin *int    `form:"scoreMin,omitempty" json:"scoreMin,omitempty"`
+	Search   *string `form:"search,omitempty" json:"search,omitempty"`
+
+	// WatcherId WatcherIDs filters to these watchers: repeat the parameter
+	// (watcherId=a&watcherId=b) or comma-separate the ids.
+	WatcherId *[]string `form:"watcherId,omitempty" json:"watcherId,omitempty"`
 }
 
-// GetCheckBulkParams defines parameters for GetCheckBulk.
-type GetCheckBulkParams struct {
+// ListBulkChecksParams defines parameters for ListBulkChecks.
+type ListBulkChecksParams struct {
 	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
 	Limit  *int    `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
-// GetCheckBulkIdExportParams defines parameters for GetCheckBulkIdExport.
-type GetCheckBulkIdExportParams struct {
+// ExportBulkCheckResultsParams defines parameters for ExportBulkCheckResults.
+type ExportBulkCheckResultsParams struct {
 	Available *[]bool   `form:"available,omitempty" json:"available,omitempty"`
 	Cursor    *string   `form:"cursor,omitempty" json:"cursor,omitempty"`
 	Limit     *int      `form:"limit,omitempty" json:"limit,omitempty"`
@@ -538,8 +552,8 @@ type GetCheckBulkIdExportParams struct {
 	Tld       *[]string `form:"tld,omitempty" json:"tld,omitempty"`
 }
 
-// GetCheckBulkIdResultsParams defines parameters for GetCheckBulkIdResults.
-type GetCheckBulkIdResultsParams struct {
+// ListBulkCheckResultsParams defines parameters for ListBulkCheckResults.
+type ListBulkCheckResultsParams struct {
 	Available *[]bool   `form:"available,omitempty" json:"available,omitempty"`
 	Cursor    *string   `form:"cursor,omitempty" json:"cursor,omitempty"`
 	Limit     *int      `form:"limit,omitempty" json:"limit,omitempty"`
@@ -547,28 +561,28 @@ type GetCheckBulkIdResultsParams struct {
 	Tld       *[]string `form:"tld,omitempty" json:"tld,omitempty"`
 }
 
-// GetDomainsSavedParams defines parameters for GetDomainsSaved.
-type GetDomainsSavedParams struct {
-	Available    *[]bool                       `form:"available,omitempty" json:"available,omitempty"`
-	Cursor       *string                       `form:"cursor,omitempty" json:"cursor,omitempty"`
-	ExpiryAfter  *string                       `form:"expiryAfter,omitempty" json:"expiryAfter,omitempty"`
-	ExpiryBefore *string                       `form:"expiryBefore,omitempty" json:"expiryBefore,omitempty"`
-	Limit        *int                          `form:"limit,omitempty" json:"limit,omitempty"`
-	Registrar    *string                       `form:"registrar,omitempty" json:"registrar,omitempty"`
-	Search       *string                       `form:"search,omitempty" json:"search,omitempty"`
-	SortBy       *GetDomainsSavedParamsSortBy  `form:"sortBy,omitempty" json:"sortBy,omitempty"`
-	SortDir      *GetDomainsSavedParamsSortDir `form:"sortDir,omitempty" json:"sortDir,omitempty"`
-	Tld          *[]string                     `form:"tld,omitempty" json:"tld,omitempty"`
+// ListSavedDomainsParams defines parameters for ListSavedDomains.
+type ListSavedDomainsParams struct {
+	Available    *[]bool                        `form:"available,omitempty" json:"available,omitempty"`
+	Cursor       *string                        `form:"cursor,omitempty" json:"cursor,omitempty"`
+	ExpiryAfter  *string                        `form:"expiryAfter,omitempty" json:"expiryAfter,omitempty"`
+	ExpiryBefore *string                        `form:"expiryBefore,omitempty" json:"expiryBefore,omitempty"`
+	Limit        *int                           `form:"limit,omitempty" json:"limit,omitempty"`
+	Registrar    *string                        `form:"registrar,omitempty" json:"registrar,omitempty"`
+	Search       *string                        `form:"search,omitempty" json:"search,omitempty"`
+	SortBy       *ListSavedDomainsParamsSortBy  `form:"sortBy,omitempty" json:"sortBy,omitempty"`
+	SortDir      *ListSavedDomainsParamsSortDir `form:"sortDir,omitempty" json:"sortDir,omitempty"`
+	Tld          *[]string                      `form:"tld,omitempty" json:"tld,omitempty"`
 }
 
-// GetDomainsSavedParamsSortBy defines parameters for GetDomainsSaved.
-type GetDomainsSavedParamsSortBy string
+// ListSavedDomainsParamsSortBy defines parameters for ListSavedDomains.
+type ListSavedDomainsParamsSortBy string
 
-// GetDomainsSavedParamsSortDir defines parameters for GetDomainsSaved.
-type GetDomainsSavedParamsSortDir string
+// ListSavedDomainsParamsSortDir defines parameters for ListSavedDomains.
+type ListSavedDomainsParamsSortDir string
 
-// GetNameGeneratorJobsParams defines parameters for GetNameGeneratorJobs.
-type GetNameGeneratorJobsParams struct {
+// ListNameJobsParams defines parameters for ListNameJobs.
+type ListNameJobsParams struct {
 	// Limit Results per page (default 20, max 100)
 	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
 
@@ -576,43 +590,43 @@ type GetNameGeneratorJobsParams struct {
 	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
 }
 
-// GetNameGeneratorJobsJobIdNamesParams defines parameters for GetNameGeneratorJobsJobIdNames.
-type GetNameGeneratorJobsJobIdNamesParams struct {
-	Cursor    *string                                      `form:"cursor,omitempty" json:"cursor,omitempty"`
-	Limit     *int                                         `form:"limit,omitempty" json:"limit,omitempty"`
-	MaxLength *int                                         `form:"maxLength,omitempty" json:"maxLength,omitempty"`
-	MinLength *int                                         `form:"minLength,omitempty" json:"minLength,omitempty"`
-	Search    *string                                      `form:"search,omitempty" json:"search,omitempty"`
-	SortBy    *GetNameGeneratorJobsJobIdNamesParamsSortBy  `form:"sortBy,omitempty" json:"sortBy,omitempty"`
-	SortDir   *GetNameGeneratorJobsJobIdNamesParamsSortDir `form:"sortDir,omitempty" json:"sortDir,omitempty"`
+// ListNameJobNamesParams defines parameters for ListNameJobNames.
+type ListNameJobNamesParams struct {
+	Cursor    *string                        `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Limit     *int                           `form:"limit,omitempty" json:"limit,omitempty"`
+	MaxLength *int                           `form:"maxLength,omitempty" json:"maxLength,omitempty"`
+	MinLength *int                           `form:"minLength,omitempty" json:"minLength,omitempty"`
+	Search    *string                        `form:"search,omitempty" json:"search,omitempty"`
+	SortBy    *ListNameJobNamesParamsSortBy  `form:"sortBy,omitempty" json:"sortBy,omitempty"`
+	SortDir   *ListNameJobNamesParamsSortDir `form:"sortDir,omitempty" json:"sortDir,omitempty"`
 }
 
-// GetNameGeneratorJobsJobIdNamesParamsSortBy defines parameters for GetNameGeneratorJobsJobIdNames.
-type GetNameGeneratorJobsJobIdNamesParamsSortBy string
+// ListNameJobNamesParamsSortBy defines parameters for ListNameJobNames.
+type ListNameJobNamesParamsSortBy string
 
-// GetNameGeneratorJobsJobIdNamesParamsSortDir defines parameters for GetNameGeneratorJobsJobIdNames.
-type GetNameGeneratorJobsJobIdNamesParamsSortDir string
+// ListNameJobNamesParamsSortDir defines parameters for ListNameJobNames.
+type ListNameJobNamesParamsSortDir string
 
-// PostBrandMonitorWatchersJSONRequestBody defines body for PostBrandMonitorWatchers for application/json ContentType.
-type PostBrandMonitorWatchersJSONRequestBody = BrandmonitorhandlerCreateWatcherRequest
+// CreateBrandWatcherJSONRequestBody defines body for CreateBrandWatcher for application/json ContentType.
+type CreateBrandWatcherJSONRequestBody = BrandmonitorhandlerCreateWatcherRequest
 
-// PutBrandMonitorWatchersIdJSONRequestBody defines body for PutBrandMonitorWatchersId for application/json ContentType.
-type PutBrandMonitorWatchersIdJSONRequestBody = BrandmonitorhandlerUpdateWatcherRequest
+// UpdateBrandWatcherJSONRequestBody defines body for UpdateBrandWatcher for application/json ContentType.
+type UpdateBrandWatcherJSONRequestBody = BrandmonitorhandlerUpdateWatcherRequest
 
 // CheckDomainJSONRequestBody defines body for CheckDomain for application/json ContentType.
 type CheckDomainJSONRequestBody = CheckhandlerCheckRequest
 
-// PostCheckBulkJSONRequestBody defines body for PostCheckBulk for application/json ContentType.
-type PostCheckBulkJSONRequestBody = CheckhandlerBulkCheckRequest
+// CreateBulkCheckJSONRequestBody defines body for CreateBulkCheck for application/json ContentType.
+type CreateBulkCheckJSONRequestBody = CheckhandlerBulkCheckRequest
 
-// PostDomainsSavedJSONRequestBody defines body for PostDomainsSaved for application/json ContentType.
-type PostDomainsSavedJSONRequestBody = SaveddomainhandlerSaveRequest
+// SaveDomainJSONRequestBody defines body for SaveDomain for application/json ContentType.
+type SaveDomainJSONRequestBody = SaveddomainhandlerSaveRequest
 
-// PostNameGeneratorJobsJSONRequestBody defines body for PostNameGeneratorJobs for application/json ContentType.
-type PostNameGeneratorJobsJSONRequestBody = NamegenhandlerCreateJobRequest
+// CreateNameJobJSONRequestBody defines body for CreateNameJob for application/json ContentType.
+type CreateNameJobJSONRequestBody = NamegenhandlerCreateJobRequest
 
-// PostNameGeneratorJobsJobIdCheckJSONRequestBody defines body for PostNameGeneratorJobsJobIdCheck for application/json ContentType.
-type PostNameGeneratorJobsJobIdCheckJSONRequestBody = NamegenhandlerCheckNamesRequest
+// CheckNameJobNamesJSONRequestBody defines body for CheckNameJobNames for application/json ContentType.
+type CheckNameJobNamesJSONRequestBody = NamegenhandlerCheckNamesRequest
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -687,104 +701,104 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
-	// GetBrandMonitorHits request
-	GetBrandMonitorHits(ctx context.Context, params *GetBrandMonitorHitsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// ListBrandHits request
+	ListBrandHits(ctx context.Context, params *ListBrandHitsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetBrandMonitorHitsId request
-	GetBrandMonitorHitsId(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetBrandHit request
+	GetBrandHit(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetBrandMonitorWatchers request
-	GetBrandMonitorWatchers(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// ListBrandWatchers request
+	ListBrandWatchers(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostBrandMonitorWatchersWithBody request with any body
-	PostBrandMonitorWatchersWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// CreateBrandWatcherWithBody request with any body
+	CreateBrandWatcherWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostBrandMonitorWatchers(ctx context.Context, body PostBrandMonitorWatchersJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	CreateBrandWatcher(ctx context.Context, body CreateBrandWatcherJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// DeleteBrandMonitorWatchersId request
-	DeleteBrandMonitorWatchersId(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// DeleteBrandWatcher request
+	DeleteBrandWatcher(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetBrandMonitorWatchersId request
-	GetBrandMonitorWatchersId(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetBrandWatcher request
+	GetBrandWatcher(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PutBrandMonitorWatchersIdWithBody request with any body
-	PutBrandMonitorWatchersIdWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// UpdateBrandWatcherWithBody request with any body
+	UpdateBrandWatcherWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PutBrandMonitorWatchersId(ctx context.Context, id string, body PutBrandMonitorWatchersIdJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	UpdateBrandWatcher(ctx context.Context, id string, body UpdateBrandWatcherJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetBrandMonitorWatchersIdHits request
-	GetBrandMonitorWatchersIdHits(ctx context.Context, id string, params *GetBrandMonitorWatchersIdHitsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// ListBrandWatcherHits request
+	ListBrandWatcherHits(ctx context.Context, id string, params *ListBrandWatcherHitsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetBrandMonitorWatchersIdHitsCount request
-	GetBrandMonitorWatchersIdHitsCount(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// CountBrandWatcherHits request
+	CountBrandWatcherHits(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CheckDomainWithBody request with any body
 	CheckDomainWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	CheckDomain(ctx context.Context, body CheckDomainJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetCheckBulk request
-	GetCheckBulk(ctx context.Context, params *GetCheckBulkParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// ListBulkChecks request
+	ListBulkChecks(ctx context.Context, params *ListBulkChecksParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostCheckBulkWithBody request with any body
-	PostCheckBulkWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// CreateBulkCheckWithBody request with any body
+	CreateBulkCheckWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostCheckBulk(ctx context.Context, body PostCheckBulkJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	CreateBulkCheck(ctx context.Context, body CreateBulkCheckJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// DeleteCheckBulkId request
-	DeleteCheckBulkId(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// DeleteBulkCheck request
+	DeleteBulkCheck(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetCheckBulkId request
-	GetCheckBulkId(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetBulkCheck request
+	GetBulkCheck(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostCheckBulkIdCancel request
-	PostCheckBulkIdCancel(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// CancelBulkCheck request
+	CancelBulkCheck(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetCheckBulkIdExport request
-	GetCheckBulkIdExport(ctx context.Context, id string, params *GetCheckBulkIdExportParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// ExportBulkCheckResults request
+	ExportBulkCheckResults(ctx context.Context, id string, params *ExportBulkCheckResultsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetCheckBulkIdResults request
-	GetCheckBulkIdResults(ctx context.Context, id string, params *GetCheckBulkIdResultsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// ListBulkCheckResults request
+	ListBulkCheckResults(ctx context.Context, id string, params *ListBulkCheckResultsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetCheckBulkIdStream request
-	GetCheckBulkIdStream(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// StreamBulkCheck request
+	StreamBulkCheck(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetDomainsSaved request
-	GetDomainsSaved(ctx context.Context, params *GetDomainsSavedParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// ListSavedDomains request
+	ListSavedDomains(ctx context.Context, params *ListSavedDomainsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostDomainsSavedWithBody request with any body
-	PostDomainsSavedWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// SaveDomainWithBody request with any body
+	SaveDomainWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostDomainsSaved(ctx context.Context, body PostDomainsSavedJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	SaveDomain(ctx context.Context, body SaveDomainJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// DeleteDomainsSavedDomain request
-	DeleteDomainsSavedDomain(ctx context.Context, domain string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// RemoveSavedDomain request
+	RemoveSavedDomain(ctx context.Context, domain string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetNameGeneratorJobs request
-	GetNameGeneratorJobs(ctx context.Context, params *GetNameGeneratorJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// ListNameJobs request
+	ListNameJobs(ctx context.Context, params *ListNameJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostNameGeneratorJobsWithBody request with any body
-	PostNameGeneratorJobsWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// CreateNameJobWithBody request with any body
+	CreateNameJobWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostNameGeneratorJobs(ctx context.Context, body PostNameGeneratorJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	CreateNameJob(ctx context.Context, body CreateNameJobJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// DeleteNameGeneratorJobsJobId request
-	DeleteNameGeneratorJobsJobId(ctx context.Context, jobId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// DeleteNameJob request
+	DeleteNameJob(ctx context.Context, jobId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetNameGeneratorJobsJobId request
-	GetNameGeneratorJobsJobId(ctx context.Context, jobId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetNameJob request
+	GetNameJob(ctx context.Context, jobId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostNameGeneratorJobsJobIdCheckWithBody request with any body
-	PostNameGeneratorJobsJobIdCheckWithBody(ctx context.Context, jobId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// CheckNameJobNamesWithBody request with any body
+	CheckNameJobNamesWithBody(ctx context.Context, jobId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostNameGeneratorJobsJobIdCheck(ctx context.Context, jobId string, body PostNameGeneratorJobsJobIdCheckJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	CheckNameJobNames(ctx context.Context, jobId string, body CheckNameJobNamesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetNameGeneratorJobsJobIdNames request
-	GetNameGeneratorJobsJobIdNames(ctx context.Context, jobId string, params *GetNameGeneratorJobsJobIdNamesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// ListNameJobNames request
+	ListNameJobNames(ctx context.Context, jobId string, params *ListNameJobNamesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
-func (c *Client) GetBrandMonitorHits(ctx context.Context, params *GetBrandMonitorHitsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetBrandMonitorHitsRequest(c.Server, params)
+func (c *Client) ListBrandHits(ctx context.Context, params *ListBrandHitsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListBrandHitsRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -795,8 +809,8 @@ func (c *Client) GetBrandMonitorHits(ctx context.Context, params *GetBrandMonito
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetBrandMonitorHitsId(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetBrandMonitorHitsIdRequest(c.Server, id)
+func (c *Client) GetBrandHit(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetBrandHitRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
@@ -807,8 +821,8 @@ func (c *Client) GetBrandMonitorHitsId(ctx context.Context, id string, reqEditor
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetBrandMonitorWatchers(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetBrandMonitorWatchersRequest(c.Server)
+func (c *Client) ListBrandWatchers(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListBrandWatchersRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -819,8 +833,8 @@ func (c *Client) GetBrandMonitorWatchers(ctx context.Context, reqEditors ...Requ
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostBrandMonitorWatchersWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostBrandMonitorWatchersRequestWithBody(c.Server, contentType, body)
+func (c *Client) CreateBrandWatcherWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateBrandWatcherRequestWithBody(c.Server, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -831,8 +845,8 @@ func (c *Client) PostBrandMonitorWatchersWithBody(ctx context.Context, contentTy
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostBrandMonitorWatchers(ctx context.Context, body PostBrandMonitorWatchersJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostBrandMonitorWatchersRequest(c.Server, body)
+func (c *Client) CreateBrandWatcher(ctx context.Context, body CreateBrandWatcherJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateBrandWatcherRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -843,8 +857,8 @@ func (c *Client) PostBrandMonitorWatchers(ctx context.Context, body PostBrandMon
 	return c.Client.Do(req)
 }
 
-func (c *Client) DeleteBrandMonitorWatchersId(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDeleteBrandMonitorWatchersIdRequest(c.Server, id)
+func (c *Client) DeleteBrandWatcher(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteBrandWatcherRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
@@ -855,8 +869,8 @@ func (c *Client) DeleteBrandMonitorWatchersId(ctx context.Context, id string, re
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetBrandMonitorWatchersId(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetBrandMonitorWatchersIdRequest(c.Server, id)
+func (c *Client) GetBrandWatcher(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetBrandWatcherRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
@@ -867,8 +881,8 @@ func (c *Client) GetBrandMonitorWatchersId(ctx context.Context, id string, reqEd
 	return c.Client.Do(req)
 }
 
-func (c *Client) PutBrandMonitorWatchersIdWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPutBrandMonitorWatchersIdRequestWithBody(c.Server, id, contentType, body)
+func (c *Client) UpdateBrandWatcherWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateBrandWatcherRequestWithBody(c.Server, id, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -879,8 +893,8 @@ func (c *Client) PutBrandMonitorWatchersIdWithBody(ctx context.Context, id strin
 	return c.Client.Do(req)
 }
 
-func (c *Client) PutBrandMonitorWatchersId(ctx context.Context, id string, body PutBrandMonitorWatchersIdJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPutBrandMonitorWatchersIdRequest(c.Server, id, body)
+func (c *Client) UpdateBrandWatcher(ctx context.Context, id string, body UpdateBrandWatcherJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateBrandWatcherRequest(c.Server, id, body)
 	if err != nil {
 		return nil, err
 	}
@@ -891,8 +905,8 @@ func (c *Client) PutBrandMonitorWatchersId(ctx context.Context, id string, body 
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetBrandMonitorWatchersIdHits(ctx context.Context, id string, params *GetBrandMonitorWatchersIdHitsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetBrandMonitorWatchersIdHitsRequest(c.Server, id, params)
+func (c *Client) ListBrandWatcherHits(ctx context.Context, id string, params *ListBrandWatcherHitsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListBrandWatcherHitsRequest(c.Server, id, params)
 	if err != nil {
 		return nil, err
 	}
@@ -903,8 +917,8 @@ func (c *Client) GetBrandMonitorWatchersIdHits(ctx context.Context, id string, p
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetBrandMonitorWatchersIdHitsCount(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetBrandMonitorWatchersIdHitsCountRequest(c.Server, id)
+func (c *Client) CountBrandWatcherHits(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCountBrandWatcherHitsRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
@@ -939,8 +953,8 @@ func (c *Client) CheckDomain(ctx context.Context, body CheckDomainJSONRequestBod
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetCheckBulk(ctx context.Context, params *GetCheckBulkParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetCheckBulkRequest(c.Server, params)
+func (c *Client) ListBulkChecks(ctx context.Context, params *ListBulkChecksParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListBulkChecksRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -951,8 +965,8 @@ func (c *Client) GetCheckBulk(ctx context.Context, params *GetCheckBulkParams, r
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostCheckBulkWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostCheckBulkRequestWithBody(c.Server, contentType, body)
+func (c *Client) CreateBulkCheckWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateBulkCheckRequestWithBody(c.Server, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -963,8 +977,8 @@ func (c *Client) PostCheckBulkWithBody(ctx context.Context, contentType string, 
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostCheckBulk(ctx context.Context, body PostCheckBulkJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostCheckBulkRequest(c.Server, body)
+func (c *Client) CreateBulkCheck(ctx context.Context, body CreateBulkCheckJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateBulkCheckRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -975,8 +989,8 @@ func (c *Client) PostCheckBulk(ctx context.Context, body PostCheckBulkJSONReques
 	return c.Client.Do(req)
 }
 
-func (c *Client) DeleteCheckBulkId(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDeleteCheckBulkIdRequest(c.Server, id)
+func (c *Client) DeleteBulkCheck(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteBulkCheckRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
@@ -987,8 +1001,8 @@ func (c *Client) DeleteCheckBulkId(ctx context.Context, id string, reqEditors ..
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetCheckBulkId(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetCheckBulkIdRequest(c.Server, id)
+func (c *Client) GetBulkCheck(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetBulkCheckRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
@@ -999,8 +1013,8 @@ func (c *Client) GetCheckBulkId(ctx context.Context, id string, reqEditors ...Re
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostCheckBulkIdCancel(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostCheckBulkIdCancelRequest(c.Server, id)
+func (c *Client) CancelBulkCheck(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCancelBulkCheckRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
@@ -1011,8 +1025,8 @@ func (c *Client) PostCheckBulkIdCancel(ctx context.Context, id string, reqEditor
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetCheckBulkIdExport(ctx context.Context, id string, params *GetCheckBulkIdExportParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetCheckBulkIdExportRequest(c.Server, id, params)
+func (c *Client) ExportBulkCheckResults(ctx context.Context, id string, params *ExportBulkCheckResultsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewExportBulkCheckResultsRequest(c.Server, id, params)
 	if err != nil {
 		return nil, err
 	}
@@ -1023,8 +1037,8 @@ func (c *Client) GetCheckBulkIdExport(ctx context.Context, id string, params *Ge
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetCheckBulkIdResults(ctx context.Context, id string, params *GetCheckBulkIdResultsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetCheckBulkIdResultsRequest(c.Server, id, params)
+func (c *Client) ListBulkCheckResults(ctx context.Context, id string, params *ListBulkCheckResultsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListBulkCheckResultsRequest(c.Server, id, params)
 	if err != nil {
 		return nil, err
 	}
@@ -1035,8 +1049,8 @@ func (c *Client) GetCheckBulkIdResults(ctx context.Context, id string, params *G
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetCheckBulkIdStream(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetCheckBulkIdStreamRequest(c.Server, id)
+func (c *Client) StreamBulkCheck(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewStreamBulkCheckRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
@@ -1047,8 +1061,8 @@ func (c *Client) GetCheckBulkIdStream(ctx context.Context, id string, reqEditors
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetDomainsSaved(ctx context.Context, params *GetDomainsSavedParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetDomainsSavedRequest(c.Server, params)
+func (c *Client) ListSavedDomains(ctx context.Context, params *ListSavedDomainsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListSavedDomainsRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -1059,8 +1073,8 @@ func (c *Client) GetDomainsSaved(ctx context.Context, params *GetDomainsSavedPar
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostDomainsSavedWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostDomainsSavedRequestWithBody(c.Server, contentType, body)
+func (c *Client) SaveDomainWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSaveDomainRequestWithBody(c.Server, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -1071,8 +1085,8 @@ func (c *Client) PostDomainsSavedWithBody(ctx context.Context, contentType strin
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostDomainsSaved(ctx context.Context, body PostDomainsSavedJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostDomainsSavedRequest(c.Server, body)
+func (c *Client) SaveDomain(ctx context.Context, body SaveDomainJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSaveDomainRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -1083,8 +1097,8 @@ func (c *Client) PostDomainsSaved(ctx context.Context, body PostDomainsSavedJSON
 	return c.Client.Do(req)
 }
 
-func (c *Client) DeleteDomainsSavedDomain(ctx context.Context, domain string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDeleteDomainsSavedDomainRequest(c.Server, domain)
+func (c *Client) RemoveSavedDomain(ctx context.Context, domain string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRemoveSavedDomainRequest(c.Server, domain)
 	if err != nil {
 		return nil, err
 	}
@@ -1095,8 +1109,8 @@ func (c *Client) DeleteDomainsSavedDomain(ctx context.Context, domain string, re
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetNameGeneratorJobs(ctx context.Context, params *GetNameGeneratorJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetNameGeneratorJobsRequest(c.Server, params)
+func (c *Client) ListNameJobs(ctx context.Context, params *ListNameJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListNameJobsRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -1107,8 +1121,8 @@ func (c *Client) GetNameGeneratorJobs(ctx context.Context, params *GetNameGenera
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostNameGeneratorJobsWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostNameGeneratorJobsRequestWithBody(c.Server, contentType, body)
+func (c *Client) CreateNameJobWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateNameJobRequestWithBody(c.Server, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -1119,8 +1133,8 @@ func (c *Client) PostNameGeneratorJobsWithBody(ctx context.Context, contentType 
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostNameGeneratorJobs(ctx context.Context, body PostNameGeneratorJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostNameGeneratorJobsRequest(c.Server, body)
+func (c *Client) CreateNameJob(ctx context.Context, body CreateNameJobJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateNameJobRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -1131,8 +1145,8 @@ func (c *Client) PostNameGeneratorJobs(ctx context.Context, body PostNameGenerat
 	return c.Client.Do(req)
 }
 
-func (c *Client) DeleteNameGeneratorJobsJobId(ctx context.Context, jobId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDeleteNameGeneratorJobsJobIdRequest(c.Server, jobId)
+func (c *Client) DeleteNameJob(ctx context.Context, jobId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteNameJobRequest(c.Server, jobId)
 	if err != nil {
 		return nil, err
 	}
@@ -1143,8 +1157,8 @@ func (c *Client) DeleteNameGeneratorJobsJobId(ctx context.Context, jobId string,
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetNameGeneratorJobsJobId(ctx context.Context, jobId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetNameGeneratorJobsJobIdRequest(c.Server, jobId)
+func (c *Client) GetNameJob(ctx context.Context, jobId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetNameJobRequest(c.Server, jobId)
 	if err != nil {
 		return nil, err
 	}
@@ -1155,8 +1169,8 @@ func (c *Client) GetNameGeneratorJobsJobId(ctx context.Context, jobId string, re
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostNameGeneratorJobsJobIdCheckWithBody(ctx context.Context, jobId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostNameGeneratorJobsJobIdCheckRequestWithBody(c.Server, jobId, contentType, body)
+func (c *Client) CheckNameJobNamesWithBody(ctx context.Context, jobId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCheckNameJobNamesRequestWithBody(c.Server, jobId, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -1167,8 +1181,8 @@ func (c *Client) PostNameGeneratorJobsJobIdCheckWithBody(ctx context.Context, jo
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostNameGeneratorJobsJobIdCheck(ctx context.Context, jobId string, body PostNameGeneratorJobsJobIdCheckJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostNameGeneratorJobsJobIdCheckRequest(c.Server, jobId, body)
+func (c *Client) CheckNameJobNames(ctx context.Context, jobId string, body CheckNameJobNamesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCheckNameJobNamesRequest(c.Server, jobId, body)
 	if err != nil {
 		return nil, err
 	}
@@ -1179,8 +1193,8 @@ func (c *Client) PostNameGeneratorJobsJobIdCheck(ctx context.Context, jobId stri
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetNameGeneratorJobsJobIdNames(ctx context.Context, jobId string, params *GetNameGeneratorJobsJobIdNamesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetNameGeneratorJobsJobIdNamesRequest(c.Server, jobId, params)
+func (c *Client) ListNameJobNames(ctx context.Context, jobId string, params *ListNameJobNamesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListNameJobNamesRequest(c.Server, jobId, params)
 	if err != nil {
 		return nil, err
 	}
@@ -1191,8 +1205,8 @@ func (c *Client) GetNameGeneratorJobsJobIdNames(ctx context.Context, jobId strin
 	return c.Client.Do(req)
 }
 
-// NewGetBrandMonitorHitsRequest generates requests for GetBrandMonitorHits
-func NewGetBrandMonitorHitsRequest(server string, params *GetBrandMonitorHitsParams) (*http.Request, error) {
+// NewListBrandHitsRequest generates requests for ListBrandHits
+func NewListBrandHitsRequest(server string, params *ListBrandHitsParams) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -1279,9 +1293,9 @@ func NewGetBrandMonitorHitsRequest(server string, params *GetBrandMonitorHitsPar
 
 		}
 
-		if params.WatcherIDs != nil {
+		if params.WatcherId != nil {
 
-			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "watcherIDs", *params.WatcherIDs, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "array", Format: ""}); err != nil {
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "watcherId", *params.WatcherId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "array", Format: ""}); err != nil {
 				return nil, err
 			} else {
 				for _, qp := range strings.Split(queryFrag, "&") {
@@ -1305,8 +1319,8 @@ func NewGetBrandMonitorHitsRequest(server string, params *GetBrandMonitorHitsPar
 	return req, nil
 }
 
-// NewGetBrandMonitorHitsIdRequest generates requests for GetBrandMonitorHitsId
-func NewGetBrandMonitorHitsIdRequest(server string, id string) (*http.Request, error) {
+// NewGetBrandHitRequest generates requests for GetBrandHit
+func NewGetBrandHitRequest(server string, id string) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -1339,8 +1353,8 @@ func NewGetBrandMonitorHitsIdRequest(server string, id string) (*http.Request, e
 	return req, nil
 }
 
-// NewGetBrandMonitorWatchersRequest generates requests for GetBrandMonitorWatchers
-func NewGetBrandMonitorWatchersRequest(server string) (*http.Request, error) {
+// NewListBrandWatchersRequest generates requests for ListBrandWatchers
+func NewListBrandWatchersRequest(server string) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -1366,19 +1380,19 @@ func NewGetBrandMonitorWatchersRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
-// NewPostBrandMonitorWatchersRequest calls the generic PostBrandMonitorWatchers builder with application/json body
-func NewPostBrandMonitorWatchersRequest(server string, body PostBrandMonitorWatchersJSONRequestBody) (*http.Request, error) {
+// NewCreateBrandWatcherRequest calls the generic CreateBrandWatcher builder with application/json body
+func NewCreateBrandWatcherRequest(server string, body CreateBrandWatcherJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewPostBrandMonitorWatchersRequestWithBody(server, "application/json", bodyReader)
+	return NewCreateBrandWatcherRequestWithBody(server, "application/json", bodyReader)
 }
 
-// NewPostBrandMonitorWatchersRequestWithBody generates requests for PostBrandMonitorWatchers with any type of body
-func NewPostBrandMonitorWatchersRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+// NewCreateBrandWatcherRequestWithBody generates requests for CreateBrandWatcher with any type of body
+func NewCreateBrandWatcherRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -1406,8 +1420,8 @@ func NewPostBrandMonitorWatchersRequestWithBody(server string, contentType strin
 	return req, nil
 }
 
-// NewDeleteBrandMonitorWatchersIdRequest generates requests for DeleteBrandMonitorWatchersId
-func NewDeleteBrandMonitorWatchersIdRequest(server string, id string) (*http.Request, error) {
+// NewDeleteBrandWatcherRequest generates requests for DeleteBrandWatcher
+func NewDeleteBrandWatcherRequest(server string, id string) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -1440,8 +1454,8 @@ func NewDeleteBrandMonitorWatchersIdRequest(server string, id string) (*http.Req
 	return req, nil
 }
 
-// NewGetBrandMonitorWatchersIdRequest generates requests for GetBrandMonitorWatchersId
-func NewGetBrandMonitorWatchersIdRequest(server string, id string) (*http.Request, error) {
+// NewGetBrandWatcherRequest generates requests for GetBrandWatcher
+func NewGetBrandWatcherRequest(server string, id string) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -1474,19 +1488,19 @@ func NewGetBrandMonitorWatchersIdRequest(server string, id string) (*http.Reques
 	return req, nil
 }
 
-// NewPutBrandMonitorWatchersIdRequest calls the generic PutBrandMonitorWatchersId builder with application/json body
-func NewPutBrandMonitorWatchersIdRequest(server string, id string, body PutBrandMonitorWatchersIdJSONRequestBody) (*http.Request, error) {
+// NewUpdateBrandWatcherRequest calls the generic UpdateBrandWatcher builder with application/json body
+func NewUpdateBrandWatcherRequest(server string, id string, body UpdateBrandWatcherJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewPutBrandMonitorWatchersIdRequestWithBody(server, id, "application/json", bodyReader)
+	return NewUpdateBrandWatcherRequestWithBody(server, id, "application/json", bodyReader)
 }
 
-// NewPutBrandMonitorWatchersIdRequestWithBody generates requests for PutBrandMonitorWatchersId with any type of body
-func NewPutBrandMonitorWatchersIdRequestWithBody(server string, id string, contentType string, body io.Reader) (*http.Request, error) {
+// NewUpdateBrandWatcherRequestWithBody generates requests for UpdateBrandWatcher with any type of body
+func NewUpdateBrandWatcherRequestWithBody(server string, id string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -1521,8 +1535,8 @@ func NewPutBrandMonitorWatchersIdRequestWithBody(server string, id string, conte
 	return req, nil
 }
 
-// NewGetBrandMonitorWatchersIdHitsRequest generates requests for GetBrandMonitorWatchersIdHits
-func NewGetBrandMonitorWatchersIdHitsRequest(server string, id string, params *GetBrandMonitorWatchersIdHitsParams) (*http.Request, error) {
+// NewListBrandWatcherHitsRequest generates requests for ListBrandWatcherHits
+func NewListBrandWatcherHitsRequest(server string, id string, params *ListBrandWatcherHitsParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -1616,9 +1630,9 @@ func NewGetBrandMonitorWatchersIdHitsRequest(server string, id string, params *G
 
 		}
 
-		if params.WatcherIDs != nil {
+		if params.WatcherId != nil {
 
-			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "watcherIDs", *params.WatcherIDs, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "array", Format: ""}); err != nil {
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "watcherId", *params.WatcherId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "array", Format: ""}); err != nil {
 				return nil, err
 			} else {
 				for _, qp := range strings.Split(queryFrag, "&") {
@@ -1642,8 +1656,8 @@ func NewGetBrandMonitorWatchersIdHitsRequest(server string, id string, params *G
 	return req, nil
 }
 
-// NewGetBrandMonitorWatchersIdHitsCountRequest generates requests for GetBrandMonitorWatchersIdHitsCount
-func NewGetBrandMonitorWatchersIdHitsCountRequest(server string, id string) (*http.Request, error) {
+// NewCountBrandWatcherHitsRequest generates requests for CountBrandWatcherHits
+func NewCountBrandWatcherHitsRequest(server string, id string) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -1716,8 +1730,8 @@ func NewCheckDomainRequestWithBody(server string, contentType string, body io.Re
 	return req, nil
 }
 
-// NewGetCheckBulkRequest generates requests for GetCheckBulk
-func NewGetCheckBulkRequest(server string, params *GetCheckBulkParams) (*http.Request, error) {
+// NewListBulkChecksRequest generates requests for ListBulkChecks
+func NewListBulkChecksRequest(server string, params *ListBulkChecksParams) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -1782,19 +1796,19 @@ func NewGetCheckBulkRequest(server string, params *GetCheckBulkParams) (*http.Re
 	return req, nil
 }
 
-// NewPostCheckBulkRequest calls the generic PostCheckBulk builder with application/json body
-func NewPostCheckBulkRequest(server string, body PostCheckBulkJSONRequestBody) (*http.Request, error) {
+// NewCreateBulkCheckRequest calls the generic CreateBulkCheck builder with application/json body
+func NewCreateBulkCheckRequest(server string, body CreateBulkCheckJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewPostCheckBulkRequestWithBody(server, "application/json", bodyReader)
+	return NewCreateBulkCheckRequestWithBody(server, "application/json", bodyReader)
 }
 
-// NewPostCheckBulkRequestWithBody generates requests for PostCheckBulk with any type of body
-func NewPostCheckBulkRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+// NewCreateBulkCheckRequestWithBody generates requests for CreateBulkCheck with any type of body
+func NewCreateBulkCheckRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -1822,8 +1836,8 @@ func NewPostCheckBulkRequestWithBody(server string, contentType string, body io.
 	return req, nil
 }
 
-// NewDeleteCheckBulkIdRequest generates requests for DeleteCheckBulkId
-func NewDeleteCheckBulkIdRequest(server string, id string) (*http.Request, error) {
+// NewDeleteBulkCheckRequest generates requests for DeleteBulkCheck
+func NewDeleteBulkCheckRequest(server string, id string) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -1856,8 +1870,8 @@ func NewDeleteCheckBulkIdRequest(server string, id string) (*http.Request, error
 	return req, nil
 }
 
-// NewGetCheckBulkIdRequest generates requests for GetCheckBulkId
-func NewGetCheckBulkIdRequest(server string, id string) (*http.Request, error) {
+// NewGetBulkCheckRequest generates requests for GetBulkCheck
+func NewGetBulkCheckRequest(server string, id string) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -1890,8 +1904,8 @@ func NewGetCheckBulkIdRequest(server string, id string) (*http.Request, error) {
 	return req, nil
 }
 
-// NewPostCheckBulkIdCancelRequest generates requests for PostCheckBulkIdCancel
-func NewPostCheckBulkIdCancelRequest(server string, id string) (*http.Request, error) {
+// NewCancelBulkCheckRequest generates requests for CancelBulkCheck
+func NewCancelBulkCheckRequest(server string, id string) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -1924,8 +1938,8 @@ func NewPostCheckBulkIdCancelRequest(server string, id string) (*http.Request, e
 	return req, nil
 }
 
-// NewGetCheckBulkIdExportRequest generates requests for GetCheckBulkIdExport
-func NewGetCheckBulkIdExportRequest(server string, id string, params *GetCheckBulkIdExportParams) (*http.Request, error) {
+// NewExportBulkCheckResultsRequest generates requests for ExportBulkCheckResults
+func NewExportBulkCheckResultsRequest(server string, id string, params *ExportBulkCheckResultsParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -2033,8 +2047,8 @@ func NewGetCheckBulkIdExportRequest(server string, id string, params *GetCheckBu
 	return req, nil
 }
 
-// NewGetCheckBulkIdResultsRequest generates requests for GetCheckBulkIdResults
-func NewGetCheckBulkIdResultsRequest(server string, id string, params *GetCheckBulkIdResultsParams) (*http.Request, error) {
+// NewListBulkCheckResultsRequest generates requests for ListBulkCheckResults
+func NewListBulkCheckResultsRequest(server string, id string, params *ListBulkCheckResultsParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -2142,8 +2156,8 @@ func NewGetCheckBulkIdResultsRequest(server string, id string, params *GetCheckB
 	return req, nil
 }
 
-// NewGetCheckBulkIdStreamRequest generates requests for GetCheckBulkIdStream
-func NewGetCheckBulkIdStreamRequest(server string, id string) (*http.Request, error) {
+// NewStreamBulkCheckRequest generates requests for StreamBulkCheck
+func NewStreamBulkCheckRequest(server string, id string) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -2176,8 +2190,8 @@ func NewGetCheckBulkIdStreamRequest(server string, id string) (*http.Request, er
 	return req, nil
 }
 
-// NewGetDomainsSavedRequest generates requests for GetDomainsSaved
-func NewGetDomainsSavedRequest(server string, params *GetDomainsSavedParams) (*http.Request, error) {
+// NewListSavedDomainsRequest generates requests for ListSavedDomains
+func NewListSavedDomainsRequest(server string, params *ListSavedDomainsParams) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -2338,19 +2352,19 @@ func NewGetDomainsSavedRequest(server string, params *GetDomainsSavedParams) (*h
 	return req, nil
 }
 
-// NewPostDomainsSavedRequest calls the generic PostDomainsSaved builder with application/json body
-func NewPostDomainsSavedRequest(server string, body PostDomainsSavedJSONRequestBody) (*http.Request, error) {
+// NewSaveDomainRequest calls the generic SaveDomain builder with application/json body
+func NewSaveDomainRequest(server string, body SaveDomainJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewPostDomainsSavedRequestWithBody(server, "application/json", bodyReader)
+	return NewSaveDomainRequestWithBody(server, "application/json", bodyReader)
 }
 
-// NewPostDomainsSavedRequestWithBody generates requests for PostDomainsSaved with any type of body
-func NewPostDomainsSavedRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+// NewSaveDomainRequestWithBody generates requests for SaveDomain with any type of body
+func NewSaveDomainRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -2378,8 +2392,8 @@ func NewPostDomainsSavedRequestWithBody(server string, contentType string, body 
 	return req, nil
 }
 
-// NewDeleteDomainsSavedDomainRequest generates requests for DeleteDomainsSavedDomain
-func NewDeleteDomainsSavedDomainRequest(server string, domain string) (*http.Request, error) {
+// NewRemoveSavedDomainRequest generates requests for RemoveSavedDomain
+func NewRemoveSavedDomainRequest(server string, domain string) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -2412,8 +2426,8 @@ func NewDeleteDomainsSavedDomainRequest(server string, domain string) (*http.Req
 	return req, nil
 }
 
-// NewGetNameGeneratorJobsRequest generates requests for GetNameGeneratorJobs
-func NewGetNameGeneratorJobsRequest(server string, params *GetNameGeneratorJobsParams) (*http.Request, error) {
+// NewListNameJobsRequest generates requests for ListNameJobs
+func NewListNameJobsRequest(server string, params *ListNameJobsParams) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -2478,19 +2492,19 @@ func NewGetNameGeneratorJobsRequest(server string, params *GetNameGeneratorJobsP
 	return req, nil
 }
 
-// NewPostNameGeneratorJobsRequest calls the generic PostNameGeneratorJobs builder with application/json body
-func NewPostNameGeneratorJobsRequest(server string, body PostNameGeneratorJobsJSONRequestBody) (*http.Request, error) {
+// NewCreateNameJobRequest calls the generic CreateNameJob builder with application/json body
+func NewCreateNameJobRequest(server string, body CreateNameJobJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewPostNameGeneratorJobsRequestWithBody(server, "application/json", bodyReader)
+	return NewCreateNameJobRequestWithBody(server, "application/json", bodyReader)
 }
 
-// NewPostNameGeneratorJobsRequestWithBody generates requests for PostNameGeneratorJobs with any type of body
-func NewPostNameGeneratorJobsRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+// NewCreateNameJobRequestWithBody generates requests for CreateNameJob with any type of body
+func NewCreateNameJobRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -2518,8 +2532,8 @@ func NewPostNameGeneratorJobsRequestWithBody(server string, contentType string, 
 	return req, nil
 }
 
-// NewDeleteNameGeneratorJobsJobIdRequest generates requests for DeleteNameGeneratorJobsJobId
-func NewDeleteNameGeneratorJobsJobIdRequest(server string, jobId string) (*http.Request, error) {
+// NewDeleteNameJobRequest generates requests for DeleteNameJob
+func NewDeleteNameJobRequest(server string, jobId string) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -2552,8 +2566,8 @@ func NewDeleteNameGeneratorJobsJobIdRequest(server string, jobId string) (*http.
 	return req, nil
 }
 
-// NewGetNameGeneratorJobsJobIdRequest generates requests for GetNameGeneratorJobsJobId
-func NewGetNameGeneratorJobsJobIdRequest(server string, jobId string) (*http.Request, error) {
+// NewGetNameJobRequest generates requests for GetNameJob
+func NewGetNameJobRequest(server string, jobId string) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -2586,19 +2600,19 @@ func NewGetNameGeneratorJobsJobIdRequest(server string, jobId string) (*http.Req
 	return req, nil
 }
 
-// NewPostNameGeneratorJobsJobIdCheckRequest calls the generic PostNameGeneratorJobsJobIdCheck builder with application/json body
-func NewPostNameGeneratorJobsJobIdCheckRequest(server string, jobId string, body PostNameGeneratorJobsJobIdCheckJSONRequestBody) (*http.Request, error) {
+// NewCheckNameJobNamesRequest calls the generic CheckNameJobNames builder with application/json body
+func NewCheckNameJobNamesRequest(server string, jobId string, body CheckNameJobNamesJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewPostNameGeneratorJobsJobIdCheckRequestWithBody(server, jobId, "application/json", bodyReader)
+	return NewCheckNameJobNamesRequestWithBody(server, jobId, "application/json", bodyReader)
 }
 
-// NewPostNameGeneratorJobsJobIdCheckRequestWithBody generates requests for PostNameGeneratorJobsJobIdCheck with any type of body
-func NewPostNameGeneratorJobsJobIdCheckRequestWithBody(server string, jobId string, contentType string, body io.Reader) (*http.Request, error) {
+// NewCheckNameJobNamesRequestWithBody generates requests for CheckNameJobNames with any type of body
+func NewCheckNameJobNamesRequestWithBody(server string, jobId string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -2633,8 +2647,8 @@ func NewPostNameGeneratorJobsJobIdCheckRequestWithBody(server string, jobId stri
 	return req, nil
 }
 
-// NewGetNameGeneratorJobsJobIdNamesRequest generates requests for GetNameGeneratorJobsJobIdNames
-func NewGetNameGeneratorJobsJobIdNamesRequest(server string, jobId string, params *GetNameGeneratorJobsJobIdNamesParams) (*http.Request, error) {
+// NewListNameJobNamesRequest generates requests for ListNameJobNames
+func NewListNameJobNamesRequest(server string, jobId string, params *ListNameJobNamesParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -2809,103 +2823,103 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
-	// GetBrandMonitorHitsWithResponse request
-	GetBrandMonitorHitsWithResponse(ctx context.Context, params *GetBrandMonitorHitsParams, reqEditors ...RequestEditorFn) (*GetBrandMonitorHitsResponse, error)
+	// ListBrandHitsWithResponse request
+	ListBrandHitsWithResponse(ctx context.Context, params *ListBrandHitsParams, reqEditors ...RequestEditorFn) (*ListBrandHitsResponse, error)
 
-	// GetBrandMonitorHitsIdWithResponse request
-	GetBrandMonitorHitsIdWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetBrandMonitorHitsIdResponse, error)
+	// GetBrandHitWithResponse request
+	GetBrandHitWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetBrandHitResponse, error)
 
-	// GetBrandMonitorWatchersWithResponse request
-	GetBrandMonitorWatchersWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetBrandMonitorWatchersResponse, error)
+	// ListBrandWatchersWithResponse request
+	ListBrandWatchersWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListBrandWatchersResponse, error)
 
-	// PostBrandMonitorWatchersWithBodyWithResponse request with any body
-	PostBrandMonitorWatchersWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostBrandMonitorWatchersResponse, error)
+	// CreateBrandWatcherWithBodyWithResponse request with any body
+	CreateBrandWatcherWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateBrandWatcherResponse, error)
 
-	PostBrandMonitorWatchersWithResponse(ctx context.Context, body PostBrandMonitorWatchersJSONRequestBody, reqEditors ...RequestEditorFn) (*PostBrandMonitorWatchersResponse, error)
+	CreateBrandWatcherWithResponse(ctx context.Context, body CreateBrandWatcherJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateBrandWatcherResponse, error)
 
-	// DeleteBrandMonitorWatchersIdWithResponse request
-	DeleteBrandMonitorWatchersIdWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*DeleteBrandMonitorWatchersIdResponse, error)
+	// DeleteBrandWatcherWithResponse request
+	DeleteBrandWatcherWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*DeleteBrandWatcherResponse, error)
 
-	// GetBrandMonitorWatchersIdWithResponse request
-	GetBrandMonitorWatchersIdWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetBrandMonitorWatchersIdResponse, error)
+	// GetBrandWatcherWithResponse request
+	GetBrandWatcherWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetBrandWatcherResponse, error)
 
-	// PutBrandMonitorWatchersIdWithBodyWithResponse request with any body
-	PutBrandMonitorWatchersIdWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutBrandMonitorWatchersIdResponse, error)
+	// UpdateBrandWatcherWithBodyWithResponse request with any body
+	UpdateBrandWatcherWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateBrandWatcherResponse, error)
 
-	PutBrandMonitorWatchersIdWithResponse(ctx context.Context, id string, body PutBrandMonitorWatchersIdJSONRequestBody, reqEditors ...RequestEditorFn) (*PutBrandMonitorWatchersIdResponse, error)
+	UpdateBrandWatcherWithResponse(ctx context.Context, id string, body UpdateBrandWatcherJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateBrandWatcherResponse, error)
 
-	// GetBrandMonitorWatchersIdHitsWithResponse request
-	GetBrandMonitorWatchersIdHitsWithResponse(ctx context.Context, id string, params *GetBrandMonitorWatchersIdHitsParams, reqEditors ...RequestEditorFn) (*GetBrandMonitorWatchersIdHitsResponse, error)
+	// ListBrandWatcherHitsWithResponse request
+	ListBrandWatcherHitsWithResponse(ctx context.Context, id string, params *ListBrandWatcherHitsParams, reqEditors ...RequestEditorFn) (*ListBrandWatcherHitsResponse, error)
 
-	// GetBrandMonitorWatchersIdHitsCountWithResponse request
-	GetBrandMonitorWatchersIdHitsCountWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetBrandMonitorWatchersIdHitsCountResponse, error)
+	// CountBrandWatcherHitsWithResponse request
+	CountBrandWatcherHitsWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*CountBrandWatcherHitsResponse, error)
 
 	// CheckDomainWithBodyWithResponse request with any body
 	CheckDomainWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CheckDomainResponse, error)
 
 	CheckDomainWithResponse(ctx context.Context, body CheckDomainJSONRequestBody, reqEditors ...RequestEditorFn) (*CheckDomainResponse, error)
 
-	// GetCheckBulkWithResponse request
-	GetCheckBulkWithResponse(ctx context.Context, params *GetCheckBulkParams, reqEditors ...RequestEditorFn) (*GetCheckBulkResponse, error)
+	// ListBulkChecksWithResponse request
+	ListBulkChecksWithResponse(ctx context.Context, params *ListBulkChecksParams, reqEditors ...RequestEditorFn) (*ListBulkChecksResponse, error)
 
-	// PostCheckBulkWithBodyWithResponse request with any body
-	PostCheckBulkWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostCheckBulkResponse, error)
+	// CreateBulkCheckWithBodyWithResponse request with any body
+	CreateBulkCheckWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateBulkCheckResponse, error)
 
-	PostCheckBulkWithResponse(ctx context.Context, body PostCheckBulkJSONRequestBody, reqEditors ...RequestEditorFn) (*PostCheckBulkResponse, error)
+	CreateBulkCheckWithResponse(ctx context.Context, body CreateBulkCheckJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateBulkCheckResponse, error)
 
-	// DeleteCheckBulkIdWithResponse request
-	DeleteCheckBulkIdWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*DeleteCheckBulkIdResponse, error)
+	// DeleteBulkCheckWithResponse request
+	DeleteBulkCheckWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*DeleteBulkCheckResponse, error)
 
-	// GetCheckBulkIdWithResponse request
-	GetCheckBulkIdWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetCheckBulkIdResponse, error)
+	// GetBulkCheckWithResponse request
+	GetBulkCheckWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetBulkCheckResponse, error)
 
-	// PostCheckBulkIdCancelWithResponse request
-	PostCheckBulkIdCancelWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*PostCheckBulkIdCancelResponse, error)
+	// CancelBulkCheckWithResponse request
+	CancelBulkCheckWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*CancelBulkCheckResponse, error)
 
-	// GetCheckBulkIdExportWithResponse request
-	GetCheckBulkIdExportWithResponse(ctx context.Context, id string, params *GetCheckBulkIdExportParams, reqEditors ...RequestEditorFn) (*GetCheckBulkIdExportResponse, error)
+	// ExportBulkCheckResultsWithResponse request
+	ExportBulkCheckResultsWithResponse(ctx context.Context, id string, params *ExportBulkCheckResultsParams, reqEditors ...RequestEditorFn) (*ExportBulkCheckResultsResponse, error)
 
-	// GetCheckBulkIdResultsWithResponse request
-	GetCheckBulkIdResultsWithResponse(ctx context.Context, id string, params *GetCheckBulkIdResultsParams, reqEditors ...RequestEditorFn) (*GetCheckBulkIdResultsResponse, error)
+	// ListBulkCheckResultsWithResponse request
+	ListBulkCheckResultsWithResponse(ctx context.Context, id string, params *ListBulkCheckResultsParams, reqEditors ...RequestEditorFn) (*ListBulkCheckResultsResponse, error)
 
-	// GetCheckBulkIdStreamWithResponse request
-	GetCheckBulkIdStreamWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetCheckBulkIdStreamResponse, error)
+	// StreamBulkCheckWithResponse request
+	StreamBulkCheckWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*StreamBulkCheckResponse, error)
 
-	// GetDomainsSavedWithResponse request
-	GetDomainsSavedWithResponse(ctx context.Context, params *GetDomainsSavedParams, reqEditors ...RequestEditorFn) (*GetDomainsSavedResponse, error)
+	// ListSavedDomainsWithResponse request
+	ListSavedDomainsWithResponse(ctx context.Context, params *ListSavedDomainsParams, reqEditors ...RequestEditorFn) (*ListSavedDomainsResponse, error)
 
-	// PostDomainsSavedWithBodyWithResponse request with any body
-	PostDomainsSavedWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostDomainsSavedResponse, error)
+	// SaveDomainWithBodyWithResponse request with any body
+	SaveDomainWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SaveDomainResponse, error)
 
-	PostDomainsSavedWithResponse(ctx context.Context, body PostDomainsSavedJSONRequestBody, reqEditors ...RequestEditorFn) (*PostDomainsSavedResponse, error)
+	SaveDomainWithResponse(ctx context.Context, body SaveDomainJSONRequestBody, reqEditors ...RequestEditorFn) (*SaveDomainResponse, error)
 
-	// DeleteDomainsSavedDomainWithResponse request
-	DeleteDomainsSavedDomainWithResponse(ctx context.Context, domain string, reqEditors ...RequestEditorFn) (*DeleteDomainsSavedDomainResponse, error)
+	// RemoveSavedDomainWithResponse request
+	RemoveSavedDomainWithResponse(ctx context.Context, domain string, reqEditors ...RequestEditorFn) (*RemoveSavedDomainResponse, error)
 
-	// GetNameGeneratorJobsWithResponse request
-	GetNameGeneratorJobsWithResponse(ctx context.Context, params *GetNameGeneratorJobsParams, reqEditors ...RequestEditorFn) (*GetNameGeneratorJobsResponse, error)
+	// ListNameJobsWithResponse request
+	ListNameJobsWithResponse(ctx context.Context, params *ListNameJobsParams, reqEditors ...RequestEditorFn) (*ListNameJobsResponse, error)
 
-	// PostNameGeneratorJobsWithBodyWithResponse request with any body
-	PostNameGeneratorJobsWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostNameGeneratorJobsResponse, error)
+	// CreateNameJobWithBodyWithResponse request with any body
+	CreateNameJobWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateNameJobResponse, error)
 
-	PostNameGeneratorJobsWithResponse(ctx context.Context, body PostNameGeneratorJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*PostNameGeneratorJobsResponse, error)
+	CreateNameJobWithResponse(ctx context.Context, body CreateNameJobJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateNameJobResponse, error)
 
-	// DeleteNameGeneratorJobsJobIdWithResponse request
-	DeleteNameGeneratorJobsJobIdWithResponse(ctx context.Context, jobId string, reqEditors ...RequestEditorFn) (*DeleteNameGeneratorJobsJobIdResponse, error)
+	// DeleteNameJobWithResponse request
+	DeleteNameJobWithResponse(ctx context.Context, jobId string, reqEditors ...RequestEditorFn) (*DeleteNameJobResponse, error)
 
-	// GetNameGeneratorJobsJobIdWithResponse request
-	GetNameGeneratorJobsJobIdWithResponse(ctx context.Context, jobId string, reqEditors ...RequestEditorFn) (*GetNameGeneratorJobsJobIdResponse, error)
+	// GetNameJobWithResponse request
+	GetNameJobWithResponse(ctx context.Context, jobId string, reqEditors ...RequestEditorFn) (*GetNameJobResponse, error)
 
-	// PostNameGeneratorJobsJobIdCheckWithBodyWithResponse request with any body
-	PostNameGeneratorJobsJobIdCheckWithBodyWithResponse(ctx context.Context, jobId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostNameGeneratorJobsJobIdCheckResponse, error)
+	// CheckNameJobNamesWithBodyWithResponse request with any body
+	CheckNameJobNamesWithBodyWithResponse(ctx context.Context, jobId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CheckNameJobNamesResponse, error)
 
-	PostNameGeneratorJobsJobIdCheckWithResponse(ctx context.Context, jobId string, body PostNameGeneratorJobsJobIdCheckJSONRequestBody, reqEditors ...RequestEditorFn) (*PostNameGeneratorJobsJobIdCheckResponse, error)
+	CheckNameJobNamesWithResponse(ctx context.Context, jobId string, body CheckNameJobNamesJSONRequestBody, reqEditors ...RequestEditorFn) (*CheckNameJobNamesResponse, error)
 
-	// GetNameGeneratorJobsJobIdNamesWithResponse request
-	GetNameGeneratorJobsJobIdNamesWithResponse(ctx context.Context, jobId string, params *GetNameGeneratorJobsJobIdNamesParams, reqEditors ...RequestEditorFn) (*GetNameGeneratorJobsJobIdNamesResponse, error)
+	// ListNameJobNamesWithResponse request
+	ListNameJobNamesWithResponse(ctx context.Context, jobId string, params *ListNameJobNamesParams, reqEditors ...RequestEditorFn) (*ListNameJobNamesResponse, error)
 }
 
-type GetBrandMonitorHitsResponse struct {
+type ListBrandHitsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *BrandmonitorhandlerListHitsResponse
@@ -2914,7 +2928,7 @@ type GetBrandMonitorHitsResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetBrandMonitorHitsResponse) Status() string {
+func (r ListBrandHitsResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -2922,7 +2936,7 @@ func (r GetBrandMonitorHitsResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetBrandMonitorHitsResponse) StatusCode() int {
+func (r ListBrandHitsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -2930,14 +2944,14 @@ func (r GetBrandMonitorHitsResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r GetBrandMonitorHitsResponse) ContentType() string {
+func (r ListBrandHitsResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type GetBrandMonitorHitsIdResponse struct {
+type GetBrandHitResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *DtoMonitorHit
@@ -2946,7 +2960,7 @@ type GetBrandMonitorHitsIdResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetBrandMonitorHitsIdResponse) Status() string {
+func (r GetBrandHitResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -2954,7 +2968,7 @@ func (r GetBrandMonitorHitsIdResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetBrandMonitorHitsIdResponse) StatusCode() int {
+func (r GetBrandHitResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -2962,14 +2976,14 @@ func (r GetBrandMonitorHitsIdResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r GetBrandMonitorHitsIdResponse) ContentType() string {
+func (r GetBrandHitResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type GetBrandMonitorWatchersResponse struct {
+type ListBrandWatchersResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *[]DtoWatcher
@@ -2977,7 +2991,7 @@ type GetBrandMonitorWatchersResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetBrandMonitorWatchersResponse) Status() string {
+func (r ListBrandWatchersResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -2985,7 +2999,7 @@ func (r GetBrandMonitorWatchersResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetBrandMonitorWatchersResponse) StatusCode() int {
+func (r ListBrandWatchersResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -2993,14 +3007,14 @@ func (r GetBrandMonitorWatchersResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r GetBrandMonitorWatchersResponse) ContentType() string {
+func (r ListBrandWatchersResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type PostBrandMonitorWatchersResponse struct {
+type CreateBrandWatcherResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON201      *DtoWatcher
@@ -3010,7 +3024,7 @@ type PostBrandMonitorWatchersResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r PostBrandMonitorWatchersResponse) Status() string {
+func (r CreateBrandWatcherResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -3018,7 +3032,7 @@ func (r PostBrandMonitorWatchersResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostBrandMonitorWatchersResponse) StatusCode() int {
+func (r CreateBrandWatcherResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -3026,14 +3040,14 @@ func (r PostBrandMonitorWatchersResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r PostBrandMonitorWatchersResponse) ContentType() string {
+func (r CreateBrandWatcherResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type DeleteBrandMonitorWatchersIdResponse struct {
+type DeleteBrandWatcherResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON404      *ResponseAPIError
@@ -3041,7 +3055,7 @@ type DeleteBrandMonitorWatchersIdResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r DeleteBrandMonitorWatchersIdResponse) Status() string {
+func (r DeleteBrandWatcherResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -3049,7 +3063,7 @@ func (r DeleteBrandMonitorWatchersIdResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r DeleteBrandMonitorWatchersIdResponse) StatusCode() int {
+func (r DeleteBrandWatcherResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -3057,14 +3071,14 @@ func (r DeleteBrandMonitorWatchersIdResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r DeleteBrandMonitorWatchersIdResponse) ContentType() string {
+func (r DeleteBrandWatcherResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type GetBrandMonitorWatchersIdResponse struct {
+type GetBrandWatcherResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *DtoWatcher
@@ -3073,7 +3087,7 @@ type GetBrandMonitorWatchersIdResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetBrandMonitorWatchersIdResponse) Status() string {
+func (r GetBrandWatcherResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -3081,7 +3095,7 @@ func (r GetBrandMonitorWatchersIdResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetBrandMonitorWatchersIdResponse) StatusCode() int {
+func (r GetBrandWatcherResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -3089,14 +3103,14 @@ func (r GetBrandMonitorWatchersIdResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r GetBrandMonitorWatchersIdResponse) ContentType() string {
+func (r GetBrandWatcherResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type PutBrandMonitorWatchersIdResponse struct {
+type UpdateBrandWatcherResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *DtoWatcher
@@ -3106,7 +3120,7 @@ type PutBrandMonitorWatchersIdResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r PutBrandMonitorWatchersIdResponse) Status() string {
+func (r UpdateBrandWatcherResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -3114,7 +3128,7 @@ func (r PutBrandMonitorWatchersIdResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PutBrandMonitorWatchersIdResponse) StatusCode() int {
+func (r UpdateBrandWatcherResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -3122,14 +3136,14 @@ func (r PutBrandMonitorWatchersIdResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r PutBrandMonitorWatchersIdResponse) ContentType() string {
+func (r UpdateBrandWatcherResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type GetBrandMonitorWatchersIdHitsResponse struct {
+type ListBrandWatcherHitsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *BrandmonitorhandlerListHitsResponse
@@ -3138,7 +3152,7 @@ type GetBrandMonitorWatchersIdHitsResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetBrandMonitorWatchersIdHitsResponse) Status() string {
+func (r ListBrandWatcherHitsResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -3146,7 +3160,7 @@ func (r GetBrandMonitorWatchersIdHitsResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetBrandMonitorWatchersIdHitsResponse) StatusCode() int {
+func (r ListBrandWatcherHitsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -3154,23 +3168,24 @@ func (r GetBrandMonitorWatchersIdHitsResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r GetBrandMonitorWatchersIdHitsResponse) ContentType() string {
+func (r ListBrandWatcherHitsResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type GetBrandMonitorWatchersIdHitsCountResponse struct {
+type CountBrandWatcherHitsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *map[string]string
+	JSON200      *BrandmonitorhandlerWatcherHitCountResponse
 	JSON400      *ResponseAPIError
+	JSON404      *ResponseAPIError
 	JSON500      *ResponseAPIError
 }
 
 // Status returns HTTPResponse.Status
-func (r GetBrandMonitorWatchersIdHitsCountResponse) Status() string {
+func (r CountBrandWatcherHitsResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -3178,7 +3193,7 @@ func (r GetBrandMonitorWatchersIdHitsCountResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetBrandMonitorWatchersIdHitsCountResponse) StatusCode() int {
+func (r CountBrandWatcherHitsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -3186,7 +3201,7 @@ func (r GetBrandMonitorWatchersIdHitsCountResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r GetBrandMonitorWatchersIdHitsCountResponse) ContentType() string {
+func (r CountBrandWatcherHitsResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
@@ -3225,7 +3240,7 @@ func (r CheckDomainResponse) ContentType() string {
 	return ""
 }
 
-type GetCheckBulkResponse struct {
+type ListBulkChecksResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
@@ -3237,7 +3252,7 @@ type GetCheckBulkResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetCheckBulkResponse) Status() string {
+func (r ListBulkChecksResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -3245,7 +3260,7 @@ func (r GetCheckBulkResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetCheckBulkResponse) StatusCode() int {
+func (r ListBulkChecksResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -3253,14 +3268,14 @@ func (r GetCheckBulkResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r GetCheckBulkResponse) ContentType() string {
+func (r ListBulkChecksResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type PostCheckBulkResponse struct {
+type CreateBulkCheckResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON202      *DtoBulkCheckJob
@@ -3269,7 +3284,7 @@ type PostCheckBulkResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r PostCheckBulkResponse) Status() string {
+func (r CreateBulkCheckResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -3277,7 +3292,7 @@ func (r PostCheckBulkResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostCheckBulkResponse) StatusCode() int {
+func (r CreateBulkCheckResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -3285,14 +3300,14 @@ func (r PostCheckBulkResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r PostCheckBulkResponse) ContentType() string {
+func (r CreateBulkCheckResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type DeleteCheckBulkIdResponse struct {
+type DeleteBulkCheckResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON400      *ResponseAPIError
@@ -3301,7 +3316,7 @@ type DeleteCheckBulkIdResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r DeleteCheckBulkIdResponse) Status() string {
+func (r DeleteBulkCheckResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -3309,7 +3324,7 @@ func (r DeleteCheckBulkIdResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r DeleteCheckBulkIdResponse) StatusCode() int {
+func (r DeleteBulkCheckResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -3317,14 +3332,14 @@ func (r DeleteCheckBulkIdResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r DeleteCheckBulkIdResponse) ContentType() string {
+func (r DeleteBulkCheckResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type GetCheckBulkIdResponse struct {
+type GetBulkCheckResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *DtoBulkCheckJob
@@ -3333,7 +3348,7 @@ type GetCheckBulkIdResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetCheckBulkIdResponse) Status() string {
+func (r GetBulkCheckResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -3341,7 +3356,7 @@ func (r GetCheckBulkIdResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetCheckBulkIdResponse) StatusCode() int {
+func (r GetBulkCheckResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -3349,14 +3364,14 @@ func (r GetCheckBulkIdResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r GetCheckBulkIdResponse) ContentType() string {
+func (r GetBulkCheckResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type PostCheckBulkIdCancelResponse struct {
+type CancelBulkCheckResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *DtoBulkCheckJob
@@ -3366,7 +3381,7 @@ type PostCheckBulkIdCancelResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r PostCheckBulkIdCancelResponse) Status() string {
+func (r CancelBulkCheckResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -3374,7 +3389,7 @@ func (r PostCheckBulkIdCancelResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostCheckBulkIdCancelResponse) StatusCode() int {
+func (r CancelBulkCheckResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -3382,20 +3397,20 @@ func (r PostCheckBulkIdCancelResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r PostCheckBulkIdCancelResponse) ContentType() string {
+func (r CancelBulkCheckResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type GetCheckBulkIdExportResponse struct {
+type ExportBulkCheckResultsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 }
 
 // Status returns HTTPResponse.Status
-func (r GetCheckBulkIdExportResponse) Status() string {
+func (r ExportBulkCheckResultsResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -3403,7 +3418,7 @@ func (r GetCheckBulkIdExportResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetCheckBulkIdExportResponse) StatusCode() int {
+func (r ExportBulkCheckResultsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -3411,14 +3426,14 @@ func (r GetCheckBulkIdExportResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r GetCheckBulkIdExportResponse) ContentType() string {
+func (r ExportBulkCheckResultsResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type GetCheckBulkIdResultsResponse struct {
+type ListBulkCheckResultsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
@@ -3432,7 +3447,7 @@ type GetCheckBulkIdResultsResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetCheckBulkIdResultsResponse) Status() string {
+func (r ListBulkCheckResultsResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -3440,7 +3455,7 @@ func (r GetCheckBulkIdResultsResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetCheckBulkIdResultsResponse) StatusCode() int {
+func (r ListBulkCheckResultsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -3448,20 +3463,20 @@ func (r GetCheckBulkIdResultsResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r GetCheckBulkIdResultsResponse) ContentType() string {
+func (r ListBulkCheckResultsResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type GetCheckBulkIdStreamResponse struct {
+type StreamBulkCheckResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 }
 
 // Status returns HTTPResponse.Status
-func (r GetCheckBulkIdStreamResponse) Status() string {
+func (r StreamBulkCheckResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -3469,7 +3484,7 @@ func (r GetCheckBulkIdStreamResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetCheckBulkIdStreamResponse) StatusCode() int {
+func (r StreamBulkCheckResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -3477,14 +3492,14 @@ func (r GetCheckBulkIdStreamResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r GetCheckBulkIdStreamResponse) ContentType() string {
+func (r StreamBulkCheckResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type GetDomainsSavedResponse struct {
+type ListSavedDomainsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
@@ -3496,7 +3511,7 @@ type GetDomainsSavedResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetDomainsSavedResponse) Status() string {
+func (r ListSavedDomainsResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -3504,7 +3519,7 @@ func (r GetDomainsSavedResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetDomainsSavedResponse) StatusCode() int {
+func (r ListSavedDomainsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -3512,14 +3527,14 @@ func (r GetDomainsSavedResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r GetDomainsSavedResponse) ContentType() string {
+func (r ListSavedDomainsResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type PostDomainsSavedResponse struct {
+type SaveDomainResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON400      *ResponseAPIError
@@ -3527,7 +3542,7 @@ type PostDomainsSavedResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r PostDomainsSavedResponse) Status() string {
+func (r SaveDomainResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -3535,7 +3550,7 @@ func (r PostDomainsSavedResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostDomainsSavedResponse) StatusCode() int {
+func (r SaveDomainResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -3543,21 +3558,21 @@ func (r PostDomainsSavedResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r PostDomainsSavedResponse) ContentType() string {
+func (r SaveDomainResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type DeleteDomainsSavedDomainResponse struct {
+type RemoveSavedDomainResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON500      *ResponseAPIError
 }
 
 // Status returns HTTPResponse.Status
-func (r DeleteDomainsSavedDomainResponse) Status() string {
+func (r RemoveSavedDomainResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -3565,7 +3580,7 @@ func (r DeleteDomainsSavedDomainResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r DeleteDomainsSavedDomainResponse) StatusCode() int {
+func (r RemoveSavedDomainResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -3573,14 +3588,14 @@ func (r DeleteDomainsSavedDomainResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r DeleteDomainsSavedDomainResponse) ContentType() string {
+func (r RemoveSavedDomainResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type GetNameGeneratorJobsResponse struct {
+type ListNameJobsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
@@ -3592,7 +3607,7 @@ type GetNameGeneratorJobsResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetNameGeneratorJobsResponse) Status() string {
+func (r ListNameJobsResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -3600,7 +3615,7 @@ func (r GetNameGeneratorJobsResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetNameGeneratorJobsResponse) StatusCode() int {
+func (r ListNameJobsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -3608,14 +3623,14 @@ func (r GetNameGeneratorJobsResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r GetNameGeneratorJobsResponse) ContentType() string {
+func (r ListNameJobsResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type PostNameGeneratorJobsResponse struct {
+type CreateNameJobResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON202      *DtoNameGeneratorJob
@@ -3624,7 +3639,7 @@ type PostNameGeneratorJobsResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r PostNameGeneratorJobsResponse) Status() string {
+func (r CreateNameJobResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -3632,7 +3647,7 @@ func (r PostNameGeneratorJobsResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostNameGeneratorJobsResponse) StatusCode() int {
+func (r CreateNameJobResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -3640,14 +3655,14 @@ func (r PostNameGeneratorJobsResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r PostNameGeneratorJobsResponse) ContentType() string {
+func (r CreateNameJobResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type DeleteNameGeneratorJobsJobIdResponse struct {
+type DeleteNameJobResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON400      *ResponseAPIError
@@ -3656,7 +3671,7 @@ type DeleteNameGeneratorJobsJobIdResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r DeleteNameGeneratorJobsJobIdResponse) Status() string {
+func (r DeleteNameJobResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -3664,7 +3679,7 @@ func (r DeleteNameGeneratorJobsJobIdResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r DeleteNameGeneratorJobsJobIdResponse) StatusCode() int {
+func (r DeleteNameJobResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -3672,14 +3687,14 @@ func (r DeleteNameGeneratorJobsJobIdResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r DeleteNameGeneratorJobsJobIdResponse) ContentType() string {
+func (r DeleteNameJobResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type GetNameGeneratorJobsJobIdResponse struct {
+type GetNameJobResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *DtoNameGeneratorJob
@@ -3688,7 +3703,7 @@ type GetNameGeneratorJobsJobIdResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetNameGeneratorJobsJobIdResponse) Status() string {
+func (r GetNameJobResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -3696,7 +3711,7 @@ func (r GetNameGeneratorJobsJobIdResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetNameGeneratorJobsJobIdResponse) StatusCode() int {
+func (r GetNameJobResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -3704,14 +3719,14 @@ func (r GetNameGeneratorJobsJobIdResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r GetNameGeneratorJobsJobIdResponse) ContentType() string {
+func (r GetNameJobResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type PostNameGeneratorJobsJobIdCheckResponse struct {
+type CheckNameJobNamesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON202      *DtoBulkCheckJob
@@ -3720,7 +3735,7 @@ type PostNameGeneratorJobsJobIdCheckResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r PostNameGeneratorJobsJobIdCheckResponse) Status() string {
+func (r CheckNameJobNamesResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -3728,7 +3743,7 @@ func (r PostNameGeneratorJobsJobIdCheckResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostNameGeneratorJobsJobIdCheckResponse) StatusCode() int {
+func (r CheckNameJobNamesResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -3736,14 +3751,14 @@ func (r PostNameGeneratorJobsJobIdCheckResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r PostNameGeneratorJobsJobIdCheckResponse) ContentType() string {
+func (r CheckNameJobNamesResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type GetNameGeneratorJobsJobIdNamesResponse struct {
+type ListNameJobNamesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
@@ -3756,7 +3771,7 @@ type GetNameGeneratorJobsJobIdNamesResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetNameGeneratorJobsJobIdNamesResponse) Status() string {
+func (r ListNameJobNamesResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -3764,7 +3779,7 @@ func (r GetNameGeneratorJobsJobIdNamesResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetNameGeneratorJobsJobIdNamesResponse) StatusCode() int {
+func (r ListNameJobNamesResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -3772,108 +3787,108 @@ func (r GetNameGeneratorJobsJobIdNamesResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r GetNameGeneratorJobsJobIdNamesResponse) ContentType() string {
+func (r ListNameJobNamesResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-// GetBrandMonitorHitsWithResponse request returning *GetBrandMonitorHitsResponse
-func (c *ClientWithResponses) GetBrandMonitorHitsWithResponse(ctx context.Context, params *GetBrandMonitorHitsParams, reqEditors ...RequestEditorFn) (*GetBrandMonitorHitsResponse, error) {
-	rsp, err := c.GetBrandMonitorHits(ctx, params, reqEditors...)
+// ListBrandHitsWithResponse request returning *ListBrandHitsResponse
+func (c *ClientWithResponses) ListBrandHitsWithResponse(ctx context.Context, params *ListBrandHitsParams, reqEditors ...RequestEditorFn) (*ListBrandHitsResponse, error) {
+	rsp, err := c.ListBrandHits(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetBrandMonitorHitsResponse(rsp)
+	return ParseListBrandHitsResponse(rsp)
 }
 
-// GetBrandMonitorHitsIdWithResponse request returning *GetBrandMonitorHitsIdResponse
-func (c *ClientWithResponses) GetBrandMonitorHitsIdWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetBrandMonitorHitsIdResponse, error) {
-	rsp, err := c.GetBrandMonitorHitsId(ctx, id, reqEditors...)
+// GetBrandHitWithResponse request returning *GetBrandHitResponse
+func (c *ClientWithResponses) GetBrandHitWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetBrandHitResponse, error) {
+	rsp, err := c.GetBrandHit(ctx, id, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetBrandMonitorHitsIdResponse(rsp)
+	return ParseGetBrandHitResponse(rsp)
 }
 
-// GetBrandMonitorWatchersWithResponse request returning *GetBrandMonitorWatchersResponse
-func (c *ClientWithResponses) GetBrandMonitorWatchersWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetBrandMonitorWatchersResponse, error) {
-	rsp, err := c.GetBrandMonitorWatchers(ctx, reqEditors...)
+// ListBrandWatchersWithResponse request returning *ListBrandWatchersResponse
+func (c *ClientWithResponses) ListBrandWatchersWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListBrandWatchersResponse, error) {
+	rsp, err := c.ListBrandWatchers(ctx, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetBrandMonitorWatchersResponse(rsp)
+	return ParseListBrandWatchersResponse(rsp)
 }
 
-// PostBrandMonitorWatchersWithBodyWithResponse request with arbitrary body returning *PostBrandMonitorWatchersResponse
-func (c *ClientWithResponses) PostBrandMonitorWatchersWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostBrandMonitorWatchersResponse, error) {
-	rsp, err := c.PostBrandMonitorWatchersWithBody(ctx, contentType, body, reqEditors...)
+// CreateBrandWatcherWithBodyWithResponse request with arbitrary body returning *CreateBrandWatcherResponse
+func (c *ClientWithResponses) CreateBrandWatcherWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateBrandWatcherResponse, error) {
+	rsp, err := c.CreateBrandWatcherWithBody(ctx, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostBrandMonitorWatchersResponse(rsp)
+	return ParseCreateBrandWatcherResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostBrandMonitorWatchersWithResponse(ctx context.Context, body PostBrandMonitorWatchersJSONRequestBody, reqEditors ...RequestEditorFn) (*PostBrandMonitorWatchersResponse, error) {
-	rsp, err := c.PostBrandMonitorWatchers(ctx, body, reqEditors...)
+func (c *ClientWithResponses) CreateBrandWatcherWithResponse(ctx context.Context, body CreateBrandWatcherJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateBrandWatcherResponse, error) {
+	rsp, err := c.CreateBrandWatcher(ctx, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostBrandMonitorWatchersResponse(rsp)
+	return ParseCreateBrandWatcherResponse(rsp)
 }
 
-// DeleteBrandMonitorWatchersIdWithResponse request returning *DeleteBrandMonitorWatchersIdResponse
-func (c *ClientWithResponses) DeleteBrandMonitorWatchersIdWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*DeleteBrandMonitorWatchersIdResponse, error) {
-	rsp, err := c.DeleteBrandMonitorWatchersId(ctx, id, reqEditors...)
+// DeleteBrandWatcherWithResponse request returning *DeleteBrandWatcherResponse
+func (c *ClientWithResponses) DeleteBrandWatcherWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*DeleteBrandWatcherResponse, error) {
+	rsp, err := c.DeleteBrandWatcher(ctx, id, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseDeleteBrandMonitorWatchersIdResponse(rsp)
+	return ParseDeleteBrandWatcherResponse(rsp)
 }
 
-// GetBrandMonitorWatchersIdWithResponse request returning *GetBrandMonitorWatchersIdResponse
-func (c *ClientWithResponses) GetBrandMonitorWatchersIdWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetBrandMonitorWatchersIdResponse, error) {
-	rsp, err := c.GetBrandMonitorWatchersId(ctx, id, reqEditors...)
+// GetBrandWatcherWithResponse request returning *GetBrandWatcherResponse
+func (c *ClientWithResponses) GetBrandWatcherWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetBrandWatcherResponse, error) {
+	rsp, err := c.GetBrandWatcher(ctx, id, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetBrandMonitorWatchersIdResponse(rsp)
+	return ParseGetBrandWatcherResponse(rsp)
 }
 
-// PutBrandMonitorWatchersIdWithBodyWithResponse request with arbitrary body returning *PutBrandMonitorWatchersIdResponse
-func (c *ClientWithResponses) PutBrandMonitorWatchersIdWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutBrandMonitorWatchersIdResponse, error) {
-	rsp, err := c.PutBrandMonitorWatchersIdWithBody(ctx, id, contentType, body, reqEditors...)
+// UpdateBrandWatcherWithBodyWithResponse request with arbitrary body returning *UpdateBrandWatcherResponse
+func (c *ClientWithResponses) UpdateBrandWatcherWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateBrandWatcherResponse, error) {
+	rsp, err := c.UpdateBrandWatcherWithBody(ctx, id, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePutBrandMonitorWatchersIdResponse(rsp)
+	return ParseUpdateBrandWatcherResponse(rsp)
 }
 
-func (c *ClientWithResponses) PutBrandMonitorWatchersIdWithResponse(ctx context.Context, id string, body PutBrandMonitorWatchersIdJSONRequestBody, reqEditors ...RequestEditorFn) (*PutBrandMonitorWatchersIdResponse, error) {
-	rsp, err := c.PutBrandMonitorWatchersId(ctx, id, body, reqEditors...)
+func (c *ClientWithResponses) UpdateBrandWatcherWithResponse(ctx context.Context, id string, body UpdateBrandWatcherJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateBrandWatcherResponse, error) {
+	rsp, err := c.UpdateBrandWatcher(ctx, id, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePutBrandMonitorWatchersIdResponse(rsp)
+	return ParseUpdateBrandWatcherResponse(rsp)
 }
 
-// GetBrandMonitorWatchersIdHitsWithResponse request returning *GetBrandMonitorWatchersIdHitsResponse
-func (c *ClientWithResponses) GetBrandMonitorWatchersIdHitsWithResponse(ctx context.Context, id string, params *GetBrandMonitorWatchersIdHitsParams, reqEditors ...RequestEditorFn) (*GetBrandMonitorWatchersIdHitsResponse, error) {
-	rsp, err := c.GetBrandMonitorWatchersIdHits(ctx, id, params, reqEditors...)
+// ListBrandWatcherHitsWithResponse request returning *ListBrandWatcherHitsResponse
+func (c *ClientWithResponses) ListBrandWatcherHitsWithResponse(ctx context.Context, id string, params *ListBrandWatcherHitsParams, reqEditors ...RequestEditorFn) (*ListBrandWatcherHitsResponse, error) {
+	rsp, err := c.ListBrandWatcherHits(ctx, id, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetBrandMonitorWatchersIdHitsResponse(rsp)
+	return ParseListBrandWatcherHitsResponse(rsp)
 }
 
-// GetBrandMonitorWatchersIdHitsCountWithResponse request returning *GetBrandMonitorWatchersIdHitsCountResponse
-func (c *ClientWithResponses) GetBrandMonitorWatchersIdHitsCountWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetBrandMonitorWatchersIdHitsCountResponse, error) {
-	rsp, err := c.GetBrandMonitorWatchersIdHitsCount(ctx, id, reqEditors...)
+// CountBrandWatcherHitsWithResponse request returning *CountBrandWatcherHitsResponse
+func (c *ClientWithResponses) CountBrandWatcherHitsWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*CountBrandWatcherHitsResponse, error) {
+	rsp, err := c.CountBrandWatcherHits(ctx, id, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetBrandMonitorWatchersIdHitsCountResponse(rsp)
+	return ParseCountBrandWatcherHitsResponse(rsp)
 }
 
 // CheckDomainWithBodyWithResponse request with arbitrary body returning *CheckDomainResponse
@@ -3893,200 +3908,200 @@ func (c *ClientWithResponses) CheckDomainWithResponse(ctx context.Context, body 
 	return ParseCheckDomainResponse(rsp)
 }
 
-// GetCheckBulkWithResponse request returning *GetCheckBulkResponse
-func (c *ClientWithResponses) GetCheckBulkWithResponse(ctx context.Context, params *GetCheckBulkParams, reqEditors ...RequestEditorFn) (*GetCheckBulkResponse, error) {
-	rsp, err := c.GetCheckBulk(ctx, params, reqEditors...)
+// ListBulkChecksWithResponse request returning *ListBulkChecksResponse
+func (c *ClientWithResponses) ListBulkChecksWithResponse(ctx context.Context, params *ListBulkChecksParams, reqEditors ...RequestEditorFn) (*ListBulkChecksResponse, error) {
+	rsp, err := c.ListBulkChecks(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetCheckBulkResponse(rsp)
+	return ParseListBulkChecksResponse(rsp)
 }
 
-// PostCheckBulkWithBodyWithResponse request with arbitrary body returning *PostCheckBulkResponse
-func (c *ClientWithResponses) PostCheckBulkWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostCheckBulkResponse, error) {
-	rsp, err := c.PostCheckBulkWithBody(ctx, contentType, body, reqEditors...)
+// CreateBulkCheckWithBodyWithResponse request with arbitrary body returning *CreateBulkCheckResponse
+func (c *ClientWithResponses) CreateBulkCheckWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateBulkCheckResponse, error) {
+	rsp, err := c.CreateBulkCheckWithBody(ctx, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostCheckBulkResponse(rsp)
+	return ParseCreateBulkCheckResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostCheckBulkWithResponse(ctx context.Context, body PostCheckBulkJSONRequestBody, reqEditors ...RequestEditorFn) (*PostCheckBulkResponse, error) {
-	rsp, err := c.PostCheckBulk(ctx, body, reqEditors...)
+func (c *ClientWithResponses) CreateBulkCheckWithResponse(ctx context.Context, body CreateBulkCheckJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateBulkCheckResponse, error) {
+	rsp, err := c.CreateBulkCheck(ctx, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostCheckBulkResponse(rsp)
+	return ParseCreateBulkCheckResponse(rsp)
 }
 
-// DeleteCheckBulkIdWithResponse request returning *DeleteCheckBulkIdResponse
-func (c *ClientWithResponses) DeleteCheckBulkIdWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*DeleteCheckBulkIdResponse, error) {
-	rsp, err := c.DeleteCheckBulkId(ctx, id, reqEditors...)
+// DeleteBulkCheckWithResponse request returning *DeleteBulkCheckResponse
+func (c *ClientWithResponses) DeleteBulkCheckWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*DeleteBulkCheckResponse, error) {
+	rsp, err := c.DeleteBulkCheck(ctx, id, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseDeleteCheckBulkIdResponse(rsp)
+	return ParseDeleteBulkCheckResponse(rsp)
 }
 
-// GetCheckBulkIdWithResponse request returning *GetCheckBulkIdResponse
-func (c *ClientWithResponses) GetCheckBulkIdWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetCheckBulkIdResponse, error) {
-	rsp, err := c.GetCheckBulkId(ctx, id, reqEditors...)
+// GetBulkCheckWithResponse request returning *GetBulkCheckResponse
+func (c *ClientWithResponses) GetBulkCheckWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetBulkCheckResponse, error) {
+	rsp, err := c.GetBulkCheck(ctx, id, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetCheckBulkIdResponse(rsp)
+	return ParseGetBulkCheckResponse(rsp)
 }
 
-// PostCheckBulkIdCancelWithResponse request returning *PostCheckBulkIdCancelResponse
-func (c *ClientWithResponses) PostCheckBulkIdCancelWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*PostCheckBulkIdCancelResponse, error) {
-	rsp, err := c.PostCheckBulkIdCancel(ctx, id, reqEditors...)
+// CancelBulkCheckWithResponse request returning *CancelBulkCheckResponse
+func (c *ClientWithResponses) CancelBulkCheckWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*CancelBulkCheckResponse, error) {
+	rsp, err := c.CancelBulkCheck(ctx, id, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostCheckBulkIdCancelResponse(rsp)
+	return ParseCancelBulkCheckResponse(rsp)
 }
 
-// GetCheckBulkIdExportWithResponse request returning *GetCheckBulkIdExportResponse
-func (c *ClientWithResponses) GetCheckBulkIdExportWithResponse(ctx context.Context, id string, params *GetCheckBulkIdExportParams, reqEditors ...RequestEditorFn) (*GetCheckBulkIdExportResponse, error) {
-	rsp, err := c.GetCheckBulkIdExport(ctx, id, params, reqEditors...)
+// ExportBulkCheckResultsWithResponse request returning *ExportBulkCheckResultsResponse
+func (c *ClientWithResponses) ExportBulkCheckResultsWithResponse(ctx context.Context, id string, params *ExportBulkCheckResultsParams, reqEditors ...RequestEditorFn) (*ExportBulkCheckResultsResponse, error) {
+	rsp, err := c.ExportBulkCheckResults(ctx, id, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetCheckBulkIdExportResponse(rsp)
+	return ParseExportBulkCheckResultsResponse(rsp)
 }
 
-// GetCheckBulkIdResultsWithResponse request returning *GetCheckBulkIdResultsResponse
-func (c *ClientWithResponses) GetCheckBulkIdResultsWithResponse(ctx context.Context, id string, params *GetCheckBulkIdResultsParams, reqEditors ...RequestEditorFn) (*GetCheckBulkIdResultsResponse, error) {
-	rsp, err := c.GetCheckBulkIdResults(ctx, id, params, reqEditors...)
+// ListBulkCheckResultsWithResponse request returning *ListBulkCheckResultsResponse
+func (c *ClientWithResponses) ListBulkCheckResultsWithResponse(ctx context.Context, id string, params *ListBulkCheckResultsParams, reqEditors ...RequestEditorFn) (*ListBulkCheckResultsResponse, error) {
+	rsp, err := c.ListBulkCheckResults(ctx, id, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetCheckBulkIdResultsResponse(rsp)
+	return ParseListBulkCheckResultsResponse(rsp)
 }
 
-// GetCheckBulkIdStreamWithResponse request returning *GetCheckBulkIdStreamResponse
-func (c *ClientWithResponses) GetCheckBulkIdStreamWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetCheckBulkIdStreamResponse, error) {
-	rsp, err := c.GetCheckBulkIdStream(ctx, id, reqEditors...)
+// StreamBulkCheckWithResponse request returning *StreamBulkCheckResponse
+func (c *ClientWithResponses) StreamBulkCheckWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*StreamBulkCheckResponse, error) {
+	rsp, err := c.StreamBulkCheck(ctx, id, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetCheckBulkIdStreamResponse(rsp)
+	return ParseStreamBulkCheckResponse(rsp)
 }
 
-// GetDomainsSavedWithResponse request returning *GetDomainsSavedResponse
-func (c *ClientWithResponses) GetDomainsSavedWithResponse(ctx context.Context, params *GetDomainsSavedParams, reqEditors ...RequestEditorFn) (*GetDomainsSavedResponse, error) {
-	rsp, err := c.GetDomainsSaved(ctx, params, reqEditors...)
+// ListSavedDomainsWithResponse request returning *ListSavedDomainsResponse
+func (c *ClientWithResponses) ListSavedDomainsWithResponse(ctx context.Context, params *ListSavedDomainsParams, reqEditors ...RequestEditorFn) (*ListSavedDomainsResponse, error) {
+	rsp, err := c.ListSavedDomains(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetDomainsSavedResponse(rsp)
+	return ParseListSavedDomainsResponse(rsp)
 }
 
-// PostDomainsSavedWithBodyWithResponse request with arbitrary body returning *PostDomainsSavedResponse
-func (c *ClientWithResponses) PostDomainsSavedWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostDomainsSavedResponse, error) {
-	rsp, err := c.PostDomainsSavedWithBody(ctx, contentType, body, reqEditors...)
+// SaveDomainWithBodyWithResponse request with arbitrary body returning *SaveDomainResponse
+func (c *ClientWithResponses) SaveDomainWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SaveDomainResponse, error) {
+	rsp, err := c.SaveDomainWithBody(ctx, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostDomainsSavedResponse(rsp)
+	return ParseSaveDomainResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostDomainsSavedWithResponse(ctx context.Context, body PostDomainsSavedJSONRequestBody, reqEditors ...RequestEditorFn) (*PostDomainsSavedResponse, error) {
-	rsp, err := c.PostDomainsSaved(ctx, body, reqEditors...)
+func (c *ClientWithResponses) SaveDomainWithResponse(ctx context.Context, body SaveDomainJSONRequestBody, reqEditors ...RequestEditorFn) (*SaveDomainResponse, error) {
+	rsp, err := c.SaveDomain(ctx, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostDomainsSavedResponse(rsp)
+	return ParseSaveDomainResponse(rsp)
 }
 
-// DeleteDomainsSavedDomainWithResponse request returning *DeleteDomainsSavedDomainResponse
-func (c *ClientWithResponses) DeleteDomainsSavedDomainWithResponse(ctx context.Context, domain string, reqEditors ...RequestEditorFn) (*DeleteDomainsSavedDomainResponse, error) {
-	rsp, err := c.DeleteDomainsSavedDomain(ctx, domain, reqEditors...)
+// RemoveSavedDomainWithResponse request returning *RemoveSavedDomainResponse
+func (c *ClientWithResponses) RemoveSavedDomainWithResponse(ctx context.Context, domain string, reqEditors ...RequestEditorFn) (*RemoveSavedDomainResponse, error) {
+	rsp, err := c.RemoveSavedDomain(ctx, domain, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseDeleteDomainsSavedDomainResponse(rsp)
+	return ParseRemoveSavedDomainResponse(rsp)
 }
 
-// GetNameGeneratorJobsWithResponse request returning *GetNameGeneratorJobsResponse
-func (c *ClientWithResponses) GetNameGeneratorJobsWithResponse(ctx context.Context, params *GetNameGeneratorJobsParams, reqEditors ...RequestEditorFn) (*GetNameGeneratorJobsResponse, error) {
-	rsp, err := c.GetNameGeneratorJobs(ctx, params, reqEditors...)
+// ListNameJobsWithResponse request returning *ListNameJobsResponse
+func (c *ClientWithResponses) ListNameJobsWithResponse(ctx context.Context, params *ListNameJobsParams, reqEditors ...RequestEditorFn) (*ListNameJobsResponse, error) {
+	rsp, err := c.ListNameJobs(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetNameGeneratorJobsResponse(rsp)
+	return ParseListNameJobsResponse(rsp)
 }
 
-// PostNameGeneratorJobsWithBodyWithResponse request with arbitrary body returning *PostNameGeneratorJobsResponse
-func (c *ClientWithResponses) PostNameGeneratorJobsWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostNameGeneratorJobsResponse, error) {
-	rsp, err := c.PostNameGeneratorJobsWithBody(ctx, contentType, body, reqEditors...)
+// CreateNameJobWithBodyWithResponse request with arbitrary body returning *CreateNameJobResponse
+func (c *ClientWithResponses) CreateNameJobWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateNameJobResponse, error) {
+	rsp, err := c.CreateNameJobWithBody(ctx, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostNameGeneratorJobsResponse(rsp)
+	return ParseCreateNameJobResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostNameGeneratorJobsWithResponse(ctx context.Context, body PostNameGeneratorJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*PostNameGeneratorJobsResponse, error) {
-	rsp, err := c.PostNameGeneratorJobs(ctx, body, reqEditors...)
+func (c *ClientWithResponses) CreateNameJobWithResponse(ctx context.Context, body CreateNameJobJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateNameJobResponse, error) {
+	rsp, err := c.CreateNameJob(ctx, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostNameGeneratorJobsResponse(rsp)
+	return ParseCreateNameJobResponse(rsp)
 }
 
-// DeleteNameGeneratorJobsJobIdWithResponse request returning *DeleteNameGeneratorJobsJobIdResponse
-func (c *ClientWithResponses) DeleteNameGeneratorJobsJobIdWithResponse(ctx context.Context, jobId string, reqEditors ...RequestEditorFn) (*DeleteNameGeneratorJobsJobIdResponse, error) {
-	rsp, err := c.DeleteNameGeneratorJobsJobId(ctx, jobId, reqEditors...)
+// DeleteNameJobWithResponse request returning *DeleteNameJobResponse
+func (c *ClientWithResponses) DeleteNameJobWithResponse(ctx context.Context, jobId string, reqEditors ...RequestEditorFn) (*DeleteNameJobResponse, error) {
+	rsp, err := c.DeleteNameJob(ctx, jobId, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseDeleteNameGeneratorJobsJobIdResponse(rsp)
+	return ParseDeleteNameJobResponse(rsp)
 }
 
-// GetNameGeneratorJobsJobIdWithResponse request returning *GetNameGeneratorJobsJobIdResponse
-func (c *ClientWithResponses) GetNameGeneratorJobsJobIdWithResponse(ctx context.Context, jobId string, reqEditors ...RequestEditorFn) (*GetNameGeneratorJobsJobIdResponse, error) {
-	rsp, err := c.GetNameGeneratorJobsJobId(ctx, jobId, reqEditors...)
+// GetNameJobWithResponse request returning *GetNameJobResponse
+func (c *ClientWithResponses) GetNameJobWithResponse(ctx context.Context, jobId string, reqEditors ...RequestEditorFn) (*GetNameJobResponse, error) {
+	rsp, err := c.GetNameJob(ctx, jobId, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetNameGeneratorJobsJobIdResponse(rsp)
+	return ParseGetNameJobResponse(rsp)
 }
 
-// PostNameGeneratorJobsJobIdCheckWithBodyWithResponse request with arbitrary body returning *PostNameGeneratorJobsJobIdCheckResponse
-func (c *ClientWithResponses) PostNameGeneratorJobsJobIdCheckWithBodyWithResponse(ctx context.Context, jobId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostNameGeneratorJobsJobIdCheckResponse, error) {
-	rsp, err := c.PostNameGeneratorJobsJobIdCheckWithBody(ctx, jobId, contentType, body, reqEditors...)
+// CheckNameJobNamesWithBodyWithResponse request with arbitrary body returning *CheckNameJobNamesResponse
+func (c *ClientWithResponses) CheckNameJobNamesWithBodyWithResponse(ctx context.Context, jobId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CheckNameJobNamesResponse, error) {
+	rsp, err := c.CheckNameJobNamesWithBody(ctx, jobId, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostNameGeneratorJobsJobIdCheckResponse(rsp)
+	return ParseCheckNameJobNamesResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostNameGeneratorJobsJobIdCheckWithResponse(ctx context.Context, jobId string, body PostNameGeneratorJobsJobIdCheckJSONRequestBody, reqEditors ...RequestEditorFn) (*PostNameGeneratorJobsJobIdCheckResponse, error) {
-	rsp, err := c.PostNameGeneratorJobsJobIdCheck(ctx, jobId, body, reqEditors...)
+func (c *ClientWithResponses) CheckNameJobNamesWithResponse(ctx context.Context, jobId string, body CheckNameJobNamesJSONRequestBody, reqEditors ...RequestEditorFn) (*CheckNameJobNamesResponse, error) {
+	rsp, err := c.CheckNameJobNames(ctx, jobId, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostNameGeneratorJobsJobIdCheckResponse(rsp)
+	return ParseCheckNameJobNamesResponse(rsp)
 }
 
-// GetNameGeneratorJobsJobIdNamesWithResponse request returning *GetNameGeneratorJobsJobIdNamesResponse
-func (c *ClientWithResponses) GetNameGeneratorJobsJobIdNamesWithResponse(ctx context.Context, jobId string, params *GetNameGeneratorJobsJobIdNamesParams, reqEditors ...RequestEditorFn) (*GetNameGeneratorJobsJobIdNamesResponse, error) {
-	rsp, err := c.GetNameGeneratorJobsJobIdNames(ctx, jobId, params, reqEditors...)
+// ListNameJobNamesWithResponse request returning *ListNameJobNamesResponse
+func (c *ClientWithResponses) ListNameJobNamesWithResponse(ctx context.Context, jobId string, params *ListNameJobNamesParams, reqEditors ...RequestEditorFn) (*ListNameJobNamesResponse, error) {
+	rsp, err := c.ListNameJobNames(ctx, jobId, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetNameGeneratorJobsJobIdNamesResponse(rsp)
+	return ParseListNameJobNamesResponse(rsp)
 }
 
-// ParseGetBrandMonitorHitsResponse parses an HTTP response from a GetBrandMonitorHitsWithResponse call
-func ParseGetBrandMonitorHitsResponse(rsp *http.Response) (*GetBrandMonitorHitsResponse, error) {
+// ParseListBrandHitsResponse parses an HTTP response from a ListBrandHitsWithResponse call
+func ParseListBrandHitsResponse(rsp *http.Response) (*ListBrandHitsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetBrandMonitorHitsResponse{
+	response := &ListBrandHitsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -4118,15 +4133,15 @@ func ParseGetBrandMonitorHitsResponse(rsp *http.Response) (*GetBrandMonitorHitsR
 	return response, nil
 }
 
-// ParseGetBrandMonitorHitsIdResponse parses an HTTP response from a GetBrandMonitorHitsIdWithResponse call
-func ParseGetBrandMonitorHitsIdResponse(rsp *http.Response) (*GetBrandMonitorHitsIdResponse, error) {
+// ParseGetBrandHitResponse parses an HTTP response from a GetBrandHitWithResponse call
+func ParseGetBrandHitResponse(rsp *http.Response) (*GetBrandHitResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetBrandMonitorHitsIdResponse{
+	response := &GetBrandHitResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -4158,15 +4173,15 @@ func ParseGetBrandMonitorHitsIdResponse(rsp *http.Response) (*GetBrandMonitorHit
 	return response, nil
 }
 
-// ParseGetBrandMonitorWatchersResponse parses an HTTP response from a GetBrandMonitorWatchersWithResponse call
-func ParseGetBrandMonitorWatchersResponse(rsp *http.Response) (*GetBrandMonitorWatchersResponse, error) {
+// ParseListBrandWatchersResponse parses an HTTP response from a ListBrandWatchersWithResponse call
+func ParseListBrandWatchersResponse(rsp *http.Response) (*ListBrandWatchersResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetBrandMonitorWatchersResponse{
+	response := &ListBrandWatchersResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -4191,15 +4206,15 @@ func ParseGetBrandMonitorWatchersResponse(rsp *http.Response) (*GetBrandMonitorW
 	return response, nil
 }
 
-// ParsePostBrandMonitorWatchersResponse parses an HTTP response from a PostBrandMonitorWatchersWithResponse call
-func ParsePostBrandMonitorWatchersResponse(rsp *http.Response) (*PostBrandMonitorWatchersResponse, error) {
+// ParseCreateBrandWatcherResponse parses an HTTP response from a CreateBrandWatcherWithResponse call
+func ParseCreateBrandWatcherResponse(rsp *http.Response) (*CreateBrandWatcherResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostBrandMonitorWatchersResponse{
+	response := &CreateBrandWatcherResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -4238,15 +4253,15 @@ func ParsePostBrandMonitorWatchersResponse(rsp *http.Response) (*PostBrandMonito
 	return response, nil
 }
 
-// ParseDeleteBrandMonitorWatchersIdResponse parses an HTTP response from a DeleteBrandMonitorWatchersIdWithResponse call
-func ParseDeleteBrandMonitorWatchersIdResponse(rsp *http.Response) (*DeleteBrandMonitorWatchersIdResponse, error) {
+// ParseDeleteBrandWatcherResponse parses an HTTP response from a DeleteBrandWatcherWithResponse call
+func ParseDeleteBrandWatcherResponse(rsp *http.Response) (*DeleteBrandWatcherResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &DeleteBrandMonitorWatchersIdResponse{
+	response := &DeleteBrandWatcherResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -4271,15 +4286,15 @@ func ParseDeleteBrandMonitorWatchersIdResponse(rsp *http.Response) (*DeleteBrand
 	return response, nil
 }
 
-// ParseGetBrandMonitorWatchersIdResponse parses an HTTP response from a GetBrandMonitorWatchersIdWithResponse call
-func ParseGetBrandMonitorWatchersIdResponse(rsp *http.Response) (*GetBrandMonitorWatchersIdResponse, error) {
+// ParseGetBrandWatcherResponse parses an HTTP response from a GetBrandWatcherWithResponse call
+func ParseGetBrandWatcherResponse(rsp *http.Response) (*GetBrandWatcherResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetBrandMonitorWatchersIdResponse{
+	response := &GetBrandWatcherResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -4311,15 +4326,15 @@ func ParseGetBrandMonitorWatchersIdResponse(rsp *http.Response) (*GetBrandMonito
 	return response, nil
 }
 
-// ParsePutBrandMonitorWatchersIdResponse parses an HTTP response from a PutBrandMonitorWatchersIdWithResponse call
-func ParsePutBrandMonitorWatchersIdResponse(rsp *http.Response) (*PutBrandMonitorWatchersIdResponse, error) {
+// ParseUpdateBrandWatcherResponse parses an HTTP response from a UpdateBrandWatcherWithResponse call
+func ParseUpdateBrandWatcherResponse(rsp *http.Response) (*UpdateBrandWatcherResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PutBrandMonitorWatchersIdResponse{
+	response := &UpdateBrandWatcherResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -4358,15 +4373,15 @@ func ParsePutBrandMonitorWatchersIdResponse(rsp *http.Response) (*PutBrandMonito
 	return response, nil
 }
 
-// ParseGetBrandMonitorWatchersIdHitsResponse parses an HTTP response from a GetBrandMonitorWatchersIdHitsWithResponse call
-func ParseGetBrandMonitorWatchersIdHitsResponse(rsp *http.Response) (*GetBrandMonitorWatchersIdHitsResponse, error) {
+// ParseListBrandWatcherHitsResponse parses an HTTP response from a ListBrandWatcherHitsWithResponse call
+func ParseListBrandWatcherHitsResponse(rsp *http.Response) (*ListBrandWatcherHitsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetBrandMonitorWatchersIdHitsResponse{
+	response := &ListBrandWatcherHitsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -4398,22 +4413,22 @@ func ParseGetBrandMonitorWatchersIdHitsResponse(rsp *http.Response) (*GetBrandMo
 	return response, nil
 }
 
-// ParseGetBrandMonitorWatchersIdHitsCountResponse parses an HTTP response from a GetBrandMonitorWatchersIdHitsCountWithResponse call
-func ParseGetBrandMonitorWatchersIdHitsCountResponse(rsp *http.Response) (*GetBrandMonitorWatchersIdHitsCountResponse, error) {
+// ParseCountBrandWatcherHitsResponse parses an HTTP response from a CountBrandWatcherHitsWithResponse call
+func ParseCountBrandWatcherHitsResponse(rsp *http.Response) (*CountBrandWatcherHitsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetBrandMonitorWatchersIdHitsCountResponse{
+	response := &CountBrandWatcherHitsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest map[string]string
+		var dest BrandmonitorhandlerWatcherHitCountResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -4425,6 +4440,13 @@ func ParseGetBrandMonitorWatchersIdHitsCountResponse(rsp *http.Response) (*GetBr
 			return nil, err
 		}
 		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest ResponseAPIError
@@ -4478,15 +4500,15 @@ func ParseCheckDomainResponse(rsp *http.Response) (*CheckDomainResponse, error) 
 	return response, nil
 }
 
-// ParseGetCheckBulkResponse parses an HTTP response from a GetCheckBulkWithResponse call
-func ParseGetCheckBulkResponse(rsp *http.Response) (*GetCheckBulkResponse, error) {
+// ParseListBulkChecksResponse parses an HTTP response from a ListBulkChecksWithResponse call
+func ParseListBulkChecksResponse(rsp *http.Response) (*ListBulkChecksResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetCheckBulkResponse{
+	response := &ListBulkChecksResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -4515,15 +4537,15 @@ func ParseGetCheckBulkResponse(rsp *http.Response) (*GetCheckBulkResponse, error
 	return response, nil
 }
 
-// ParsePostCheckBulkResponse parses an HTTP response from a PostCheckBulkWithResponse call
-func ParsePostCheckBulkResponse(rsp *http.Response) (*PostCheckBulkResponse, error) {
+// ParseCreateBulkCheckResponse parses an HTTP response from a CreateBulkCheckWithResponse call
+func ParseCreateBulkCheckResponse(rsp *http.Response) (*CreateBulkCheckResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostCheckBulkResponse{
+	response := &CreateBulkCheckResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -4555,15 +4577,15 @@ func ParsePostCheckBulkResponse(rsp *http.Response) (*PostCheckBulkResponse, err
 	return response, nil
 }
 
-// ParseDeleteCheckBulkIdResponse parses an HTTP response from a DeleteCheckBulkIdWithResponse call
-func ParseDeleteCheckBulkIdResponse(rsp *http.Response) (*DeleteCheckBulkIdResponse, error) {
+// ParseDeleteBulkCheckResponse parses an HTTP response from a DeleteBulkCheckWithResponse call
+func ParseDeleteBulkCheckResponse(rsp *http.Response) (*DeleteBulkCheckResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &DeleteCheckBulkIdResponse{
+	response := &DeleteBulkCheckResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -4595,15 +4617,15 @@ func ParseDeleteCheckBulkIdResponse(rsp *http.Response) (*DeleteCheckBulkIdRespo
 	return response, nil
 }
 
-// ParseGetCheckBulkIdResponse parses an HTTP response from a GetCheckBulkIdWithResponse call
-func ParseGetCheckBulkIdResponse(rsp *http.Response) (*GetCheckBulkIdResponse, error) {
+// ParseGetBulkCheckResponse parses an HTTP response from a GetBulkCheckWithResponse call
+func ParseGetBulkCheckResponse(rsp *http.Response) (*GetBulkCheckResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetCheckBulkIdResponse{
+	response := &GetBulkCheckResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -4635,15 +4657,15 @@ func ParseGetCheckBulkIdResponse(rsp *http.Response) (*GetCheckBulkIdResponse, e
 	return response, nil
 }
 
-// ParsePostCheckBulkIdCancelResponse parses an HTTP response from a PostCheckBulkIdCancelWithResponse call
-func ParsePostCheckBulkIdCancelResponse(rsp *http.Response) (*PostCheckBulkIdCancelResponse, error) {
+// ParseCancelBulkCheckResponse parses an HTTP response from a CancelBulkCheckWithResponse call
+func ParseCancelBulkCheckResponse(rsp *http.Response) (*CancelBulkCheckResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostCheckBulkIdCancelResponse{
+	response := &CancelBulkCheckResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -4682,15 +4704,15 @@ func ParsePostCheckBulkIdCancelResponse(rsp *http.Response) (*PostCheckBulkIdCan
 	return response, nil
 }
 
-// ParseGetCheckBulkIdExportResponse parses an HTTP response from a GetCheckBulkIdExportWithResponse call
-func ParseGetCheckBulkIdExportResponse(rsp *http.Response) (*GetCheckBulkIdExportResponse, error) {
+// ParseExportBulkCheckResultsResponse parses an HTTP response from a ExportBulkCheckResultsWithResponse call
+func ParseExportBulkCheckResultsResponse(rsp *http.Response) (*ExportBulkCheckResultsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetCheckBulkIdExportResponse{
+	response := &ExportBulkCheckResultsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -4698,15 +4720,15 @@ func ParseGetCheckBulkIdExportResponse(rsp *http.Response) (*GetCheckBulkIdExpor
 	return response, nil
 }
 
-// ParseGetCheckBulkIdResultsResponse parses an HTTP response from a GetCheckBulkIdResultsWithResponse call
-func ParseGetCheckBulkIdResultsResponse(rsp *http.Response) (*GetCheckBulkIdResultsResponse, error) {
+// ParseListBulkCheckResultsResponse parses an HTTP response from a ListBulkCheckResultsWithResponse call
+func ParseListBulkCheckResultsResponse(rsp *http.Response) (*ListBulkCheckResultsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetCheckBulkIdResultsResponse{
+	response := &ListBulkCheckResultsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -4749,15 +4771,15 @@ func ParseGetCheckBulkIdResultsResponse(rsp *http.Response) (*GetCheckBulkIdResu
 	return response, nil
 }
 
-// ParseGetCheckBulkIdStreamResponse parses an HTTP response from a GetCheckBulkIdStreamWithResponse call
-func ParseGetCheckBulkIdStreamResponse(rsp *http.Response) (*GetCheckBulkIdStreamResponse, error) {
+// ParseStreamBulkCheckResponse parses an HTTP response from a StreamBulkCheckWithResponse call
+func ParseStreamBulkCheckResponse(rsp *http.Response) (*StreamBulkCheckResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetCheckBulkIdStreamResponse{
+	response := &StreamBulkCheckResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -4765,15 +4787,15 @@ func ParseGetCheckBulkIdStreamResponse(rsp *http.Response) (*GetCheckBulkIdStrea
 	return response, nil
 }
 
-// ParseGetDomainsSavedResponse parses an HTTP response from a GetDomainsSavedWithResponse call
-func ParseGetDomainsSavedResponse(rsp *http.Response) (*GetDomainsSavedResponse, error) {
+// ParseListSavedDomainsResponse parses an HTTP response from a ListSavedDomainsWithResponse call
+func ParseListSavedDomainsResponse(rsp *http.Response) (*ListSavedDomainsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetDomainsSavedResponse{
+	response := &ListSavedDomainsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -4802,15 +4824,15 @@ func ParseGetDomainsSavedResponse(rsp *http.Response) (*GetDomainsSavedResponse,
 	return response, nil
 }
 
-// ParsePostDomainsSavedResponse parses an HTTP response from a PostDomainsSavedWithResponse call
-func ParsePostDomainsSavedResponse(rsp *http.Response) (*PostDomainsSavedResponse, error) {
+// ParseSaveDomainResponse parses an HTTP response from a SaveDomainWithResponse call
+func ParseSaveDomainResponse(rsp *http.Response) (*SaveDomainResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostDomainsSavedResponse{
+	response := &SaveDomainResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -4835,15 +4857,15 @@ func ParsePostDomainsSavedResponse(rsp *http.Response) (*PostDomainsSavedRespons
 	return response, nil
 }
 
-// ParseDeleteDomainsSavedDomainResponse parses an HTTP response from a DeleteDomainsSavedDomainWithResponse call
-func ParseDeleteDomainsSavedDomainResponse(rsp *http.Response) (*DeleteDomainsSavedDomainResponse, error) {
+// ParseRemoveSavedDomainResponse parses an HTTP response from a RemoveSavedDomainWithResponse call
+func ParseRemoveSavedDomainResponse(rsp *http.Response) (*RemoveSavedDomainResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &DeleteDomainsSavedDomainResponse{
+	response := &RemoveSavedDomainResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -4861,15 +4883,15 @@ func ParseDeleteDomainsSavedDomainResponse(rsp *http.Response) (*DeleteDomainsSa
 	return response, nil
 }
 
-// ParseGetNameGeneratorJobsResponse parses an HTTP response from a GetNameGeneratorJobsWithResponse call
-func ParseGetNameGeneratorJobsResponse(rsp *http.Response) (*GetNameGeneratorJobsResponse, error) {
+// ParseListNameJobsResponse parses an HTTP response from a ListNameJobsWithResponse call
+func ParseListNameJobsResponse(rsp *http.Response) (*ListNameJobsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetNameGeneratorJobsResponse{
+	response := &ListNameJobsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -4898,15 +4920,15 @@ func ParseGetNameGeneratorJobsResponse(rsp *http.Response) (*GetNameGeneratorJob
 	return response, nil
 }
 
-// ParsePostNameGeneratorJobsResponse parses an HTTP response from a PostNameGeneratorJobsWithResponse call
-func ParsePostNameGeneratorJobsResponse(rsp *http.Response) (*PostNameGeneratorJobsResponse, error) {
+// ParseCreateNameJobResponse parses an HTTP response from a CreateNameJobWithResponse call
+func ParseCreateNameJobResponse(rsp *http.Response) (*CreateNameJobResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostNameGeneratorJobsResponse{
+	response := &CreateNameJobResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -4938,15 +4960,15 @@ func ParsePostNameGeneratorJobsResponse(rsp *http.Response) (*PostNameGeneratorJ
 	return response, nil
 }
 
-// ParseDeleteNameGeneratorJobsJobIdResponse parses an HTTP response from a DeleteNameGeneratorJobsJobIdWithResponse call
-func ParseDeleteNameGeneratorJobsJobIdResponse(rsp *http.Response) (*DeleteNameGeneratorJobsJobIdResponse, error) {
+// ParseDeleteNameJobResponse parses an HTTP response from a DeleteNameJobWithResponse call
+func ParseDeleteNameJobResponse(rsp *http.Response) (*DeleteNameJobResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &DeleteNameGeneratorJobsJobIdResponse{
+	response := &DeleteNameJobResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -4978,15 +5000,15 @@ func ParseDeleteNameGeneratorJobsJobIdResponse(rsp *http.Response) (*DeleteNameG
 	return response, nil
 }
 
-// ParseGetNameGeneratorJobsJobIdResponse parses an HTTP response from a GetNameGeneratorJobsJobIdWithResponse call
-func ParseGetNameGeneratorJobsJobIdResponse(rsp *http.Response) (*GetNameGeneratorJobsJobIdResponse, error) {
+// ParseGetNameJobResponse parses an HTTP response from a GetNameJobWithResponse call
+func ParseGetNameJobResponse(rsp *http.Response) (*GetNameJobResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetNameGeneratorJobsJobIdResponse{
+	response := &GetNameJobResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -5018,15 +5040,15 @@ func ParseGetNameGeneratorJobsJobIdResponse(rsp *http.Response) (*GetNameGenerat
 	return response, nil
 }
 
-// ParsePostNameGeneratorJobsJobIdCheckResponse parses an HTTP response from a PostNameGeneratorJobsJobIdCheckWithResponse call
-func ParsePostNameGeneratorJobsJobIdCheckResponse(rsp *http.Response) (*PostNameGeneratorJobsJobIdCheckResponse, error) {
+// ParseCheckNameJobNamesResponse parses an HTTP response from a CheckNameJobNamesWithResponse call
+func ParseCheckNameJobNamesResponse(rsp *http.Response) (*CheckNameJobNamesResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostNameGeneratorJobsJobIdCheckResponse{
+	response := &CheckNameJobNamesResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -5058,15 +5080,15 @@ func ParsePostNameGeneratorJobsJobIdCheckResponse(rsp *http.Response) (*PostName
 	return response, nil
 }
 
-// ParseGetNameGeneratorJobsJobIdNamesResponse parses an HTTP response from a GetNameGeneratorJobsJobIdNamesWithResponse call
-func ParseGetNameGeneratorJobsJobIdNamesResponse(rsp *http.Response) (*GetNameGeneratorJobsJobIdNamesResponse, error) {
+// ParseListNameJobNamesResponse parses an HTTP response from a ListNameJobNamesWithResponse call
+func ParseListNameJobNamesResponse(rsp *http.Response) (*ListNameJobNamesResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetNameGeneratorJobsJobIdNamesResponse{
+	response := &ListNameJobNamesResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}

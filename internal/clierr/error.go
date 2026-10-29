@@ -22,6 +22,9 @@ const (
 	CodeConflict          = "conflict"
 	CodeServerError       = "server_error"
 	CodeInterrupted       = "interrupted"
+	// CodeJobFailed: a command waited (--wait) for a server-side job that
+	// ended unsuccessfully. Exit code 1.
+	CodeJobFailed = "job_failed"
 )
 
 // Error is a failure described for both people and scripts. Printed as

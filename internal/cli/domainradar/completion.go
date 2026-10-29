@@ -54,7 +54,7 @@ func bulkCandidates(d deps) completion.Fetcher {
 			return nil, err
 		}
 		limit := 50
-		res, err := c.API.GetCheckBulkWithResponse(cmd.Context(), &domainradar.GetCheckBulkParams{Limit: &limit})
+		res, err := c.API.ListBulkChecksWithResponse(cmd.Context(), &domainradar.ListBulkChecksParams{Limit: &limit})
 		if err != nil {
 			return nil, err
 		}
@@ -75,7 +75,7 @@ func watcherCandidates(d deps) completion.Fetcher {
 		if err != nil {
 			return nil, err
 		}
-		res, err := c.API.GetBrandMonitorWatchersWithResponse(cmd.Context())
+		res, err := c.API.ListBrandWatchersWithResponse(cmd.Context())
 		if err != nil {
 			return nil, err
 		}
@@ -97,7 +97,7 @@ func nameJobCandidates(d deps) completion.Fetcher {
 			return nil, err
 		}
 		limit := 50
-		res, err := c.API.GetNameGeneratorJobsWithResponse(cmd.Context(), &domainradar.GetNameGeneratorJobsParams{Limit: &limit})
+		res, err := c.API.ListNameJobsWithResponse(cmd.Context(), &domainradar.ListNameJobsParams{Limit: &limit})
 		if err != nil {
 			return nil, err
 		}
@@ -119,7 +119,7 @@ func savedCandidates(d deps) completion.Fetcher {
 			return nil, err
 		}
 		limit := 100
-		res, err := c.API.GetDomainsSavedWithResponse(cmd.Context(), &domainradar.GetDomainsSavedParams{Limit: &limit})
+		res, err := c.API.ListSavedDomainsWithResponse(cmd.Context(), &domainradar.ListSavedDomainsParams{Limit: &limit})
 		if err != nil {
 			return nil, err
 		}

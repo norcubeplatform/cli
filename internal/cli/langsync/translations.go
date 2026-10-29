@@ -25,7 +25,61 @@ the namespace (see ` + "`norcube langsync languages list --namespace <name>`" + 
 Translations that AI produced carry an AI label until a person changes
 them: the AI column of ` + "`terms list`" + `, "aiGenerated" with -o json.`,
 	}
-	cmd.AddCommand(newTranslationSetCmd(), newTranslationSuggestCmd(), newTranslateMissingCmd())
+	cmd.AddCommand(newTranslationGetCmd(), newTranslationSetCmd(), newTranslationSuggestCmd(), newTranslateMissingCmd())
+	return cmd
+}
+
+func newTranslationGetCmd() *cobra.Command {
+	var namespaceName string
+	cmd := &cobra.Command{
+		Use:   "get <termId>",
+		Short: "Show a term with its translation into every language",
+		Long: `Shows one term (by its numeric id, the ID column of ` + "`terms list`" + `) with
+its translation into each of the namespace's languages. "(AI)" after the
+language marks a translation that is still exactly what AI produced
+("aiGenerated" with -o json).`,
+		Example: `  norcube langsync translations get 1234 --namespace web
+  norcube langsync translations get 1234 -n web -o json --query "translations[?lang.code=='cs'].value | [0]"`,
+		Args: cobra.ExactArgs(1),
+		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
+			termID, err := parseTermID(args[0])
+			if err != nil {
+				return nil, err
+			}
+			c, err := newLangsyncContext(cmd)
+			if err != nil {
+				return nil, err
+			}
+			ns, err := resolveNamespace(cmd.Context(), c, namespaceName, "Show a term from which namespace?")
+			if err != nil {
+				return nil, cancelledOK(cmd, err)
+			}
+			res, err := c.API.GetTermWithResponse(cmd.Context(), ns, termID)
+			if err != nil {
+				return nil, err
+			}
+			if res.JSON200 == nil {
+				return nil, namespaceAPIError(c, ns, res.HTTPResponse, res.Body,
+					res.JSON400, res.JSON401, res.JSON403, res.JSON404, res.JSON500)
+			}
+			t := *res.JSON200
+			fields := []output.Field{
+				{Name: "ID", Value: fmt.Sprint(t.Term.Id)},
+				{Name: "Mark", Value: t.Term.Mark},
+				{Name: "Context", Value: t.Term.Context},
+				{Name: "Created", Value: compactDate(t.Term.CreatedAt)},
+			}
+			for _, tr := range t.Translations {
+				name := tr.Lang.Code
+				if tr.AiGenerated {
+					name += " (AI)"
+				}
+				fields = append(fields, output.Field{Name: name, Value: tr.Value})
+			}
+			return output.Object{Value: t, Fields: fields}, nil
+		}),
+	}
+	cmd.Flags().StringVarP(&namespaceName, "namespace", "n", "", "Namespace name; picker opens when omitted and stdin is a TTY")
 	return cmd
 }
 
@@ -92,7 +146,7 @@ long or multi-line text. An empty value clears the translation.`,
 			if len(args) == 3 {
 				value = args[2]
 			}
-			value, err = readText(cmd.InOrStdin(), value, file, "the translation")
+			value, err = cmdutil.ReadText(cmd.InOrStdin(), value, file, "the translation")
 			if err != nil {
 				return nil, err
 			}

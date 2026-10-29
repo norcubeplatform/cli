@@ -1,0 +1,16 @@
+- billingCity: Prague
+  billingCountryCode: CZ
+  billingName: Acme Inc
+  billingPostalCode: "11000"
+  billingState: ""
+  billingStreet: Main 1
+  billingType: company
+  currency: usd
+  id: "1042"
+  organizationId: org-1
+  periodEnd: "2026-09-30T23:59:59Z"
+  periodStart: "2026-09-01T00:00:00Z"
+  status: draft
+  subtotal: 25
+  tax: 5.25
+  total: 30.25

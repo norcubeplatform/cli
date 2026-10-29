@@ -1,0 +1,3 @@
+rt-1	passed	l2	job-1	2026-10-01T11:00:00Z	1m35s
+rt-2	passed (warnings)	l2	job-0	2026-09-30T11:00:00Z	1m31s
+rt-3	failed		job-x		

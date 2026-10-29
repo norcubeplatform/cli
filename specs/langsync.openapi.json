@@ -219,7 +219,7 @@
           "GlossaryItemTypePreposition",
           "GlossaryItemTypeConjunction",
           "GlossaryItemTypeInterjection",
-          "GlosasryItemTypePhrase",
+          "GlossaryItemTypePhrase",
           "GlossaryItemTypeIdiom",
           "GlossaryItemTypeNotApplicable"
         ]
@@ -277,9 +277,6 @@
           "createdBy": {
             "type": "string"
           },
-          "hash": {
-            "type": "string"
-          },
           "id": {
             "type": "string"
           },
@@ -311,7 +308,6 @@
         "required": [
           "createdAt",
           "createdBy",
-          "hash",
           "id",
           "name",
           "organizationId"
@@ -635,6 +631,54 @@
         ],
         "type": "object"
       },
+      "dto.DTOTermImport": {
+        "properties": {
+          "createdAt": {
+            "type": "string"
+          },
+          "error": {
+            "description": "Error is a short, client-safe description; set when Status is failed.",
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string"
+          },
+          "finishedAt": {
+            "type": "string"
+          },
+          "format": {
+            "example": "csv",
+            "type": "string"
+          },
+          "id": {
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "prechecked",
+              "processing",
+              "completed",
+              "failed"
+            ],
+            "example": "processing",
+            "type": "string"
+          },
+          "totalRows": {
+            "example": 100,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "createdAt",
+          "expiresAt",
+          "format",
+          "id",
+          "status",
+          "totalRows"
+        ],
+        "type": "object"
+      },
       "dto.Glossary": {
         "properties": {
           "defaultLanguageId": {
@@ -797,6 +841,17 @@
         "required": [
           "languageId",
           "value"
+        ],
+        "type": "object"
+      },
+      "glossary.attachLanguageRequest": {
+        "properties": {
+          "languageId": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "languageId"
         ],
         "type": "object"
       },
@@ -1127,6 +1182,7 @@
           "OTP_INVALID",
           "UNAUTHORIZED",
           "FORBIDDEN",
+          "INSUFFICIENT_SCOPE",
           "ORG_BLOCKED",
           "TOO_MANY_REQUESTS",
           "INSUFFICIENT_PERMISSIONS",
@@ -1137,6 +1193,8 @@
           "CONNECTION_ALREADY_EXISTS",
           "CONFLICT",
           "NO_TRANSLATION_SOURCE",
+          "IMPORT_UNSUPPORTED_FORMAT",
+          "IMPORT_INVALID_FILE",
           "INVALID_CUSTOM_PROMPT",
           "CUSTOM_PROMPT_NOT_SHARED",
           "EMAIL_REQUIRED",
@@ -1178,6 +1236,7 @@
           "ErrOTPInvalid",
           "ErrUnauthorized",
           "ErrForbidden",
+          "ErrInsufficientScope",
           "ErrOrgBlocked",
           "ErrTooManyRequests",
           "ErrInsufficientPermissions",
@@ -1188,6 +1247,8 @@
           "ErrConnectionAlreadyExists",
           "ErrConflict",
           "ErrNoTranslationSource",
+          "ErrImportUnsupportedFormat",
+          "ErrImportInvalidFile",
           "ErrInvalidCustomPrompt",
           "ErrCustomPromptNotShared",
           "ErrEmailRequired",
@@ -1440,15 +1501,13 @@
             "type": "string"
           },
           "prompt": {
+            "description": "Prompt is ignored and kept only so older clients that send it still\nvalidate. Use customPromptId to steer the suggestion.",
             "type": "string"
           },
           "sourceLangId": {
             "type": "integer"
           }
         },
-        "required": [
-          "prompt"
-        ],
         "type": "object"
       },
       "term.payloadRecommendMagicTranslationResponse": {
@@ -1629,7 +1688,7 @@
   "paths": {
     "/apikeys": {
       "get": {
-        "description": "List API keys",
+        "description": "Every API key of the organization, revoked ones included. Not paginated: the list is always complete and the cursors are empty. The key value is shown only once, when the key is created; the list carries its preview.",
         "operationId": "listAPIKeys",
         "responses": {
           "200": {
@@ -2588,6 +2647,18 @@
       "post": {
         "description": "Attach a language to the organization's glossary",
         "operationId": "attachLanguageToGlossary",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/glossary.attachLanguageRequest"
+              }
+            }
+          },
+          "description": "Language to attach",
+          "required": true,
+          "x-originalParamName": "request"
+        },
         "responses": {
           "200": {
             "content": {
@@ -4198,6 +4269,98 @@
         ]
       }
     },
+    "/namespaces/{namespaceName}/terms/imports/{importId}": {
+      "get": {
+        "description": "The status of a term import started with POST .../terms/imports and finished with .../finish: prechecked, processing, completed or failed. Imports are kept for 24 hours.",
+        "operationId": "getImport",
+        "parameters": [
+          {
+            "description": "Namespace name",
+            "in": "path",
+            "name": "namespaceName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Import ID",
+            "in": "path",
+            "name": "importId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.DTOTermImport"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Get a term import",
+        "tags": [
+          "Terms"
+        ]
+      }
+    },
     "/namespaces/{namespaceName}/terms/imports/{importId}/finish": {
       "post": {
         "operationId": "importFinish",
@@ -4212,6 +4375,7 @@
             }
           },
           {
+            "description": "Import ID",
             "in": "path",
             "name": "importId",
             "required": true,
@@ -4473,6 +4637,96 @@
           }
         },
         "summary": "Delete term",
+        "tags": [
+          "Terms"
+        ]
+      },
+      "get": {
+        "description": "One term of the namespace with its translations in every language of the namespace, in the same shape as an item of the term list.",
+        "operationId": "getTerm",
+        "parameters": [
+          {
+            "description": "Namespace name",
+            "in": "path",
+            "name": "namespaceName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Term ID",
+            "in": "path",
+            "name": "termId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.DTOTerm"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Get a term",
         "tags": [
           "Terms"
         ]
@@ -4968,6 +5222,87 @@
           }
         },
         "summary": "Delete Custom Prompt",
+        "tags": [
+          "CustomPrompts"
+        ]
+      },
+      "get": {
+        "description": "One custom prompt of the organization: shared prompts, or a private prompt of the caller.",
+        "operationId": "getCustomPrompt",
+        "parameters": [
+          {
+            "description": "Custom Prompt ID",
+            "in": "path",
+            "name": "promptId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.CustomPrompt"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Get Custom Prompt",
         "tags": [
           "CustomPrompts"
         ]

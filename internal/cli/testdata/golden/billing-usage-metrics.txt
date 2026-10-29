@@ -1,0 +1,3 @@
+SERVICE         METRIC          FREE  SO_FAR  PROJECTED  LAST_MONTH  UNIT    OVER
+DomainRadar     RDAP checks     1000  640     1653.33    900         checks  yes
+Norcube Backup  Backup storage  0     2.5     2.5        2           GB      

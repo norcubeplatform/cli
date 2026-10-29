@@ -1,0 +1,22 @@
+- currentUnits: 640
+  freeTierUnits: 1000
+  metricCode: domainradar.check.rdap
+  metricName: RDAP checks
+  metricType: usage
+  overflowProjected: true
+  previousMonthUnits: 900
+  projectedEndOfMonthUnits: 1653.33
+  serviceCode: domainradar
+  serviceName: DomainRadar
+  unit: checks
+- currentUnits: 2.5
+  freeTierUnits: 0
+  freeTierUnlimited: false
+  metricCode: snapdb.storage
+  metricName: Backup storage
+  metricType: storage
+  previousMonthUnits: 2
+  projectedEndOfMonthUnits: 2.5
+  serviceCode: snapdb
+  serviceName: Norcube Backup
+  unit: GB

@@ -33,7 +33,7 @@ maps them to stable codes and exit codes.
 | `internal/config`, `internal/resolve` | The config file (profiles, schema v2, migration) and which profile, endpoints, organization, credentials and output a command uses, each with its source. |
 | `internal/auth`, `internal/credstore` | Browser login, the per-profile session (OS keyring or a 0600 file), the per-(audience, organization) access-token cache, and the refresh lock that keeps parallel commands from racing. |
 | `internal/transport` | The one HTTP client: connect and read timeouts, retries with backoff and `Retry-After`, proxy and CA bundle, User-Agent, and the redacting `--debug` trace. |
-| `internal/cmdutil`, `internal/output` | The result path: `--query` (JMESPath), the four output formats, pagination flags, `Confirm`, renamed-command notes. |
+| `internal/cmdutil`, `internal/output` | The result path: `--query` (JMESPath), the four output formats, pagination flags, `--wait` polling and `JobFailed`, `Confirm` and `Cancelled`, text and item input from files or stdin, safe file saves, renamed-command notes. |
 | `internal/clierr` | Error codes, exit codes and the JSON error shape. |
 | `internal/completion` | Dynamic shell completion with a one-second budget and a one-minute cache. |
 | `internal/orgs` | Organization slug resolution and its cache. |
@@ -48,7 +48,10 @@ maps them to stable codes and exit codes.
    an `--endpoint-url` key and `nrc api <command>` support.
 2. **Client.** Set `package`, create `internal/api/<package>/oapi-codegen.yaml`
    (copy an existing one, change `package` and `output`) and run
-   `make codegen MONO=<backend checkout>`.
+   `make codegen MONO=<backend checkout>`. Routes that aren't for
+   organization members (superadmin tools, webhooks) are left out by tag
+   with `output-options.exclude-tags`; codegen drops them, and the schemas
+   only they use, from the checked-in spec as well.
 3. **Commands.** Create `internal/cli/<command>/` with a `NewCmd()` that
    builds the group, and a constructor on top of `service.New`:
 

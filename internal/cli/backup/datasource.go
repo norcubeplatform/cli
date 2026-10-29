@@ -11,22 +11,24 @@ import (
 	"github.com/norcubeplatform/cli/internal/output"
 )
 
-func newDataSourceCmd() *cobra.Command {
+func newDataSourceCmd(d deps) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "datasources",
 		Aliases: []string{"datasource", "ds"},
 		Short:   "Manage Norcube Backup data sources",
 	}
 	cmd.AddCommand(
-		newDataSourceListCmd(),
-		newDataSourceGetCmd(),
-		newDataSourcePauseCmd(),
-		newDataSourceResumeCmd(),
+		newDataSourceListCmd(d),
+		newDataSourceGetCmd(d),
+		newDataSourceCreateCmd(d),
+		newDataSourceUpdateCmd(d),
+		newDataSourcePauseCmd(d),
+		newDataSourceResumeCmd(d),
 	)
 	return cmd
 }
 
-func newDataSourcePauseCmd() *cobra.Command {
+func newDataSourcePauseCmd(d deps) *cobra.Command {
 	return &cobra.Command{
 		Use:   "pause [id]",
 		Short: "Halt every backup policy attached to a data source (master switch)",
@@ -39,12 +41,12 @@ If no id is given and stdin is a terminal, an interactive picker is shown.`,
   norcube backup datasources pause   # pick interactively`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return setDataSourceActive(cmd, args, false, "Pause which data source?", "Paused %q.")
+			return setDataSourceActive(cmd, d, args, false, "Pause which data source?", "Paused %q.")
 		},
 	}
 }
 
-func newDataSourceResumeCmd() *cobra.Command {
+func newDataSourceResumeCmd(d deps) *cobra.Command {
 	return &cobra.Command{
 		Use:   "resume [id]",
 		Short: "Re-enable a previously paused data source",
@@ -55,7 +57,7 @@ If no id is given and stdin is a terminal, an interactive picker is shown.`,
 		Example: `  norcube backup datasources resume 9f8e7d6c-…`,
 		Args:    cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return setDataSourceActive(cmd, args, true, "Resume which data source?", "Resumed %q.")
+			return setDataSourceActive(cmd, d, args, true, "Resume which data source?", "Resumed %q.")
 		},
 	}
 }
@@ -63,8 +65,8 @@ If no id is given and stdin is a terminal, an interactive picker is shown.`,
 // setDataSourceActive is the common implementation for pause/resume: same
 // PATCH /datasources/:id with different isActive value, same picker
 // fallback, same success message shape.
-func setDataSourceActive(cmd *cobra.Command, args []string, active bool, pickerTitle, successFmt string) error {
-	c, err := newSnapdbContext(cmd)
+func setDataSourceActive(cmd *cobra.Command, d deps, args []string, active bool, pickerTitle, successFmt string) error {
+	c, err := d.client(cmd)
 	if err != nil {
 		return err
 	}
@@ -100,7 +102,7 @@ func setDataSourceActive(cmd *cobra.Command, args []string, active bool, pickerT
 	})
 }
 
-func newDataSourceListCmd() *cobra.Command {
+func newDataSourceListCmd(d deps) *cobra.Command {
 	var search string
 	var pages cmdutil.PageFlags
 	cmd := &cobra.Command{
@@ -110,7 +112,7 @@ func newDataSourceListCmd() *cobra.Command {
   norcube backup datasources list --search prod --all-pages
   norcube backup datasources list -o json --query "[?!isActive].id"`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			c, err := newSnapdbContext(cmd)
+			c, err := d.client(cmd)
 			if err != nil {
 				return err
 			}
@@ -161,7 +163,7 @@ func newDataSourceListCmd() *cobra.Command {
 	return cmd
 }
 
-func newDataSourceGetCmd() *cobra.Command {
+func newDataSourceGetCmd(d deps) *cobra.Command {
 	return &cobra.Command{
 		Use:   "get <id>",
 		Short: "Show a single data source",
@@ -169,7 +171,7 @@ func newDataSourceGetCmd() *cobra.Command {
   norcube backup datasources get 9f8e7d6c-… -o json`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			c, err := newSnapdbContext(cmd)
+			c, err := d.client(cmd)
 			if err != nil {
 				return err
 			}

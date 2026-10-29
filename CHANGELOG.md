@@ -5,6 +5,47 @@ this file collects what users and scripts need to know.
 
 ## Unreleased
 
+## 0.20.0 (2026-10-29)
+
+### New
+
+- Backup: `backup jobs run --datasource <id>` (`--policy`, `--wait`) and
+  `jobs get`; `datasources create | update` with the connection string
+  read from `--connection-uri-file` (a file or stdin); `restores list |
+  get | create` (create asks first, `--yes` for scripts, `--wait`);
+  `restore-tests run` without a backup id tests the newest successful
+  backup, and `--wait` waits for the verdict; `restore-tests list` and
+  `restore-tests settings get | update`; `policies create | update |
+  attach` and `destinations list`.
+- Billing: `norcube billing status`, `subscriptions list`, `usage estimate
+  | metrics`, `invoices list | download <id>` (PDF) and `budget get | set`
+  (spending caps and alert thresholds; set asks first, `--yes` for
+  scripts). A CI token with `billing.read` runs every read command.
+- LangSync: `translations get <termId>`, `terms import --wait` and
+  `terms import status <import-id>`, `glossary languages attach
+  <language>`.
+
+### Changes for scripts
+
+- A command that waits for a job (`--wait`) which then fails exits 1 with
+  the new error code `job_failed`, with the job as `details` in the JSON
+  error. This includes `domainradar bulk create --wait`, `names generate
+  --wait` and `names check --wait`, which exited 0 on a failed or
+  cancelled job.
+- `backup policies list` without `--datasource` lists the organization's
+  backup policies instead of failing.
+- `backup restore-tests run` takes the backup job id as an optional
+  argument.
+- LangSync glossary item type `n/a` is shown as `other` in tables and
+  `-o text`; JSON keeps the API's `n/a`. `--type other` (the default) and
+  `--type n/a` both send `n/a`.
+- `langsync prompts get` asks for the one prompt instead of listing them
+  all; a prompt you can't see is still not found (exit 3).
+- `langsync terms import` points to `terms import status` instead of
+  `terms list` to follow an import.
+- `domainradar hits list --watcher` sends the filter as `watcherId`, the
+  query parameter the API reads.
+
 ## 0.19.0 (2026-10-29)
 
 ### New

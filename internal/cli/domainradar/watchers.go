@@ -80,7 +80,7 @@ func newWatcherListCmd(d deps) *cobra.Command {
 			if err != nil {
 				return nil, err
 			}
-			res, err := c.API.GetBrandMonitorWatchersWithResponse(cmd.Context())
+			res, err := c.API.ListBrandWatchersWithResponse(cmd.Context())
 			if err != nil {
 				return nil, err
 			}
@@ -109,7 +109,7 @@ func newWatcherGetCmd(d deps) *cobra.Command {
 			if err != nil {
 				return nil, err
 			}
-			res, err := c.API.GetBrandMonitorWatchersIdWithResponse(cmd.Context(), args[0])
+			res, err := c.API.GetBrandWatcherWithResponse(cmd.Context(), args[0])
 			if err != nil {
 				return nil, err
 			}
@@ -178,7 +178,7 @@ adds a billed AI review per hit.`,
 			if err != nil {
 				return nil, err
 			}
-			body := domainradar.PostBrandMonitorWatchersJSONRequestBody{Word: &word}
+			body := domainradar.CreateBrandWatcherJSONRequestBody{Word: &word}
 			if len(f.allow) > 0 {
 				body.Allowlist = &f.allow
 			}
@@ -191,7 +191,7 @@ adds a billed AI review per hit.`,
 			if f.notify != "" {
 				body.NotificationEmail = &f.notify
 			}
-			res, err := c.API.PostBrandMonitorWatchersWithResponse(cmd.Context(), body)
+			res, err := c.API.CreateBrandWatcherWithResponse(cmd.Context(), body)
 			if err != nil {
 				return nil, err
 			}
@@ -223,7 +223,7 @@ func newWatcherUpdateCmd(d deps) *cobra.Command {
 			if err := f.validate(); err != nil {
 				return nil, err
 			}
-			body := domainradar.PutBrandMonitorWatchersIdJSONRequestBody{}
+			body := domainradar.UpdateBrandWatcherJSONRequestBody{}
 			changed := false
 			set := func(name string, apply func()) {
 				if cmd.Flags().Changed(name) {
@@ -246,7 +246,7 @@ func newWatcherUpdateCmd(d deps) *cobra.Command {
 			if err != nil {
 				return nil, err
 			}
-			res, err := c.API.PutBrandMonitorWatchersIdWithResponse(cmd.Context(), args[0], body)
+			res, err := c.API.UpdateBrandWatcherWithResponse(cmd.Context(), args[0], body)
 			if err != nil {
 				return nil, err
 			}
@@ -276,13 +276,13 @@ func newWatcherDeleteCmd(d deps) *cobra.Command {
 		Args: cobra.ExactArgs(1),
 		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
 			if ok, err := cmdutil.Confirm(fmt.Sprintf("Delete watcher %s and all its hits? This can't be undone", args[0]), yes); err != nil || !ok {
-				return nil, cancelled(cmd, err)
+				return nil, cmdutil.Cancelled(cmd, err)
 			}
 			c, err := d.client(cmd)
 			if err != nil {
 				return nil, err
 			}
-			res, err := c.API.DeleteBrandMonitorWatchersIdWithResponse(cmd.Context(), args[0])
+			res, err := c.API.DeleteBrandWatcherWithResponse(cmd.Context(), args[0])
 			if err != nil {
 				return nil, err
 			}
