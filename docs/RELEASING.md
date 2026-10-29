@@ -168,7 +168,16 @@ spctl --assess --type execute --verbose ./norcube  # source=Notarized Developer 
 ```
 
 Notarization of a bare binary can't be stapled, so Gatekeeper checks it
-online on first launch.
+online on first launch. The release submits the binaries and doesn't wait
+for Apple's answer (GoReleaser can wait at most 20 minutes, and a new
+team's first submissions can take hours), so `spctl` reports `Notarized
+Developer ID` only once Apple has accepted the submission. Until then it
+says the binary is unnotarized, and macOS warns on first launch of a
+direct download. To see the status of recent submissions:
+
+```bash
+xcrun notarytool history --key AuthKey_<KEY_ID>.p8 --key-id <KEY_ID> --issuer <ISSUER_ID>
+```
 
 ### 3. Homebrew tap and Scoop bucket
 
