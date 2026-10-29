@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 
@@ -33,12 +34,18 @@ func newUpgradeCmd() *cobra.Command {
 		Short: "Update norcube to the latest release",
 		Example: `  norcube upgrade
   norcube upgrade --force`,
-		Long: `Checks GitHub for newer releases of norcube, verifies the SHA-256
-checksum against the release's checksums.txt, and atomically replaces this
-binary with the latest version.
+		Long: `Checks GitHub for newer releases of norcube, downloads the archive for
+this platform, verifies its SHA-256 against the release's checksums.txt
+(both fetched over TLS from GitHub), and atomically replaces this binary
+with the latest version. The upgrade stops without touching the binary
+when the checksum is missing or doesn't match.
 
-Skipped automatically when the binary appears to be managed by a package
-manager (Homebrew, apt, rpm) — use the package manager to upgrade instead.
+checksums.txt is also signed with Sigstore (cosign) by the release
+workflow; see the README's "Verify a release" section to check the
+signature and build provenance yourself.
+
+Skipped when the binary appears to be managed by a package manager
+(Homebrew, Scoop, winget, deb/rpm/apk); upgrade with that tool instead.
 Pass --force to override.`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			current := "v" + strings.TrimPrefix(buildinfo.Version, "v")
@@ -86,16 +93,11 @@ func runUpgrade(ctx context.Context, out io.Writer) (upgradeResult, error) {
 		exe = resolved
 	}
 
-	// Verify uploaded archives against checksums.txt before swap so a
-	// tampered release can't replace the live binary.
 	src, err := selfupdate.NewGitHubSource(selfupdate.GitHubConfig{})
 	if err != nil {
 		return upgradeResult{}, err
 	}
-	updater, err := selfupdate.NewUpdater(selfupdate.Config{
-		Source:    src,
-		Validator: &selfupdate.ChecksumValidator{UniqueFilename: "checksums.txt"},
-	})
+	updater, err := selfupdate.NewUpdater(upgradeConfig(src, runtime.GOOS, runtime.GOARCH))
 	if err != nil {
 		return upgradeResult{}, err
 	}
@@ -141,15 +143,43 @@ Underlying error: %w`,
 	return upgradeResult{From: "v" + current, To: "v" + latest.Version(), Upgraded: true}, nil
 }
 
+// checksumsAsset is the release asset GoReleaser writes the SHA-256 of
+// every other asset into.
+const checksumsAsset = "checksums.txt"
+
+// upgradeConfig is the updater setup shared by `norcube upgrade` and the
+// background update check.
+//
+// The validator makes every download fail closed: the archive's SHA-256
+// must appear in checksums.txt, or nothing is replaced. The filter pins
+// the asset to the release archive for this platform, so the packages,
+// SBOMs and signatures that sit next to it in a release are never picked
+// up by the updater's looser name matching.
+func upgradeConfig(src selfupdate.Source, goos, goarch string) selfupdate.Config {
+	return selfupdate.Config{
+		Source:    src,
+		Validator: &selfupdate.ChecksumValidator{UniqueFilename: checksumsAsset},
+		Filters:   []string{releaseArchivePattern(goos, goarch)},
+		OS:        goos,
+		Arch:      goarch,
+	}
+}
+
+// releaseArchivePattern matches the archive name GoReleaser publishes for
+// one platform (see archives.name_template in .goreleaser.yaml):
+// norcube_<os>_<arch>.tar.gz, or .zip on Windows.
+func releaseArchivePattern(goos, goarch string) string {
+	ext := `\.tar\.gz`
+	if goos == "windows" {
+		ext = `\.zip`
+	}
+	return "^" + regexp.QuoteMeta("norcube_"+goos+"_"+goarch) + ext + "$"
+}
+
 // managedInstallReason returns a non-empty explanation when the running
 // binary lives under a path typically owned by a package manager, so the
 // upgrade command can refuse to clobber it. Empty string means it's safe
 // for `norcube upgrade` to take over.
-//
-// Detection is path-based and deliberately conservative — false positives
-// (refusing to update something we could have) annoy the user once with
-// a clear message; false negatives (clobbering Homebrew's file) corrupt
-// the package manager's state. We err toward the former.
 func managedInstallReason() string {
 	exe, err := os.Executable()
 	if err != nil {
@@ -159,27 +189,63 @@ func managedInstallReason() string {
 	if err != nil {
 		return ""
 	}
-	exe = filepath.Clean(exe)
+	return managedInstallReasonFor(filepath.Clean(exe), runtime.GOOS)
+}
 
+// managedInstallReasonFor is managedInstallReason for a resolved binary
+// path on goos.
+//
+// Detection is path-based and deliberately conservative: false positives
+// (refusing to update something we could have) annoy the user once with
+// a clear message; false negatives (clobbering a package manager's file)
+// corrupt the package manager's state. We err toward the former.
+func managedInstallReasonFor(exe, goos string) string {
+	const (
+		brew   = "Installed via Homebrew. Run `brew upgrade norcube` instead."
+		system = "Installed from a system package (deb, rpm or apk). Upgrade it with your package manager (apt, dnf, zypper or apk) instead."
+	)
 	type rule struct {
-		prefix string
-		msg    string
+		match string
+		msg   string
 	}
+
+	if goos == "windows" {
+		// Windows paths are case-insensitive; compare a lower-cased,
+		// forward-slashed copy so one rule covers C:\ and \\?\ forms.
+		p := strings.ReplaceAll(strings.ToLower(exe), `\`, "/")
+		rules := []rule{
+			// %USERPROFILE%\scoop\apps\norcube\<version>\norcube.exe, or
+			// %ProgramData%\scoop\apps\... for a global install.
+			{"/scoop/apps/", "Installed via Scoop. Run `scoop update norcube` instead."},
+			// Portable winget packages live under WinGet\Packages (user or
+			// machine scope) with a link in WinGet\Links.
+			{"/winget/packages/", "Installed via winget. Run `winget upgrade Norcube.CLI` instead."},
+			{"/winget/links/", "Installed via winget. Run `winget upgrade Norcube.CLI` instead."},
+		}
+		for _, r := range rules {
+			if strings.Contains(p, r.match) {
+				return r.msg
+			}
+		}
+		return ""
+	}
+
 	rules := []rule{
-		{"/opt/homebrew/", "Installed via Homebrew — run `brew upgrade norcube` instead."},
-		{"/usr/local/Cellar/", "Installed via Homebrew — run `brew upgrade norcube` instead."},
-		{"/home/linuxbrew/.linuxbrew/", "Installed via Linuxbrew — run `brew upgrade norcube` instead."},
-		{"/usr/bin/", "Installed via the system package manager — use apt/rpm/etc to upgrade."},
-		{"/var/lib/snapd/snap/", "Installed via snap — run `snap refresh norcube` instead."},
-		{"/var/lib/flatpak/", "Installed via flatpak — run `flatpak update` instead."},
+		// Homebrew on Apple silicon, Intel macOS (Cellar for formulae,
+		// Caskroom for casks) and Linux.
+		{"/opt/homebrew/", brew},
+		{"/usr/local/Cellar/", brew},
+		{"/usr/local/Caskroom/", brew},
+		{"/home/linuxbrew/.linuxbrew/", brew},
+		// The deb, rpm and apk packages install to /usr/bin.
+		{"/usr/bin/", system},
+		{"/var/lib/snapd/snap/", "Installed via snap. Run `snap refresh norcube` instead."},
+		{"/var/lib/flatpak/", "Installed via flatpak. Run `flatpak update` instead."},
 	}
 	for _, r := range rules {
-		if strings.HasPrefix(exe, r.prefix) {
+		if strings.HasPrefix(exe, r.match) {
 			return r.msg
 		}
 	}
-
-	// Windows can ignore the unix-only rules above; nothing to do here yet.
-	_ = runtime.GOOS
 	return ""
 }

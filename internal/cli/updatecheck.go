@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync/atomic"
@@ -166,7 +167,7 @@ func fetchLatestRelease(parent context.Context) {
 	if err != nil {
 		return
 	}
-	updater, err := selfupdate.NewUpdater(selfupdate.Config{Source: src})
+	updater, err := selfupdate.NewUpdater(upgradeConfig(src, runtime.GOOS, runtime.GOARCH))
 	if err != nil {
 		return
 	}
