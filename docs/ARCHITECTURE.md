@@ -92,7 +92,17 @@ maps them to stable codes and exit codes.
 | --- | --- | --- |
 | `internal/api/<package>/*.gen.go`, `specs/*.openapi.json` | the services' Swagger specs | `make codegen MONO=…` (CI's drift check runs `make codegen-check`) |
 | Docs site command reference | the cobra tree's help text | `make docs DOCS=../docs` (also on every release tag) |
-| Shell completions, man pages | the cobra tree | `go run ./tools/gendocs` (release archives) |
+| Shell completions, man pages | the cobra tree | `go run ./tools/gendocs` (release archives and Linux packages) |
+
+## Releases
+
+A `vX.Y.Z` tag runs GoReleaser (`.goreleaser.yaml`) from
+`.github/workflows/release.yaml`: archives, deb/rpm/apk packages, SBOMs, a
+Sigstore-signed `checksums.txt`, build provenance attestations, and the
+Homebrew, Scoop and winget manifests. `norcube upgrade` installs only the
+archive for its platform and only after its SHA-256 matches
+`checksums.txt`. [RELEASING.md](RELEASING.md) is the runbook, including the
+secrets and the one-time setup.
 
 ## Tests
 

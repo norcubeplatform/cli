@@ -1,42 +1,96 @@
 name: release
 
 # Triggered by `git tag vX.Y.Z && git push --tags`. GoReleaser does the rest:
-# cross-compiles, archives, computes checksums, uploads to a GitHub release.
+# cross-compiles, signs and notarizes the macOS binaries (when the Apple
+# secrets are set), builds archives, Linux packages and SBOMs, computes
+# checksums, signs checksums.txt with Sigstore, uploads everything to a
+# GitHub release and updates the Homebrew, Scoop and winget manifests
+# (each only when its token is set). The last step records build
+# provenance for every file in checksums.txt as a GitHub attestation.
+#
+# docs/RELEASING.md describes the secrets and the one-time setup.
+#
+# Actions are pinned by commit SHA; the comment names the release.
 
 on:
   push:
     tags:
       - 'v*'
 
-permissions:
-  # Required so goreleaser-action can create the GitHub release and upload
-  # the binaries. Nothing else needs write access.
-  contents: write
+permissions: {}
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      # Create the GitHub release and upload its assets.
+      contents: write
+      # Mint the GitHub OIDC token that keyless cosign signing and the
+      # build provenance attestation are issued against.
+      id-token: write
+      # Store the build provenance attestation.
+      attestations: write
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           # GoReleaser uses git history to render the changelog and to fail
           # fast on dirty checkouts; full clone is required.
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
           go-version-file: go.mod
+          # Build release binaries from a clean module cache.
+          cache: false
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+
+      - name: Install syft
+        uses: anchore/sbom-action/download-syft@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
+        with:
+          syft-version: v1.54.1
+
+      - name: Report optional release steps
+        env:
+          HAS_MACOS_SIGN: ${{ secrets.MACOS_SIGN_P12 != '' && secrets.MACOS_SIGN_PASSWORD != '' }}
+          HAS_MACOS_NOTARY: ${{ secrets.MACOS_NOTARY_ISSUER_ID != '' && secrets.MACOS_NOTARY_KEY_ID != '' && secrets.MACOS_NOTARY_KEY != '' }}
+          HAS_HOMEBREW: ${{ secrets.HOMEBREW_TAP_TOKEN != '' }}
+          HAS_SCOOP: ${{ secrets.SCOOP_BUCKET_TOKEN != '' }}
+          HAS_WINGET: ${{ secrets.WINGET_TOKEN != '' }}
+        run: |
+          [ "$HAS_MACOS_SIGN" = "true" ] || echo "::notice::MACOS_SIGN_P12 / MACOS_SIGN_PASSWORD not set; macOS binaries ship unsigned."
+          [ "$HAS_MACOS_SIGN" != "true" ] || [ "$HAS_MACOS_NOTARY" = "true" ] || echo "::notice::MACOS_NOTARY_* not set; macOS binaries are signed but not notarized."
+          [ "$HAS_HOMEBREW" = "true" ] || echo "::notice::HOMEBREW_TAP_TOKEN not set; the Homebrew cask is not updated."
+          [ "$HAS_SCOOP" = "true" ] || echo "::notice::SCOOP_BUCKET_TOKEN not set; the Scoop manifest is not updated."
+          [ "$HAS_WINGET" = "true" ] || echo "::notice::WINGET_TOKEN not set; no winget pull request is opened."
 
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v6
+        uses: goreleaser/goreleaser-action@e435ccd777264be153ace6237001ef4d979d3a7a # v6.4.0
         with:
           distribution: goreleaser
-          version: '~> v2'
+          # Pinned so a new GoReleaser release can't change a release on
+          # its own; bump deliberately and run `goreleaser check`.
+          version: v2.18.3
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # PAT with repo scope on norcubeplatform/homebrew-tap, so the
-          # brews publisher can push the updated formula.
+          # Each of these is optional; .goreleaser.yaml skips the matching
+          # step when it is empty.
           HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          SCOOP_BUCKET_TOKEN: ${{ secrets.SCOOP_BUCKET_TOKEN }}
+          WINGET_TOKEN: ${{ secrets.WINGET_TOKEN }}
+          MACOS_SIGN_P12: ${{ secrets.MACOS_SIGN_P12 }}
+          MACOS_SIGN_PASSWORD: ${{ secrets.MACOS_SIGN_PASSWORD }}
+          MACOS_NOTARY_ISSUER_ID: ${{ secrets.MACOS_NOTARY_ISSUER_ID }}
+          MACOS_NOTARY_KEY_ID: ${{ secrets.MACOS_NOTARY_KEY_ID }}
+          MACOS_NOTARY_KEY: ${{ secrets.MACOS_NOTARY_KEY }}
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          # Every archive, package and SBOM listed in checksums.txt.
+          subject-checksums: ./dist/checksums.txt
