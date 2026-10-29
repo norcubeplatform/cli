@@ -199,7 +199,7 @@ homebrew_casks:
       name: homebrew-tap
       # The workflow's GITHUB_TOKEN can only write to this repository, so
       # the tap needs its own token (contents: write on the tap only).
-      token: '{{ envOrDefault "HOMEBREW_TAP_TOKEN" "" }}'
+      token: '{{ .Env.HOMEBREW_TAP_TOKEN }}'
     homepage: https://norcube.com
     description: Command-line interface for the Norcube platform
     binaries:
@@ -231,7 +231,7 @@ scoops:
     repository:
       owner: norcubeplatform
       name: scoop-bucket
-      token: '{{ envOrDefault "SCOOP_BUCKET_TOKEN" "" }}'
+      token: '{{ .Env.SCOOP_BUCKET_TOKEN }}'
     directory: bucket
     homepage: https://norcube.com
     description: Command-line interface for the Norcube platform
@@ -269,7 +269,7 @@ winget:
       owner: norcubeplatform
       name: winget-pkgs
       branch: "norcube-{{ .Version }}"
-      token: '{{ envOrDefault "WINGET_TOKEN" "" }}'
+      token: '{{ .Env.WINGET_TOKEN }}'
       pull_request:
         enabled: true
         base:
