@@ -3,6 +3,11 @@
 #
 # Triggered by `git push --tags` from .github/workflows/release.yaml.
 # Releases go to https://github.com/norcubeplatform/cli/releases.
+#
+# Every optional step (macOS signing and notarization, Homebrew, Scoop,
+# winget) switches itself off when its secret is not set, so a release
+# without them still succeeds and ships unsigned archives. docs/RELEASING.md
+# lists the secrets and how to create them.
 
 version: 2
 project_name: norcube
@@ -53,11 +58,111 @@ archives:
       - completions/*
       - manpages/*
 
+# Linux packages. They install the same files as the archives, in the
+# places the distributions expect, plus the `nrc` alias that install.sh
+# creates for archive installs.
+nfpms:
+  - id: norcube
+    ids: [norcube]
+    package_name: norcube
+    formats: [deb, rpm, apk]
+    vendor: Norcube
+    homepage: https://norcube.com
+    maintainer: Norcube <releases@norcube.com>
+    description: Command-line interface for the Norcube platform
+    license: Apache-2.0
+    section: utils
+    bindir: /usr/bin
+    contents:
+      - src: /usr/bin/norcube
+        dst: /usr/bin/nrc
+        type: symlink
+      - src: ./completions/norcube.bash
+        dst: /usr/share/bash-completion/completions/norcube
+        file_info:
+          mode: 0644
+      - src: ./completions/norcube.fish
+        dst: /usr/share/fish/vendor_completions.d/norcube.fish
+        file_info:
+          mode: 0644
+      # Debian's zsh reads vendor completions from its own directory;
+      # Fedora, openSUSE and Alpine use site-functions.
+      - src: ./completions/_norcube
+        dst: /usr/share/zsh/vendor-completions/_norcube
+        packager: deb
+        file_info:
+          mode: 0644
+      - src: ./completions/_norcube
+        dst: /usr/share/zsh/site-functions/_norcube
+        packager: rpm
+        file_info:
+          mode: 0644
+      - src: ./completions/_norcube
+        dst: /usr/share/zsh/site-functions/_norcube
+        packager: apk
+        file_info:
+          mode: 0644
+      - src: ./manpages/*.1
+        dst: /usr/share/man/man1/
+        file_info:
+          mode: 0644
+      - src: ./LICENSE
+        dst: /usr/share/doc/norcube/LICENSE
+        file_info:
+          mode: 0644
+      - src: ./NOTICE
+        dst: /usr/share/doc/norcube/NOTICE
+        file_info:
+          mode: 0644
+
+# One SPDX SBOM per archive (syft), uploaded next to it as
+# <archive>.sbom.json.
+sboms:
+  - id: archives
+    artifacts: archive
+
 checksum:
-  # GoReleaser emits a single checksums.txt with SHA-256 for every archive.
-  # `norcube upgrade` verifies against this file before swapping binaries.
+  # GoReleaser emits a single checksums.txt with the SHA-256 of every
+  # uploaded file (archives, packages, SBOMs). `norcube upgrade` and
+  # install.sh verify against it before installing anything.
   name_template: "checksums.txt"
   algorithm: sha256
+
+# Keyless Sigstore signature of checksums.txt, made with the release
+# workflow's GitHub OIDC identity (no key to store or leak). The bundle
+# holds the signature, the short-lived certificate and the transparency
+# log entry; README.md shows how to verify it.
+signs:
+  - id: checksums
+    cmd: cosign
+    artifacts: checksum
+    signature: "${artifact}.sigstore.json"
+    args:
+      - sign-blob
+      - "--bundle=${signature}"
+      - "--yes"
+      - "${artifact}"
+    output: true
+
+# Sign the macOS binaries with a Developer ID Application certificate and
+# notarize them with Apple, using quill (works on the Linux runner). Runs
+# only when the signing secrets are present; without the notary key it
+# signs but does not notarize.
+notarize:
+  macos:
+    - ids: [norcube]
+      enabled: '{{ and (isEnvSet "MACOS_SIGN_P12") (isEnvSet "MACOS_SIGN_PASSWORD") }}'
+      sign:
+        # base64 of the .p12 export.
+        certificate: '{{ envOrDefault "MACOS_SIGN_P12" "" }}'
+        password: '{{ envOrDefault "MACOS_SIGN_PASSWORD" "" }}'
+      notarize:
+        issuer_id: '{{ envOrDefault "MACOS_NOTARY_ISSUER_ID" "" }}'
+        key_id: '{{ envOrDefault "MACOS_NOTARY_KEY_ID" "" }}'
+        # base64 of the App Store Connect API key (.p8).
+        key: '{{ envOrDefault "MACOS_NOTARY_KEY" "" }}'
+        wait: true
+        timeout: 20m
 
 snapshot:
   # Used when running `goreleaser release --snapshot` for testing — bumps
@@ -83,16 +188,21 @@ release:
 
 homebrew_casks:
   - name: norcube
+    # Skipped (the cask is still rendered into dist/) until the token is set.
+    skip_upload: '{{ if isEnvSet "HOMEBREW_TAP_TOKEN" }}false{{ else }}true{{ end }}'
     repository:
       owner: norcubeplatform
       name: homebrew-tap
-      # A classic PAT with repo scope on the tap repository; the workflow's
-      # default GITHUB_TOKEN can only write to the cli repo itself.
-      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+      # The workflow's GITHUB_TOKEN can only write to this repository, so
+      # the tap needs its own token (contents: write on the tap only).
+      token: '{{ envOrDefault "HOMEBREW_TAP_TOKEN" "" }}'
     homepage: https://norcube.com
     description: Command-line interface for the Norcube platform
     binaries:
       - norcube
+    # The short alias, as install.sh and the Linux packages provide it.
+    custom_block: |
+      binary "norcube", target: "nrc"
     completions:
       bash: completions/norcube.bash
       zsh: completions/_norcube
@@ -100,14 +210,65 @@ homebrew_casks:
     commit_author:
       name: norcube-releases
       email: releases@norcube.com
-    caveats: |
-      The short alias `nrc` is not installed by Homebrew; add your own with
-        ln -s "$(brew --prefix)/bin/norcube" "$(brew --prefix)/bin/nrc"
     hooks:
       post:
-        # The binaries are not signed/notarized (yet), so clear the
-        # quarantine attribute Gatekeeper puts on downloaded files.
+        # Releases built without the macOS signing secrets are neither
+        # signed nor notarized, so clear the quarantine attribute
+        # Gatekeeper puts on downloaded files. Harmless on notarized
+        # binaries.
         install: |
           if OS.mac?
             system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/norcube"]
           end
+
+scoops:
+  - name: norcube
+    skip_upload: '{{ if isEnvSet "SCOOP_BUCKET_TOKEN" }}false{{ else }}true{{ end }}'
+    repository:
+      owner: norcubeplatform
+      name: scoop-bucket
+      token: '{{ envOrDefault "SCOOP_BUCKET_TOKEN" "" }}'
+    directory: bucket
+    homepage: https://norcube.com
+    description: Command-line interface for the Norcube platform
+    license: Apache-2.0
+    commit_author:
+      name: norcube-releases
+      email: releases@norcube.com
+
+# winget manifests go to microsoft/winget-pkgs as a pull request from a
+# fork. Off until WINGET_TOKEN is set; the fork and the token are a
+# one-time setup (docs/RELEASING.md).
+winget:
+  - name: norcube
+    package_identifier: Norcube.CLI
+    package_name: Norcube CLI
+    publisher: Norcube
+    publisher_url: https://norcube.com
+    publisher_support_url: https://github.com/norcubeplatform/cli/issues
+    author: Norcube
+    homepage: https://norcube.com
+    short_description: Command-line interface for the Norcube platform
+    description: |
+      norcube (alias nrc) manages Norcube products from the terminal and
+      from CI: LangSync, Backup, DomainRadar, billing and your account.
+    license: Apache-2.0
+    license_url: https://github.com/norcubeplatform/cli/blob/main/LICENSE
+    copyright: Copyright Norcube
+    release_notes_url: "https://github.com/norcubeplatform/cli/releases/tag/{{ .Tag }}"
+    tags: [cli, norcube, langsync, backup, domainradar]
+    skip_upload: '{{ if isEnvSet "WINGET_TOKEN" }}false{{ else }}true{{ end }}'
+    commit_author:
+      name: norcube-releases
+      email: releases@norcube.com
+    repository:
+      owner: norcubeplatform
+      name: winget-pkgs
+      branch: "norcube-{{ .Version }}"
+      token: '{{ envOrDefault "WINGET_TOKEN" "" }}'
+      pull_request:
+        enabled: true
+        base:
+          owner: microsoft
+          name: winget-pkgs
+          branch: master
