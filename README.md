@@ -22,8 +22,54 @@ What it's best at: proving you're never locked in to Norcube Backup. `norcube ba
 brew install --cask norcubeplatform/tap/norcube
 ```
 
-Installs the binary plus bash/zsh/fish completions. The cask prints how to
-add the short `nrc` alias if you want it.
+Installs `norcube`, the short alias `nrc`, and bash/zsh/fish completions.
+Upgrade with `brew upgrade norcube`.
+
+**Scoop (Windows):**
+
+```powershell
+scoop bucket add norcube https://github.com/norcubeplatform/scoop-bucket
+scoop install norcube
+```
+
+Upgrade with `scoop update norcube`.
+
+**winget (Windows):**
+
+```powershell
+winget install Norcube.CLI
+```
+
+Upgrade with `winget upgrade Norcube.CLI`.
+
+**Debian / Ubuntu, Fedora / RHEL / openSUSE, Alpine:**
+
+Every release has `.deb`, `.rpm` and `.apk` packages for amd64 and arm64.
+They install `/usr/bin/norcube`, the `nrc` alias, shell completions and man
+pages (`man norcube`).
+
+```bash
+VERSION=0.21.0   # the release to install, without the leading v
+ARCH=amd64       # or arm64
+BASE=https://github.com/norcubeplatform/cli/releases/download/v$VERSION
+
+# Debian / Ubuntu
+curl -fsSLO "$BASE/norcube_${VERSION}_linux_${ARCH}.deb"
+sudo apt install "./norcube_${VERSION}_linux_${ARCH}.deb"
+
+# Fedora / RHEL / openSUSE
+curl -fsSLO "$BASE/norcube_${VERSION}_linux_${ARCH}.rpm"
+sudo dnf install "./norcube_${VERSION}_linux_${ARCH}.rpm"   # or: sudo zypper install ...
+
+# Alpine (the package isn't signed with an apk key; verify the download first)
+curl -fsSLO "$BASE/norcube_${VERSION}_linux_${ARCH}.apk"
+sudo apk add --allow-untrusted "./norcube_${VERSION}_linux_${ARCH}.apk"
+```
+
+The packages aren't served from an apt/dnf repository, so upgrade by
+installing the next release's package the same way. [Verify a
+release](#verify-a-release) shows how to check a download before installing
+it.
 
 **One-liner (macOS / Linux):**
 
@@ -47,13 +93,13 @@ export PATH="$HOME/.norcube/bin:$PATH"
 The script verifies the SHA-256 against the release's `checksums.txt`
 before writing to disk; it'll abort if the download was tampered with.
 
-**Manual install:**
+**Direct download:**
 
-Download the matching archive from the [GitHub Releases page](https://github.com/norcubeplatform/cli/releases/latest), extract `norcube`, and put it on your `$PATH`.
-
-**Windows:**
-
-Download the `.zip` from GitHub Releases. No installer yet.
+Download the archive for your platform from the [GitHub Releases
+page](https://github.com/norcubeplatform/cli/releases/latest)
+(`norcube_<os>_<arch>.tar.gz`, or `norcube_windows_amd64.zip`), extract
+`norcube` (`norcube.exe` on Windows), and put it on your `PATH`. The archive
+also holds shell completions (`completions/`) and man pages (`manpages/`).
 
 **From source (requires Go ≥ 1.24):**
 
@@ -69,12 +115,65 @@ make install   # installs `norcube` to $GOPATH/bin
 norcube upgrade
 ```
 
-Checks GitHub for newer releases, verifies the checksum, and atomically
-replaces the running binary. Run `norcube --version` afterward to confirm.
+Checks GitHub for newer releases, downloads the archive for your platform,
+verifies its SHA-256 against the release's `checksums.txt` (both over TLS
+from GitHub), and atomically replaces the running binary. Nothing is
+replaced when the checksum is missing or doesn't match. Run
+`norcube --version` afterward to confirm.
 
-If `norcube` was installed via Homebrew / apt / rpm, the upgrade command
-detects that and tells you to use the package manager instead — pass
-`--force` if you really want to override it.
+If `norcube` was installed with Homebrew, Scoop, winget or a deb/rpm/apk
+package, the upgrade command detects that and tells you to upgrade with
+that tool instead; pass `--force` if you really want to override it.
+
+## Verify a release
+
+Every release is built by the [release
+workflow](.github/workflows/release.yaml) from a tag, and ships:
+
+- `checksums.txt`: the SHA-256 of every archive, package and SBOM;
+- `checksums.txt.sigstore.json`: a keyless [Sigstore](https://www.sigstore.dev)
+  signature of `checksums.txt`, made with the workflow's GitHub identity;
+- `<archive>.sbom.json`: an SPDX software bill of materials per archive;
+- a [GitHub artifact
+  attestation](https://docs.github.com/actions/security-for-github-actions/using-artifact-attestations)
+  (SLSA build provenance) for every file in `checksums.txt`.
+
+`norcube upgrade` and `install.sh` check the SHA-256. To also check that
+the checksums were signed by this repository's release workflow, install
+[cosign](https://docs.sigstore.dev/cosign/system_config/installation/) and
+run:
+
+```bash
+VERSION=v0.21.0
+gh release download "$VERSION" --repo norcubeplatform/cli \
+  --pattern checksums.txt --pattern checksums.txt.sigstore.json \
+  --pattern norcube_linux_amd64.tar.gz
+
+cosign verify-blob checksums.txt \
+  --bundle checksums.txt.sigstore.json \
+  --certificate-identity-regexp '^https://github\.com/norcubeplatform/cli/\.github/workflows/release\.yaml@refs/tags/v' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
+
+# then check the download against the verified checksums
+sha256sum --ignore-missing -c checksums.txt          # Linux
+shasum -a 256 --ignore-missing -c checksums.txt      # macOS
+```
+
+To pin the exact release instead of any tag, replace
+`--certificate-identity-regexp ...` with
+`--certificate-identity "https://github.com/norcubeplatform/cli/.github/workflows/release.yaml@refs/tags/$VERSION"`.
+
+To check the build provenance with the [GitHub CLI](https://cli.github.com):
+
+```bash
+gh attestation verify norcube_linux_amd64.tar.gz \
+  --repo norcubeplatform/cli \
+  --signer-workflow norcubeplatform/cli/.github/workflows/release.yaml
+```
+
+The macOS binaries are signed with a Developer ID certificate and notarized
+by Apple when the release was built with the signing keys configured;
+`codesign -dv --verbose=2 "$(command -v norcube)"` shows the signature.
 
 ## Quick start
 
@@ -90,8 +189,8 @@ norcube billing usage estimate      # this month's charges so far
 norcube doctor                      # something not working? start here
 ```
 
-`nrc` is a short alias for `norcube` (the install script creates it;
-Homebrew prints how). Add `-o json` and `--query` to any command for
+`nrc` is a short alias for `norcube` (the install script, the Homebrew cask
+and the Linux packages create it). Add `-o json` and `--query` to any command for
 scripting, and `--org <slug>` to target another organization for one
 command.
 

@@ -5,6 +5,31 @@ this file collects what users and scripts need to know.
 
 ## Unreleased
 
+### New
+
+- Releases are verifiable: `checksums.txt` is signed keylessly with
+  Sigstore (`checksums.txt.sigstore.json`), every archive, package and SBOM
+  has a GitHub build provenance attestation, and each archive ships with an
+  SPDX SBOM (`<archive>.sbom.json`). The README's "Verify a release" shows
+  the `cosign verify-blob` and `gh attestation verify` commands.
+- Linux packages: `.deb`, `.rpm` and `.apk` for amd64 and arm64, with the
+  `nrc` alias, shell completions and man pages.
+- Scoop (`norcubeplatform/scoop-bucket`) and winget (`Norcube.CLI`)
+  manifests, published once their release tokens are configured.
+- The Homebrew cask installs the `nrc` alias.
+- macOS binaries are signed with a Developer ID certificate and notarized
+  once the signing keys are configured for the release workflow.
+
+### Changes for scripts
+
+- `norcube upgrade` installs only the release archive for its platform
+  (`norcube_<os>_<arch>.tar.gz` or `.zip`) and only after its SHA-256
+  matches `checksums.txt`; a release without that entry is refused. The
+  background update check uses the same rule.
+- `norcube upgrade` recognizes Scoop, winget and Homebrew cask installs on
+  Intel Macs, and tells you to upgrade with that tool (`--force`
+  overrides). The messages for Homebrew and system packages are reworded.
+
 ## 0.20.0 (2026-10-29)
 
 ### New
