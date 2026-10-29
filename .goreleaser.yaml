@@ -161,8 +161,12 @@ notarize:
         key_id: '{{ envOrDefault "MACOS_NOTARY_KEY_ID" "" }}'
         # base64 of the App Store Connect API key (.p8).
         key: '{{ envOrDefault "MACOS_NOTARY_KEY" "" }}'
-        wait: true
-        timeout: 20m
+        # Submit and don't wait: a bare binary can't be stapled, so
+        # Gatekeeper checks the ticket online either way, and Apple can take
+        # longer than GoReleaser's 20 minute limit (a new team's first
+        # submissions can take hours). Verify after a release with
+        # `spctl --assess --type execute -v` (see docs/RELEASING.md).
+        wait: false
 
 snapshot:
   # Used when running `goreleaser release --snapshot` for testing — bumps

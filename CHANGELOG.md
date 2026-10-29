@@ -5,7 +5,12 @@ this file collects what users and scripts need to know.
 
 ## Unreleased
 
-## 0.21.0 (2026-10-29)
+## 0.21.1 (2026-10-29)
+
+The first published release with the changes below. 0.21.0 was tagged but
+never published: its macOS notarization timed out before Apple answered.
+
+## 0.21.0 (not published)
 
 ### New
 
