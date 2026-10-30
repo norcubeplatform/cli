@@ -212,8 +212,20 @@ func credentialCheck(flags *clictx.Flags, res *resolve.Result, cfg *config.Confi
 			c.Status, c.Detail = checkWarn, "no OS keyring here; sessions fall back to the file store"
 		}
 	}
-	if !auth.HasCredentials(cfg.Profile, cfg.Auth) && c.Status == checkOK && res.Credentials.Value != resolve.CredentialTokenFile && res.Credentials.Value != config.CredentialEnv {
+	if res.Credentials.Value == resolve.CredentialTokenFile || res.Credentials.Value == config.CredentialEnv || c.Status == checkFail {
+		return c
+	}
+	st, err := auth.LoadSession(cfg.Profile, cfg.Auth)
+	switch {
+	case err != nil:
+		c.Status, c.Detail = checkFail, c.Detail+"; reading the stored session failed: "+err.Error()
+	case st.Format == 0:
 		c.Detail += "; no session stored"
+	case st.Format == auth.FormatOAuth:
+		c.Detail += fmt.Sprintf("; OAuth sign-in (format %d), scopes %s", st.Format, auth.DescribeScopes(st.Scopes))
+	default:
+		c.Status = checkWarn
+		c.Detail += fmt.Sprintf("; older sign-in (format %d), full access. The next command moves it to the OAuth sign-in when Norcube Auth offers it; an older norcube on this machine then has to sign in again", st.Format)
 	}
 	return c
 }
@@ -356,7 +368,8 @@ func sessionAndTokenChecks(ctx context.Context, flags *clictx.Flags, cfg *config
 		return append(out, doctorCheck{"tokens", checkSkip, "no organization to mint tokens for"})
 	}
 	services := registry.Callable()
-	// One at a time: every mint rotates the profile's one refresh token.
+	// One at a time: with the older sign-in every mint rotates the
+	// profile's one refresh token.
 	for _, s := range services {
 		c := doctorCheck{Check: "token " + s.Command}
 		ts, err := flags.TokenSource(cfg, s.Audience, org.ID)
@@ -365,9 +378,13 @@ func sessionAndTokenChecks(ctx context.Context, flags *clictx.Flags, cfg *config
 			_, err = ts.Token(tctx)
 			cancel()
 		}
-		if err != nil {
+		var scopeErr *auth.ScopeError
+		switch {
+		case errors.As(err, &scopeErr):
+			c.Status, c.Detail = checkSkip, "this login's scopes ("+auth.DescribeScopes(scopeErr.Scopes)+") don't cover this service"
+		case err != nil:
 			c.Status, c.Detail = checkFail, err.Error()
-		} else {
+		default:
 			c.Status, c.Detail = checkOK, fmt.Sprintf("%s in %s", s.Audience, orgLabel(config.Organization{ID: org.ID, Slug: org.Slug}))
 		}
 		out = append(out, c)

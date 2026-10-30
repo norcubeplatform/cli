@@ -18,15 +18,22 @@ import (
 	"github.com/norcubeplatform/cli/internal/resolve"
 )
 
-// endServerSession ends the CLI session on Norcube Auth when logging out.
-// A variable so tests can observe or replace the call.
-var endServerSession = func(ctx context.Context, authURL, refreshToken string) error {
-	return auth.EndServerSession(ctx, nil, authURL, refreshToken)
-}
+// endServerSession ends an older sign-in's CLI session on Norcube Auth
+// when logging out; revokeServerSession revokes an OAuth sign-in (RFC
+// 7009), which ends its grant and CLI session. Variables so tests can
+// observe or replace the calls.
+var (
+	endServerSession = func(ctx context.Context, authURL, refreshToken string) error {
+		return auth.EndServerSession(ctx, nil, authURL, refreshToken)
+	}
+	revokeServerSession = func(ctx context.Context, authURL, refreshToken string) error {
+		return auth.RevokeRefreshToken(ctx, nil, authURL, refreshToken)
+	}
+)
 
 // serverSignOutWarning is printed when the session couldn't be ended on the
 // server. Logging out still succeeds: the local credentials are gone.
-const serverSignOutWarning = "Warning: couldn't end the session on the server (%v). It expires after 30 days unused, or revoke it under Account › CLI sessions.\n"
+const serverSignOutWarning = "Warning: couldn't end the session on the server (%v). It expires after 30 days unused, or revoke it under Account › CLI sessions in the dashboard.\n"
 
 func newLogoutCmd() *cobra.Command {
 	var all bool
@@ -34,9 +41,10 @@ func newLogoutCmd() *cobra.Command {
 		Use:         "logout",
 		Annotations: cmdutil.Writes(),
 		Short:       "Sign out: end the session on Norcube and forget it locally",
-		Long: `Ends the selected profile's CLI session on Norcube Auth, so its refresh
-token stops working everywhere, then removes the session (refresh and access
-tokens) from the credential store and forgets its signed-in user. If the
+		Long: `Ends the selected profile's CLI session on Norcube Auth (it revokes the
+login's refresh token), so the session stops working everywhere and leaves
+Account › CLI sessions and Connected apps, then removes the session (refresh
+and access tokens) from the credential store and forgets its signed-in user. If the
 server can't be reached, the local sign-out still happens and a warning says
 so; the session then expires after 30 days unused, or you revoke it under
 Account › CLI sessions in the dashboard. The profile itself, with its
@@ -94,8 +102,12 @@ func logoutProfile(ctx context.Context, stderr io.Writer, profile, authURL strin
 	defer unlock()
 	if endServer {
 		if tok, err := auth.LoadRefreshToken(profile, authURL); err == nil && tok != "" {
+			end := endServerSession
+			if s, _ := auth.LoadSession(profile, authURL); s.Format == auth.FormatOAuth {
+				end = revokeServerSession
+			}
 			ok := true
-			if err := endServerSession(ctx, authURL, tok); err != nil {
+			if err := end(ctx, authURL, tok); err != nil {
 				ok = false
 				fmt.Fprintf(stderr, serverSignOutWarning, err)
 			}

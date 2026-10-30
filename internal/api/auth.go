@@ -100,6 +100,10 @@ type Session struct {
 	ExpiresAt  time.Time     `json:"expires_at"`
 	// Current marks the session the request's own token belongs to.
 	Current bool `json:"current"`
+	// OAuthGrantID and Scopes describe an OAuth sign-in; both are null
+	// for the older sign-in, which always has full access.
+	OAuthGrantID *string  `json:"oauth_grant_id,omitempty"`
+	Scopes       []string `json:"scopes,omitempty"`
 }
 
 // SessionClient is what the session's CLI reported about itself; fields

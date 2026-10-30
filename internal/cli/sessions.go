@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/norcubeplatform/cli/internal/api"
+	"github.com/norcubeplatform/cli/internal/auth"
 	"github.com/norcubeplatform/cli/internal/clictx"
 	"github.com/norcubeplatform/cli/internal/clierr"
 	"github.com/norcubeplatform/cli/internal/cmdutil"
@@ -21,8 +22,10 @@ func newAuthSessionsCmd() *cobra.Command {
 		Short: "List and revoke the CLI sessions of your account",
 		Long: `Every ` + "`norcube login`" + ` creates a CLI session for your account. These
 commands list them and end the ones you don't use or don't recognize, the
-same as Account › CLI sessions in the dashboard. Revoking a session stops
-its refresh token at once; the CLI on that machine has to sign in again.`,
+same as Account › CLI sessions in the dashboard. SCOPES is what the login may
+do: full, or the scopes it was limited to with ` + "`norcube login --scopes`" + `.
+Revoking a session stops its refresh token at once; the CLI on that machine
+has to sign in again.`,
 	}
 	cmd.AddCommand(newAuthSessionsListCmd(), newAuthSessionsRevokeCmd())
 	return cmd
@@ -46,7 +49,7 @@ func newAuthSessionsListCmd() *cobra.Command {
 				return err
 			}
 			return cmdutil.Print(cmd, output.Table[api.Session]{
-				Headers: []string{"CURRENT", "DEVICE", "CLIENT", "LAST USED", "IP", "ID"},
+				Headers: []string{"CURRENT", "DEVICE", "CLIENT", "SCOPES", "LAST USED", "IP", "ID"},
 				Rows: func(s api.Session) []string {
 					current := " "
 					if s.Current {
@@ -56,6 +59,7 @@ func newAuthSessionsListCmd() *cobra.Command {
 						current,
 						orDash(cmdutil.Deref(s.Hostname)),
 						sessionClientLabel(s.Client),
+						auth.DescribeScopes(s.Scopes),
 						output.When(s.LastUsedAt),
 						orDash(cmdutil.Deref(s.IPAddress)),
 						s.ID,
