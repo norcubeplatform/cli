@@ -5,6 +5,15 @@ this file collects what users and scripts need to know.
 
 ## Unreleased
 
+## 0.21.4 (2026-10-30)
+
+### Fixes
+
+- Release binaries are built with Go 1.26.10. Earlier releases used Go
+  1.26.1, whose crypto/x509 and net/http have known vulnerabilities
+  (GO-2026-6809, GO-2026-6617) reachable from every HTTPS call.
+  golang.org/x/crypto, x/sys, x/term and x/text are updated as well.
+
 ## 0.21.3 (2026-10-29)
 
 ### Fixes
