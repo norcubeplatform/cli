@@ -68,7 +68,8 @@ cached for a day in the user cache directory.
 - **Tokens** (`internal/auth/oauthsession.go`): a sign-in gives a refresh
   token and a 5-minute CLI access token, which no product accepts. Every
   command exchanges it (RFC 8693) for a token per (audience,
-  organization); exchanges use nothing up, run in parallel without any
+  organization; Norcube Auth's own `auth` audience also without one, for
+  an account that has none yet); exchanges use nothing up, run in parallel without any
   lock and are cached in memory only. Refreshing rotates the refresh token,
   so it runs under an in-process mutex plus a per-profile lock file, and
   the rotated token is stored before the new access token is used. A
@@ -87,7 +88,8 @@ cached for a day in the user cache directory.
   `insufficient_scope` is `insufficient_scope` (exit 5) with a hint naming
   the login's scopes.
 - **Sign-out**: `logout` revokes the refresh token (RFC 7009); a format 1
-  session uses the older sign-out endpoint.
+  session uses the older sign-out endpoint. `login --force` ends the
+  session it replaces the same way, best effort.
 - **Older servers**: when the metadata is missing or doesn't list the token
   exchange grant, `login` uses the older sign-in (the web app's
   `/cli-login` page and `/auth/cli/device/*`) and sessions refresh the

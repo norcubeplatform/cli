@@ -201,6 +201,8 @@ norcube logout                                  # revoke the session on Norcube,
 - Every login shows up under Account › CLI sessions and Account ›
   Connected apps in the dashboard. Revoking it there, or with
   `norcube auth sessions revoke`, stops it at once.
+- `norcube login --force` signs in again and ends the previous session on
+  Norcube.
 - `norcube logout` revokes the login's refresh token on Norcube (RFC 7009),
   so the session ends everywhere, and then removes it from this machine. If
   Norcube can't be reached, it says so and signs out locally anyway.

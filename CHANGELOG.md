@@ -206,6 +206,12 @@ this file collects what users and scripts need to know.
 - `norcube logout` revokes the login's refresh token on Norcube (RFC 7009),
   which ends its CLI session and removes it from Connected apps. A failure
   on the server is reported, and the local sign-out happens anyway.
+- `norcube login --force` ends the session it replaces on Norcube (the way
+  `logout` does) before storing the new one. If that fails, it warns and
+  signs in anyway.
+- An account without an organization can sign in and use `whoami`, `org
+  list` and `org create`: Norcube Auth tokens are minted without an
+  organization. Product commands still need one.
 - Fewer refreshes: a login refreshes one short-lived CLI token and
   exchanges it per service and organization without the profile lock, so
   parallel commands no longer queue behind each other.
