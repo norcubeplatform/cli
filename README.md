@@ -179,6 +179,35 @@ and the Linux packages create it). Add `-o json` and `--query` to any command fo
 scripting, and `--org <slug>` to target another organization for one
 command.
 
+## Signing in
+
+`norcube login` opens the Norcube sign-in page in your browser. After you
+approve the sign-in there, the browser hands the CLI a one-time code over
+`127.0.0.1`, which the CLI exchanges for its session (OAuth 2.0 with PKCE:
+the session's tokens never pass through the browser). The session is kept
+in your OS keyring, per profile.
+
+```bash
+norcube login                                   # full access: everything you can do in the dashboard
+norcube login --scopes backup.read,langsync.sync # only these scopes (the ones CI tokens use)
+norcube login --device                          # approve on your phone or laptop (SSH, containers)
+norcube auth sessions list                      # every login of your account, with its scopes
+norcube logout                                  # revoke the session on Norcube, then forget it here
+```
+
+- A login limited with `--scopes` refuses commands outside its scopes with
+  exit code 5 and says which login would allow them. Your own permissions
+  in each organization apply either way.
+- Every login shows up under Account › CLI sessions and Account ›
+  Connected apps in the dashboard. Revoking it there, or with
+  `norcube auth sessions revoke`, stops it at once.
+- `norcube logout` revokes the login's refresh token on Norcube (RFC 7009),
+  so the session ends everywhere, and then removes it from this machine. If
+  Norcube can't be reached, it says so and signs out locally anyway.
+- A session from an older `norcube` version moves to the new sign-in on its
+  first command, without signing in again. An older `norcube` binary on the
+  same machine then has to sign in again; see the [changelog](CHANGELOG.md).
+
 ## In CI and on servers
 
 Create a CI token for the organization (scopes limit what it can do, and it

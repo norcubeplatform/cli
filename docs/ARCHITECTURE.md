@@ -33,7 +33,7 @@ maps them to stable codes and exit codes.
 | `internal/registry` | The service manifest (`services.yaml`, embedded): config key, product name, command name and aliases, OAuth audience, production endpoint, spec location, generated package. |
 | `internal/service` | `service.New[T]` resolves the target organization (explicit, `--org`/`NORCUBE_ORG`, a command default such as `.langsync.json`, then the profile), the endpoint, a token source and the shared transport, and returns the typed client. |
 | `internal/config`, `internal/resolve` | The config file (profiles, schema v2, migration) and which profile, endpoints, organization, credentials and output a command uses, each with its source. |
-| `internal/auth`, `internal/credstore` | Browser login, the per-profile session (OS keyring or a 0600 file), the per-(audience, organization) access-token cache, and the refresh lock that keeps parallel commands from racing. |
+| `internal/auth`, `internal/credstore` | Sign-in (OAuth browser and device flows, and the older flows for servers without them), the per-profile session (OS keyring or a 0600 file), the per-(audience, organization) token cache, and the refresh lock that keeps parallel commands from racing. See [Sign-in and tokens](#sign-in-and-tokens). |
 | `internal/transport` | The one HTTP client: connect and read timeouts, retries with backoff and `Retry-After`, proxy and CA bundle, User-Agent, and the redacting `--debug` trace. |
 | `internal/cmdutil`, `internal/output` | The result path: `--query` (JMESPath), the four output formats, pagination flags, `--wait` polling and `JobFailed`, `Confirm` and `Cancelled`, text and item input from files or stdin, safe file saves, renamed-command notes, and the command annotations (`annotations.go`: effect, flag enums, service) that `nrc commands` reads. |
 | `internal/clierr` | Error codes, exit codes and the JSON error shape. |
@@ -46,6 +46,52 @@ prints the machine-readable command tree (schema in
 [DESIGN.md, section 3.8](DESIGN.md#38-nrc-commands-the-discovery-entry-point)).
 It reads only the tree, the annotations and the registry, never the
 network.
+
+## Sign-in and tokens
+
+The CLI is a public, first-party OAuth 2.0 client of Norcube Auth
+(`client_id` `norcube-cli`). Everything it needs is discovered from the
+auth URL's RFC 8414 metadata (`/.well-known/oauth-authorization-server`),
+cached for a day in the user cache directory.
+
+- **Browser sign-in** (`internal/auth/oauth.go`): authorization code with
+  PKCE (S256) and a random `state`, redirected to a loopback listener on
+  `127.0.0.1` and a random port (RFC 8252). The callback must carry the
+  `state` and the server's issuer (`iss`, RFC 9207) before the code is
+  exchanged. The authorization request names the scopes, the device's
+  hostname (`device_name`) and the CLI's User-Agent (`client_user_agent`)
+  for the consent screen and the session.
+- **Device sign-in** (`internal/auth/device.go`): RFC 8628 against the
+  metadata's `device_authorization_endpoint`, polled at the token endpoint
+  (`authorization_pending`, `slow_down` adds five seconds, `access_denied`,
+  `expired_token`).
+- **Tokens** (`internal/auth/oauthsession.go`): a sign-in gives a refresh
+  token and a 5-minute CLI access token, which no product accepts. Every
+  command exchanges it (RFC 8693) for a token per (audience,
+  organization); exchanges use nothing up, run in parallel without any
+  lock and are cached in memory only. Refreshing rotates the refresh token,
+  so it runs under an in-process mutex plus a per-profile lock file, and
+  the rotated token is stored before the new access token is used. A
+  refused refresh re-reads the stored token once in case another process
+  rotated it meanwhile.
+- **Credentials** (`internal/auth/keyring.go`): one item per profile.
+  Format 2 holds the refresh token, the cached CLI access token, the
+  granted scopes and a format marker; it fits the 2.5 KB Windows Credential
+  Manager limit, and a store that refuses it gets the blob without the
+  access token. Format 1 is the older sign-in (a refresh JWT that is
+  refreshed straight into per-service tokens, cached in the item too). It
+  is moved to format 2 once, under the lock, by a token exchange of the
+  refresh JWT; a token Norcube Auth won't move asks for one `norcube login`.
+- **Errors**: a dead refresh token is `login_required` (exit 4),
+  `org_access_denied` is `permission_denied` (exit 5), and
+  `insufficient_scope` is `insufficient_scope` (exit 5) with a hint naming
+  the login's scopes.
+- **Sign-out**: `logout` revokes the refresh token (RFC 7009); a format 1
+  session uses the older sign-out endpoint.
+- **Older servers**: when the metadata is missing or doesn't list the token
+  exchange grant, `login` uses the older sign-in (the web app's
+  `/cli-login` page and `/auth/cli/device/*`) and sessions refresh the
+  older way. CI tokens (`NORCUBE_TOKEN`) work as before.
 
 ## Adding a service
 
@@ -120,7 +166,11 @@ secrets and the one-time setup.
 
 - `internal/cli` runs the real command tree in-process against a fake
   backend (`cli_test.go`) with a temporary config, cache and mocked
-  keyring. Golden files under `internal/cli/testdata/golden` pin every
+  keyring. `internal/auth/authtest` is a fake Norcube Auth OAuth server
+  (metadata, authorization redirect, code exchange, refresh with rotation
+  and reuse detection, token exchange, device flow, session upgrade,
+  revocation) for sign-in and token tests; a test "browser" follows the
+  authorization redirect to the CLI's loopback callback. Golden files under `internal/cli/testdata/golden` pin every
   output format; update them with `go test ./internal/cli -run TestGolden -update`.
 - Contract tests walk the tree: every command has an example, complete
   help text and an effect, nothing writes to stdout outside the result
