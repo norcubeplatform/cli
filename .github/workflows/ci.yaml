@@ -22,6 +22,14 @@ jobs:
         run: go vet ./...
       - name: Test
         run: go test -race ./...
+      - name: Module is tidy
+        # goreleaser runs `go mod tidy` before building, so an untidy
+        # go.mod would make a release differ from the tagged commit.
+        run: go mod tidy -diff
+      - name: Known vulnerabilities
+        # Fails on vulnerabilities reachable from our code, in the
+        # standard library (the pinned toolchain) or in dependencies.
+        run: scripts/govulncheck.sh
 
   lint:
     runs-on: ubuntu-latest
