@@ -85,7 +85,7 @@ func TestRefusedExchangeIsDiagnosed(t *testing.T) {
 			if tt.session {
 				srv.current = "refresh-0"
 			}
-			hs := httptest.NewServer(srv)
+			hs := httptest.NewServer(olderServer(srv))
 			defer hs.Close()
 			prev := SetStore(fileStore{dir: t.TempDir()})
 			defer SetStore(prev)

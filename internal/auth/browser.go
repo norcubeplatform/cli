@@ -30,6 +30,12 @@ type CallbackPayload struct {
 	RefreshExpiresIn int          `json:"refreshExpiresIn"`
 	User             User         `json:"user"`
 	DefaultOrg       Organization `json:"defaultOrganization"`
+
+	// OAuth marks a session from the OAuth sign-in (format 2): the access
+	// token is a CLI access token, User is empty (the caller asks
+	// /auth/me), and Scopes are the granted scopes.
+	OAuth  bool     `json:"-"`
+	Scopes []string `json:"-"`
 }
 
 type User struct {
@@ -56,7 +62,8 @@ type BrowserLoginOptions struct {
 	NoBrowser bool
 }
 
-// BrowserLogin runs the full browser-based login handshake:
+// BrowserLogin runs the older browser-based login handshake, for a
+// Norcube Auth without the OAuth sign-in (see OAuthLogin):
 //
 //  1. Bind a loopback HTTP server on a random localhost port.
 //  2. Open the user's browser to <WebApp>/cli-login?port=<P>&state=<S>.

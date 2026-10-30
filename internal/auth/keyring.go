@@ -62,11 +62,33 @@ func storeFor(profile string) Store {
 	return store
 }
 
+// Credential formats. Format 1 (no "format" field) is the older sign-in:
+// a refresh JWT of Norcube Auth's own sessions, refreshed straight into
+// per-(audience, organization) tokens, which are cached in the blob too.
+// Format 2 is the OAuth sign-in: the grant's refresh token, the cached
+// 5-minute CLI access token and the granted scopes. Its per-service tokens
+// are only cached in memory (see oauthsession.go), so the blob changes
+// only on a refresh, under the profile's lock.
+const (
+	FormatLegacy = 1
+	FormatOAuth  = 2
+)
+
 type credentials struct {
+	// Format is FormatOAuth for an OAuth sign-in; absent (0) means
+	// FormatLegacy, which is what CLI versions before it wrote.
+	Format       int    `json:"format,omitempty"`
 	AuthURL      string `json:"auth_url"`
 	RefreshToken string `json:"refresh_token,omitempty"`
-	// Access caches access tokens by "<audience>|<organization id>".
+	// Access caches access tokens by "<audience>|<organization id>"
+	// (format 1 only).
 	Access map[string]cachedAccess `json:"access,omitempty"`
+	// CLIAccess is the cached CLI access token (format 2), only good for
+	// the token exchange.
+	CLIAccess *cachedAccess `json:"cli_access,omitempty"`
+	// Scopes are the scopes Norcube Auth granted the sign-in (format 2),
+	// e.g. ["full", "org.read", "offline_access"].
+	Scopes []string `json:"scopes,omitempty"`
 
 	// legacy: read from an older CLI's per-auth-URL item, not yet saved
 	// into the profile's own item.
@@ -134,8 +156,16 @@ func loadCredentials(profile, api string) (*credentials, error) {
 	return &credentials{AuthURL: api}, nil
 }
 
-// saveCredentials writes the blob. A store that can't hold the access
-// token cache (Windows caps items at 2.5 KB) gets the refresh token only.
+func (c *credentials) format() int {
+	if c.Format == FormatOAuth {
+		return FormatOAuth
+	}
+	return FormatLegacy
+}
+
+// saveCredentials writes the blob. A store that can't hold the cached
+// access tokens (Windows caps items at 2.5 KB) gets the refresh token and
+// scopes only; the next command mints new access tokens.
 func saveCredentials(profile string, c *credentials) error {
 	b, err := json.Marshal(c) // #nosec G117 -- written to the credential store, which is where secrets belong
 	if err != nil {
@@ -143,9 +173,10 @@ func saveCredentials(profile string, c *credentials) error {
 	}
 	st := storeFor(profile)
 	err = st.Set(profileKey(profile), string(b))
-	if errors.Is(err, credstore.ErrTooBig) && len(c.Access) > 0 {
+	if errors.Is(err, credstore.ErrTooBig) && (len(c.Access) > 0 || c.CLIAccess != nil) {
 		slim := *c
 		slim.Access = nil
+		slim.CLIAccess = nil
 		b, _ = json.Marshal(slim) // #nosec G117 -- see above
 		err = st.Set(profileKey(profile), string(b))
 	}
@@ -165,8 +196,9 @@ func saveCredentials(profile string, c *credentials) error {
 	return nil
 }
 
-// SaveRefreshToken stores the profile's refresh token for api. Cached
-// access tokens of another auth URL are dropped.
+// SaveRefreshToken stores the profile's refresh token for api as an older
+// (format 1) sign-in. Cached access tokens of another auth URL are
+// dropped, and so is an OAuth sign-in it replaces.
 func SaveRefreshToken(profile, api, token string) error {
 	credsMu.Lock()
 	defer credsMu.Unlock()
@@ -174,8 +206,67 @@ func SaveRefreshToken(profile, api, token string) error {
 	if err != nil {
 		return err
 	}
+	if c.format() == FormatOAuth {
+		c = &credentials{AuthURL: api, legacy: c.legacy}
+		forgetMemory(profile, api)
+	}
 	c.RefreshToken = token
 	return saveCredentials(profile, c)
+}
+
+// SaveOAuthSession stores an OAuth sign-in (format 2) for the profile:
+// its refresh token, the CLI access token that came with it and the
+// granted scopes. It replaces whatever the profile had, older sign-in
+// included. Callers hold the profile's lock.
+func SaveOAuthSession(profile, api, refresh, cliAccess string, accessExpiresAt time.Time, scopes []string) error {
+	credsMu.Lock()
+	defer credsMu.Unlock()
+	old, err := loadCredentials(profile, api)
+	if err != nil {
+		return err
+	}
+	c := &credentials{
+		Format:       FormatOAuth,
+		AuthURL:      api,
+		RefreshToken: refresh,
+		Scopes:       scopes,
+		legacy:       old.legacy,
+	}
+	if cliAccess != "" {
+		if accessExpiresAt.IsZero() {
+			accessExpiresAt = jwtExpiry(cliAccess)
+		}
+		c.CLIAccess = &cachedAccess{Token: cliAccess, ExpiresAt: accessExpiresAt}
+	}
+	forgetMemory(profile, api)
+	return saveCredentials(profile, c)
+}
+
+// StoredSession describes what a profile has stored, without secrets.
+type StoredSession struct {
+	// Format is FormatLegacy or FormatOAuth; 0 when nothing is stored.
+	Format int
+	// Scopes are the granted scopes of an OAuth sign-in (nil for the
+	// older sign-in, which always has full access).
+	Scopes []string
+	// CLIAccessExpiresAt is when the cached CLI access token expires
+	// (format 2; zero when none is cached).
+	CLIAccessExpiresAt time.Time
+}
+
+// LoadSession describes the profile's stored session for api.
+func LoadSession(profile, api string) (StoredSession, error) {
+	credsMu.RLock()
+	defer credsMu.RUnlock()
+	c, err := loadCredentials(profile, api)
+	if err != nil || c.RefreshToken == "" {
+		return StoredSession{}, err
+	}
+	s := StoredSession{Format: c.format(), Scopes: c.Scopes}
+	if c.CLIAccess != nil {
+		s.CLIAccessExpiresAt = c.CLIAccess.ExpiresAt
+	}
+	return s, nil
 }
 
 // LoadRefreshToken returns the profile's refresh token for api, or
@@ -247,6 +338,7 @@ func DeleteCredentials(profile, api string) error {
 func DeleteCredentialsFrom(s Store, profile, api string) error {
 	credsMu.Lock()
 	defer credsMu.Unlock()
+	forgetMemory(profile, api)
 	if err := s.Delete(profileKey(profile)); err != nil {
 		return err
 	}
@@ -265,6 +357,9 @@ func HasCredentials(profile, api string) bool {
 // AccessExpiry returns when the profile's cached token for (audience,
 // org) expires; zero when none is cached.
 func AccessExpiry(profile, api, audience, orgID string) time.Time {
+	if a, ok := memGet(memKey(profile, api, audience, orgID)); ok {
+		return a.ExpiresAt
+	}
 	_, exp, _ := loadAccess(profile, api, audience, orgID)
 	return exp
 }
