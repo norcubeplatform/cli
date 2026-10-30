@@ -127,12 +127,18 @@ func redactHeader(name, value string) string {
 // signatures.
 func sensitiveKey(key string) bool {
 	k := strings.ToLower(key)
-	for _, part := range []string{"token", "secret", "password", "apikey", "api_key", "signature", "credential", "authorization", "cookie", "sig"} {
+	for _, part := range []string{"token", "secret", "password", "apikey", "api_key", "signature", "credential", "authorization", "cookie", "sig", "verifier"} {
 		if strings.Contains(k, part) {
 			return true
 		}
 	}
-	return k == "code" || k == "x-amz-security-token"
+	// OAuth codes (authorization code, device_code) are one-time
+	// credentials; user_code is the short code the person types, shown
+	// on screen anyway, and the only *_code that isn't secret.
+	if k == "user_code" {
+		return false
+	}
+	return k == "code" || strings.HasSuffix(k, "_code") || k == "x-amz-security-token"
 }
 
 // RedactURL returns u as a string with credential query values replaced,

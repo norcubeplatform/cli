@@ -27,8 +27,9 @@ func TestDebugTraceRedactsCredentials(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	form := url.Values{"grant_type": {"refresh_token"}, "refresh_token": {"form-secret"}, "audience": {"snapdb-api"}}
-	req, _ := http.NewRequest(http.MethodPost, srv.URL+"/oauth/token?token=query-secret&page=2", strings.NewReader(form.Encode()))
+	form := url.Values{"grant_type": {"refresh_token"}, "refresh_token": {"form-secret"}, "audience": {"snapdb-api"},
+		"code": {"code-secret"}, "device_code": {"devicecode-secret"}, "code_verifier": {"verifier-secret"}, "user_code": {"WDJB-MJHT"}}
+	req, _ := http.NewRequest(http.MethodPost, srv.URL+"/oauth/token?token=query-secret&page=2&code_challenge=challenge-ok", strings.NewReader(form.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Authorization", "Bearer header-secret")
 	req.Header.Set("Cookie", "jds_refresh_token=cookie-secret")
@@ -42,12 +43,16 @@ func TestDebugTraceRedactsCredentials(t *testing.T) {
 	_ = resp.Body.Close()
 
 	out := trace.String()
-	for _, secret := range []string{"header-secret", "cookie-secret", "key-secret", "form-secret", "query-secret", "at-secret", "rt-secret", "sig-secret", "pw-secret"} {
+	for _, secret := range []string{"header-secret", "cookie-secret", "key-secret", "form-secret", "query-secret", "at-secret", "rt-secret", "sig-secret", "pw-secret",
+		"code-secret", "devicecode-secret", "verifier-secret"} {
 		if strings.Contains(out, secret) {
 			t.Errorf("trace leaks %q:\n%s", secret, out)
 		}
 	}
-	for _, want := range []string{"--> #1 POST", "Authorization: Bearer [REDACTED]", "page=2", "audience=snapdb-api", "<-- #1 200 OK", "request-id=req-42", `"expires_in":300`, "X-Amz-Expires=60"} {
+	// The PKCE challenge is public (a hash); the user code is shown on
+	// screen anyway and is what a support request needs.
+	for _, want := range []string{"--> #1 POST", "Authorization: Bearer [REDACTED]", "page=2", "audience=snapdb-api", "<-- #1 200 OK", "request-id=req-42", `"expires_in":300`, "X-Amz-Expires=60",
+		"code_challenge=challenge-ok", "user_code=WDJB-MJHT"} {
 		if !strings.Contains(out, want) {
 			t.Errorf("trace lacks %q:\n%s", want, out)
 		}
