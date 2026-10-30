@@ -178,7 +178,9 @@ func (t *TokenSource) memCached() (string, bool) {
 
 // oauthToken returns a token for (audience, org) of an OAuth sign-in.
 func (t *TokenSource) oauthToken(ctx context.Context) (string, error) {
-	if t.OrgID == "" {
+	// Only Norcube Auth's own tokens may be minted without an
+	// organization (the account, its organizations, org create).
+	if t.OrgID == "" && t.Audience != AudienceAuth {
 		return "", clierr.Usage(fmt.Errorf("a token for %s needs an organization. Run `norcube org use <slug>` or pass --org <slug>", ServiceName(t.Audience)))
 	}
 	return coalesce(ctx, t.memKey(), func() (string, error) {
@@ -339,7 +341,9 @@ func (t *TokenSource) exchange(ctx context.Context, access string) (string, erro
 		"subject_token":      {access},
 		"subject_token_type": {tokenTypeAccessToken},
 		"audience":           {t.Audience},
-		"organization_id":    {t.OrgID},
+	}
+	if t.OrgID != "" {
+		form.Set("organization_id", t.OrgID)
 	}
 	received := t.clock()
 	// An exchange uses nothing up, so the transport may retry it.

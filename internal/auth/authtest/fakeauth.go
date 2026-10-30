@@ -624,8 +624,9 @@ func (s *Server) exchange(w http.ResponseWriter, f url.Values) {
 		oauthErr(w, http.StatusBadRequest, "invalid_target", "Unknown audience.")
 		return
 	}
-	org := f.Get("organization_id")
-	if org == "" {
+	// Only Norcube Auth's own tokens may come without an organization.
+	org, hasOrg := f.Get("organization_id"), f.Has("organization_id")
+	if (org == "" || !hasOrg) && (hasOrg || f.Get("audience") != "auth") {
 		oauthErr(w, http.StatusBadRequest, "invalid_request", "organization_id must be an organization id.")
 		return
 	}
@@ -641,7 +642,7 @@ func (s *Server) exchange(w http.ResponseWriter, f url.Values) {
 		oauthErr(w, http.StatusForbidden, "insufficient_scope", "This sign-in's scopes don't cover "+aud+".")
 		return
 	}
-	if org != HomeOrgID && org != AcmeOrgID {
+	if org != "" && org != HomeOrgID && org != AcmeOrgID {
 		oauthErr(w, http.StatusForbidden, "org_access_denied", "You are not a member of the organization.")
 		return
 	}

@@ -41,7 +41,7 @@ Examples:
 
 Flags:
       --device           Approve the sign-in on another device (phone, laptop) with a short code; for SSH and headless machines
-      --force            Re-authenticate even if a valid session already exists
+      --force            Re-authenticate even if a valid session already exists; the previous session is ended on Norcube
   -h, --help             help for login
       --no-browser       Print the login URL instead of opening a browser
       --scopes strings   Limit the login to these scopes, comma-separated (default full: everything you can do in the dashboard); one of full, backup.read, backup.write, backup.verify, domainradar.check, langsync.read, langsync.sync, langsync.write, billing.read, cms.read, cms.write

@@ -442,9 +442,19 @@ func TestOAuthTokenErrors(t *testing.T) {
 	})
 	t.Run("no organization", func(t *testing.T) {
 		signedInOAuth(t, s)
-		_, err := oauthSource(t, s, AudienceAuth, "").Token(context.Background())
+		// Norcube Auth's own token needs none (organization_id omitted;
+		// the fake refuses an empty one)...
+		tok, err := oauthSource(t, s, AudienceAuth, "").Token(context.Background())
+		if err != nil {
+			t.Fatalf("auth token without an organization: %v", err)
+		}
+		if aud, org, _, ok := s.ProductToken(tok); !ok || aud != AudienceAuth || org != "" {
+			t.Fatalf("token: %v %s %q", ok, aud, org)
+		}
+		// ...a product's does, and that's caught before any request.
+		_, err = oauthSource(t, s, AudienceSnapDB, "").Token(context.Background())
 		if !clierr.IsUsage(err) {
-			t.Fatalf("got %v", err)
+			t.Fatalf("product token without an organization: %v", err)
 		}
 	})
 }

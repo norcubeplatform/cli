@@ -325,3 +325,92 @@ func TestGoldenLoginHelp(t *testing.T) {
 	}
 	checkGolden(t, "help-login.txt", out, "http://no-server.invalid")
 }
+
+// An account without an organization still signs in: /auth/me and the
+// organization list need no organization; product commands do.
+func TestOAuthLoginWithoutOrganization(t *testing.T) {
+	s := oauthEnv(t)
+	s.Lock()
+	s.NoDefaultOrg = true
+	s.Unlock()
+	isolatedConfig(t, func(f *config.File) {
+		f.DefaultProfile = oauthProfile
+		p := f.Profile(oauthProfile)
+		p.Environment = config.EnvCustom
+		p.Endpoints = map[string]string{config.ServiceAuth: s.URL}
+	})
+	out, stderr, err := run(t, "login")
+	if err != nil {
+		t.Fatalf("login: %v\n%s", err, stderr)
+	}
+	if !strings.Contains(out, "Signed in as Dev Eloper (dev@example.com)") || !strings.Contains(out, "norcube org create") {
+		t.Fatalf("login output:\n%s", out)
+	}
+	if out, _, err := run(t, "whoami"); err != nil || !strings.Contains(out, "dev@example.com") {
+		t.Fatalf("whoami: %v\n%s", err, out)
+	}
+	if out, _, err := run(t, "org", "list"); err != nil || !strings.Contains(out, "acme") {
+		t.Fatalf("org list: %v\n%s", err, out)
+	}
+	_, _, err = run(t, "auth", "token", "--audience", "backup")
+	if !clierr.IsUsage(err) {
+		t.Fatalf("product token without an organization: %v", err)
+	}
+}
+
+// login --force ends the session it replaces on the server, the way
+// logout does: revocation for an OAuth sign-in, the older sign-out for an
+// older one. A failure warns and the new login goes ahead.
+func TestLoginForceEndsThePreviousSession(t *testing.T) {
+	t.Run("oauth", func(t *testing.T) {
+		s := oauthEnv(t)
+		if _, stderr, err := run(t, "login"); err != nil {
+			t.Fatalf("login: %v\n%s", err, stderr)
+		}
+		old, _ := auth.LoadRefreshToken(oauthProfile, s.URL)
+		g := s.Grant(old)
+		if _, stderr, err := run(t, "login", "--force"); err != nil {
+			t.Fatalf("login --force: %v\n%s", err, stderr)
+		}
+		st := s.Stats()
+		if len(st.Revocations) != 1 || st.Revocations[0].Get("token") != old || !s.Revoked(g) || len(st.SignOuts) != 0 {
+			t.Fatalf("revocations %v, sign-outs %v", st.Revocations, st.SignOuts)
+		}
+		if now, _ := auth.LoadRefreshToken(oauthProfile, s.URL); now == old || now == "" {
+			t.Fatal("the new session was not stored")
+		}
+
+		// The server fails: a warning, and the new session anyway.
+		s.Lock()
+		s.RevokeStatus = http.StatusServiceUnavailable
+		s.Unlock()
+		prev, _ := auth.LoadRefreshToken(oauthProfile, s.URL)
+		_, stderr, err := run(t, "login", "--force")
+		if err != nil {
+			t.Fatalf("login --force with a failing server: %v\n%s", err, stderr)
+		}
+		if !strings.Contains(stderr, "couldn't end the previous session") {
+			t.Errorf("stderr: %s", stderr)
+		}
+		if now, _ := auth.LoadRefreshToken(oauthProfile, s.URL); now == prev || now == "" {
+			t.Fatal("the new session was not stored after a failed revocation")
+		}
+	})
+	t.Run("older sign-in", func(t *testing.T) {
+		s := oauthEnv(t)
+		s.AddLegacySession("legacy-refresh")
+		if err := auth.SaveRefreshToken(oauthProfile, s.URL, "legacy-refresh"); err != nil {
+			t.Fatal(err)
+		}
+		if _, stderr, err := run(t, "login", "--force"); err != nil {
+			t.Fatalf("login --force: %v\n%s", err, stderr)
+		}
+		st := s.Stats()
+		if len(st.SignOuts) != 1 || st.SignOuts[0].Get("refresh_token") != "legacy-refresh" || len(st.Revocations) != 0 {
+			t.Fatalf("sign-outs %v, revocations %v", st.SignOuts, st.Revocations)
+		}
+		if sess, _ := auth.LoadSession(oauthProfile, s.URL); sess.Format != auth.FormatOAuth {
+			t.Fatalf("format %d", sess.Format)
+		}
+	})
+}
