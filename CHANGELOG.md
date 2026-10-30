@@ -5,6 +5,8 @@ this file collects what users and scripts need to know.
 
 ## Unreleased
 
+## 0.21.4 (2026-10-30)
+
 ### Fixes
 
 - Release binaries are built with Go 1.26.10. Earlier releases used Go
