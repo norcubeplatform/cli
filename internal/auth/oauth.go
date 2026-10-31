@@ -20,6 +20,7 @@ import (
 	"slices"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/pkg/browser"
@@ -172,6 +173,18 @@ func fetchMetadata(ctx context.Context, httpc *http.Client, authURL string) (*Me
 	if !sameURL(m.Issuer, authURL) {
 		return nil, fmt.Errorf("the OAuth metadata of Norcube Auth names issuer %q, not %q; check the auth URL of this profile", m.Issuer, authURL)
 	}
+	// The endpoints must live on the issuer's own origin: the CLI sends
+	// its refresh token and codes there.
+	for name, ep := range map[string]string{
+		"authorization_endpoint":        m.AuthorizationEndpoint,
+		"token_endpoint":                m.TokenEndpoint,
+		"revocation_endpoint":           m.RevocationEndpoint,
+		"device_authorization_endpoint": m.DeviceAuthorizationEndpoint,
+	} {
+		if ep != "" && !sameOrigin(ep, m.Issuer) {
+			return nil, fmt.Errorf("the OAuth metadata of Norcube Auth puts %s at %q, outside %q", name, ep, m.Issuer)
+		}
+	}
 	if !m.SupportsCLISignIn() {
 		return &m, ErrOAuthUnavailable
 	}
@@ -179,6 +192,14 @@ func fetchMetadata(ctx context.Context, httpc *http.Client, authURL string) (*Me
 		return nil, errors.New("the OAuth server of Norcube Auth doesn't support PKCE S256")
 	}
 	return &m, nil
+}
+
+// sameOrigin reports whether two URLs have the same scheme and host.
+func sameOrigin(a, b string) bool {
+	ua, errA := url.Parse(a)
+	ub, errB := url.Parse(b)
+	return errA == nil && errB == nil && ua.Host != "" &&
+		strings.EqualFold(ua.Scheme, ub.Scheme) && strings.EqualFold(ua.Host, ub.Host)
 }
 
 func sameURL(a, b string) bool {
@@ -475,6 +496,11 @@ func OAuthLogin(ctx context.Context, opts OAuthLoginOptions) (*CallbackPayload, 
 		default: // the first answer wins
 		}
 	}
+	// Single use: the first request with our state decides the login. A
+	// request without it (another local process or a web page probing the
+	// port) is refused and the login keeps waiting, so it can't be aborted
+	// from outside.
+	var answered atomic.Bool
 	mux := http.NewServeMux()
 	mux.HandleFunc("/callback", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
@@ -484,6 +510,16 @@ func OAuthLogin(ctx context.Context, opts OAuthLoginOptions) (*CallbackPayload, 
 		code, err := checkCallback(r.URL.Query(), state, m)
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.Header().Set("Cache-Control", "no-store")
+		if errors.Is(err, errCallbackState) {
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprint(w, callbackPage("Not this sign-in", "This link doesn't belong to the sign-in in progress."))
+			return
+		}
+		if !answered.CompareAndSwap(false, true) {
+			w.WriteHeader(http.StatusGone)
+			fmt.Fprint(w, callbackPage("Already used", "This sign-in link was already used. Return to the terminal."))
+			return
+		}
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			// #nosec G705 -- callbackPage escapes everything it is given.
@@ -571,13 +607,17 @@ func authorizeURL(endpoint, redirectURI, state, challenge string, scopes []strin
 	return u.String()
 }
 
+// errCallbackState: the callback doesn't carry this sign-in's state
+// (possible CSRF). The login ignores it and keeps waiting.
+var errCallbackState = errors.New("the sign-in callback's state did not match (possible CSRF)")
+
 // checkCallback validates the redirect: state first (anything without
 // our state is refused, CSRF), then the issuer (RFC 9207, mix-up), then
 // the outcome.
 func checkCallback(q url.Values, state string, m *Metadata) (string, error) {
 	got := q.Get("state")
 	if got == "" || subtle.ConstantTimeCompare([]byte(got), []byte(state)) != 1 {
-		return "", errors.New("the sign-in callback's state did not match (possible CSRF), sign-in aborted")
+		return "", errCallbackState
 	}
 	iss := q.Get("iss")
 	switch {

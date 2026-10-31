@@ -275,6 +275,31 @@ func (t *TokenSource) tokenEndpoint(ctx context.Context) string {
 	return strings.TrimRight(t.APIBase, "/") + "/oauth/token"
 }
 
+// postTokenRediscovering posts to the token endpoint. When the answer
+// isn't OAuth at all (the cached metadata names an endpoint that moved),
+// it drops the cached metadata and, if discovery now names another
+// endpoint, sends the request there once. The request was not processed
+// by an OAuth server, so nothing (such as a refresh token) was used up.
+func (t *TokenSource) postTokenRediscovering(ctx context.Context, form url.Values, retryable bool) (*tokenEndpointResponse, *OAuthError, error) {
+	endpoint := t.tokenEndpoint(ctx)
+	tr, oe, err := postToken(ctx, t.HTTP, endpoint, form, retryable)
+	if !notOAuthAnswer(err) {
+		return tr, oe, err
+	}
+	ForgetMetadata(t.APIBase)
+	if fresh := t.tokenEndpoint(ctx); fresh != endpoint {
+		return postToken(ctx, t.HTTP, fresh, form, retryable)
+	}
+	return tr, oe, err
+}
+
+// notOAuthAnswer reports whether err is an HTTP answer that isn't an
+// OAuth response (not a transport failure).
+func notOAuthAnswer(err error) bool {
+	var ce *clierr.Error
+	return errors.As(err, &ce) && ce.HTTPStatus != 0
+}
+
 // refreshCLIAccess rotates the refresh token. Must be called under the
 // profile's lock. On invalid_grant it reads the stored refresh token once
 // more: if it changed meanwhile (another process rotated it), that one is
@@ -290,7 +315,7 @@ func (t *TokenSource) refreshCLIAccess(ctx context.Context, c *credentials, retr
 	received := t.clock()
 	// Not retried by the transport: a repeated refresh would present a
 	// token the first attempt may already have rotated.
-	tr, oe, err := postToken(ctx, t.HTTP, t.tokenEndpoint(ctx), form, false)
+	tr, oe, err := t.postTokenRediscovering(ctx, form, false)
 	if err != nil {
 		return "", fmt.Errorf("refresh the sign-in: %w", err)
 	}
@@ -347,7 +372,7 @@ func (t *TokenSource) exchange(ctx context.Context, access string) (string, erro
 	}
 	received := t.clock()
 	// An exchange uses nothing up, so the transport may retry it.
-	tr, oe, err := postToken(ctx, t.HTTP, t.tokenEndpoint(ctx), form, true)
+	tr, oe, err := t.postTokenRediscovering(ctx, form, true)
 	if err != nil {
 		return "", fmt.Errorf("get a token for %s: %w", ServiceName(t.Audience), err)
 	}

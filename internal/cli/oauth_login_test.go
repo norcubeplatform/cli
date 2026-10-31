@@ -139,12 +139,26 @@ func TestScopeRefusalHintUnderLimitedLogin(t *testing.T) {
 
 func TestLoginScopesValidation(t *testing.T) {
 	s := oauthEnv(t)
-	_, _, err := run(t, "login", "--scopes", "backup.read,backup.delete")
-	if !clierr.IsUsage(err) || !strings.Contains(err.Error(), `unknown scope "backup.delete"`) || !strings.Contains(err.Error(), "langsync.sync") {
+	_, _, err := run(t, "login", "--scopes", "backup.read,Backup/Delete")
+	if !clierr.IsUsage(err) || !strings.Contains(err.Error(), `invalid scope "Backup/Delete"`) || !strings.Contains(err.Error(), "langsync.sync") {
 		t.Fatalf("got %v", err)
 	}
 	if s.Stats().Authorizations != 0 {
 		t.Fatal("a sign-in started despite the bad scope")
+	}
+}
+
+// A well-formed scope this release doesn't know goes to Norcube Auth,
+// which is the authority; its invalid_scope is a usage error.
+func TestLoginScopesUnknownGoesToServer(t *testing.T) {
+	s := oauthEnv(t)
+	_, _, err := run(t, "login", "--scopes", "backup.read,backup.delete")
+	var ce *clierr.Error
+	if !errors.As(err, &ce) || ce.Code != clierr.CodeUsage || !strings.Contains(err.Error(), "invalid_scope") {
+		t.Fatalf("got %v", err)
+	}
+	if s.Stats().Authorizations != 1 {
+		t.Fatalf("authorizations %d, want 1 (the server decides)", s.Stats().Authorizations)
 	}
 }
 

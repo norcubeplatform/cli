@@ -128,8 +128,10 @@ func TestOAuthRefreshAcrossProcesses(t *testing.T) {
 	}
 
 	st := s.Stats()
-	if st.Reuses != 0 || s.Revoked(g) {
-		t.Fatalf("a rotated refresh token was presented again (%d reuses)", st.Reuses)
+	// GraceHits counts a stale token presented within the server's grace
+	// window, which a reuse check alone would not see.
+	if st.Reuses != 0 || st.GraceHits != 0 || s.Revoked(g) {
+		t.Fatalf("a rotated refresh token was presented again (%d reuses, %d within the grace window)", st.Reuses, st.GraceHits)
 	}
 	if n := st.Refreshes; n < 2 || n > 5 {
 		t.Fatalf("%d refreshes in %s with a ~1s token life; want one per expiry", n, duration)

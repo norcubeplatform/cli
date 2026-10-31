@@ -127,6 +127,12 @@ func runDoctor(ctx context.Context, flags *clictx.Flags, offline bool) []doctorC
 		add("config", checkFail, err.Error())
 		return checks
 	}
+	if !offline {
+		// Diagnose against Norcube Auth as it is now: the next command
+		// discovers its OAuth endpoints afresh instead of reusing a cached
+		// answer that may be what's wrong.
+		auth.ForgetMetadata(cfg.Auth)
+	}
 	if org := res.Org.Value; org != "" {
 		add("organization", checkOK, fmt.Sprintf("%s (from %s)", org, res.Org.Source))
 	} else {

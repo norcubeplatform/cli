@@ -199,7 +199,8 @@ this file collects what users and scripts need to know.
   given scopes (the scopes CI tokens use; the default is `full`). The
   login prints the scopes Norcube granted. Commands outside them exit with
   code 5 (`insufficient_scope`) and the hint "This login is limited to …;
-  run `norcube login` for full access".
+  run `norcube login` for full access". A scope this release doesn't
+  know yet is still sent; Norcube Auth decides on it.
 - `auth sessions list` has a SCOPES column (and `scopes` in JSON);
   `whoami` and `auth status` show the login's scopes; `doctor` shows the
   credential format and scopes and warns about the older format.

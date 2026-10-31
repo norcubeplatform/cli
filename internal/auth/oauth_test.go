@@ -184,22 +184,6 @@ func TestOAuthLoginCallbackChecks(t *testing.T) {
 		open func(t *testing.T) func(string) error
 		want string
 	}{
-		"wrong state": {
-			open: func(t *testing.T) func(string) error {
-				return func(u string) error {
-					q, _ := url.Parse(u)
-					redirect := q.Query().Get("redirect_uri")
-					go func() {
-						resp, err := http.Get(redirect + "?code=stolen&state=forged") // #nosec G107 -- loopback in a test
-						if err == nil {
-							_ = resp.Body.Close()
-						}
-					}()
-					return nil
-				}
-			},
-			want: "state did not match",
-		},
 		"wrong issuer":   {set: func(s *authtest.Server) { s.WrongIss = true }, want: "came from issuer"},
 		"missing issuer": {set: func(s *authtest.Server) { s.IssOff = true }, want: ""},
 	}
@@ -229,6 +213,48 @@ func TestOAuthLoginCallbackChecks(t *testing.T) {
 				t.Fatal("a code was exchanged after a failed check")
 			}
 		})
+	}
+}
+
+// A request to the callback without this sign-in's state (another local
+// process, a page probing the port) is refused, and the login carries on
+// with the real browser; a second answer after that is refused too.
+func TestOAuthLoginIgnoresForeignCallbacks(t *testing.T) {
+	s := authtest.New()
+	defer s.Close()
+	follow := browserFollows(t)
+	var forged, late int
+	opts := OAuthLoginOptions{BrowserOpenURL: func(u string) error {
+		q, _ := url.Parse(u)
+		redirect := q.Query().Get("redirect_uri")
+		resp, err := http.Get(redirect + "?code=stolen&state=forged") // #nosec G107 -- loopback in a test
+		if err != nil {
+			return err
+		}
+		forged = resp.StatusCode
+		_ = resp.Body.Close()
+		if err := follow(u); err != nil {
+			return err
+		}
+		resp, err = http.Get(redirect + "?code=again&state=forged") // #nosec G107 -- loopback in a test
+		if err == nil {
+			late = resp.StatusCode
+			_ = resp.Body.Close()
+		}
+		return nil
+	}}
+	p, err := oauthLogin(t, s, opts)
+	if err != nil || p == nil {
+		t.Fatalf("login aborted by a foreign callback: %v", err)
+	}
+	if forged != http.StatusBadRequest {
+		t.Errorf("forged callback answered %d, want 400", forged)
+	}
+	if late != 0 && late != http.StatusBadRequest {
+		t.Errorf("late forged callback answered %d", late)
+	}
+	if n := s.Stats().CodeExchanges; n != 1 {
+		t.Errorf("%d code exchanges, want 1 (the real code)", n)
 	}
 }
 
@@ -279,13 +305,17 @@ func TestParseLoginScopes(t *testing.T) {
 		"backup.read,full":          "full",
 		"org.read,backup.read":      "backup.read",
 		" backup.read , ":           "backup.read",
+		// Unknown here but well-formed: sent, Norcube Auth decides.
+		"backup.delete,backup.read": "backup.read backup.delete",
+		"vault,backup.read,vault":   "backup.read vault",
+		"backup.delete,full":        "full",
 	} {
 		got, err := ParseLoginScopes(strings.Split(in, ","))
 		if err != nil || strings.Join(got, " ") != want {
 			t.Errorf("%q: %v %v, want %q", in, got, err, want)
 		}
 	}
-	for _, bad := range []string{"backup.delete", "org.read", "offline_access,org.read"} {
+	for _, bad := range []string{"Backup.Read", "backup.read.all", "backup read", "backup_read", "org.read", "offline_access,org.read"} {
 		if _, err := ParseLoginScopes(strings.Split(bad, ",")); err == nil {
 			t.Errorf("%q accepted", bad)
 		}
@@ -625,8 +655,8 @@ func TestConcurrentOAuthTokens(t *testing.T) {
 		}
 	}
 	st := s.Stats()
-	if st.Refreshes != 1 || st.Exchanges != len(auds) || st.Reuses != 0 {
-		t.Fatalf("refreshes %d exchanges %d reuses %d; want 1 %d 0", st.Refreshes, st.Exchanges, st.Reuses, len(auds))
+	if st.Refreshes != 1 || st.Exchanges != len(auds) || st.Reuses != 0 || st.GraceHits != 0 {
+		t.Fatalf("refreshes %d exchanges %d reuses %d grace hits %d; want 1 %d 0 0", st.Refreshes, st.Exchanges, st.Reuses, st.GraceHits, len(auds))
 	}
 	if s.MaxConcurrentExchanges() < 2 {
 		t.Fatalf("exchanges ran one at a time (max %d in flight)", s.MaxConcurrentExchanges())
@@ -699,5 +729,40 @@ func TestRevokeRefreshToken(t *testing.T) {
 	s.Unlock()
 	if err := RevokeRefreshToken(context.Background(), s.Client(), s.URL, rt); err == nil {
 		t.Fatal("a failed revocation reported success")
+	}
+}
+
+// Metadata naming an endpoint outside the issuer's origin is refused, so a
+// tampered answer can't send the refresh token elsewhere.
+func TestDiscoverRejectsForeignEndpoint(t *testing.T) {
+	s := authtest.New()
+	defer s.Close()
+	s.TokenEndpoint = "https://elsewhere.example/oauth/token"
+	ForgetMetadata(s.URL)
+	if _, err := Discover(context.Background(), s.Client(), s.URL); err == nil || !strings.Contains(err.Error(), "outside") {
+		t.Fatalf("got %v", err)
+	}
+}
+
+// A cached token endpoint that has moved answers without OAuth: the
+// metadata is fetched again and the refresh goes to the new endpoint.
+func TestOAuthTokenSourceRediscoversMovedEndpoint(t *testing.T) {
+	s := authtest.New()
+	defer s.Close()
+	signedInOAuth(t, s)
+	s.TokenEndpoint = s.URL + "/moved/token"
+	_ = discover(t, s)
+	s.Lock()
+	s.TokenEndpoint = ""
+	s.Unlock()
+
+	if _, err := oauthSource(t, s, AudienceSnapDB, authtest.HomeOrgID).Token(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	if r, e, _ := s.Counts(); r != 1 || e != 1 {
+		t.Fatalf("refreshes %d exchanges %d, want 1 1", r, e)
+	}
+	if e, ok := cachedMetadata(s.URL); !ok || e.Metadata.TokenEndpoint != s.URL+"/oauth/token" {
+		t.Fatal("the moved endpoint is still cached")
 	}
 }

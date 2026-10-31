@@ -2,6 +2,7 @@ package auth
 
 import (
 	"fmt"
+	"regexp"
 	"slices"
 	"strings"
 )
@@ -26,8 +27,9 @@ type LoginScope struct {
 // LoginScopes mirrors the scope catalog of Norcube Auth for CLI sign-ins,
 // minus the two scopes every sign-in carries anyway (org.read,
 // offline_access). The server is the authority: it refuses an unknown
-// scope with invalid_scope, so a scope added there and not yet here only
-// misses local validation and completion.
+// scope with invalid_scope. A well-formed scope missing here (one Norcube
+// Auth added after this release) is still sent, so it only misses the
+// description and completion.
 var LoginScopes = []LoginScope{
 	{ScopeFull, "Everything you can do in the dashboard (the default)"},
 	{"backup.read", "View backups: data sources, backup jobs, restore checks and policies"},
@@ -42,6 +44,9 @@ var LoginScopes = []LoginScope{
 	{"cms.write", "Edit CMS content and media, plus everything cms.read allows"},
 }
 
+// scopeShape is what a Norcube scope looks like: product or product.action.
+var scopeShape = regexp.MustCompile(`^[a-z]+(\.[a-z]+)?$`)
+
 // LoginScopeNames lists the scopes `login --scopes` accepts.
 func LoginScopeNames() []string {
 	out := make([]string, 0, len(LoginScopes))
@@ -52,12 +57,14 @@ func LoginScopeNames() []string {
 }
 
 // ParseLoginScopes validates the scopes given to `login --scopes` and
-// returns the ones to ask for, in catalog order. Nothing means full.
-// org.read and offline_access are dropped (every sign-in carries them),
-// and full absorbs the rest. An unknown scope is an error naming the
-// valid ones.
+// returns the ones to ask for: the known ones in catalog order, then the
+// well-formed ones this release doesn't know, as given (Norcube Auth
+// decides on those). Nothing means full. org.read and offline_access are
+// dropped (every sign-in carries them), and full absorbs the rest. A
+// malformed scope is an error naming the valid ones.
 func ParseLoginScopes(values []string) ([]string, error) {
 	want := map[string]bool{}
+	var unknown []string
 	for _, v := range values {
 		v = strings.TrimSpace(v)
 		switch {
@@ -68,7 +75,12 @@ func ParseLoginScopes(values []string) ([]string, error) {
 			want[v] = true
 			continue
 		case !slices.Contains(LoginScopeNames(), v):
-			return nil, fmt.Errorf("unknown scope %q; valid scopes: %s", v, strings.Join(LoginScopeNames(), ", "))
+			if !scopeShape.MatchString(v) {
+				return nil, fmt.Errorf("invalid scope %q; valid scopes: %s", v, strings.Join(LoginScopeNames(), ", "))
+			}
+			if !slices.Contains(unknown, v) {
+				unknown = append(unknown, v)
+			}
 		}
 		want[v] = true
 	}
@@ -84,6 +96,7 @@ func ParseLoginScopes(values []string) ([]string, error) {
 			out = append(out, s.Name)
 		}
 	}
+	out = append(out, unknown...)
 	if len(out) == 0 {
 		return nil, fmt.Errorf("--scopes needs at least one scope besides %s and %s, which every sign-in has; valid scopes: %s",
 			ScopeOrgRead, ScopeOfflineAccess, strings.Join(LoginScopeNames(), ", "))

@@ -89,6 +89,8 @@ type Server struct {
 	IssOff bool
 	// WrongIss sends another issuer on the redirect.
 	WrongIss bool
+	// TokenEndpoint replaces the token endpoint the metadata names.
+	TokenEndpoint string
 	// Deny answers the authorization with access_denied.
 	Deny bool
 	// AccessTTL is the CLI access token's lifetime in seconds (299),
@@ -133,6 +135,10 @@ type Server struct {
 	Upgrades        int
 	UpgradeRefusals int
 	Reuses          int
+	// GraceHits counts refresh tokens presented again within ReuseGrace:
+	// not a reuse, but in a race test a sign that two callers refreshed
+	// with the same token.
+	GraceHits       int
 	Revocations     []url.Values
 	SignOuts        []url.Values
 	LegacyRefreshes int
@@ -289,7 +295,7 @@ func (s *Server) Rotate(g *Grant) string {
 // Stats is a copy of the counters and the last requests' values.
 type Stats struct {
 	Authorizations, CodeExchanges, Refreshes, Exchanges, Upgrades, UpgradeRefusals int
-	Reuses, LegacyRefreshes, DevicePolls                                           int
+	Reuses, GraceHits, LegacyRefreshes, DevicePolls                                int
 	Revocations, SignOuts                                                          []url.Values
 	AuthorizeQuery, DeviceCodeForm                                                 url.Values
 	RefreshTimes                                                                   []time.Time
@@ -302,7 +308,7 @@ func (s *Server) Stats() Stats {
 	return Stats{
 		Authorizations: s.Authorizations, CodeExchanges: s.CodeExchanges, Refreshes: s.Refreshes,
 		Exchanges: s.Exchanges, Upgrades: s.Upgrades, UpgradeRefusals: s.UpgradeRefusals,
-		Reuses: s.Reuses, LegacyRefreshes: s.LegacyRefreshes, DevicePolls: s.DevicePolls,
+		Reuses: s.Reuses, GraceHits: s.GraceHits, LegacyRefreshes: s.LegacyRefreshes, DevicePolls: s.DevicePolls,
 		Revocations: slices.Clone(s.Revocations), SignOuts: slices.Clone(s.SignOuts),
 		AuthorizeQuery: s.AuthorizeQuery, DeviceCodeForm: s.DeviceCodeForm,
 		RefreshTimes: slices.Clone(s.RefreshTimes),
@@ -460,6 +466,9 @@ func (s *Server) metadata(w http.ResponseWriter, _ *http.Request) {
 	if !s.NoDevice {
 		m["device_authorization_endpoint"] = s.URL + "/oauth/device/code"
 	}
+	if s.TokenEndpoint != "" {
+		m["token_endpoint"] = s.TokenEndpoint
+	}
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(m)
 }
@@ -583,6 +592,7 @@ func (s *Server) refresh(w http.ResponseWriter, f url.Values) {
 		return
 	case rt != g.Refresh:
 		if at, ok := g.rotated[rt]; ok && s.now().Sub(at) < ReuseGrace {
+			s.GraceHits++
 			oauthErr(w, http.StatusBadRequest, "invalid_grant", "The refresh token was just rotated.")
 			return
 		}
