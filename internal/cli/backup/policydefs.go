@@ -61,8 +61,8 @@ func addPolicyFlags(cmd *cobra.Command, f *policyFlags) {
 	cmd.Flags().IntVar(&f.keepLast, "keep-last", 0, "Always keep this many of the newest backups, however old they are")
 	cmd.Flags().StringVar(&f.method, "method", "", "Dump method: "+strings.Join(policyMethods, ", "))
 	cmd.Flags().StringVar(&f.compression, "compression", "", "Compression: "+strings.Join(policyCompressions, ", "))
-	_ = cmd.RegisterFlagCompletionFunc("method", cobra.FixedCompletions(policyMethods, cobra.ShellCompDirectiveNoFileComp))
-	_ = cmd.RegisterFlagCompletionFunc("compression", cobra.FixedCompletions(policyCompressions, cobra.ShellCompDirectiveNoFileComp))
+	cmdutil.FlagEnum(cmd, "method", policyMethods...)
+	cmdutil.FlagEnum(cmd, "compression", policyCompressions...)
 }
 
 // validate checks the flags that were set.
@@ -93,8 +93,9 @@ func newPolicyCreateCmd(d deps) *cobra.Command {
 		destination string
 	)
 	cmd := &cobra.Command{
-		Use:   "create",
-		Short: "Create a backup policy",
+		Use:         "create",
+		Annotations: cmdutil.Writes(),
+		Short:       "Create a backup policy",
 		Long: `Creates a backup policy. It backs nothing up until you attach it to a
 data source with ` + "`norcube backup policies attach`" + `.
 
@@ -147,8 +148,9 @@ with ` + "`norcube backup destinations list`" + `.`,
 func newPolicyUpdateCmd(d deps) *cobra.Command {
 	var f policyFlags
 	cmd := &cobra.Command{
-		Use:   "update <policy-id>",
-		Short: "Change a backup policy",
+		Use:         "update <policy-id>",
+		Annotations: cmdutil.Writes(),
+		Short:       "Change a backup policy",
 		Long: `Changes only the settings you pass. Every data source the policy is
 attached to follows the new settings from its next run.`,
 		Example: `  norcube backup policies update 1a2b3c4d-… --schedule "0 3 * * *"
@@ -208,8 +210,9 @@ func newPolicyAttachCmd(d deps) *cobra.Command {
 		paused                 bool
 	)
 	cmd := &cobra.Command{
-		Use:   "attach",
-		Short: "Attach a backup policy to a data source",
+		Use:         "attach",
+		Annotations: cmdutil.Writes(),
+		Short:       "Attach a backup policy to a data source",
 		Long: `Attaches the policy, so the scheduler backs the data source up on the
 policy's schedule. --paused attaches it without running it yet (resume it
 later); --priority orders attachments for ` + "`backup jobs run`" + `, which uses
@@ -266,8 +269,9 @@ func newDestinationsCmd(d deps) *cobra.Command {
 func newDestinationListCmd(d deps) *cobra.Command {
 	var managed, own bool
 	cmd := &cobra.Command{
-		Use:   "list",
-		Short: "List storage destinations",
+		Use:         "list",
+		Annotations: cmdutil.Reads(),
+		Short:       "List storage destinations",
 		Long: `Lists the organization's storage destinations: storage Norcube manages,
 and buckets of your own. A backup policy names one with --destination.`,
 		Example: `  norcube backup destinations list

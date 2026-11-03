@@ -23,6 +23,8 @@ func newOrgCmd() *cobra.Command {
 		Use:   "org",
 		Short: "Manage the active Norcube organization",
 		Long:  "Switch between organizations you have access to. Most other commands run against the active org unless --org is passed.",
+		// Organizations live in Norcube Auth.
+		Annotations: map[string]string{cmdutil.AnnotationService: config.ServiceAuth},
 	}
 	cmd.AddCommand(newOrgListCmd(), newOrgUseCmd(), newOrgSwitchCmd(), newOrgCurrentCmd(), newOrgCreateCmd())
 	return cmd
@@ -35,8 +37,9 @@ func newOrgCreateCmd() *cobra.Command {
 		setActiveExplicit bool
 	)
 	cmd := &cobra.Command{
-		Use:   "create [name]",
-		Short: "Create a new organization",
+		Use:         "create [name]",
+		Annotations: cmdutil.Writes(),
+		Short:       "Create a new organization",
 		Long: `Creates a new Norcube organization with you as the owner. The
 name is required (positional or via the interactive prompt); slug
 is optional — the server derives one from the name when omitted.
@@ -141,9 +144,10 @@ when you just need the org to exist for a project-level
 
 func newOrgSwitchCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:     "switch",
-		Short:   "Pick an organization interactively (arrow keys / j,k to navigate, enter to select)",
-		Example: `  norcube org switch`,
+		Use:         "switch",
+		Annotations: cmdutil.Local(),
+		Short:       "Pick an organization interactively (arrow keys / j,k to navigate, enter to select)",
+		Example:     `  norcube org switch`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			if !term.StdinIsTerminal() {
 				return clierr.Usage(errors.New("org switch needs an interactive terminal; use `norcube org use <slug>` in scripts"))
@@ -221,8 +225,9 @@ func newOrgSwitchCmd() *cobra.Command {
 
 func newOrgListCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "list",
-		Short: "List organizations you can access",
+		Use:         "list",
+		Annotations: cmdutil.Reads(),
+		Short:       "List organizations you can access",
 		Example: `  norcube org list
   norcube org list -o json --query "[?active].slug"`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
@@ -268,8 +273,9 @@ func newOrgListCmd() *cobra.Command {
 
 func newOrgUseCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "use <slug-or-id>",
-		Short: "Set the active organization",
+		Use:         "use <slug-or-id>",
+		Annotations: cmdutil.Local(),
+		Short:       "Set the active organization",
 		Example: `  norcube org use acme
   norcube org use 0b9d2b8e-1c1f-4c3e-9a51-6d1c2f9a7e01`,
 		Args: cobra.ExactArgs(1),
@@ -314,8 +320,9 @@ func newOrgUseCmd() *cobra.Command {
 
 func newOrgCurrentCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "current",
-		Short: "Print the currently active organization",
+		Use:         "current",
+		Annotations: cmdutil.Reads(),
+		Short:       "Print the currently active organization",
 		Example: `  norcube org current
   norcube org current -o text`,
 		RunE: func(cmd *cobra.Command, _ []string) error {

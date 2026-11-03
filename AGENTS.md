@@ -19,7 +19,9 @@ DESIGN.md is the full do/don't list; these are the hard rules.
    `cmdutil.Renamed` or an alias.
 4. **Document every command where it is defined.** A `Short` (capitalized,
    no trailing period), at least one `Example`, a description for every
-   flag. The docs reference is generated from it.
+   flag, and what it changes (`Annotations: cmdutil.Reads()`, `Writes()`
+   or `Local()`). The docs reference and `nrc commands` are generated
+   from it.
 5. **Contracts don't break.** Never change an existing error code, exit
    code, JSON field or `-o text` column; new ones are additive and go in
    `CHANGELOG.md` under "Changes for scripts".
@@ -37,6 +39,18 @@ DESIGN.md is the full do/don't list; these are the hard rules.
     paths, a `CHANGELOG.md` entry under `## Unreleased`, no AI attribution
     (no `Co-Authored-By`, no session links). Never push, tag or release
     unless the owner asks.
+
+## Using the CLI
+
+To learn what the CLI can do, run `nrc commands -o json` (offline, no
+sign-in) rather than crawling `--help` pages. It prints every command with
+its flags, arguments, examples, `effect` (`read`, `write`, `local`),
+`confirm` (needs `--yes` without a terminal), `wait`, `paginated` and the
+service and audience it uses. Narrow it with a path (`nrc commands backup
+jobs -o json`) or `--query`, for example
+`--query "commands[?effect=='read'].command"`. The schema is versioned
+(`schemaVersion`) and only grows within a version. For an endpoint
+without a command, use `nrc api`.
 
 ## Checks
 

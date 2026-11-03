@@ -34,8 +34,9 @@ func newNamespaceCmd() *cobra.Command {
 
 func newNamespaceListCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "list",
-		Short: "List namespaces in the active organization",
+		Use:         "list",
+		Annotations: cmdutil.Reads(),
+		Short:       "List namespaces in the active organization",
 		Example: `  norcube langsync namespaces list
   norcube langsync namespaces list -o json --query "[].name"`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
@@ -85,8 +86,9 @@ func newNamespaceCreateCmd() *cobra.Command {
 		context         string
 	)
 	cmd := &cobra.Command{
-		Use:   "create [name]",
-		Short: "Create a new namespace in the active organization",
+		Use:         "create [name]",
+		Annotations: cmdutil.Writes(),
+		Short:       "Create a new namespace in the active organization",
 		Long: `Creates a new namespace. The name is the URL slug (case-sensitive)
 that every other langsync command then accepts as --namespace.
 
@@ -325,8 +327,9 @@ func newNamespaceUpdateCmd() *cobra.Command {
 		defaultPrompt   string
 	)
 	cmd := &cobra.Command{
-		Use:   "update <name>",
-		Short: "Update a namespace's name, context, default language or default prompt",
+		Use:         "update <name>",
+		Annotations: cmdutil.Writes(),
+		Short:       "Update a namespace's name, context, default language or default prompt",
 		Long: `Partial update of a namespace. Pass only the fields you want to
 change — omitted flags leave existing values alone.
 
@@ -420,8 +423,9 @@ the namespace uses unless a run names another (see
 func newNamespaceDeleteCmd() *cobra.Command {
 	var yes bool
 	cmd := &cobra.Command{
-		Use:   "delete <name>",
-		Short: "Delete a namespace and every mark + translation in it",
+		Use:         "delete <name>",
+		Annotations: cmdutil.Writes(),
+		Short:       "Delete a namespace and every mark + translation in it",
 		Long: `Permanently removes the namespace, every mark, and every per-language
 translation. There is no undo. Use --yes to skip the confirmation prompt
 in scripts.`,

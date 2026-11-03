@@ -72,9 +72,10 @@ func titleCase(h string) string {
 
 func newWatcherListCmd(d deps) *cobra.Command {
 	return &cobra.Command{
-		Use:     "list",
-		Short:   "List brand watchers",
-		Example: `  norcube domainradar watchers list`,
+		Use:         "list",
+		Annotations: cmdutil.Reads(),
+		Short:       "List brand watchers",
+		Example:     `  norcube domainradar watchers list`,
 		RunE: cmdutil.Run(func(cmd *cobra.Command, _ []string) (any, error) {
 			c, err := d.client(cmd)
 			if err != nil {
@@ -100,10 +101,11 @@ func newWatcherListCmd(d deps) *cobra.Command {
 
 func newWatcherGetCmd(d deps) *cobra.Command {
 	return &cobra.Command{
-		Use:     "get <watcher-id>",
-		Short:   "Show a brand watcher",
-		Example: `  norcube domainradar watchers get 7d2e…`,
-		Args:    cobra.ExactArgs(1),
+		Use:         "get <watcher-id>",
+		Annotations: cmdutil.Reads(),
+		Short:       "Show a brand watcher",
+		Example:     `  norcube domainradar watchers get 7d2e…`,
+		Args:        cobra.ExactArgs(1),
 		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
 			c, err := d.client(cmd)
 			if err != nil {
@@ -158,8 +160,9 @@ func (f watcherFlags) validate() error {
 func newWatcherCreateCmd(d deps) *cobra.Command {
 	var f watcherFlags
 	cmd := &cobra.Command{
-		Use:   "create <word>",
-		Short: "Start watching for lookalikes of a brand word",
+		Use:         "create <word>",
+		Annotations: cmdutil.Writes(),
+		Short:       "Start watching for lookalikes of a brand word",
 		Long: `Creates an enabled brand watcher for a word (your brand, product or
 trademark). Hits appear under "domainradar hits" as certificates for
 lookalike domains are issued.
@@ -213,9 +216,10 @@ adds a billed AI review per hit.`,
 func newWatcherUpdateCmd(d deps) *cobra.Command {
 	var f watcherFlags
 	cmd := &cobra.Command{
-		Use:   "update <watcher-id>",
-		Short: "Change a brand watcher's settings",
-		Long:  "Changes only the settings you pass. --disable stops the watcher and its billing; --enable turns it back on.",
+		Use:         "update <watcher-id>",
+		Annotations: cmdutil.Writes(),
+		Short:       "Change a brand watcher's settings",
+		Long:        "Changes only the settings you pass. --disable stops the watcher and its billing; --enable turns it back on.",
 		Example: `  norcube domainradar watchers update 7d2e… --disable
   norcube domainradar watchers update 7d2e… --min-score 70 --allow acme.com,acme.io`,
 		Args: cobra.ExactArgs(1),
@@ -268,9 +272,10 @@ func newWatcherUpdateCmd(d deps) *cobra.Command {
 func newWatcherDeleteCmd(d deps) *cobra.Command {
 	var yes bool
 	cmd := &cobra.Command{
-		Use:   "delete <watcher-id>",
-		Short: "Delete a brand watcher and its hits",
-		Long:  "Deletes the watcher and every hit it recorded. To pause it instead, use \"watchers update --disable\".",
+		Use:         "delete <watcher-id>",
+		Annotations: cmdutil.Writes(),
+		Short:       "Delete a brand watcher and its hits",
+		Long:        "Deletes the watcher and every hit it recorded. To pause it instead, use \"watchers update --disable\".",
 		Example: `  norcube domainradar watchers delete 7d2e…
   norcube domainradar watchers delete 7d2e… --yes`,
 		Args: cobra.ExactArgs(1),

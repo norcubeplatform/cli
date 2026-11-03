@@ -54,8 +54,9 @@ func newAuditListCmd() *cobra.Command {
 		pages                        cmdutil.PageFlags
 	)
 	cmd := &cobra.Command{
-		Use:   "list",
-		Short: "List audit log entries, newest first",
+		Use:         "list",
+		Annotations: cmdutil.Reads(),
+		Short:       "List audit log entries, newest first",
 		Long: `Lists who changed what in LangSync: namespaces, API keys, the glossary,
 custom languages and prompts, sync jobs and imports. Reads are not
 recorded.

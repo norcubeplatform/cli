@@ -46,8 +46,9 @@ func newSavedListCmd(d deps) *cobra.Command {
 		pages                 cmdutil.PageFlags
 	)
 	cmd := &cobra.Command{
-		Use:   "list",
-		Short: "List saved domains with their latest check",
+		Use:         "list",
+		Annotations: cmdutil.Reads(),
+		Short:       "List saved domains with their latest check",
 		Example: `  norcube domainradar saved list
   norcube domainradar saved list --available --tld com
   norcube domainradar saved list --sort expiry_date -o json --query "[].domain"`,
@@ -120,7 +121,7 @@ func newSavedListCmd(d deps) *cobra.Command {
 	cmd.Flags().StringSliceVar(&tlds, "tld", nil, "Only these TLDs (repeat or comma-separate)")
 	cmd.Flags().StringVar(&sortBy, "sort", "", "Sort by "+strings.Join(savedSorts, ", ")+" (created_at is when it was saved; default: newest saved first)")
 	cmd.Flags().StringVar(&sortDir, "order", "asc", "Sort order with --sort: asc or desc")
-	_ = cmd.RegisterFlagCompletionFunc("sort", cobra.FixedCompletions(savedSorts, cobra.ShellCompDirectiveNoFileComp))
+	cmdutil.FlagEnum(cmd, "sort", savedSorts...)
 	cmdutil.AddPageFlags(cmd, &pages, defaultPageSize, maxItems)
 	return cmd
 }
@@ -128,8 +129,9 @@ func newSavedListCmd(d deps) *cobra.Command {
 func newSavedAddCmd(d deps) *cobra.Command {
 	var notes string
 	cmd := &cobra.Command{
-		Use:   "add <domain>",
-		Short: "Save a domain to the watchlist",
+		Use:         "add <domain>",
+		Annotations: cmdutil.Writes(),
+		Short:       "Save a domain to the watchlist",
 		Example: `  norcube domainradar saved add acme.io
   norcube domainradar saved add acme.io --notes "ask legal first"`,
 		Args: cobra.ExactArgs(1),
@@ -163,11 +165,12 @@ func newSavedAddCmd(d deps) *cobra.Command {
 
 func newSavedRemoveCmd(d deps) *cobra.Command {
 	return &cobra.Command{
-		Use:     "remove <domain>",
-		Aliases: []string{"rm"},
-		Short:   "Remove a domain from the watchlist",
-		Example: `  norcube domainradar saved remove acme.io`,
-		Args:    cobra.ExactArgs(1),
+		Use:         "remove <domain>",
+		Annotations: cmdutil.Writes(),
+		Aliases:     []string{"rm"},
+		Short:       "Remove a domain from the watchlist",
+		Example:     `  norcube domainradar saved remove acme.io`,
+		Args:        cobra.ExactArgs(1),
 		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
 			domain := strings.ToLower(strings.TrimSpace(args[0]))
 			c, err := d.client(cmd)

@@ -210,7 +210,9 @@ code you approve on your phone or laptop. See
   [LangSync CLI](https://docs.norcube.com/langsync/cli), including
   [project sync](https://docs.norcube.com/langsync/cli/project-sync), and
   [DomainRadar CLI](https://docs.norcube.com/domainradar/cli).
-- `norcube <command> --help` shows the same reference offline.
+- `norcube <command> --help` shows the same reference offline;
+  `norcube commands -o json` prints the whole command tree as one
+  versioned document for scripts and AI agents.
 
 ## Contributing and security
 

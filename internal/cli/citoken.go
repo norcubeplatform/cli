@@ -50,8 +50,9 @@ func newCITokenCreateCmd() *cobra.Command {
 	var name, expires string
 	var scopes []string
 	cmd := &cobra.Command{
-		Use:   "create --name <name> --scopes <scope,...> [--expires 90d]",
-		Short: "Create a CI token; the secret is printed once",
+		Use:         "create --name <name> --scopes <scope,...> [--expires 90d]",
+		Annotations: cmdutil.Writes(),
+		Short:       "Create a CI token; the secret is printed once",
 		Long: `Creates a CI token in the organization (--org, else the profile's) and
 prints its secret. Norcube stores only a hash: copy the secret into your CI
 system's secrets now, as NORCUBE_TOKEN.
@@ -114,8 +115,9 @@ secret NORCUBE_TOKEN; every norcube command there will use it.`,
 
 func newCITokenListCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "list",
-		Short: "List the organization's CI tokens",
+		Use:         "list",
+		Annotations: cmdutil.Reads(),
+		Short:       "List the organization's CI tokens",
 		Example: `  norcube auth ci-token list
   norcube auth ci-token list -o json --query "[?status=='active'].name"`,
 		Args: cobra.NoArgs,
@@ -154,8 +156,9 @@ func newCITokenListCmd() *cobra.Command {
 
 func newCITokenRevokeCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "revoke <id|name>",
-		Short: "Revoke a CI token; jobs using it fail from then on",
+		Use:         "revoke <id|name>",
+		Annotations: cmdutil.Writes(),
+		Short:       "Revoke a CI token; jobs using it fail from then on",
 		Long: `Revokes a CI token by its id or its name. Norcube Auth refuses the token
 from then on: a job that already holds an access token from it can finish
 its current requests (access tokens live at most 5 minutes), and the next
@@ -200,8 +203,9 @@ exchange fails.`,
 
 func newCITokenScopesCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "scopes",
-		Short: "List the scopes a CI token can have, and which you may grant",
+		Use:         "scopes",
+		Annotations: cmdutil.Reads(),
+		Short:       "List the scopes a CI token can have, and which you may grant",
 		Example: `  norcube auth ci-token scopes
   norcube auth ci-token scopes -o json --query "[?available].scope"`,
 		Args: cobra.NoArgs,

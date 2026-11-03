@@ -145,7 +145,8 @@ func MaybePrintUpdateNudge(out io.Writer) {
 
 func shouldSkipUpdateCheck(subCommand string) bool {
 	switch subCommand {
-	case "upgrade", "help", "version":
+	// `commands` promises to work offline.
+	case "upgrade", "help", "version", "commands":
 		return true
 	}
 	if os.Getenv("NORCUBE_NO_UPDATE_CHECK") != "" {

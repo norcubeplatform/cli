@@ -12,8 +12,9 @@ import (
 
 func newWhoamiCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "whoami",
-		Short: "Show the signed-in user and active organization",
+		Use:         "whoami",
+		Annotations: cmdutil.Reads(),
+		Short:       "Show the signed-in user and active organization",
 		Example: `  norcube whoami
   norcube whoami -o json --query user.email`,
 		RunE: func(cmd *cobra.Command, _ []string) error {

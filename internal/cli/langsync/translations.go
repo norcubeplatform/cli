@@ -32,8 +32,9 @@ them: the AI column of ` + "`terms list`" + `, "aiGenerated" with -o json.`,
 func newTranslationGetCmd() *cobra.Command {
 	var namespaceName string
 	cmd := &cobra.Command{
-		Use:   "get <termId>",
-		Short: "Show a term with its translation into every language",
+		Use:         "get <termId>",
+		Annotations: cmdutil.Reads(),
+		Short:       "Show a term with its translation into every language",
 		Long: `Shows one term (by its numeric id, the ID column of ` + "`terms list`" + `) with
 its translation into each of the namespace's languages. "(AI)" after the
 language marks a translation that is still exactly what AI produced
@@ -122,8 +123,9 @@ func newTranslationSetCmd() *cobra.Command {
 		ai                  bool
 	)
 	cmd := &cobra.Command{
-		Use:   "set <termId> <language> [value]",
-		Short: "Set a term's translation into one language",
+		Use:         "set <termId> <language> [value]",
+		Annotations: cmdutil.Writes(),
+		Short:       "Set a term's translation into one language",
 		Long: `Stores the value as the term's translation into the language. A value
 you set is a person's translation: it clears the AI label, unless --ai
 says the value is an AI suggestion you saved unchanged.
@@ -194,8 +196,9 @@ func newTranslationSuggestCmd() *cobra.Command {
 		save                        bool
 	)
 	cmd := &cobra.Command{
-		Use:   "suggest <termId> <language>",
-		Short: "Ask AI for a translation of a term (and optionally save it)",
+		Use:         "suggest <termId> <language>",
+		Annotations: cmdutil.Writes(),
+		Short:       "Ask AI for a translation of a term (and optionally save it)",
 		Long: `Asks AI translation for the term's text in the language and prints the
 suggestion. Nothing is stored unless --save is set; a saved suggestion
 keeps its AI label. Each suggestion counts toward the organization's AI
@@ -286,8 +289,9 @@ func newTranslateMissingCmd() *cobra.Command {
 		languages             []string
 	)
 	cmd := &cobra.Command{
-		Use:   "translate-missing",
-		Short: "AI-translate every missing translation in a namespace",
+		Use:         "translate-missing",
+		Annotations: cmdutil.Writes(),
+		Short:       "AI-translate every missing translation in a namespace",
 		Long: `Starts AI translation of every term that has no translation yet, in all
 of the namespace's languages or only those --languages names. Existing
 translations are not touched. The run continues on the server after the

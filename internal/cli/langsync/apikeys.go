@@ -61,8 +61,9 @@ func toAPIKeyView(k langsync.DtoAPIKey) apiKeyView {
 
 func newAPIKeyListCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "list",
-		Short: "List the organization's API keys",
+		Use:         "list",
+		Annotations: cmdutil.Reads(),
+		Short:       "List the organization's API keys",
 		Long: `Lists active and revoked keys. LAST USED shows whether a key is still
 in use, which tells you when a rotation is complete.`,
 		Example: `  norcube langsync api-keys list
@@ -110,8 +111,9 @@ type apiKeyCreated struct {
 func newAPIKeyCreateCmd() *cobra.Command {
 	var name string
 	cmd := &cobra.Command{
-		Use:   "create",
-		Short: "Create an API key; its value is printed once",
+		Use:         "create",
+		Annotations: cmdutil.Writes(),
+		Short:       "Create an API key; its value is printed once",
 		Long: `Creates an API key and prints its value. LangSync stores only a hash:
 copy the value into your application's secrets now. Name the key after
 where it will live.
@@ -157,9 +159,10 @@ secrets; it reads every translation in the organization.`, name, k.ID, k.Value),
 func newAPIKeyRevokeCmd() *cobra.Command {
 	var yes bool
 	cmd := &cobra.Command{
-		Use:     "revoke <keyId>",
-		Aliases: []string{"delete"},
-		Short:   "Revoke an API key at once",
+		Use:         "revoke <keyId>",
+		Annotations: cmdutil.Writes(),
+		Aliases:     []string{"delete"},
+		Short:       "Revoke an API key at once",
 		Long: `Revokes the key: its next request fails with 401. Deploy the
 replacement first. The key stays in the list, marked revoked.`,
 		Example: `  norcube langsync api-keys revoke 0b7a4c8e-2d3f-4a1b-9c6d-5e4f3a2b1c0d

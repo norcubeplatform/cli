@@ -54,7 +54,7 @@ API it uses is documented, so the CLI doubles as a reference client
 | --- | --- | --- |
 | People at a terminal | Browser sign-in, readable tables, hints that say what to do next, completion, confirmations before anything destructive | P1, P5, P6, section 3.6 |
 | Scripts and CI jobs | Data-only stdout, stable JSON shapes, stable error codes and exit codes, no prompts, scoped expiring credentials | P2 to P5, P12 |
-| AI agents and tools | Everything scripts need, plus a predictable grammar, self-describing help, an escape hatch for any endpoint (`nrc api`) | P1, P2, P4, P9, section 3.5 |
+| AI agents and tools | Everything scripts need, plus a predictable grammar, one machine-readable description of every command (`nrc commands -o json`), an escape hatch for any endpoint (`nrc api`) | P1, P2, P4, P9, sections 3.5 and 3.8 |
 
 ### 1.3 "Like the AWS CLI" made concrete
 
@@ -354,9 +354,24 @@ the answer adopted was "each place has one job and nothing is written
 twice by hand", the model of gh, AWS and Stripe. Before that, the README
 and three docs pages had drifted from the code.
 
-**Enforced.** `TestEveryCommandHasAnExample` and `TestHelpTextIsComplete`
-in [`contract_test.go`](../internal/cli/contract_test.go); the
-[`docs-reference`](../.github/workflows/docs-reference.yaml) workflow
+The same tree is also the machine-readable description of the CLI:
+`nrc commands -o json` (section 3.8) is the discovery entry point for
+scripts and AI agents, so they read one document instead of crawling
+`--help` pages. Its `schemaVersion` is a commitment: within version 1
+changes are additive only (new fields, new values of an enumerated field
+such as `effect`, new commands); removing or renaming a field or changing
+its type or meaning needs a new `schemaVersion` and a "Changes for
+scripts" entry. What the help text cannot say (whether a command changes
+anything, the values a flag accepts, the service of a platform command)
+is declared where the command is defined, with the annotations of P13.
+
+**Enforced.** `TestEveryCommandHasAnExample`, `TestHelpTextIsComplete`
+and `TestEveryCommandDeclaresAnEffect` in
+[`contract_test.go`](../internal/cli/contract_test.go); the schema golden
+`commands-billing.*` and the tree tests in
+[`commands_test.go`](../internal/cli/commands_test.go) (every visible
+command listed, hidden ones only with `--all`, sorted output, offline);
+the [`docs-reference`](../.github/workflows/docs-reference.yaml) workflow
 regenerates the reference on every release tag and opens a pull request
 on the docs repository.
 
@@ -502,6 +517,7 @@ and product packages use it instead of their own:
 | Time arguments (`--since`) | `cmdutil.ParseTimeArg` |
 | Server-sent event streams with reconnect | `internal/sse` |
 | Usage errors | `clierr.Usage` |
+| What a command changes, a flag's allowed values, a platform command's service | `cmdutil.Reads` / `Writes` / `Local`, `cmdutil.FlagEnum`, `cmdutil.AnnotationService` (read by `nrc commands`) |
 | Terminal and colour detection | `internal/term` |
 | HTTP | `internal/transport` |
 
@@ -665,6 +681,32 @@ The backend must give every operation an explicit swagger `@Id`, so
 generated method names are clean and stable; a renamed `@Id` is a breaking
 change for this repository.
 
+### 3.8 `nrc commands`: the discovery entry point
+
+`nrc commands` ([`commands.go`](../internal/cli/commands.go)) walks the
+cobra tree and prints it through the normal result path, so `-o` and
+`--query` work as everywhere. It needs no sign-in, makes no request and
+skips the release check. A table lists command paths and summaries;
+`-o json` / `-o yaml` print one document:
+
+| Field | Source |
+| --- | --- |
+| `schemaVersion`, `cliVersion`, `outputFormats` | The schema version (1), the build version, the `-o` values of P3 |
+| `globalFlags` | The root's persistent flags, listed once instead of on every command |
+| `commands[]` `command`, `path`, `name`, `aliases`, `short`, `long`, `usage`, `args`, `example`, `group` | The help text |
+| `hidden`, `renamedTo`, `deprecated` | cobra's `Hidden` / `Deprecated`, `cmdutil.Renamed`; such commands appear only with `--all` |
+| `flags`, `inheritedFlags` | Local flags, and flags inherited from a group other than the root: name, shorthand, type, default, description, `required` (`MarkFlagRequired`), `repeatable` (array and slice types), `enum` (`cmdutil.FlagEnum`) |
+| `effect` | `cmdutil.Reads()` (changes nothing), `Writes()` (changes state on a Norcube service), `Local()` (changes only config, credentials, project files or the binary); absent for groups and for `api`, whose effect depends on the method |
+| `confirm`, `wait`, `paginated` | The command has `--yes`; `--wait`; `--cursor` and `--all-pages` (the shared helpers of P13 register them) |
+| `outputFormats` | The P3 formats; absent for groups, cobra's completion scripts and commands marked `cmdutil.AnnotationNoResult` |
+| `service` | Registry key, product name and OAuth audience: the group's registry entry, or `cmdutil.AnnotationService` for platform commands |
+
+Commands are sorted by path and flags by name, so the same binary always
+prints the same bytes. `nrc commands backup jobs` narrows the document to
+one subtree (names or aliases). A property the tree cannot know is never
+guessed: it is declared with an annotation where the command is defined,
+or the field is left out. The stability rule is in P9.
+
 ---
 
 ## 4. Feature inventory (v0.21.4)
@@ -675,7 +717,7 @@ flag; [CHANGELOG.md](../CHANGELOG.md) says when each arrived.
 
 | Group | Resources and verbs |
 | --- | --- |
-| Platform | `login` (`--device`, `--no-browser`, `--force`), `logout` (`--all`), `whoami`; `auth status`, `auth token`, `auth sessions list | revoke`, `auth ci-token create | list | revoke | scopes`; `configure` (`get | set | unset`); `config list | profiles | path | edit | reset-urls`; `org list | current | use | switch | create`; `api`; `doctor`; `upgrade`; `completion` |
+| Platform | `login` (`--device`, `--no-browser`, `--force`), `logout` (`--all`), `whoami`; `auth status`, `auth token`, `auth sessions list | revoke`, `auth ci-token create | list | revoke | scopes`; `configure` (`get | set | unset`); `config list | profiles | path | edit | reset-urls`; `org list | current | use | switch | create`; `api`; `commands`; `doctor`; `upgrade`; `completion` |
 | `backup` | `datasources list | get | create | update | pause | resume`; `jobs list | get | run | download`; `restores list | get | create`; `restore-tests list | run`, `restore-tests settings get | update`; `policies list | create | update | attach | detach | pause | resume`; `destinations list`; `health` |
 | `langsync` | `init`, `sync`, `pull`; `namespaces list | create | update | delete`; `terms list | add | update | delete | import`, `terms import status`; `translations get | set | suggest | translate-missing`; `languages list | add | remove | create | delete`; `prompts list | get | create | update | delete`; `glossary get`, `glossary items list | get | create | translate | delete`, `glossary languages attach`; `api-keys list | create | revoke`; `audit list` |
 | `domainradar` | `check`; `bulk create | list | get | results | watch | export | cancel | delete`; `saved list | add | remove`; `watchers list | get | create | update | delete`; `hits list | get`; `names generate | list | get | results | check | delete` |
@@ -732,6 +774,7 @@ changelog, and the owner's decisions in the planning sessions of
 | 2026-10-29 | The CLI becomes a first-party OAuth client of Norcube Auth (PKCE, scoped logins, Connected apps, revocation) | Owner: "i want the proper way". Rejected: scopes on today's CLI sessions, which keeps the refresh token passing through dashboard JavaScript and three token models | owner |
 | 2026-10-30 | Pin the Go toolchain, check `go mod tidy`, run govulncheck in CI with documented acceptances | Releases had been built with a Go patch with reachable stdlib advisories | 3b2e964 (v0.21.4) |
 | 2026-10-30 | Engineering reviews are written down as reports and fixed in separate, deliberate changes, not by automatic fix agents | Owner's instruction | owner |
+| 2026-11-04 | `nrc commands`: the whole command tree as one versioned, offline document; what the tree cannot reveal is declared with annotations (`effect`, flag enums, service), never inferred from verbs | Agents should not crawl dozens of `--help` pages. Prior art: `kubectl api-resources` / `explain` (verbs per resource, offline schema), `aws ... --generate-cli-skeleton` (machine-readable input), cobra's doc generation (`tools/gendocs` already walks the tree). Global flags listed once rather than on every command, to keep the document small; a verb-based guess of the effect was rejected because domain verbs like `check`, `suggest` or `init` don't say whether they change anything | owner |
 
 ---
 
@@ -831,6 +874,9 @@ signed-in people; CI use waits for steps 2 and 3.
 4. Validate flags and arguments before the first request; return
    `clierr.Usage` for invocation mistakes.
 5. `Short`, `Long` when useful, `Example`, every flag described.
+   Declare what it changes with `Annotations: cmdutil.Reads()`,
+   `Writes()` or `Local()`; flags with a fixed set of values use
+   `cmdutil.FlagEnum` (completion and `nrc commands` both read it).
 6. Completion for id arguments and flags.
 7. Golden files for read commands (`go test ./internal/cli -run TestGolden
    -update`, then review the diff line by line); a command test for writes,
@@ -917,7 +963,11 @@ same list.
 - Keep the grammar `<service> <resource> <verb>`, plural resources, the
   verb table of P1.
 - Give every visible command a `Short` (capitalized, no trailing period),
-  an `Example`, and a description for every flag.
+  an `Example`, a description for every flag, and an effect annotation
+  (`cmdutil.Reads`, `Writes` or `Local`).
+- To find out what the CLI can do, run `nrc commands -o json` (or narrow
+  it: `nrc commands backup -o json`) instead of reading many `--help`
+  pages; check `effect` and `confirm` before running a command.
 - Return errors; use `clierr.Usage` for invocation mistakes; let
   `clierr` and `Describe` pick the code.
 - Add tests with every behaviour change; regenerate goldens with

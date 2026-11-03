@@ -48,8 +48,9 @@ func newSyncCmd() *cobra.Command {
 		retranslateOnSourceChange bool
 	)
 	cmd := &cobra.Command{
-		Use:   "sync",
-		Short: "Reconcile a project's local translation files with Langsync",
+		Use:         "sync",
+		Annotations: cmdutil.Writes(),
+		Short:       "Reconcile a project's local translation files with Langsync",
 		Long: `Reconciles the local translation files in .langsync.json against
 the configured Langsync namespaces. The CLI submits one sync job per
 namespace and polls until the server is done; all namespaces run in

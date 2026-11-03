@@ -38,8 +38,9 @@ func newMarkAddCmd() *cobra.Command {
 		autoTranslate bool
 	)
 	cmd := &cobra.Command{
-		Use:   `add ["<source string>"]`,
-		Short: "Add a new mark to a namespace",
+		Use:         `add ["<source string>"]`,
+		Annotations: cmdutil.Writes(),
+		Short:       "Add a new mark to a namespace",
 		Long: `Creates a new mark in the named namespace and, optionally, the value
 for the namespace's default language. With --auto-translate, the backend
 will try to fill in every other configured language using your AI
@@ -129,8 +130,9 @@ func newMarkListCmd() *cobra.Command {
 		untranslatedLang int
 	)
 	cmd := &cobra.Command{
-		Use:   "list",
-		Short: "List marks in a namespace",
+		Use:         "list",
+		Annotations: cmdutil.Reads(),
+		Short:       "List marks in a namespace",
 		Long: `Lists marks (source strings) in a namespace, with optional filters
 for partially-translated marks and full-text search.
 
@@ -242,8 +244,9 @@ func newMarkUpdateCmd() *cobra.Command {
 		mark, context string
 	)
 	cmd := &cobra.Command{
-		Use:   "update <termId>",
-		Short: "Change a term's source text or context",
+		Use:         "update <termId>",
+		Annotations: cmdutil.Writes(),
+		Short:       "Change a term's source text or context",
 		Long: `Changes the mark (source text) or the translator context of a term.
 Pass only what changes; translations are kept. Find term ids with
 ` + "`norcube langsync terms list`" + `.`,
@@ -304,8 +307,9 @@ func newMarkDeleteCmd() *cobra.Command {
 		yes           bool
 	)
 	cmd := &cobra.Command{
-		Use:   "delete <termId>",
-		Short: "Delete a mark (and all its translations) from a namespace",
+		Use:         "delete <termId>",
+		Annotations: cmdutil.Writes(),
+		Short:       "Delete a mark (and all its translations) from a namespace",
 		Long: `Permanently removes the mark and every translation attached to it.
 This action is irreversible — the mark, its context, and every
 per-language translation row are deleted from the database.

@@ -57,8 +57,9 @@ const (
 func newDoctorCmd() *cobra.Command {
 	var offline bool
 	cmd := &cobra.Command{
-		Use:   "doctor",
-		Short: "Check the CLI's configuration, credentials and connectivity",
+		Use:         "doctor",
+		Annotations: cmdutil.Reads(),
+		Short:       "Check the CLI's configuration, credentials and connectivity",
 		Long: `Runs every check that explains why a command fails: the config file and
 its permissions, which profile and organization apply and why, the
 credential store, the session, the clock, DNS, TLS and latency of every

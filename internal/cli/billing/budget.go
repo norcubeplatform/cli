@@ -59,8 +59,9 @@ func getBudget(cmd *cobra.Command, c *billingContext) (billing.DtoSpendingCap, e
 
 func newBudgetGetCmd(d deps) *cobra.Command {
 	return &cobra.Command{
-		Use:   "get",
-		Short: "Show the monthly spending caps and alert thresholds",
+		Use:         "get",
+		Annotations: cmdutil.Reads(),
+		Short:       "Show the monthly spending caps and alert thresholds",
 		Example: `  norcube billing budget get
   norcube billing budget get -o json --query hardCapCents`,
 		Args: cobra.NoArgs,
@@ -107,8 +108,9 @@ func newBudgetSetCmd(d deps) *cobra.Command {
 		yes                bool
 	)
 	cmd := &cobra.Command{
-		Use:   "set",
-		Short: "Set the monthly spending caps or alert thresholds",
+		Use:         "set",
+		Annotations: cmdutil.Writes(),
+		Short:       "Set the monthly spending caps or alert thresholds",
 		Long: `Changes only what you pass; the other settings stay as they are.
 
   --hard-cap 500     stop paid usage at $500.00 a month ("none" removes it)

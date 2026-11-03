@@ -68,8 +68,9 @@ const connectionURIHelp = "Read the database connection string from this file (-
 func newDataSourceCreateCmd(d deps) *cobra.Command {
 	var name, engine, env, region, uriFile string
 	cmd := &cobra.Command{
-		Use:   "create",
-		Short: "Add a database to back up",
+		Use:         "create",
+		Annotations: cmdutil.Writes(),
+		Short:       "Add a database to back up",
 		Long: `Adds a data source: a database Norcube Backup backs up. Give its
 connection string with --connection-uri-file (a file, - for standard
 input), never on the command line, so it stays out of shell history; it
@@ -131,9 +132,9 @@ Nothing is backed up until a policy is attached
 	cmd.Flags().StringVar(&env, "environment", "", "Environment: "+strings.Join(datasourceEnvs, ", "))
 	cmd.Flags().StringVar(&region, "region", string(snapdb.RegionEUCentral1), "Region the backups are processed in: "+strings.Join(datasourceRegions, ", "))
 	cmd.Flags().StringVar(&uriFile, "connection-uri-file", "", connectionURIHelp)
-	_ = cmd.RegisterFlagCompletionFunc("engine", cobra.FixedCompletions(datasourceEngines, cobra.ShellCompDirectiveNoFileComp))
-	_ = cmd.RegisterFlagCompletionFunc("environment", cobra.FixedCompletions(datasourceEnvs, cobra.ShellCompDirectiveNoFileComp))
-	_ = cmd.RegisterFlagCompletionFunc("region", cobra.FixedCompletions(datasourceRegions, cobra.ShellCompDirectiveNoFileComp))
+	cmdutil.FlagEnum(cmd, "engine", datasourceEngines...)
+	cmdutil.FlagEnum(cmd, "environment", datasourceEnvs...)
+	cmdutil.FlagEnum(cmd, "region", datasourceRegions...)
 	for _, f := range []string{"name", "engine", "environment"} {
 		_ = cmd.MarkFlagRequired(f)
 	}
@@ -143,8 +144,9 @@ Nothing is backed up until a policy is attached
 func newDataSourceUpdateCmd(d deps) *cobra.Command {
 	var name, env, region, uriFile string
 	cmd := &cobra.Command{
-		Use:   "update <id>",
-		Short: "Rename a data source, change its environment or connection string",
+		Use:         "update <id>",
+		Annotations: cmdutil.Writes(),
+		Short:       "Rename a data source, change its environment or connection string",
 		Long: `Changes only what you pass. --connection-uri-file replaces the stored
 connection string (a file, - for standard input). Pausing and resuming
 backups is ` + "`datasources pause|resume`" + `.`,
@@ -211,6 +213,7 @@ backups is ` + "`datasources pause|resume`" + `.`,
 	cmd.Flags().StringVar(&env, "environment", "", "New environment: "+strings.Join(datasourceEnvs, ", "))
 	cmd.Flags().StringVar(&region, "region", "", "New region: "+strings.Join(datasourceRegions, ", "))
 	cmd.Flags().StringVar(&uriFile, "connection-uri-file", "", connectionURIHelp)
-	_ = cmd.RegisterFlagCompletionFunc("environment", cobra.FixedCompletions(datasourceEnvs, cobra.ShellCompDirectiveNoFileComp))
+	cmdutil.FlagEnum(cmd, "environment", datasourceEnvs...)
+	cmdutil.FlagEnum(cmd, "region", datasourceRegions...)
 	return cmd
 }

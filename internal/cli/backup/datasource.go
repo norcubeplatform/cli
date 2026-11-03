@@ -30,8 +30,9 @@ func newDataSourceCmd(d deps) *cobra.Command {
 
 func newDataSourcePauseCmd(d deps) *cobra.Command {
 	return &cobra.Command{
-		Use:   "pause [id]",
-		Short: "Halt every backup policy attached to a data source (master switch)",
+		Use:         "pause [id]",
+		Annotations: cmdutil.Writes(),
+		Short:       "Halt every backup policy attached to a data source (master switch)",
 		Long: `Sets the data source's isActive flag to false. The scheduler stops
 enqueuing jobs for any policy attached to this data source until you run
 "resume". History and attachments are preserved.
@@ -48,8 +49,9 @@ If no id is given and stdin is a terminal, an interactive picker is shown.`,
 
 func newDataSourceResumeCmd(d deps) *cobra.Command {
 	return &cobra.Command{
-		Use:   "resume [id]",
-		Short: "Re-enable a previously paused data source",
+		Use:         "resume [id]",
+		Annotations: cmdutil.Writes(),
+		Short:       "Re-enable a previously paused data source",
 		Long: `Sets the data source's isActive flag back to true. The scheduler will
 pick up its attached policies on the next tick.
 
@@ -106,8 +108,9 @@ func newDataSourceListCmd(d deps) *cobra.Command {
 	var search string
 	var pages cmdutil.PageFlags
 	cmd := &cobra.Command{
-		Use:   "list",
-		Short: "List data sources in the active organization",
+		Use:         "list",
+		Annotations: cmdutil.Reads(),
+		Short:       "List data sources in the active organization",
 		Example: `  norcube backup datasources list
   norcube backup datasources list --search prod --all-pages
   norcube backup datasources list -o json --query "[?!isActive].id"`,
@@ -165,8 +168,9 @@ func newDataSourceListCmd(d deps) *cobra.Command {
 
 func newDataSourceGetCmd(d deps) *cobra.Command {
 	return &cobra.Command{
-		Use:   "get <id>",
-		Short: "Show a single data source",
+		Use:         "get <id>",
+		Annotations: cmdutil.Reads(),
+		Short:       "Show a single data source",
 		Example: `  norcube backup datasources get 9f8e7d6c-…
   norcube backup datasources get 9f8e7d6c-… -o json`,
 		Args: cobra.ExactArgs(1),

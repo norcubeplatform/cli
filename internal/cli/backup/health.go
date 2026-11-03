@@ -17,8 +17,9 @@ import (
 // browser.
 func newHealthCmd(d deps) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "health",
-		Short: "Restore health per datasource: do the backups actually restore?",
+		Use:         "health",
+		Annotations: cmdutil.Reads(),
+		Short:       "Restore health per datasource: do the backups actually restore?",
 		Long: `Show restore-test health for every datasource in the active organization.
 
 Each datasource's score aggregates its recent restore tests: automated

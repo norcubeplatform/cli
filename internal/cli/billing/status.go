@@ -13,8 +13,9 @@ import (
 
 func newStatusCmd(d deps) *cobra.Command {
 	return &cobra.Command{
-		Use:   "status",
-		Short: "Show whether the organization's account is in good standing",
+		Use:         "status",
+		Annotations: cmdutil.Reads(),
+		Short:       "Show whether the organization's account is in good standing",
 		Long: `Shows the account's status: active, grace (a payment failed; the grace
 period runs until the date shown) or blocked (paid usage and new
 resources are refused: an unpaid balance, or the month's charges reached
@@ -61,8 +62,9 @@ func newSubscriptionsCmd(d deps) *cobra.Command {
 
 func newSubscriptionListCmd(d deps) *cobra.Command {
 	return &cobra.Command{
-		Use:   "list",
-		Short: "List each service's billing and the plan the organization is on",
+		Use:         "list",
+		Annotations: cmdutil.Reads(),
+		Short:       "List each service's billing and the plan the organization is on",
 		Long: `Lists every billable service: how it is billed (metered: pay as you go;
 plans: always on a plan; choice: pay as you go or a plan) and the
 organization's current plan there. Change plans in the dashboard.`,
@@ -110,8 +112,9 @@ func newUsageCmd(d deps) *cobra.Command {
 
 func newUsageEstimateCmd(d deps) *cobra.Command {
 	return &cobra.Command{
-		Use:   "estimate",
-		Short: "Show this month's charges so far and the estimate for the whole month",
+		Use:         "estimate",
+		Annotations: cmdutil.Reads(),
+		Short:       "Show this month's charges so far and the estimate for the whole month",
 		Long: `Shows what the organization's usage costs so far this billing month and
 the estimated total, in US dollars. The estimate weighs the month's pace
 against previous months; "linear" is the pace alone.`,
@@ -145,8 +148,9 @@ against previous months; "linear" is the pace alone.`,
 
 func newUsageMetricsCmd(d deps) *cobra.Command {
 	return &cobra.Command{
-		Use:   "metrics",
-		Short: "Show usage per metric against its free tier",
+		Use:         "metrics",
+		Annotations: cmdutil.Reads(),
+		Short:       "Show usage per metric against its free tier",
 		Long: `Lists every billable metric with its free tier, the usage so far this
 month and the projection for the month's end. OVER marks metrics on
 track to exceed the free tier, which is where charges start.`,

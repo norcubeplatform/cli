@@ -47,9 +47,10 @@ languages it covers.`,
 
 func newGlossaryLanguageAttachCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:     "attach <language>",
-		Aliases: []string{"add"},
-		Short:   "Add a language to the glossary",
+		Use:         "attach <language>",
+		Annotations: cmdutil.Writes(),
+		Aliases:     []string{"add"},
+		Short:       "Add a language to the glossary",
 		Long: `Adds a language (by code, such as cs, or numeric id) to the glossary, so
 its entries can be given an agreed translation into it
 (` + "`glossary items translate`" + `). Languages are removed in the dashboard.`,
@@ -135,8 +136,9 @@ type glossaryInfo struct {
 
 func newGlossaryGetCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "get",
-		Short: "Show the organization's glossary",
+		Use:         "get",
+		Annotations: cmdutil.Reads(),
+		Short:       "Show the organization's glossary",
 		Example: `  norcube langsync glossary get
   norcube langsync glossary get -o json`,
 		Args: cobra.NoArgs,
@@ -180,8 +182,9 @@ func glossaryError(resp *http.Response, body []byte, typed ...*langsync.Response
 func newGlossaryItemListCmd() *cobra.Command {
 	var pages cmdutil.PageFlags
 	cmd := &cobra.Command{
-		Use:   "list",
-		Short: "List glossary entries",
+		Use:         "list",
+		Annotations: cmdutil.Reads(),
+		Short:       "List glossary entries",
 		Long: `Lists the glossary's entries. TRANSLATED is how many of the glossary's
 languages have a translation; entries that are not translatable (KEEP)
 stay the same in every language.`,
@@ -258,8 +261,9 @@ func getGlossaryItem(cmd *cobra.Command, c *langsyncContext, id string) (*langsy
 
 func newGlossaryItemGetCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "get <itemId>",
-		Short: "Show a glossary entry with its translations",
+		Use:         "get <itemId>",
+		Annotations: cmdutil.Reads(),
+		Short:       "Show a glossary entry with its translations",
 		Example: `  norcube langsync glossary items get 3b9e6f1c-7a2d-4e5f-9c8b-1a2b3c4d5e6f
   norcube langsync glossary items get 3b9e6f1c-7a2d-4e5f-9c8b-1a2b3c4d5e6f -o json --query "glossaryItemTranslations[].languageCode"`,
 		Args: cobra.ExactArgs(1),
@@ -298,8 +302,9 @@ func newGlossaryItemCreateCmd() *cobra.Command {
 		caseSensitive, untranslate bool
 	)
 	cmd := &cobra.Command{
-		Use:   "create <term>",
-		Short: "Add an entry to the glossary",
+		Use:         "create <term>",
+		Annotations: cmdutil.Writes(),
+		Short:       "Add an entry to the glossary",
 		Long: `Adds the term, written in the glossary's default language. Use
 --keep for names that must stay the same in every language, and
 ` + "`glossary items translate`" + ` to give a translatable entry its agreed
@@ -347,7 +352,7 @@ translations.`,
 	cmd.Flags().StringVar(&itemType, "type", glossaryTypeOther, "Word class: "+strings.Join(glossaryTypeNames(), ", "))
 	cmd.Flags().BoolVar(&caseSensitive, "case-sensitive", false, "Match the term only with this exact capitalization")
 	cmd.Flags().BoolVar(&untranslate, "keep", false, "Never translate the term (a product or brand name)")
-	_ = cmd.RegisterFlagCompletionFunc("type", cobra.FixedCompletions(glossaryTypeNames(), cobra.ShellCompDirectiveNoFileComp))
+	cmdutil.FlagEnum(cmd, "type", glossaryTypeNames()...)
 	return cmd
 }
 
@@ -360,8 +365,9 @@ type glossaryTranslation struct {
 
 func newGlossaryItemTranslateCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "translate <itemId> <language> <value>",
-		Short: "Set a glossary entry's agreed translation into one language",
+		Use:         "translate <itemId> <language> <value>",
+		Annotations: cmdutil.Writes(),
+		Short:       "Set a glossary entry's agreed translation into one language",
 		Long: `Sets the entry's translation into the language (code or id), adding it
 or replacing the one there. The language must be one the glossary
 covers.`,
@@ -423,9 +429,10 @@ covers.`,
 func newGlossaryItemDeleteCmd() *cobra.Command {
 	var yes bool
 	cmd := &cobra.Command{
-		Use:     "delete <itemId>",
-		Aliases: []string{"rm"},
-		Short:   "Remove an entry (and its translations) from the glossary",
+		Use:         "delete <itemId>",
+		Annotations: cmdutil.Writes(),
+		Aliases:     []string{"rm"},
+		Short:       "Remove an entry (and its translations) from the glossary",
 		Example: `  norcube langsync glossary items delete 3b9e6f1c-7a2d-4e5f-9c8b-1a2b3c4d5e6f
   norcube langsync glossary items delete 3b9e6f1c-7a2d-4e5f-9c8b-1a2b3c4d5e6f --yes   # scripts`,
 		Args: cobra.ExactArgs(1),

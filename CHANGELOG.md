@@ -5,6 +5,28 @@ this file collects what users and scripts need to know.
 
 ## Unreleased
 
+### New
+
+- `norcube commands` lists every command with its summary, offline and
+  without signing in. `-o json` or `-o yaml` prints the whole tree as one
+  versioned document (`schemaVersion` 1) for scripts and AI agents: each
+  command's path, aliases, help text, examples, arguments and flags (type,
+  default, allowed values, required, repeatable), whether it reads, writes
+  or changes only local state (`effect`), asks for confirmation (`--yes`),
+  takes `--wait` or pages, and which service and OAuth audience it uses.
+  The global flags are listed once. `norcube commands backup` narrows the
+  tree to one group; `--all` adds hidden commands and the old names of
+  renamed ones.
+- Shell completion offers the allowed values of `-o`, `auth token
+  --audience`, `langsync init --seed` and `backup datasources update
+  --region`.
+
+### Changes for scripts
+
+- The `norcube commands` document is a contract: within `schemaVersion` 1
+  fields, values and commands are only ever added. A breaking change
+  bumps `schemaVersion`.
+
 ## 0.21.4 (2026-10-30)
 
 ### Fixes

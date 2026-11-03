@@ -23,8 +23,9 @@ import (
 func newLoginCmd() *cobra.Command {
 	var force, noBrowser, device bool
 	cmd := &cobra.Command{
-		Use:   "login",
-		Short: "Sign in to Norcube via your browser",
+		Use:         "login",
+		Annotations: cmdutil.Writes(),
+		Short:       "Sign in to Norcube via your browser",
 		Long: `Opens a Norcube login page in your default browser. After you sign in there,
 the CLI receives a session over a one-shot localhost callback. The session
 is stored for the selected profile (--profile, NORCUBE_PROFILE or the

@@ -35,11 +35,17 @@ maps them to stable codes and exit codes.
 | `internal/config`, `internal/resolve` | The config file (profiles, schema v2, migration) and which profile, endpoints, organization, credentials and output a command uses, each with its source. |
 | `internal/auth`, `internal/credstore` | Browser login, the per-profile session (OS keyring or a 0600 file), the per-(audience, organization) access-token cache, and the refresh lock that keeps parallel commands from racing. |
 | `internal/transport` | The one HTTP client: connect and read timeouts, retries with backoff and `Retry-After`, proxy and CA bundle, User-Agent, and the redacting `--debug` trace. |
-| `internal/cmdutil`, `internal/output` | The result path: `--query` (JMESPath), the four output formats, pagination flags, `--wait` polling and `JobFailed`, `Confirm` and `Cancelled`, text and item input from files or stdin, safe file saves, renamed-command notes. |
+| `internal/cmdutil`, `internal/output` | The result path: `--query` (JMESPath), the four output formats, pagination flags, `--wait` polling and `JobFailed`, `Confirm` and `Cancelled`, text and item input from files or stdin, safe file saves, renamed-command notes, and the command annotations (`annotations.go`: effect, flag enums, service) that `nrc commands` reads. |
 | `internal/clierr` | Error codes, exit codes and the JSON error shape. |
 | `internal/completion` | Dynamic shell completion with a one-second budget and a one-minute cache. |
 | `internal/orgs` | Organization slug resolution and its cache. |
 | `internal/api/<service>` | Generated clients. Never edit `*.gen.go`; run `make codegen`. |
+
+`internal/cli/commands.go` is `nrc commands`: it walks the cobra tree and
+prints the machine-readable command tree (schema in
+[DESIGN.md, section 3.8](DESIGN.md#38-nrc-commands-the-discovery-entry-point)).
+It reads only the tree, the annotations and the registry, never the
+network.
 
 ## Adding a service
 
@@ -82,6 +88,10 @@ maps them to stable codes and exit codes.
   description for every flag. Tests enforce this, because the
   [command reference](https://docs.norcube.com/platform/cli-reference) is
   generated from it.
+- Declare what it changes in the literal: `Annotations: cmdutil.Reads()`,
+  `cmdutil.Writes()` or `cmdutil.Local()` (a test fails without one).
+  Flags with a fixed set of values call `cmdutil.FlagEnum`, which also
+  wires their completion. `nrc commands` reads both.
 - Return the result from `cmdutil.Run`; lists use `cmdutil.Paginate` and
   `output.Table`.
 - Commands that delete or change something in bulk ask with
@@ -112,8 +122,11 @@ secrets and the one-time setup.
   backend (`cli_test.go`) with a temporary config, cache and mocked
   keyring. Golden files under `internal/cli/testdata/golden` pin every
   output format; update them with `go test ./internal/cli -run TestGolden -update`.
-- Contract tests walk the tree: every command has an example and complete
-  help text, nothing writes to stdout outside the result path, and no two
-  sibling commands share a name or alias.
+- Contract tests walk the tree: every command has an example, complete
+  help text and an effect, nothing writes to stdout outside the result
+  path, and no two sibling commands share a name or alias.
+  `commands_test.go` pins the `nrc commands` schema (golden
+  `commands-billing.*`) and checks that it lists every visible command,
+  sorted, offline.
 - `go test -race ./...`, `go vet` and golangci-lint (pinned in CI) must
   pass.

@@ -85,8 +85,9 @@ func backupFailed(j snapdb.DtoBackupJob) error {
 func newJobGetCmd(d deps) *cobra.Command {
 	var datasourceID string
 	cmd := &cobra.Command{
-		Use:   "get <job-id>",
-		Short: "Show one backup job",
+		Use:         "get <job-id>",
+		Annotations: cmdutil.Reads(),
+		Short:       "Show one backup job",
 		Example: `  norcube backup jobs get 6a1b2c3d-… --datasource 9f8e7d6c-…
   norcube backup jobs get 6a1b2c3d-… -d 9f8e7d6c-… -o json --query jobStatus`,
 		Args: cobra.ExactArgs(1),
@@ -113,8 +114,9 @@ func newJobRunCmd(d deps) *cobra.Command {
 		wait                   cmdutil.WaitFlags
 	)
 	cmd := &cobra.Command{
-		Use:   "run",
-		Short: "Back up a data source now",
+		Use:         "run",
+		Annotations: cmdutil.Writes(),
+		Short:       "Back up a data source now",
 		Long: `Queues a backup of the data source right away, outside its schedule. It
 uses the attached policy you name with --policy, or the data source's
 highest-priority enabled policy.
