@@ -217,7 +217,10 @@ code you approve on your phone or laptop. See
 Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the
 dev setup and the DCO sign-off we require instead of a CLA, and
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for how the code is organized
-and how to add a service or a command.
+and how to add a service or a command, and
+[docs/DESIGN.md](docs/DESIGN.md) for the design principles and
+commitments every change follows (AI agents start at
+[AGENTS.md](AGENTS.md)).
 Security issues go through [private vulnerability
 reporting](https://github.com/norcubeplatform/cli/security), not public
 issues — details in [SECURITY.md](SECURITY.md).

@@ -24,6 +24,9 @@ talks to the production Norcube API by default; a profile with
 
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) explains how the code is
 organized and walks through adding a service or a command.
+[docs/DESIGN.md](docs/DESIGN.md) holds the principles and commitments a
+change must keep (stdout discipline, error and exit codes, compatibility,
+security) and the playbooks for adding products, commands and flags.
 
 ### Generated API clients
 

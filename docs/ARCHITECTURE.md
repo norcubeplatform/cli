@@ -2,6 +2,8 @@
 
 How the CLI's code is organized, and how to add a service or a command.
 For using the CLI, see the [docs](https://docs.norcube.com/platform/cli).
+The principles, contracts and playbooks this code follows, and why, are in
+[DESIGN.md](DESIGN.md); read it before changing behaviour.
 
 ## The path of one command
 
