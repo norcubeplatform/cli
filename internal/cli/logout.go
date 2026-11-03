@@ -31,8 +31,9 @@ const serverSignOutWarning = "Warning: couldn't end the session on the server (%
 func newLogoutCmd() *cobra.Command {
 	var all bool
 	cmd := &cobra.Command{
-		Use:   "logout",
-		Short: "Sign out: end the session on Norcube and forget it locally",
+		Use:         "logout",
+		Annotations: cmdutil.Writes(),
+		Short:       "Sign out: end the session on Norcube and forget it locally",
 		Long: `Ends the selected profile's CLI session on Norcube Auth, so its refresh
 token stops working everywhere, then removes the session (refresh and access
 tokens) from the credential store and forgets its signed-in user. If the

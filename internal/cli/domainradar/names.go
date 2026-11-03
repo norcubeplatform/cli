@@ -79,8 +79,9 @@ func newNameGenerateCmd(d deps) *cobra.Command {
 		wait                  cmdutil.WaitFlags
 	)
 	cmd := &cobra.Command{
-		Use:   "generate <description>",
-		Short: "Generate name ideas from a description",
+		Use:         "generate <description>",
+		Annotations: cmdutil.Writes(),
+		Short:       "Generate name ideas from a description",
 		Long: `Starts a name generation job from a description of what you are naming.
 It runs on the server; with --wait the command waits for it to finish.
 Read the names with "names results", and check them as domains with
@@ -139,7 +140,7 @@ Each job is billed (see https://norcube.com/domainradar/#pricing).`,
 	cmd.Flags().StringVar(&style, "style", "", "Naming style (e.g. short, playful, compound)")
 	cmd.Flags().StringVar(&size, "size", string(domainradar.NameGenSizeSmall), "How many ideas: small (about 5-10k), medium (30-50k) or large (100-200k)")
 	cmd.Flags().IntVar(&maxLength, "max-length", 0, "Longest name to keep (0 = no limit)")
-	_ = cmd.RegisterFlagCompletionFunc("size", cobra.FixedCompletions(nameSizes, cobra.ShellCompDirectiveNoFileComp))
+	cmdutil.FlagEnum(cmd, "size", nameSizes...)
 	cmdutil.AddWaitFlags(cmd, &wait, "name generation", 15*time.Minute)
 	return cmd
 }
@@ -181,9 +182,10 @@ func getNameJob(ctx context.Context, c *drContext, id string) (domainradar.DtoNa
 func newNameListCmd(d deps) *cobra.Command {
 	var pages cmdutil.PageFlags
 	cmd := &cobra.Command{
-		Use:     "list",
-		Short:   "List name generation jobs, newest first",
-		Example: `  norcube domainradar names list`,
+		Use:         "list",
+		Annotations: cmdutil.Reads(),
+		Short:       "List name generation jobs, newest first",
+		Example:     `  norcube domainradar names list`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			c, err := d.client(cmd)
 			if err != nil {
@@ -229,10 +231,11 @@ func newNameListCmd(d deps) *cobra.Command {
 
 func newNameGetCmd(d deps) *cobra.Command {
 	return &cobra.Command{
-		Use:     "get <job-id>",
-		Short:   "Show a name generation job",
-		Example: `  norcube domainradar names get 2c9d…`,
-		Args:    cobra.ExactArgs(1),
+		Use:         "get <job-id>",
+		Annotations: cmdutil.Reads(),
+		Short:       "Show a name generation job",
+		Example:     `  norcube domainradar names get 2c9d…`,
+		Args:        cobra.ExactArgs(1),
 		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
 			c, err := d.client(cmd)
 			if err != nil {
@@ -258,8 +261,9 @@ func newNameResultsCmd(d deps) *cobra.Command {
 		pages           cmdutil.PageFlags
 	)
 	cmd := &cobra.Command{
-		Use:   "results <job-id>",
-		Short: "List the names a job generated",
+		Use:         "results <job-id>",
+		Annotations: cmdutil.Reads(),
+		Short:       "List the names a job generated",
 		Example: `  norcube domainradar names results 2c9d… --max-length 6 --sort length
   norcube domainradar names results 2c9d… --all-pages -o text --query "[].name" > names.txt`,
 		Args: cobra.ExactArgs(1),
@@ -322,7 +326,7 @@ func newNameResultsCmd(d deps) *cobra.Command {
 	cmd.Flags().IntVar(&maxLen, "max-length", 0, "Only names at most this long")
 	cmd.Flags().StringVar(&sortBy, "sort", "", "Sort by name or length")
 	cmd.Flags().StringVar(&sortDir, "order", "asc", "Sort order with --sort: asc or desc")
-	_ = cmd.RegisterFlagCompletionFunc("sort", cobra.FixedCompletions(nameSorts, cobra.ShellCompDirectiveNoFileComp))
+	cmdutil.FlagEnum(cmd, "sort", nameSorts...)
 	cmdutil.AddPageFlags(cmd, &pages, 200, 200_000)
 	return cmd
 }
@@ -335,8 +339,9 @@ func newNameCheckCmd(d deps) *cobra.Command {
 		wait  cmdutil.WaitFlags
 	)
 	cmd := &cobra.Command{
-		Use:   "check <job-id> [name...]",
-		Short: "Check generated names as domains in the TLDs you choose",
+		Use:         "check <job-id> [name...]",
+		Annotations: cmdutil.Writes(),
+		Short:       "Check generated names as domains in the TLDs you choose",
 		Long: `Starts a bulk check of names from a name generation job, each in every
 TLD given with --tld (example: 20 names and --tld com,io check 40 domains).
 Pick the names as arguments or with --file (- for standard input), for
@@ -404,10 +409,11 @@ read it with "bulk results".
 func newNameDeleteCmd(d deps) *cobra.Command {
 	var yes bool
 	cmd := &cobra.Command{
-		Use:     "delete <job-id>",
-		Short:   "Delete a name generation job and its names",
-		Example: `  norcube domainradar names delete 2c9d… --yes`,
-		Args:    cobra.ExactArgs(1),
+		Use:         "delete <job-id>",
+		Annotations: cmdutil.Writes(),
+		Short:       "Delete a name generation job and its names",
+		Example:     `  norcube domainradar names delete 2c9d… --yes`,
+		Args:        cobra.ExactArgs(1),
 		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
 			if ok, err := cmdutil.Confirm(fmt.Sprintf("Delete name generation job %s and its names? This can't be undone", args[0]), yes); err != nil || !ok {
 				return nil, cmdutil.Cancelled(cmd, err)

@@ -10,6 +10,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
+	"github.com/norcubeplatform/cli/internal/cmdutil"
 )
 
 // Every command a user can run documents itself with an example.
@@ -95,6 +97,41 @@ func TestHelpTextIsComplete(t *testing.T) {
 				t.Errorf("%s --%s has no description", path, f.Name)
 			}
 		})
+		for _, s := range c.Commands() {
+			walk(s)
+		}
+	}
+	walk(NewRootCmd())
+}
+
+// effectExempt are the commands whose effect depends on their arguments.
+var effectExempt = map[string]string{
+	"norcube api": "read or write depending on the HTTP method",
+}
+
+// Every command a user can run says what it changes (cmdutil.Reads,
+// Writes or Local), so `norcube commands` can tell scripts and agents
+// which commands are safe to run.
+func TestEveryCommandDeclaresAnEffect(t *testing.T) {
+	var walk func(c *cobra.Command)
+	walk = func(c *cobra.Command) {
+		if c.Name() == "help" || c.Name() == "completion" {
+			return
+		}
+		if c.Runnable() && !IsGroup(c) && c.Parent() != nil {
+			switch e := cmdutil.CommandEffect(c); e {
+			case cmdutil.EffectRead, cmdutil.EffectWrite, cmdutil.EffectLocal:
+				if _, ok := effectExempt[c.CommandPath()]; ok {
+					t.Errorf("%s declares an effect; remove it from effectExempt", c.CommandPath())
+				}
+			case "":
+				if _, ok := effectExempt[c.CommandPath()]; !ok {
+					t.Errorf("%s declares no effect: add Annotations: cmdutil.Reads(), Writes() or Local()", c.CommandPath())
+				}
+			default:
+				t.Errorf("%s: unknown effect %q", c.CommandPath(), e)
+			}
+		}
 		for _, s := range c.Commands() {
 			walk(s)
 		}

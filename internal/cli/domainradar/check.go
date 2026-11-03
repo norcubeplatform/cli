@@ -32,7 +32,7 @@ type checkFlags struct {
 func addCheckFlags(cmd *cobra.Command, f *checkFlags) {
 	cmd.Flags().StringVar(&f.mode, "mode", string(domainradar.CheckModeVerified), modeFlagHelp)
 	cmd.Flags().DurationVar(&f.maxAge, "max-age", 0, "Accept a cached answer up to this old (e.g. 1h, 24h; cached answers are free). 0 uses the service default")
-	_ = cmd.RegisterFlagCompletionFunc("mode", cobra.FixedCompletions(checkModes, cobra.ShellCompDirectiveNoFileComp))
+	cmdutil.FlagEnum(cmd, "mode", checkModes...)
 }
 
 // validate checks the flags before any request and returns them in the
@@ -59,8 +59,9 @@ func newCheckCmd(d deps) *cobra.Command {
 		file  string
 	)
 	cmd := &cobra.Command{
-		Use:   "check <domain>...",
-		Short: "Check whether domains are available to register",
+		Use:         "check <domain>...",
+		Annotations: cmdutil.Reads(),
+		Short:       "Check whether domains are available to register",
 		Long: `Checks each domain live and prints whether it is available, with the
 method that answered and, for registered domains, the expiry date and
 registrar. Domains come from the arguments, a file (--file) or standard

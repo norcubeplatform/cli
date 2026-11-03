@@ -35,8 +35,9 @@ func newBackupListCmd(d deps) *cobra.Command {
 	var pages cmdutil.PageFlags
 
 	cmd := &cobra.Command{
-		Use:   "list",
-		Short: "List backup jobs across the active organization, newest first",
+		Use:         "list",
+		Annotations: cmdutil.Reads(),
+		Short:       "List backup jobs across the active organization, newest first",
 		Long: `Lists backup jobs sorted by created_at descending. By default lists
 across every data source in the active organization — pass --datasource
 one or more times to filter to a subset. The backend paginates
@@ -107,8 +108,9 @@ func newBackupDownloadCmd(d deps) *cobra.Command {
 	var filePath string
 
 	cmd := &cobra.Command{
-		Use:   "download <job-id>",
-		Short: "Download a backup artifact to a local file",
+		Use:         "download <job-id>",
+		Annotations: cmdutil.Reads(),
+		Short:       "Download a backup artifact to a local file",
 		Long: `Download the artifact of a succeeded backup job.
 
 The backend issues a short-lived presigned URL for the backup object and

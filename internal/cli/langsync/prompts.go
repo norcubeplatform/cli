@@ -60,8 +60,9 @@ func oneLine(s string) string {
 
 func newPromptListCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "list",
-		Short: "List the custom prompts you can use",
+		Use:         "list",
+		Annotations: cmdutil.Reads(),
+		Short:       "List the custom prompts you can use",
 		Example: `  norcube langsync prompts list
   norcube langsync prompts list -o json --query "[?!isPrivate].id"`,
 		Args: cobra.NoArgs,
@@ -88,8 +89,9 @@ func newPromptListCmd() *cobra.Command {
 
 func newPromptGetCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "get <promptId>",
-		Short: "Show a custom prompt with its full text",
+		Use:         "get <promptId>",
+		Annotations: cmdutil.Reads(),
+		Short:       "Show a custom prompt with its full text",
 		Example: `  norcube langsync prompts get 5f0c2a9e-1d2b-4c3d-8e9f-0a1b2c3d4e5f
   norcube langsync prompts get 5f0c2a9e-1d2b-4c3d-8e9f-0a1b2c3d4e5f -o json --query prompt`,
 		Args: cobra.ExactArgs(1),
@@ -147,8 +149,9 @@ func newPromptCreateCmd() *cobra.Command {
 		private    bool
 	)
 	cmd := &cobra.Command{
-		Use:   "create <name>",
-		Short: "Create a custom prompt",
+		Use:         "create <name>",
+		Annotations: cmdutil.Writes(),
+		Short:       "Create a custom prompt",
 		Long: `Creates a custom prompt from --text, or from a file with --file (- reads
 stdin). It is shared with the organization unless --private is set.`,
 		Example: `  norcube langsync prompts create "Friendly tone" --text "Use an informal, friendly tone."
@@ -200,8 +203,9 @@ func newPromptUpdateCmd() *cobra.Command {
 		private          bool
 	)
 	cmd := &cobra.Command{
-		Use:   "update <promptId>",
-		Short: "Rename a custom prompt, change its text or who can use it",
+		Use:         "update <promptId>",
+		Annotations: cmdutil.Writes(),
+		Short:       "Rename a custom prompt, change its text or who can use it",
 		Long: `Changes only what you pass. --private=false shares a private prompt
 with the organization.`,
 		Example: `  norcube langsync prompts update 5f0c2a9e-1d2b-4c3d-8e9f-0a1b2c3d4e5f --name "Friendly, informal"
@@ -259,9 +263,10 @@ with the organization.`,
 func newPromptDeleteCmd() *cobra.Command {
 	var yes bool
 	cmd := &cobra.Command{
-		Use:     "delete <promptId>",
-		Aliases: []string{"rm"},
-		Short:   "Delete a custom prompt",
+		Use:         "delete <promptId>",
+		Annotations: cmdutil.Writes(),
+		Aliases:     []string{"rm"},
+		Short:       "Delete a custom prompt",
 		Long: `Deletes the prompt. Namespaces that used it by default fall back to no
 custom prompt.`,
 		Example: `  norcube langsync prompts delete 5f0c2a9e-1d2b-4c3d-8e9f-0a1b2c3d4e5f

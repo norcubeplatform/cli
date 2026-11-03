@@ -344,3 +344,17 @@ func (d Done) writeText(w io.Writer) error {
 	}
 	return genericText(w, g)
 }
+
+// View is a document whose JSON and YAML shape (Value, which --query also
+// sees) is richer than what a person wants to read: the table shows Table
+// and text prints Table's rows, while json and yaml encode Value whole.
+type View[T any] struct {
+	Value any
+	Table Table[T]
+}
+
+func (v View[T]) exposeItems() any { return v.Value }
+
+func (v View[T]) writeTable(w io.Writer) error { return v.Table.writeTable(w) }
+
+func (v View[T]) writeText(w io.Writer) error { return v.Table.writeText(w) }

@@ -70,8 +70,9 @@ func newImportCmd() *cobra.Command {
 		wait                     cmdutil.WaitFlags
 	)
 	cmd := &cobra.Command{
-		Use:   "import <file.csv>",
-		Short: "Import terms and translations from a CSV file",
+		Use:         "import <file.csv>",
+		Annotations: cmdutil.Writes(),
+		Short:       "Import terms and translations from a CSV file",
 		Long: `Imports a CSV file with a header row into a namespace: one column holds
 the marks (source strings), the others context or translations.
 
@@ -258,8 +259,9 @@ func newImportStatusCmd() *cobra.Command {
 		wait          cmdutil.WaitFlags
 	)
 	cmd := &cobra.Command{
-		Use:   "status <import-id>",
-		Short: "Show how a CSV import is doing",
+		Use:         "status <import-id>",
+		Annotations: cmdutil.Reads(),
+		Short:       "Show how a CSV import is doing",
 		Long: `Shows an import started with ` + "`terms import`" + `: prechecked (uploaded,
 not started), processing, completed or failed. --wait waits until it
 completed or failed, and exits 1 (code job_failed) when it failed.`,

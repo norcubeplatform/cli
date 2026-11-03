@@ -16,7 +16,9 @@ import (
 	"github.com/norcubeplatform/cli/internal/cli/langsync"
 	"github.com/norcubeplatform/cli/internal/clictx"
 	"github.com/norcubeplatform/cli/internal/clierr"
+	"github.com/norcubeplatform/cli/internal/cmdutil"
 	"github.com/norcubeplatform/cli/internal/completion"
+	"github.com/norcubeplatform/cli/internal/config"
 	"github.com/norcubeplatform/cli/internal/output"
 	"github.com/norcubeplatform/cli/internal/registry"
 	"github.com/norcubeplatform/cli/internal/term"
@@ -72,6 +74,7 @@ func NewRootCmd() *cobra.Command {
 	cmd.PersistentFlags().StringVar(&flags.Profile, "profile", "", "Use a named profile from the config file (env: NORCUBE_PROFILE)")
 	cmd.PersistentFlags().StringVar(&flags.OrgOverride, "org", "", "Run this command against a specific organization, id or slug (env: NORCUBE_ORG)")
 	cmd.PersistentFlags().StringVarP(&flags.Output, "output", "o", "table", "Output format: table | json | yaml | text (env: NORCUBE_OUTPUT)")
+	cmdutil.FlagEnum(cmd, "output", output.FormatTable, output.FormatJSON, output.FormatYAML, output.FormatText)
 	cmd.PersistentFlags().StringVar(&flags.Query, "query", "", "JMESPath expression applied to the result before it is printed, e.g. \"[?status=='failed'].jobId\"")
 	cmd.PersistentFlags().StringArrayVar(&flags.EndpointURLs, "endpoint-url", nil, "Override a service endpoint, service=url (repeatable; services: "+strings.Join(registry.Keys(), ", ")+")")
 	cmd.PersistentFlags().StringVar(&flags.TokenFile, "token-file", "", "Read an access token from this file instead of the profile's credentials (env: NORCUBE_TOKEN holds one directly)")
@@ -85,9 +88,10 @@ func NewRootCmd() *cobra.Command {
 	cmd.PersistentFlags().BoolVar(&flags.NoPager, "no-pager", false, "Disable automatic paging of long table output (env: $PAGER controls the pager, default: less)")
 
 	cmd.AddCommand(
-		newLoginCmd(),
-		newLogoutCmd(),
-		newWhoamiCmd(),
+		// Signing in and out and whoami talk to Norcube Auth.
+		cmdutil.Annotate(newLoginCmd(), cmdutil.AnnotationService, config.ServiceAuth),
+		cmdutil.Annotate(newLogoutCmd(), cmdutil.AnnotationService, config.ServiceAuth),
+		cmdutil.Annotate(newWhoamiCmd(), cmdutil.AnnotationService, config.ServiceAuth),
 		newAuthCmd(),
 		newConfigureCmd(),
 		newOrgCmd(),
@@ -95,6 +99,7 @@ func NewRootCmd() *cobra.Command {
 		newUpgradeCmd(),
 		newAPICmd(),
 		newDoctorCmd(),
+		newCommandsCmd(),
 		backup.NewCmd(),
 		langsync.NewCmd(),
 		domainradar.NewCmd(),

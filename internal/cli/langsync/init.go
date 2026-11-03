@@ -29,8 +29,9 @@ func newInitCmd() *cobra.Command {
 		localLangCode string
 	)
 	cmd := &cobra.Command{
-		Use:   "init",
-		Short: "Create a .langsync.json in the project root so this codebase can sync with Langsync",
+		Use:         "init",
+		Annotations: cmdutil.Writes(),
+		Short:       "Create a .langsync.json in the project root so this codebase can sync with Langsync",
 		Long: `Sets up Langsync inside the current project. Run this once per
 codebase; the resulting .langsync.json is committed alongside your
 source so every dev (and CI) syncs against the same backend
@@ -250,6 +251,7 @@ already in .langsync.json from a previous init are left alone.
 	cmd.Flags().StringSliceVarP(&nsFlags, "namespace", "n", nil, "Namespace name to include (repeat for multiple); skips the picker")
 	cmd.Flags().BoolVar(&forceWrite, "force", false, "Overwrite an existing .langsync.json instead of merging")
 	cmd.Flags().StringVar(&seedFlag, "seed", string(seedModePull), "After writing the config: pull | push-all | push-default | none")
+	cmdutil.FlagEnum(cmd, "seed", string(seedModePull), string(seedModePushAll), string(seedModePushDefault), string(seedModeNone))
 	cmd.Flags().StringVar(&localLangCode, "local-lang", "", "Language code you write source-of-truth values in. Defaults to the namespace's server-side default. Pass e.g. --local-lang cs to write in Czech even if the namespace default is en-US (see apps/langsync/docs/sync-source-language.md).")
 	return cmd
 }

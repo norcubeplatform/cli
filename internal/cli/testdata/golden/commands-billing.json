@@ -1,0 +1,510 @@
+{
+  "schemaVersion": 1,
+  "cliVersion": "dev",
+  "outputFormats": [
+    "table",
+    "json",
+    "yaml",
+    "text"
+  ],
+  "globalFlags": [
+    {
+      "name": "auth-url",
+      "type": "string",
+      "description": "Override the auth service base URL, same as --endpoint-url auth=URL (env: NORCUBE_AUTH_URL)",
+      "required": false,
+      "repeatable": false
+    },
+    {
+      "name": "cli-connect-timeout",
+      "type": "int",
+      "default": "10",
+      "description": "Seconds to wait for a connection, 0 for no limit (env: NORCUBE_CONNECT_TIMEOUT)",
+      "required": false,
+      "repeatable": false
+    },
+    {
+      "name": "cli-read-timeout",
+      "type": "int",
+      "default": "60",
+      "description": "Seconds to wait for each API response, 0 for no limit (env: NORCUBE_READ_TIMEOUT)",
+      "required": false,
+      "repeatable": false
+    },
+    {
+      "name": "debug",
+      "type": "bool",
+      "default": "false",
+      "description": "Print every HTTP request and response to stderr, with credentials redacted (env: NORCUBE_DEBUG=1)",
+      "required": false,
+      "repeatable": false
+    },
+    {
+      "name": "endpoint-url",
+      "type": "stringArray",
+      "description": "Override a service endpoint, service=url (repeatable; services: auth, web_app, snapdb, langsync, domainradar, billing, prompthub)",
+      "required": false,
+      "repeatable": true
+    },
+    {
+      "name": "max-attempts",
+      "type": "int",
+      "default": "3",
+      "description": "Attempts for a request that hit throttling or a transient failure, 1 disables retries (env: NORCUBE_MAX_ATTEMPTS)",
+      "required": false,
+      "repeatable": false
+    },
+    {
+      "name": "no-color",
+      "type": "bool",
+      "default": "false",
+      "description": "Disable color and styling (env: NO_COLOR, CLICOLOR=0)",
+      "required": false,
+      "repeatable": false
+    },
+    {
+      "name": "no-pager",
+      "type": "bool",
+      "default": "false",
+      "description": "Disable automatic paging of long table output (env: $PAGER controls the pager, default: less)",
+      "required": false,
+      "repeatable": false
+    },
+    {
+      "name": "org",
+      "type": "string",
+      "description": "Run this command against a specific organization, id or slug (env: NORCUBE_ORG)",
+      "required": false,
+      "repeatable": false
+    },
+    {
+      "name": "output",
+      "shorthand": "o",
+      "type": "string",
+      "default": "table",
+      "description": "Output format: table | json | yaml | text (env: NORCUBE_OUTPUT)",
+      "required": false,
+      "repeatable": false,
+      "enum": [
+        "table",
+        "json",
+        "yaml",
+        "text"
+      ]
+    },
+    {
+      "name": "profile",
+      "type": "string",
+      "description": "Use a named profile from the config file (env: NORCUBE_PROFILE)",
+      "required": false,
+      "repeatable": false
+    },
+    {
+      "name": "query",
+      "type": "string",
+      "description": "JMESPath expression applied to the result before it is printed, e.g. \"[?status=='failed'].jobId\"",
+      "required": false,
+      "repeatable": false
+    },
+    {
+      "name": "token-file",
+      "type": "string",
+      "description": "Read an access token from this file instead of the profile's credentials (env: NORCUBE_TOKEN holds one directly)",
+      "required": false,
+      "repeatable": false
+    },
+    {
+      "name": "web-app",
+      "type": "string",
+      "description": "Override the web app base URL used for browser login (env: NORCUBE_WEB_APP)",
+      "required": false,
+      "repeatable": false
+    }
+  ],
+  "commands": [
+    {
+      "command": "norcube billing",
+      "path": [
+        "billing"
+      ],
+      "name": "billing",
+      "short": "See the organization's billing: status, subscriptions, usage, invoices, spending caps",
+      "long": "Read the active organization's billing: whether the account is in good\nstanding, its subscriptions, this month's usage estimate and invoices, and\nset its monthly spending caps.\n\nPlans and payment methods are managed in the dashboard. A CI token with\nbilling.read can run every read command here; changing the spending caps\nneeds a person signed in with billing permissions.",
+      "usage": "norcube billing \u003ccommand\u003e",
+      "group": true,
+      "service": {
+        "key": "billing",
+        "name": "Norcube Billing",
+        "audience": "billing"
+      },
+      "confirm": false,
+      "wait": false,
+      "paginated": false,
+      "flags": []
+    },
+    {
+      "command": "norcube billing budget",
+      "path": [
+        "billing",
+        "budget"
+      ],
+      "name": "budget",
+      "short": "Show and set the organization's monthly spending caps",
+      "long": "The budget caps what the organization spends in a billing month, in US\ndollars. When the month's charges reach the hard cap, the account is\nblocked and paid usage is refused (`norcube billing status` shows it); a\nsoft cap only warns. Alert thresholds are percentages of the hard cap (of\nthe soft cap when there is no hard cap) at which the organization's\ninvoicing email address gets a warning.",
+      "usage": "norcube billing budget \u003ccommand\u003e",
+      "group": true,
+      "service": {
+        "key": "billing",
+        "name": "Norcube Billing",
+        "audience": "billing"
+      },
+      "confirm": false,
+      "wait": false,
+      "paginated": false,
+      "flags": []
+    },
+    {
+      "command": "norcube billing budget get",
+      "path": [
+        "billing",
+        "budget",
+        "get"
+      ],
+      "name": "get",
+      "short": "Show the monthly spending caps and alert thresholds",
+      "usage": "norcube billing budget get",
+      "example": "norcube billing budget get\nnorcube billing budget get -o json --query hardCapCents",
+      "group": false,
+      "service": {
+        "key": "billing",
+        "name": "Norcube Billing",
+        "audience": "billing"
+      },
+      "effect": "read",
+      "confirm": false,
+      "wait": false,
+      "paginated": false,
+      "outputFormats": [
+        "table",
+        "json",
+        "yaml",
+        "text"
+      ],
+      "flags": []
+    },
+    {
+      "command": "norcube billing budget set",
+      "path": [
+        "billing",
+        "budget",
+        "set"
+      ],
+      "name": "set",
+      "short": "Set the monthly spending caps or alert thresholds",
+      "long": "Changes only what you pass; the other settings stay as they are.\n\n  --hard-cap 500     stop paid usage at $500.00 a month (\"none\" removes it)\n  --soft-cap 300     warn at $300.00 a month (\"none\" removes it)\n  --alerts 50,80,100 email at these percentages of the cap\n\nReaching a hard cap blocks paid usage, so the command asks first; --yes\nanswers for scripts, and without a terminal --yes is required.",
+      "usage": "norcube billing budget set [flags]",
+      "example": "norcube billing budget set --hard-cap 500 --soft-cap 300\nnorcube billing budget set --alerts 50,90 --yes\nnorcube billing budget set --hard-cap none",
+      "group": false,
+      "service": {
+        "key": "billing",
+        "name": "Norcube Billing",
+        "audience": "billing"
+      },
+      "effect": "write",
+      "confirm": true,
+      "wait": false,
+      "paginated": false,
+      "outputFormats": [
+        "table",
+        "json",
+        "yaml",
+        "text"
+      ],
+      "flags": [
+        {
+          "name": "alerts",
+          "type": "string",
+          "description": "Alert thresholds, percentages of the cap (50,80,100)",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "hard-cap",
+          "type": "string",
+          "description": "Monthly hard cap in US dollars (\"none\" removes it)",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "soft-cap",
+          "type": "string",
+          "description": "Monthly soft (warning) cap in US dollars (\"none\" removes it)",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "yes",
+          "type": "bool",
+          "default": "false",
+          "description": "Skip the confirmation prompt (required when stdin isn't a terminal)",
+          "required": false,
+          "repeatable": false
+        }
+      ]
+    },
+    {
+      "command": "norcube billing invoices",
+      "path": [
+        "billing",
+        "invoices"
+      ],
+      "name": "invoices",
+      "aliases": [
+        "invoice"
+      ],
+      "short": "List invoices and download them as PDF",
+      "usage": "norcube billing invoices \u003ccommand\u003e",
+      "group": true,
+      "service": {
+        "key": "billing",
+        "name": "Norcube Billing",
+        "audience": "billing"
+      },
+      "confirm": false,
+      "wait": false,
+      "paginated": false,
+      "flags": []
+    },
+    {
+      "command": "norcube billing invoices download",
+      "path": [
+        "billing",
+        "invoices",
+        "download"
+      ],
+      "name": "download",
+      "short": "Download an invoice as PDF",
+      "long": "Saves the invoice as a PDF file, invoice-\u003cid\u003e.pdf in the current\ndirectory unless --file names another (- writes it to standard output).\nAn existing file is never overwritten.",
+      "usage": "norcube billing invoices download \u003cinvoice-id\u003e [flags]",
+      "args": "\u003cinvoice-id\u003e",
+      "example": "norcube billing invoices download 1042\nnorcube billing invoices download 1042 --file ~/Documents/norcube-2026-10.pdf",
+      "group": false,
+      "service": {
+        "key": "billing",
+        "name": "Norcube Billing",
+        "audience": "billing"
+      },
+      "effect": "read",
+      "confirm": false,
+      "wait": false,
+      "paginated": false,
+      "outputFormats": [
+        "table",
+        "json",
+        "yaml",
+        "text"
+      ],
+      "flags": [
+        {
+          "name": "file",
+          "type": "string",
+          "description": "File to write (- for standard output; default invoice-\u003cid\u003e.pdf)",
+          "required": false,
+          "repeatable": false
+        }
+      ]
+    },
+    {
+      "command": "norcube billing invoices list",
+      "path": [
+        "billing",
+        "invoices",
+        "list"
+      ],
+      "name": "list",
+      "short": "List the organization's invoices",
+      "long": "Lists the organization's invoices with their billing period, status and\ntotal. Download one with `norcube billing invoices download \u003cid\u003e`.",
+      "usage": "norcube billing invoices list",
+      "example": "norcube billing invoices list\nnorcube billing invoices list -o json --query \"[].{id: id, total: total, currency: currency}\"",
+      "group": false,
+      "service": {
+        "key": "billing",
+        "name": "Norcube Billing",
+        "audience": "billing"
+      },
+      "effect": "read",
+      "confirm": false,
+      "wait": false,
+      "paginated": false,
+      "outputFormats": [
+        "table",
+        "json",
+        "yaml",
+        "text"
+      ],
+      "flags": []
+    },
+    {
+      "command": "norcube billing status",
+      "path": [
+        "billing",
+        "status"
+      ],
+      "name": "status",
+      "short": "Show whether the organization's account is in good standing",
+      "long": "Shows the account's status: active, grace (a payment failed; the grace\nperiod runs until the date shown) or blocked (paid usage and new\nresources are refused: an unpaid balance, or the month's charges reached\nthe hard spending cap).",
+      "usage": "norcube billing status",
+      "example": "norcube billing status\nnorcube billing status -o json --query status",
+      "group": false,
+      "service": {
+        "key": "billing",
+        "name": "Norcube Billing",
+        "audience": "billing"
+      },
+      "effect": "read",
+      "confirm": false,
+      "wait": false,
+      "paginated": false,
+      "outputFormats": [
+        "table",
+        "json",
+        "yaml",
+        "text"
+      ],
+      "flags": []
+    },
+    {
+      "command": "norcube billing subscriptions",
+      "path": [
+        "billing",
+        "subscriptions"
+      ],
+      "name": "subscriptions",
+      "aliases": [
+        "subscription"
+      ],
+      "short": "Show the organization's subscriptions",
+      "usage": "norcube billing subscriptions \u003ccommand\u003e",
+      "group": true,
+      "service": {
+        "key": "billing",
+        "name": "Norcube Billing",
+        "audience": "billing"
+      },
+      "confirm": false,
+      "wait": false,
+      "paginated": false,
+      "flags": []
+    },
+    {
+      "command": "norcube billing subscriptions list",
+      "path": [
+        "billing",
+        "subscriptions",
+        "list"
+      ],
+      "name": "list",
+      "short": "List each service's billing and the plan the organization is on",
+      "long": "Lists every billable service: how it is billed (metered: pay as you go;\nplans: always on a plan; choice: pay as you go or a plan) and the\norganization's current plan there. Change plans in the dashboard.",
+      "usage": "norcube billing subscriptions list",
+      "example": "norcube billing subscriptions list\nnorcube billing subscriptions list -o json --query \"[?subscription].{service: code, plan: subscription.planCode}\"",
+      "group": false,
+      "service": {
+        "key": "billing",
+        "name": "Norcube Billing",
+        "audience": "billing"
+      },
+      "effect": "read",
+      "confirm": false,
+      "wait": false,
+      "paginated": false,
+      "outputFormats": [
+        "table",
+        "json",
+        "yaml",
+        "text"
+      ],
+      "flags": []
+    },
+    {
+      "command": "norcube billing usage",
+      "path": [
+        "billing",
+        "usage"
+      ],
+      "name": "usage",
+      "short": "See this month's usage and what it will cost",
+      "usage": "norcube billing usage \u003ccommand\u003e",
+      "group": true,
+      "service": {
+        "key": "billing",
+        "name": "Norcube Billing",
+        "audience": "billing"
+      },
+      "confirm": false,
+      "wait": false,
+      "paginated": false,
+      "flags": []
+    },
+    {
+      "command": "norcube billing usage estimate",
+      "path": [
+        "billing",
+        "usage",
+        "estimate"
+      ],
+      "name": "estimate",
+      "short": "Show this month's charges so far and the estimate for the whole month",
+      "long": "Shows what the organization's usage costs so far this billing month and\nthe estimated total, in US dollars. The estimate weighs the month's pace\nagainst previous months; \"linear\" is the pace alone.",
+      "usage": "norcube billing usage estimate",
+      "example": "norcube billing usage estimate\nnorcube billing usage estimate -o json --query estimatedTotal",
+      "group": false,
+      "service": {
+        "key": "billing",
+        "name": "Norcube Billing",
+        "audience": "billing"
+      },
+      "effect": "read",
+      "confirm": false,
+      "wait": false,
+      "paginated": false,
+      "outputFormats": [
+        "table",
+        "json",
+        "yaml",
+        "text"
+      ],
+      "flags": []
+    },
+    {
+      "command": "norcube billing usage metrics",
+      "path": [
+        "billing",
+        "usage",
+        "metrics"
+      ],
+      "name": "metrics",
+      "short": "Show usage per metric against its free tier",
+      "long": "Lists every billable metric with its free tier, the usage so far this\nmonth and the projection for the month's end. OVER marks metrics on\ntrack to exceed the free tier, which is where charges start.",
+      "usage": "norcube billing usage metrics",
+      "example": "norcube billing usage metrics\nnorcube billing usage metrics -o json --query \"[?overflowProjected].metricCode\"",
+      "group": false,
+      "service": {
+        "key": "billing",
+        "name": "Norcube Billing",
+        "audience": "billing"
+      },
+      "effect": "read",
+      "confirm": false,
+      "wait": false,
+      "paginated": false,
+      "outputFormats": [
+        "table",
+        "json",
+        "yaml",
+        "text"
+      ],
+      "flags": []
+    }
+  ]
+}

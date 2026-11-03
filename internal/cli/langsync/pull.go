@@ -4,6 +4,8 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+
+	"github.com/norcubeplatform/cli/internal/cmdutil"
 )
 
 // newPullCmd is `nrc langsync pull` — the discoverable verb for
@@ -23,8 +25,9 @@ func newPullCmd() *cobra.Command {
 		pollEvery   time.Duration
 	)
 	cmd := &cobra.Command{
-		Use:   "pull",
-		Short: "Download the current server state into the local translation files (no push)",
+		Use:         "pull",
+		Annotations: cmdutil.Local(),
+		Short:       "Download the current server state into the local translation files (no push)",
 		Long: `Pulls every attached language's translations for each namespace in
 .langsync.json and writes them to disk. Equivalent to
 'norcube langsync sync --strategy server' — use whichever you find

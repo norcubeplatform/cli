@@ -38,9 +38,10 @@ type setting struct {
 
 func newConfigListCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:     "list",
-		Aliases: []string{"show"},
-		Short:   "Show the settings a command would use, and where each comes from",
+		Use:         "list",
+		Annotations: cmdutil.Reads(),
+		Aliases:     []string{"show"},
+		Short:       "Show the settings a command would use, and where each comes from",
 		Example: `  norcube config list
   norcube config list --profile client-acme
   norcube config list -o json --query "[?name=='endpoint.auth'].value | [0]"`,
@@ -117,8 +118,9 @@ type profileRow struct {
 
 func newConfigProfilesCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "profiles",
-		Short: "List the profiles in the config file",
+		Use:         "profiles",
+		Annotations: cmdutil.Reads(),
+		Short:       "List the profiles in the config file",
 		Example: `  norcube config profiles
   norcube config profiles -o json --query "[?default].name"`,
 		Long: "Lists every profile; * marks the one this command would use.",
@@ -184,8 +186,9 @@ func orDash(s string) string {
 
 func newConfigPathCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "path",
-		Short: "Print the path of the config file",
+		Use:         "path",
+		Annotations: cmdutil.Reads(),
+		Short:       "Print the path of the config file",
 		Example: `  norcube config path
   cat "$(norcube config path)"`,
 		Args: cobra.NoArgs,
@@ -205,8 +208,10 @@ func newConfigPathCmd() *cobra.Command {
 
 func newConfigEditCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "edit",
-		Short: "Open the config file in $VISUAL or $EDITOR",
+		Use: "edit",
+		// The editor gets the terminal; nothing is printed on stdout.
+		Annotations: map[string]string{cmdutil.AnnotationEffect: string(cmdutil.EffectLocal), cmdutil.AnnotationNoResult: "true"},
+		Short:       "Open the config file in $VISUAL or $EDITOR",
 		Example: `  norcube config edit
   EDITOR=nano norcube config edit`,
 		Long: `Opens the config file in your editor ($VISUAL, then $EDITOR, else vi, or
@@ -248,8 +253,9 @@ notepad on Windows) and checks it when the editor exits.`,
 
 func newConfigResetURLsCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "reset-urls",
-		Short: "Remove the selected profile's endpoint overrides",
+		Use:         "reset-urls",
+		Annotations: cmdutil.Local(),
+		Short:       "Remove the selected profile's endpoint overrides",
 		Example: `  norcube config reset-urls
   norcube config reset-urls --profile client-acme`,
 		Long: `Makes the selected profile use its environment's built-in endpoints again

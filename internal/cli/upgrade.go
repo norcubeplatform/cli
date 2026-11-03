@@ -30,8 +30,9 @@ const (
 func newUpgradeCmd() *cobra.Command {
 	var force bool
 	cmd := &cobra.Command{
-		Use:   "upgrade",
-		Short: "Update norcube to the latest release",
+		Use:         "upgrade",
+		Annotations: cmdutil.Local(),
+		Short:       "Update norcube to the latest release",
 		Example: `  norcube upgrade
   norcube upgrade --force`,
 		Long: `Checks GitHub for newer releases of norcube, downloads the archive for

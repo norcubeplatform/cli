@@ -161,8 +161,9 @@ func newRestoreListCmd(d deps) *cobra.Command {
 		pages        cmdutil.PageFlags
 	)
 	cmd := &cobra.Command{
-		Use:   "list",
-		Short: "List a data source's restores, newest first",
+		Use:         "list",
+		Annotations: cmdutil.Reads(),
+		Short:       "List a data source's restores, newest first",
 		Example: `  norcube backup restores list --datasource 9f8e7d6c-…
   norcube backup restores list -d 9f8e7d6c-… --tests
   norcube backup restores list -d 9f8e7d6c-… -o json --query "[?status=='failed'].id"`,
@@ -195,8 +196,9 @@ func newRestoreListCmd(d deps) *cobra.Command {
 
 func newRestoreGetCmd(d deps) *cobra.Command {
 	return &cobra.Command{
-		Use:   "get <restore-id>",
-		Short: "Show one restore or restore test",
+		Use:         "get <restore-id>",
+		Annotations: cmdutil.Reads(),
+		Short:       "Show one restore or restore test",
 		Example: `  norcube backup restores get 4c5d6e7f-…
   norcube backup restores get 4c5d6e7f-… -o json --query status`,
 		Args: cobra.ExactArgs(1),
@@ -263,8 +265,9 @@ func newRestoreCreateCmd(d deps) *cobra.Command {
 		wait cmdutil.WaitFlags
 	)
 	cmd := &cobra.Command{
-		Use:   "create",
-		Short: "Restore a backup into a database",
+		Use:         "create",
+		Annotations: cmdutil.Writes(),
+		Short:       "Restore a backup into a database",
 		Long: `Starts a restore of one successful backup (` + "`norcube backup jobs list`" + `
 shows them). --mode picks where the data goes:
 
@@ -356,7 +359,7 @@ for the restore to finish and exits 1 (code job_failed) when it failed.`,
 	cmd.Flags().StringVar(&req.targetDB, "target-database", "", "Name of the database to create (new_database only)")
 	cmd.Flags().BoolVar(&yes, "yes", false, "Skip the confirmation prompt (required when stdin isn't a terminal)")
 	cmdutil.AddWaitFlags(cmd, &wait, "restore", 6*time.Hour)
-	_ = cmd.RegisterFlagCompletionFunc("mode", cobra.FixedCompletions(restoreModes, cobra.ShellCompDirectiveNoFileComp))
+	cmdutil.FlagEnum(cmd, "mode", restoreModes...)
 	for _, f := range []string{"datasource", "backup", "mode"} {
 		_ = cmd.MarkFlagRequired(f)
 	}

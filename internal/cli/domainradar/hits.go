@@ -33,8 +33,9 @@ func newHitListCmd(d deps) *cobra.Command {
 		pages              cmdutil.PageFlags
 	)
 	cmd := &cobra.Command{
-		Use:   "list",
-		Short: "List hits, newest first",
+		Use:         "list",
+		Annotations: cmdutil.Reads(),
+		Short:       "List hits, newest first",
 		Example: `  norcube domainradar hits list
   norcube domainradar hits list --watcher 7d2e… --min-score 70
   norcube domainradar hits list --all-pages -o json --query "[?aiRisk=='high'].domain"`,
@@ -103,10 +104,11 @@ func newHitListCmd(d deps) *cobra.Command {
 
 func newHitGetCmd(d deps) *cobra.Command {
 	return &cobra.Command{
-		Use:     "get <hit-id>",
-		Short:   "Show a hit with its score and AI review",
-		Example: `  norcube domainradar hits get 91ab…`,
-		Args:    cobra.ExactArgs(1),
+		Use:         "get <hit-id>",
+		Annotations: cmdutil.Reads(),
+		Short:       "Show a hit with its score and AI review",
+		Example:     `  norcube domainradar hits get 91ab…`,
+		Args:        cobra.ExactArgs(1),
 		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
 			c, err := d.client(cmd)
 			if err != nil {

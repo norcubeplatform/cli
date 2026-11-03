@@ -23,8 +23,9 @@ import (
 
 func newConfigureCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "configure",
-		Short: "Create or change a profile",
+		Use:         "configure",
+		Annotations: cmdutil.Local(),
+		Short:       "Create or change a profile",
 		Long: `Without a subcommand, asks for the selected profile's organization and
 where to keep its session (creating the profile if needed). Profiles use
 Norcube production; select one with --profile. Most people only ever use
@@ -174,8 +175,9 @@ func unknownKey(key string) error {
 
 func newConfigureSetCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "set <key> <value>",
-		Short: "Set one setting (run `norcube configure --help` for the keys)",
+		Use:         "set <key> <value>",
+		Annotations: cmdutil.Local(),
+		Short:       "Set one setting (run `norcube configure --help` for the keys)",
 		Example: `  norcube configure set organization acme
   norcube configure set defaults.output json`,
 		Args: cobra.ExactArgs(2),
@@ -331,8 +333,9 @@ func setOrganization(cmd *cobra.Command, value string) error {
 
 func newConfigureGetCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "get <key>",
-		Short: "Print one setting as stored in the config file",
+		Use:         "get <key>",
+		Annotations: cmdutil.Reads(),
+		Short:       "Print one setting as stored in the config file",
 		Example: `  norcube configure get organization
   norcube configure get endpoints.langsync --profile local`,
 		Args: cobra.ExactArgs(1),
@@ -395,8 +398,9 @@ func getSetting(f *config.File, profile, key string) (string, error) {
 
 func newConfigureUnsetCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "unset <key>",
-		Short: "Remove one setting from the config file",
+		Use:         "unset <key>",
+		Annotations: cmdutil.Local(),
+		Short:       "Remove one setting from the config file",
 		Example: `  norcube configure unset endpoints.langsync --profile local
   norcube configure unset defaults.output`,
 		Args: cobra.ExactArgs(1),

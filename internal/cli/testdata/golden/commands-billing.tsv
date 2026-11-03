@@ -1,0 +1,13 @@
+norcube billing	See the organization's billing: status, subscriptions, usage, invoices, spending caps
+norcube billing budget	Show and set the organization's monthly spending caps
+norcube billing budget get	Show the monthly spending caps and alert thresholds
+norcube billing budget set	Set the monthly spending caps or alert thresholds
+norcube billing invoices	List invoices and download them as PDF
+norcube billing invoices download	Download an invoice as PDF
+norcube billing invoices list	List the organization's invoices
+norcube billing status	Show whether the organization's account is in good standing
+norcube billing subscriptions	Show the organization's subscriptions
+norcube billing subscriptions list	List each service's billing and the plan the organization is on
+norcube billing usage	See this month's usage and what it will cost
+norcube billing usage estimate	Show this month's charges so far and the estimate for the whole month
+norcube billing usage metrics	Show usage per metric against its free tier

@@ -87,8 +87,9 @@ func newRestoreTestRunCmd(d deps) *cobra.Command {
 		wait         cmdutil.WaitFlags
 	)
 	cmd := &cobra.Command{
-		Use:   "run [backup-job-id]",
-		Short: "Restore-test one backup into a throwaway database, right now",
+		Use:         "run [backup-job-id]",
+		Annotations: cmdutil.Writes(),
+		Short:       "Restore-test one backup into a throwaway database, right now",
 		Long: `Enqueue an on-demand restore test of a backup: the one you name, or the
 data source's newest successful backup.
 
@@ -168,8 +169,9 @@ func newRestoreTestListCmd(d deps) *cobra.Command {
 		pages        cmdutil.PageFlags
 	)
 	cmd := &cobra.Command{
-		Use:   "list",
-		Short: "List a data source's restore tests, newest first",
+		Use:         "list",
+		Annotations: cmdutil.Reads(),
+		Short:       "List a data source's restore tests, newest first",
 		Long: `Lists the restore tests of a data source, automated and on-demand, with
 their verdict: passed, passed (warnings) or failed when the data was
 validated, or the restore's own status (queued, running, failed) when it
@@ -265,8 +267,9 @@ func settingsObject(datasourceID string, s snapdb.DtoRestoreCheck) output.Object
 func newRestoreTestSettingsGetCmd(d deps) *cobra.Command {
 	var datasourceID string
 	cmd := &cobra.Command{
-		Use:   "get",
-		Short: "Show a data source's automated restore-test settings",
+		Use:         "get",
+		Annotations: cmdutil.Reads(),
+		Short:       "Show a data source's automated restore-test settings",
 		Example: `  norcube backup restore-tests settings get --datasource 9f8e7d6c-…
   norcube backup restore-tests settings get -d 9f8e7d6c-… -o json`,
 		Args: cobra.NoArgs,
@@ -404,8 +407,9 @@ func newRestoreTestSettingsUpdateCmd(d deps) *cobra.Command {
 		f            restoreTestSettingsFlags
 	)
 	cmd := &cobra.Command{
-		Use:   "update",
-		Short: "Change a data source's automated restore tests",
+		Use:         "update",
+		Annotations: cmdutil.Writes(),
+		Short:       "Change a data source's automated restore tests",
 		Long: `Changes only what you pass; the rest stays as it is.
 
 How often automated tests run (one of):
@@ -468,8 +472,8 @@ server being backed up). --level sets how deep the validation goes: l1
 	cmd.Flags().StringVar(&f.level, "level", "", "Validation depth: "+strings.Join(restoreTestLevels, ", "))
 	cmd.Flags().StringVar(&f.query, "validation-query", "", "Query an l3 validation runs against the restored data")
 	cmd.MarkFlagsMutuallyExclusive("enable", "disable")
-	_ = cmd.RegisterFlagCompletionFunc("target", cobra.FixedCompletions(restoreTestTargets, cobra.ShellCompDirectiveNoFileComp))
-	_ = cmd.RegisterFlagCompletionFunc("level", cobra.FixedCompletions(restoreTestLevels, cobra.ShellCompDirectiveNoFileComp))
+	cmdutil.FlagEnum(cmd, "target", restoreTestTargets...)
+	cmdutil.FlagEnum(cmd, "level", restoreTestLevels...)
 	_ = cmd.MarkFlagRequired("datasource")
 	return cmd
 }

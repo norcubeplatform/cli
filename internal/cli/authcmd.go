@@ -24,8 +24,9 @@ import (
 
 func newAuthCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "auth",
-		Short: "Check the session, manage CLI sessions and CI tokens, and get access tokens for scripts",
+		Use:         "auth",
+		Short:       "Check the session, manage CLI sessions and CI tokens, and get access tokens for scripts",
+		Annotations: map[string]string{cmdutil.AnnotationService: config.ServiceAuth},
 	}
 	cmd.AddCommand(newAuthStatusCmd(), newAuthTokenCmd(), newAuthSessionsCmd(), newAuthCITokenCmd())
 	return cmd
@@ -68,8 +69,9 @@ type ciTokenStatus struct {
 func newAuthStatusCmd() *cobra.Command {
 	var allProfiles, offline bool
 	cmd := &cobra.Command{
-		Use:   "status",
-		Short: "Show whether a profile is signed in (exit code 4 when it isn't)",
+		Use:         "status",
+		Annotations: cmdutil.Reads(),
+		Short:       "Show whether a profile is signed in (exit code 4 when it isn't)",
 		Example: `  norcube auth status
   norcube auth status --all-profiles
   norcube auth status --offline
@@ -334,20 +336,21 @@ var audiences = map[string]string{
 	"prompthub":   auth.AudiencePrompthub,
 }
 
-func audienceNames() string {
+func audienceNames() []string {
 	names := make([]string, 0, len(audiences))
 	for n := range audiences {
 		names = append(names, n)
 	}
 	sort.Strings(names)
-	return strings.Join(names, ", ")
+	return names
 }
 
 func newAuthTokenCmd() *cobra.Command {
 	var audience string
 	cmd := &cobra.Command{
-		Use:   "token",
-		Short: "Print a short-lived access token for a service",
+		Use:         "token",
+		Annotations: cmdutil.Reads(),
+		Short:       "Print a short-lived access token for a service",
 		Long: `Prints an access token for the service (--audience) and organization
 (--org, else the profile's) to stdout, for curl or other tools:
 
@@ -361,7 +364,7 @@ you in that organization.`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			aud, ok := audiences[audience]
 			if !ok {
-				return clierr.Usage(fmt.Errorf("--audience %q: one of %s", audience, audienceNames()))
+				return clierr.Usage(fmt.Errorf("--audience %q: one of %s", audience, strings.Join(audienceNames(), ", ")))
 			}
 			flags := clictx.Get(cmd)
 			cfg, err := flags.Config()
@@ -398,7 +401,8 @@ you in that organization.`,
 			return cmdutil.Print(cmd, output.Done{Message: tok, Value: res, Fields: []output.Field{{Value: tok}}})
 		},
 	}
-	cmd.Flags().StringVar(&audience, "audience", "auth", "Service the token is for: "+audienceNames())
+	cmd.Flags().StringVar(&audience, "audience", "auth", "Service the token is for: "+strings.Join(audienceNames(), ", "))
+	cmdutil.FlagEnum(cmd, "audience", audienceNames()...)
 	return cmd
 }
 

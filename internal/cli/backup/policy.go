@@ -40,8 +40,9 @@ resume and detach change one attachment without touching the policy.`,
 func newPolicyListCmd(d deps) *cobra.Command {
 	var datasourceID string
 	cmd := &cobra.Command{
-		Use:   "list",
-		Short: "List the organization's backup policies, or the ones attached to a data source",
+		Use:         "list",
+		Annotations: cmdutil.Reads(),
+		Short:       "List the organization's backup policies, or the ones attached to a data source",
 		Long: `Without --datasource, lists every backup policy of the organization.
 With --datasource, lists the policies attached to that data source, with
 each attachment's state and priority.`,
@@ -94,8 +95,9 @@ each attachment's state and priority.`,
 func newPolicyPauseCmd(d deps) *cobra.Command {
 	var datasourceID, policyID string
 	cmd := &cobra.Command{
-		Use:   "pause",
-		Short: "Pause one policy on one data source (scheduler stops enqueuing this attachment)",
+		Use:         "pause",
+		Annotations: cmdutil.Writes(),
+		Short:       "Pause one policy on one data source (scheduler stops enqueuing this attachment)",
 		Long: `Sets enabled=false on the attachment row. Schedule history, cron
 expression, and jitter are preserved — flip it back with "resume".
 Other policies on the same data source continue to run.`,
@@ -114,9 +116,10 @@ Other policies on the same data source continue to run.`,
 func newPolicyResumeCmd(d deps) *cobra.Command {
 	var datasourceID, policyID string
 	cmd := &cobra.Command{
-		Use:     "resume",
-		Short:   "Re-enable a previously paused policy attachment",
-		Example: `  norcube backup policies resume --datasource 9f8e7d6c-… --policy 1a2b3c4d-…`,
+		Use:         "resume",
+		Annotations: cmdutil.Writes(),
+		Short:       "Re-enable a previously paused policy attachment",
+		Example:     `  norcube backup policies resume --datasource 9f8e7d6c-… --policy 1a2b3c4d-…`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			return setAttachmentEnabled(cmd, d, datasourceID, policyID, true, "Resumed policy %q on data source %q.")
 		},
@@ -155,8 +158,9 @@ func newPolicyDetachCmd(d deps) *cobra.Command {
 	var datasourceID, policyID string
 	var yes bool
 	cmd := &cobra.Command{
-		Use:   "detach",
-		Short: "Remove a policy attachment entirely (destructive)",
+		Use:         "detach",
+		Annotations: cmdutil.Writes(),
+		Short:       "Remove a policy attachment entirely (destructive)",
 		Long: `Deletes the join row between a data source and a backup policy. The
 backup policy definition is not affected; only this one attachment is
 removed. Past backup jobs are unaffected.

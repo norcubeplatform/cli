@@ -27,8 +27,9 @@ func newInvoicesCmd(d deps) *cobra.Command {
 
 func newInvoiceListCmd(d deps) *cobra.Command {
 	return &cobra.Command{
-		Use:   "list",
-		Short: "List the organization's invoices",
+		Use:         "list",
+		Annotations: cmdutil.Reads(),
+		Short:       "List the organization's invoices",
 		Long: `Lists the organization's invoices with their billing period, status and
 total. Download one with ` + "`norcube billing invoices download <id>`" + `.`,
 		Example: `  norcube billing invoices list
@@ -71,8 +72,9 @@ total. Download one with ` + "`norcube billing invoices download <id>`" + `.`,
 func newInvoiceDownloadCmd(d deps) *cobra.Command {
 	var to string
 	cmd := &cobra.Command{
-		Use:   "download <invoice-id>",
-		Short: "Download an invoice as PDF",
+		Use:         "download <invoice-id>",
+		Annotations: cmdutil.Reads(),
+		Short:       "Download an invoice as PDF",
 		Long: `Saves the invoice as a PDF file, invoice-<id>.pdf in the current
 directory unless --file names another (- writes it to standard output).
 An existing file is never overwritten.`,

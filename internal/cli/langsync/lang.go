@@ -40,8 +40,9 @@ languages on a given namespace.`,
 func newLangListCmd() *cobra.Command {
 	var namespaceName string
 	cmd := &cobra.Command{
-		Use:   "list",
-		Short: "List languages — every language available to the active org by default; pass -n <namespace> for the namespace's attached subset",
+		Use:         "list",
+		Annotations: cmdutil.Reads(),
+		Short:       "List languages — every language available to the active org by default; pass -n <namespace> for the namespace's attached subset",
 		Example: `  norcube langsync languages list
   norcube langsync languages list -o json --query "[].code"`,
 		Long: `Without --namespace, lists every language visible to the active org:
@@ -99,8 +100,9 @@ func langKind(l langsync.DtoDTOLanguage) string {
 
 func newLangCreateCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create <code> <name>",
-		Short: "Create a custom language scoped to the active organization",
+		Use:         "create <code> <name>",
+		Annotations: cmdutil.Writes(),
+		Short:       "Create a custom language scoped to the active organization",
 		Long: `Creates a custom language inside the active organization. The code
 must start with a letter and contain only lowercase letters, digits,
 hyphens, or underscores (max 32 chars). Codes are unique per-org —
@@ -148,8 +150,9 @@ func newLangDeleteCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		// No short alias: `rm` belongs to `remove`, which only detaches a
 		// language from a namespace, so an abbreviation never deletes.
-		Use:   "delete <id>",
-		Short: "Delete a custom language owned by the active organization",
+		Use:         "delete <id>",
+		Annotations: cmdutil.Writes(),
+		Short:       "Delete a custom language owned by the active organization",
 		Example: `  norcube langsync languages delete 42
   norcube langsync languages delete 42 --yes   # scripts`,
 		Long: `Permanently removes a custom language. Shared (global) languages are
@@ -207,8 +210,9 @@ Use --yes to skip confirmation in scripts.`,
 func newLangAddCmd() *cobra.Command {
 	var namespaceName string
 	cmd := &cobra.Command{
-		Use:   "add [code-or-id]",
-		Short: "Attach a language to a namespace",
+		Use:         "add [code-or-id]",
+		Annotations: cmdutil.Writes(),
+		Short:       "Attach a language to a namespace",
 		Example: `  norcube langsync languages add cs --namespace web
   norcube langsync languages add 17 -n web`,
 		Long: `Adds a language to the namespace so terms can be translated into it.
@@ -294,9 +298,10 @@ func newLangRemoveCmd() *cobra.Command {
 		yes           bool
 	)
 	cmd := &cobra.Command{
-		Use:     "remove [code-or-id]",
-		Aliases: []string{"rm"},
-		Short:   "Remove a language from a namespace (and every translation in that language)",
+		Use:         "remove [code-or-id]",
+		Annotations: cmdutil.Writes(),
+		Aliases:     []string{"rm"},
+		Short:       "Remove a language from a namespace (and every translation in that language)",
 		Example: `  norcube langsync languages remove cs --namespace web
   norcube langsync languages remove cs -n web --yes   # scripts`,
 		Long: `Detaches a language from the namespace. The translation rows for

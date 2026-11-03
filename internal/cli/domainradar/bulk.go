@@ -52,8 +52,9 @@ func newBulkCreateCmd(d deps) *cobra.Command {
 		wait  cmdutil.WaitFlags
 	)
 	cmd := &cobra.Command{
-		Use:   "create [domain...]",
-		Short: "Start a bulk check",
+		Use:         "create [domain...]",
+		Annotations: cmdutil.Writes(),
+		Short:       "Start a bulk check",
 		Long: `Starts a bulk check of up to 100,000 domains on the server and prints the
 job. Domains come from the arguments, a file (--file) or standard input
 (--file - or a single -), one per line; blank lines, "#" comments and
@@ -167,9 +168,10 @@ func jobObject(j domainradar.DtoBulkCheckJob) output.Object {
 func newBulkListCmd(d deps) *cobra.Command {
 	var pages cmdutil.PageFlags
 	cmd := &cobra.Command{
-		Use:   "list",
-		Short: "List bulk checks, newest first",
-		Long:  "Lists the organization's bulk checks, including ones started in the dashboard.",
+		Use:         "list",
+		Annotations: cmdutil.Reads(),
+		Short:       "List bulk checks, newest first",
+		Long:        "Lists the organization's bulk checks, including ones started in the dashboard.",
 		Example: `  norcube domainradar bulk list
   norcube domainradar bulk list -o json --query "[?status=='running'].id"`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
@@ -216,8 +218,9 @@ func newBulkListCmd(d deps) *cobra.Command {
 
 func newBulkGetCmd(d deps) *cobra.Command {
 	return &cobra.Command{
-		Use:   "get <job-id>",
-		Short: "Show a bulk check and its progress",
+		Use:         "get <job-id>",
+		Annotations: cmdutil.Reads(),
+		Short:       "Show a bulk check and its progress",
 		Example: `  norcube domainradar bulk get 4f1c…
   norcube domainradar bulk get 4f1c… -o json --query status`,
 		Args: cobra.ExactArgs(1),
@@ -304,8 +307,9 @@ func newBulkResultsCmd(d deps) *cobra.Command {
 		pages   cmdutil.PageFlags
 	)
 	cmd := &cobra.Command{
-		Use:   "results <job-id>",
-		Short: "List the results of a bulk check",
+		Use:         "results <job-id>",
+		Annotations: cmdutil.Reads(),
+		Short:       "List the results of a bulk check",
 		Long: `Lists a bulk check's results, also while it runs. Filter by availability,
 text or TLD; follow --cursor or pass --all-pages for more.`,
 		Example: `  norcube domainradar bulk results 4f1c… --available
@@ -332,8 +336,9 @@ text or TLD; follow --cursor or pass --all-pages for more.`,
 
 func newBulkWatchCmd(d deps) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "watch <job-id>",
-		Short: "Show the results of a running bulk check as they arrive",
+		Use:         "watch <job-id>",
+		Annotations: cmdutil.Reads(),
+		Short:       "Show the results of a running bulk check as they arrive",
 		Long: `Streams a bulk check's results as the server produces them, then ends
 when the job finishes. A dropped connection reconnects on its own;
 results already shown aren't shown again. Ctrl-C stops watching, not the
@@ -440,8 +445,9 @@ func newBulkExportCmd(d deps) *cobra.Command {
 		format  string
 	)
 	cmd := &cobra.Command{
-		Use:   "export <job-id>",
-		Short: "Export the results of a bulk check to a CSV or JSON file",
+		Use:         "export <job-id>",
+		Annotations: cmdutil.Reads(),
+		Short:       "Export the results of a bulk check to a CSV or JSON file",
 		Long: `Writes every result of a bulk check (or those matching the filters) to a
 file, or to standard output with --to -. CSV comes straight from the
 server in one stream; JSON pages through the results.
@@ -494,7 +500,7 @@ bulk-check-<job-id>.<format> in the current directory.`,
 	addResultFilters(cmd, &filters)
 	cmd.Flags().StringVar(&to, "to", "", "File to write (- for standard output; default bulk-check-<job-id>.<format>)")
 	cmd.Flags().StringVar(&format, "format", "csv", "File format: csv or json")
-	_ = cmd.RegisterFlagCompletionFunc("format", cobra.FixedCompletions([]string{"csv", "json"}, cobra.ShellCompDirectiveNoFileComp))
+	cmdutil.FlagEnum(cmd, "format", "csv", "json")
 	return cmd
 }
 
@@ -533,8 +539,9 @@ func exportJSON(ctx context.Context, c *drContext, id string, f resultFilters) (
 func newBulkCancelCmd(d deps) *cobra.Command {
 	var yes bool
 	cmd := &cobra.Command{
-		Use:   "cancel <job-id>",
-		Short: "Stop a running bulk check",
+		Use:         "cancel <job-id>",
+		Annotations: cmdutil.Writes(),
+		Short:       "Stop a running bulk check",
 		Long: `Stops a bulk check. Results so far are kept (and billed); domains not
 checked yet are skipped. A cancelled check can't be resumed.`,
 		Example: `  norcube domainradar bulk cancel 4f1c…
@@ -570,9 +577,10 @@ checked yet are skipped. A cancelled check can't be resumed.`,
 func newBulkDeleteCmd(d deps) *cobra.Command {
 	var yes bool
 	cmd := &cobra.Command{
-		Use:   "delete <job-id>",
-		Short: "Delete a bulk check and its results",
-		Long:  "Deletes a finished bulk check and all its results. This can't be undone.",
+		Use:         "delete <job-id>",
+		Annotations: cmdutil.Writes(),
+		Short:       "Delete a bulk check and its results",
+		Long:        "Deletes a finished bulk check and all its results. This can't be undone.",
 		Example: `  norcube domainradar bulk delete 4f1c…
   norcube domainradar bulk delete 4f1c… --yes`,
 		Args: cobra.ExactArgs(1),

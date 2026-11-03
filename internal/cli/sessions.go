@@ -30,8 +30,9 @@ its refresh token at once; the CLI on that machine has to sign in again.`,
 
 func newAuthSessionsListCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "list",
-		Short: "List your CLI sessions; * marks this one",
+		Use:         "list",
+		Annotations: cmdutil.Reads(),
+		Short:       "List your CLI sessions; * marks this one",
 		Example: `  norcube auth sessions list
   norcube auth sessions list -o json --query "[?!current].id"`,
 		Args: cobra.NoArgs,
@@ -70,8 +71,9 @@ func newAuthSessionsListCmd() *cobra.Command {
 func newAuthSessionsRevokeCmd() *cobra.Command {
 	var others bool
 	cmd := &cobra.Command{
-		Use:   "revoke <session-id> | --others",
-		Short: "End a CLI session, or every session but this one",
+		Use:         "revoke <session-id> | --others",
+		Annotations: cmdutil.Writes(),
+		Short:       "End a CLI session, or every session but this one",
 		Example: `  norcube auth sessions revoke 5b0e4d7a-3c1f-4e2b-9a8d-7f6e5d4c3b2a
   norcube auth sessions revoke --others`,
 		Args: func(cmd *cobra.Command, args []string) error {
