@@ -3,6 +3,27 @@
 Notable changes, newest first. Release notes on GitHub list every commit;
 this file collects what users and scripts need to know.
 
+## Unreleased
+
+### New
+
+- Norcube Monitor status pages: `monitor status-pages list | get | create |
+  update | delete | publish | unpublish | preview-link`, with pages named by
+  id or exact slug.
+  - `create` takes every setting as a flag and fills in none of them.
+  - `layout get | set --file` (`-` reads standard input); `set` prints the
+    saved layout, and `get -o json` prints the document `set` takes.
+  - `incidents list | get | create | update` and `incidents updates create`
+    post incidents and updates. Writes print the public address of the post,
+    or say the page isn't published. `--component` takes a component's id or
+    exact public name.
+  - Changes to a published page and posts on it are public within a minute;
+    the help of those commands says so.
+  - Completion for page slugs and for a page's posted incidents.
+  - CI tokens change status pages only with the new `monitor.statuspages`
+    scope, which no other scope includes. Any Norcube Monitor scope reads
+    them.
+
 ## 0.22.0 (2026-11-04)
 
 ### New

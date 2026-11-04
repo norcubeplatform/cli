@@ -1,0 +1,16 @@
+ID:               6e0f4b1a-2c3d-4e5f-8a9b-0c1d2e3f4a5b
+Slug:             acme
+Name:             Acme status
+Description:      Our services
+URL:              https://acme.norcubestatus.com
+State:            published
+Published:        2026-11-02 11:00
+Time zone:        Europe/Prague
+Uptime days:      90
+History days:     90
+Uptime bars:      yes
+Uptime percent:   yes
+Response time:    no
+Search indexing:  yes
+Created:          2026-11-01 11:00
+Updated:          2026-11-02 11:00

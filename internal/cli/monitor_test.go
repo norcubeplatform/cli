@@ -26,6 +26,16 @@ const (
 	monPhone  = "5e6f7a8b-9c0d-4e1f-8a2b-3c4d5e6f7a8b"
 	monInc    = "3f2c8a8e-6c1d-4a59-9a43-2b1f0f6f9d10"
 	monUser   = "11111111-2222-4333-8444-555555555555"
+
+	// A published status page with a draft beside it, a monitor component,
+	// a manual one in a group, and one open posted incident.
+	spAcme    = "6e0f4b1a-2c3d-4e5f-8a9b-0c1d2e3f4a5b"
+	spDraft   = "1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d"
+	spSite    = "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5e"
+	spDesk    = "b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6f"
+	spGroup   = "c3d4e5f6-a7b8-4c9d-8e1f-2a3b4c5d6e70"
+	spPost    = "8c7d6e5f-4a3b-4c2d-9e1f-0a1b2c3d4e5f"
+	spPostURL = "https://acme.norcubestatus.com/incidents/" + spPost
 )
 
 var (
@@ -66,6 +76,20 @@ var (
 		"settings":{"phone":"+420601123456"},"createdAt":"2026-10-05T09:00:00Z","updatedAt":"2026-10-05T09:00:00Z"}`
 )
 
+var (
+	spSettingsJSON = `"settings":{"timeZone":"Europe/Prague","uptimeDays":90,"showUptimeBars":true,"showUptimePercent":true,"showResponseTime":false,"historyDays":90,"searchIndexing":true}`
+	spAcmeJSON     = `{"id":"` + spAcme + `","slug":"acme","name":"Acme status","description":"Our services","url":"https://acme.norcubestatus.com","published":true,"publishedAt":"2026-11-02T09:00:00Z",` +
+		spSettingsJSON + `,"createdAt":"2026-11-01T09:00:00Z","updatedAt":"2026-11-02T09:00:00Z"}`
+	spDraftJSON = `{"id":"` + spDraft + `","slug":"draft-page","name":"Draft","description":"","url":"https://draft-page.norcubestatus.com","published":false,` +
+		spSettingsJSON + `,"createdAt":"2026-10-30T09:00:00Z","updatedAt":"2026-10-30T09:00:00Z"}`
+	spLayoutJSON = `{"components":[{"id":"` + spSite + `","kind":"monitor","monitorId":"` + monShop + `","aspects":["availability","certificate"],"name":"Website"}],
+		"groups":[{"id":"` + spGroup + `","name":"Support","collapsed":false,"components":[{"id":"` + spDesk + `","kind":"manual","manualStatus":"operational","name":"Support desk"}]}]}`
+	spPostJSON = `{"id":"` + spPost + `","statusPageId":"` + spAcme + `","title":"Elevated API errors","status":"investigating","impact":"minor","startedAt":"2026-11-03T08:00:00Z",
+		"components":[{"componentId":"` + spSite + `","status":"partial_outage"}],"monitorIncidentIds":["` + monInc + `"],
+		"updates":[{"id":"d4e5f6a7-b8c9-4d0e-8f1a-2b3c4d5e6f70","status":"investigating","body":"We are looking into it.","createdAt":"2026-11-03T08:05:00Z"}],
+		"createdAt":"2026-11-03T08:05:00Z","updatedAt":"2026-11-03T08:05:00Z"}`
+)
+
 func monList(items ...string) string {
 	return `{"list":[` + strings.Join(items, ",") + `],"cursors":{},"meta":{}}`
 }
@@ -102,6 +126,12 @@ func init() {
 		"GET /alert-channels/" + monPhone: monPhoneJSON,
 		"GET /alert-channels/" + monHook + "/deliveries": monList(
 			`{"id":"bbbbbbbb-cccc-4ddd-8eee-ffffffffffff","event":"down","monitorId":"` + monShop + `","monitorName":"Shop","incidentId":"` + monInc + `","status":"sent","attempts":1,"createdAt":"2026-11-03T08:01:00Z","sentAt":"2026-11-03T08:01:02Z"}`),
+		"GET /status-pages":                                    monList(spAcmeJSON, spDraftJSON),
+		"GET /status-pages/" + spAcme:                          spAcmeJSON,
+		"GET /status-pages/" + spDraft:                         spDraftJSON,
+		"GET /status-pages/" + spAcme + "/layout":              spLayoutJSON,
+		"GET /status-pages/" + spAcme + "/incidents":           monList(spPostJSON),
+		"GET /status-pages/" + spAcme + "/incidents/" + spPost: spPostJSON,
 	} {
 		goldenData[k] = v
 	}
@@ -128,6 +158,11 @@ func TestGoldenMonitor(t *testing.T) {
 		{"monitor-channels-list", []string{"monitor", "channels", "list"}},
 		{"monitor-channels-get", []string{"monitor", "channels", "get", monHook}},
 		{"monitor-deliveries-list", []string{"monitor", "channels", "deliveries", "list", monHook}},
+		{"monitor-status-pages-list", []string{"monitor", "status-pages", "list"}},
+		{"monitor-status-pages-get", []string{"monitor", "status-pages", "get", "acme"}},
+		{"monitor-status-pages-layout-get", []string{"monitor", "status-pages", "layout", "get", spAcme}},
+		{"monitor-status-pages-incidents-list", []string{"monitor", "status-pages", "incidents", "list", spAcme}},
+		{"monitor-status-pages-incidents-get", []string{"monitor", "status-pages", "incidents", "get", spAcme, spPost}},
 	}
 	for _, c := range commands {
 		for format, ext := range goldenFormats {
@@ -635,6 +670,12 @@ func TestMonitorCompletion(t *testing.T) {
 		{[]string{"monitor", "channels", "verify", "5e"}, monPhone},
 		{[]string{"monitor", "incidents", "ack", ""}, monInc},
 		{[]string{"monitor", "monitors", "list", "--status", ""}, "pending,ok,warning,critical,paused"},
+		{[]string{"monitor", "status-pages", "get", ""}, "acme,draft-page"},
+		{[]string{"monitor", "status-pages", "layout", "set", "dr"}, "draft-page"},
+		{[]string{"monitor", "status-pages", "incidents", "get", "ac"}, "acme"},
+		{[]string{"monitor", "status-pages", "incidents", "get", "acme", "8c"}, spPost},
+		{[]string{"monitor", "status-pages", "incidents", "updates", "create", "acme", "8c"}, spPost},
+		{[]string{"monitor", "status-pages", "create", "x", "--uptime-days", ""}, "30,60,90"},
 	}
 	for _, c := range cases {
 		got, _ := complete(t, c.args...)
@@ -696,5 +737,352 @@ func TestMonitorRequests(t *testing.T) {
 	}
 	if got, _ := os.ReadFile(secretFile); strings.TrimSpace(string(got)) != "whsec_bmV3LXNlY3JldA" { // #nosec G304 -- test file
 		t.Errorf("rotated secret file %q", got)
+	}
+}
+
+// A page is created with every setting spelled out: nothing is filled in,
+// and a missing one is a usage error before any request.
+func TestMonitorStatusPageCreate(t *testing.T) {
+	goldenEnv(t)
+	var rec recorder
+	goldenHandlers(t, map[string]http.HandlerFunc{"POST /status-pages": rec.handler(201, spDraftJSON)})
+
+	settings := []string{"--slug", "draft-page", "--time-zone", "Europe/Prague", "--uptime-days", "60", "--history-days", "30",
+		"--show-uptime-bars", "--show-uptime-percent=false", "--show-response-time=false", "--search-indexing=false"}
+
+	out, stderr, err := run(t, append([]string{"monitor", "status-pages", "create", "Draft", "--description", "Ours", "-o", "json"}, settings...)...)
+	if err != nil {
+		t.Fatalf("%v\n%s", err, stderr)
+	}
+	if !strings.Contains(out, `"id": "`+spDraft+`"`) {
+		t.Errorf("stdout: %s", out)
+	}
+	want := "map[description:Ours name:Draft settings:map[historyDays:30 searchIndexing:false showResponseTime:false showUptimeBars:true showUptimePercent:false timeZone:Europe/Prague uptimeDays:60] slug:draft-page]"
+	if got := fmt.Sprint(rec.only(t).body); got != want {
+		t.Errorf("body %s, want %s", got, want)
+	}
+
+	rec = recorder{}
+	cases := []struct {
+		name string
+		args []string
+		want string
+	}{
+		{"a missing setting", append([]string{"Draft"}, settings[:len(settings)-1]...), "search-indexing"},
+		{"no name", settings, "accepts 1 arg"},
+		{"bad range", append(append([]string{"Draft"}, settings...), "--uptime-days", "45"), "--uptime-days"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			_, _, err := run(t, append([]string{"monitor", "status-pages", "create"}, c.args...)...)
+			if err == nil || exitOf(err) != clierr.ExitUsage || !strings.Contains(err.Error(), c.want) {
+				t.Errorf("err %v (exit %d), want usage error about %s", err, exitOf(err), c.want)
+			}
+		})
+	}
+	badRange := append(append([]string{"monitor", "status-pages", "create", "Draft"}, settings...), "--history-days", "3")
+	if _, _, err := run(t, badRange...); err == nil || exitOf(err) != clierr.ExitUsage {
+		t.Errorf("--history-days 3: %v", err)
+	}
+	if rec.count() != 0 {
+		t.Errorf("%d requests were sent", rec.count())
+	}
+}
+
+// Pages are named by id or exact slug: a slug that matches nothing exits 3,
+// without guessing from a partial match.
+func TestMonitorStatusPageNames(t *testing.T) {
+	goldenEnv(t)
+	if _, _, err := run(t, "monitor", "status-pages", "get", "acm"); err == nil || exitOf(err) != clierr.ExitNotFound {
+		t.Errorf("partial slug: %v", err)
+	}
+	out, _, err := run(t, "monitor", "status-pages", "get", "draft-page", "-o", "json", "--query", "id")
+	if err != nil || !strings.Contains(out, spDraft) {
+		t.Errorf("%v %q", err, out)
+	}
+}
+
+func TestMonitorStatusPageWrites(t *testing.T) {
+	goldenEnv(t)
+	cases := []struct {
+		name      string
+		args      []string
+		route     string
+		status    int
+		answer    string
+		wantQuery string
+		wantBody  string
+		wantOut   string
+	}{
+		{"update slug and setting", []string{"update", "acme", "--slug", "acme-inc", "--show-uptime-bars=false", "--history-days", "7"},
+			"PATCH /status-pages/" + spAcme, 200, spAcmeJSON, "", "map[settings:map[historyDays:7 showUptimeBars:false] slug:acme-inc]", "Public within a minute at https://acme.norcubestatus.com."},
+		{"update name only", []string{"update", spDraft, "--name", " New "},
+			"PATCH /status-pages/" + spDraft, 200, spDraftJSON, "", "map[name:New]", "Updated status page draft-page"},
+		{"publish", []string{"publish", "acme"}, "POST /status-pages/" + spAcme + "/publish", 200, spAcmeJSON, "", "", "public within a minute at https://acme.norcubestatus.com"},
+		{"unpublish", []string{"unpublish", "acme", "--yes"}, "POST /status-pages/" + spAcme + "/unpublish", 200, spDraftJSON, "", "", "Unpublished status page"},
+		{"preview link", []string{"preview-link", "acme"}, "POST /status-pages/" + spAcme + "/preview-link", 200,
+			`{"url":"https://preview.norcubestatus.com/__preview/token","expiresAt":"2026-11-03T08:15:00Z"}`, "", "", "https://preview.norcubestatus.com/__preview/token"},
+		{"list by monitor", []string{"list", "--monitor", monShop}, "GET /status-pages", 200, monList(spAcmeJSON), "limit=50&monitorId=" + monShop, "", "acme"},
+		{"incidents open", []string{"incidents", "list", "acme", "--status", "open"}, "GET /status-pages/" + spAcme + "/incidents", 200, monList(), "limit=50&status=open", "", ""},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			var rec recorder
+			goldenHandlers(t, map[string]http.HandlerFunc{c.route: rec.handler(c.status, c.answer)})
+			out, stderr, err := run(t, append([]string{"monitor", "status-pages"}, c.args...)...)
+			if err != nil {
+				t.Fatalf("%v\n%s", err, stderr)
+			}
+			r := rec.only(t)
+			if r.query != c.wantQuery {
+				t.Errorf("query %q, want %q", r.query, c.wantQuery)
+			}
+			if c.wantBody != "" && fmt.Sprint(r.body) != c.wantBody {
+				t.Errorf("body %v, want %s", r.body, c.wantBody)
+			}
+			if !strings.Contains(out, c.wantOut) {
+				t.Errorf("stdout %q lacks %q", out, c.wantOut)
+			}
+		})
+	}
+	if _, _, err := run(t, "monitor", "status-pages", "update", "acme"); err == nil || exitOf(err) != clierr.ExitUsage {
+		t.Errorf("nothing to change: %v", err)
+	}
+}
+
+// Taking a page down asks first; without a terminal it fails and names
+// --yes, before anything is changed.
+func TestMonitorStatusPageConfirms(t *testing.T) {
+	goldenEnv(t)
+	var rec recorder
+	goldenHandlers(t, map[string]http.HandlerFunc{
+		"DELETE /status-pages/" + spAcme:              rec.handler(204, ""),
+		"POST /status-pages/" + spAcme + "/unpublish": rec.handler(200, spDraftJSON),
+	})
+	for _, verb := range []string{"delete", "unpublish"} {
+		_, _, err := run(t, "monitor", "status-pages", verb, "acme")
+		if err == nil || exitOf(err) != clierr.ExitUsage || !strings.Contains(err.Error(), "--yes") {
+			t.Errorf("%s without --yes: %v", verb, err)
+		}
+	}
+	if rec.count() != 0 {
+		t.Fatalf("%d requests without --yes", rec.count())
+	}
+	out, stderr, err := run(t, "monitor", "status-pages", "delete", "acme", "--yes", "-o", "json")
+	if err != nil {
+		t.Fatalf("%v\n%s", err, stderr)
+	}
+	if !strings.Contains(out, `"deleted": true`) || !strings.Contains(out, spAcme) {
+		t.Errorf("stdout: %s", out)
+	}
+}
+
+// layout set sends the document as it is and prints the saved layout on
+// stdout, with the note about publishing on stderr.
+func TestMonitorStatusPageLayoutSet(t *testing.T) {
+	goldenEnv(t)
+	var rec recorder
+	goldenHandlers(t, map[string]http.HandlerFunc{"PUT /status-pages/" + spAcme + "/layout": rec.handler(200, spLayoutJSON)})
+
+	doc := `{"components":[{"kind":"manual","manualStatus":"operational","name":"Support desk"}],"groups":[]}`
+	path := filepath.Join(t.TempDir(), "layout.json")
+	if err := os.WriteFile(path, []byte(doc), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	out, stderr, err := run(t, "monitor", "status-pages", "layout", "set", "acme", "--file", path, "-o", "json")
+	if err != nil {
+		t.Fatalf("%v\n%s", err, stderr)
+	}
+	r := rec.only(t)
+	if got := fmt.Sprint(r.body); got != "map[components:[map[kind:manual manualStatus:operational name:Support desk]] groups:[]]" {
+		t.Errorf("body %s", got)
+	}
+	if !strings.Contains(out, spSite) || strings.Contains(out, "public within") {
+		t.Errorf("stdout carries the saved layout only: %s", out)
+	}
+	if !strings.Contains(stderr, "public within a minute") {
+		t.Errorf("stderr %q", stderr)
+	}
+
+	// Standard input, and what `layout get -o json` prints goes back as is.
+	rec = recorder{}
+	goldenHandlers(t, map[string]http.HandlerFunc{"PUT /status-pages/" + spAcme + "/layout": rec.handler(200, spLayoutJSON)})
+	got, _, err := run(t, "monitor", "status-pages", "layout", "get", "acme", "-o", "json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, stderr, err := runIn(t, got, "monitor", "status-pages", "layout", "set", "acme", "--file", "-"); err != nil {
+		t.Fatalf("%v\n%s", err, stderr)
+	}
+	if s := fmt.Sprint(rec.only(t).body); !strings.Contains(s, spSite) || !strings.Contains(s, spGroup) {
+		t.Errorf("round trip lost ids: %s", s)
+	}
+
+	// Mistakes never reach the API.
+	rec = recorder{}
+	for name, bad := range map[string]string{
+		"not json":       `{`,
+		"unknown member": `{"components":[],"groups":[],"extra":1}`,
+		"no groups":      `{"components":[]}`,
+		"group without":  `{"components":[],"groups":[{"name":"API"}]}`,
+	} {
+		if _, _, err := runIn(t, bad, "monitor", "status-pages", "layout", "set", "acme", "--file", "-"); err == nil || exitOf(err) != clierr.ExitUsage {
+			t.Errorf("%s: %v", name, err)
+		}
+	}
+	if _, _, err := run(t, "monitor", "status-pages", "layout", "set", "acme"); err == nil || exitOf(err) != clierr.ExitUsage {
+		t.Errorf("no --file: %v", err)
+	}
+	if rec.count() != 0 {
+		t.Errorf("%d requests were sent", rec.count())
+	}
+}
+
+func TestMonitorStatusPageIncidentCreate(t *testing.T) {
+	goldenEnv(t)
+	var rec recorder
+	goldenHandlers(t, map[string]http.HandlerFunc{"POST /status-pages/" + spAcme + "/incidents": rec.handler(201, spPostJSON)})
+
+	// A component by public name is looked up in the layout; stdout says
+	// where the public reads it.
+	out, stderr, err := runIn(t, "We are looking into it.\n", "monitor", "status-pages", "incidents", "create", "acme",
+		"--title", "Elevated API errors", "--status", "investigating", "--impact", "minor", "--message-file", "-",
+		"--component", "website=partial_outage", "--component", spDesk+"=operational", "--monitor-incident", monInc,
+		"--started-at", "2026-11-03T08:00:00Z")
+	if err != nil {
+		t.Fatalf("%v\n%s", err, stderr)
+	}
+	if !strings.Contains(out, spPostURL) || !strings.Contains(out, "Public within a minute") {
+		t.Errorf("stdout: %s", out)
+	}
+	b := rec.only(t).body
+	if b["title"] != "Elevated API errors" || b["status"] != "investigating" || b["impact"] != "minor" ||
+		b["body"] != "We are looking into it." || b["startedAt"] != "2026-11-03T08:00:00Z" {
+		t.Errorf("body %v", b)
+	}
+	want := "[map[componentId:" + spSite + " status:partial_outage] map[componentId:" + spDesk + " status:operational]]"
+	if got := fmt.Sprint(b["components"]); got != want {
+		t.Errorf("components %s, want %s", got, want)
+	}
+	if got := fmt.Sprint(b["monitorIncidentIds"]); got != "["+monInc+"]" {
+		t.Errorf("links %s", got)
+	}
+
+	// On a draft the post says nobody sees it yet.
+	goldenHandlers(t, map[string]http.HandlerFunc{"POST /status-pages/" + spDraft + "/incidents": (&recorder{}).handler(201, spPostJSON)})
+	out, _, err = run(t, "monitor", "status-pages", "incidents", "create", spDraft, "--title", "T", "--status", "resolved", "--impact", "none", "--message", "m")
+	if err != nil || !strings.Contains(out, "isn't published") || strings.Contains(out, "/incidents/") {
+		t.Errorf("%v %q", err, out)
+	}
+
+	// Mistakes never reach the API.
+	rec = recorder{}
+	base := []string{"monitor", "status-pages", "incidents", "create", "acme"}
+	ok := []string{"--title", "T", "--status", "monitoring", "--impact", "minor", "--message", "m"}
+	for name, args := range map[string][]string{
+		"no message":       {"--title", "T", "--status", "monitoring", "--impact", "minor"},
+		"no title":         {"--status", "monitoring", "--impact", "minor", "--message", "m"},
+		"bad status":       {"--title", "T", "--status", "fixed", "--impact", "minor", "--message", "m"},
+		"bad impact":       {"--title", "T", "--status", "monitoring", "--impact", "huge", "--message", "m"},
+		"blank message":    {"--title", "T", "--status", "monitoring", "--impact", "minor", "--message", "  "},
+		"two messages":     append(append([]string{}, ok...), "--message-file", "-"),
+		"component syntax": append(append([]string{}, ok...), "--component", "Website"),
+		"component status": append(append([]string{}, ok...), "--component", "Website=unknown"),
+		"bad link":         append(append([]string{}, ok...), "--monitor-incident", "nope"),
+		"bad time":         append(append([]string{}, ok...), "--started-at", "soon"),
+	} {
+		if _, _, err := run(t, append(append([]string{}, base...), args...)...); err == nil || exitOf(err) != clierr.ExitUsage {
+			t.Errorf("%s: %v", name, err)
+		}
+	}
+	if rec.count() != 0 {
+		t.Errorf("%d requests were sent", rec.count())
+	}
+
+	// A component name that isn't on the page exits 3.
+	if _, _, err := run(t, append(append(append([]string{}, base...), ok...), "--component", "Nothing=major_outage")...); err == nil || exitOf(err) != clierr.ExitNotFound {
+		t.Errorf("unknown component: %v", err)
+	}
+}
+
+func TestMonitorStatusPageIncidentUpdates(t *testing.T) {
+	goldenEnv(t)
+	route := "/status-pages/" + spAcme + "/incidents/" + spPost
+	cases := []struct {
+		name     string
+		args     []string
+		route    string
+		status   int
+		wantBody string
+	}{
+		{"correct", []string{"update", "acme", spPost, "--title", "New", "--impact", "major", "--started-at", "2026-11-03T07:00:00Z"},
+			"PATCH " + route, 200, "map[impact:major startedAt:2026-11-03T07:00:00Z title:New]"},
+		{"replace components", []string{"update", "acme", spPost, "--component", spSite + "=major_outage"},
+			"PATCH " + route, 200, "map[components:[map[componentId:" + spSite + " status:major_outage]]]"},
+		{"clear components and links", []string{"update", "acme", spPost, "--no-components", "--no-monitor-incidents"},
+			"PATCH " + route, 200, "map[components:[] monitorIncidentIds:[]]"},
+		{"post an update", []string{"updates", "create", "acme", spPost, "--status", "monitoring", "--message", "A fix is rolling out."},
+			"POST " + route + "/updates", 201, "map[body:A fix is rolling out. status:monitoring]"},
+		{"resolve, clearing components", []string{"updates", "create", "acme", spPost, "--status", "resolved", "--message", "All clear.", "--no-components"},
+			"POST " + route + "/updates", 201, "map[body:All clear. components:[] status:resolved]"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			var rec recorder
+			goldenHandlers(t, map[string]http.HandlerFunc{c.route: rec.handler(c.status, spPostJSON)})
+			out, stderr, err := run(t, append([]string{"monitor", "status-pages", "incidents"}, c.args...)...)
+			if err != nil {
+				t.Fatalf("%v\n%s", err, stderr)
+			}
+			if got := fmt.Sprint(rec.only(t).body); got != c.wantBody {
+				t.Errorf("body %s, want %s", got, c.wantBody)
+			}
+			if !strings.Contains(out, spPostURL) {
+				t.Errorf("stdout %q lacks the public address", out)
+			}
+		})
+	}
+
+	if _, _, err := run(t, "monitor", "status-pages", "incidents", "update", "acme", spPost); err == nil || exitOf(err) != clierr.ExitUsage {
+		t.Errorf("nothing to change: %v", err)
+	}
+	if _, _, err := run(t, "monitor", "status-pages", "incidents", "get", "acme", "nope"); err == nil || exitOf(err) != clierr.ExitUsage {
+		t.Errorf("an incident is named by id: %v", err)
+	}
+
+	// A resolved post takes no more updates: the API's 409 exits 8.
+	goldenHandlers(t, map[string]http.HandlerFunc{"POST " + route + "/updates": (&recorder{}).handler(409,
+		`{"title":"Conflict","status":409,"detail":"This incident is resolved. Post a new one instead.","code":"CONFLICT","reason":"INCIDENT_RESOLVED"}`)})
+	_, _, err := run(t, "monitor", "status-pages", "incidents", "updates", "create", "acme", spPost, "--status", "monitoring", "--message", "m")
+	if e := Describe(err); e.Code != clierr.CodeConflict || e.ExitCode() != clierr.ExitConflict || !strings.Contains(e.Message, "resolved") {
+		t.Errorf("resolved: %+v", e)
+	}
+}
+
+// A token without monitor.statuspages exits 5 and is told which scope it
+// lacks: monitor.write doesn't include it.
+func TestMonitorStatusPageScope(t *testing.T) {
+	goldenEnv(t)
+	goldenHandlers(t, map[string]http.HandlerFunc{"POST /status-pages/" + spAcme + "/publish": (&recorder{}).handler(403,
+		`{"title":"Forbidden","status":403,"detail":"This token can't change status pages or post on them: it needs the monitor.statuspages scope.","code":"FORBIDDEN","reason":"INSUFFICIENT_SCOPE"}`)})
+	_, _, err := run(t, "monitor", "status-pages", "publish", "acme")
+	if e := Describe(err); e.Code != clierr.CodeInsufficientScope || e.ExitCode() != clierr.ExitAccess || !strings.Contains(e.Message, "monitor.statuspages") {
+		t.Errorf("scope: %+v", e)
+	}
+}
+
+// The help of every write that publishes says so.
+func TestMonitorStatusPageHelpSaysWhatGoesPublic(t *testing.T) {
+	goldenEnv(t)
+	for _, path := range [][]string{
+		{"publish"}, {"update"}, {"layout", "set"}, {"incidents", "create"}, {"incidents", "update"}, {"incidents", "updates", "create"},
+	} {
+		out, _, err := run(t, append(append([]string{"monitor", "status-pages"}, path...), "--help")...)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !strings.Contains(strings.ReplaceAll(out, "\n", " "), "public within a minute") {
+			t.Errorf("%v help doesn't say it goes public: %s", path, out)
+		}
 	}
 }

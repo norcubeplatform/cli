@@ -43,6 +43,9 @@
           "MONITOR_LIMIT",
           "ALERT_CHANNEL_LIMIT",
           "UNVERIFIED_CHANNEL_LIMIT",
+          "STATUS_PAGE_LIMIT",
+          "SLUG_TAKEN",
+          "INCIDENT_RESOLVED",
           "MISSING_ORGANIZATION_ID",
           "INSUFFICIENT_SCOPE",
           "CALLER_OUTSIDE_NAMESPACE",
@@ -60,6 +63,9 @@
           "ErrorReasonMonitorLimit",
           "ErrorReasonAlertChannelLimit",
           "ErrorReasonUnverifiedChannelLimit",
+          "ErrorReasonStatusPageLimit",
+          "ErrorReasonSlugTaken",
+          "ErrorReasonIncidentResolved",
           "ErrorReasonMissingOrganizationID",
           "ErrorReasonInsufficientScope",
           "ErrorReasonCallerOutsideNamespace",
@@ -2270,6 +2276,364 @@
         },
         "type": "object"
       },
+      "dto.PublicStatusAffected": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "operational",
+              "degraded_performance",
+              "partial_outage",
+              "major_outage"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "status"
+        ],
+        "type": "object"
+      },
+      "dto.PublicStatusComponent": {
+        "properties": {
+          "avgResponseMs": {
+            "description": "AvgResponseMs over the page's range, when the page shows response\ntimes.",
+            "type": "integer"
+          },
+          "days": {
+            "description": "Days are the bar, oldest first, when the page shows bars and the\ncomponent counts availability.",
+            "items": {
+              "$ref": "#/components/schemas/dto.PublicStatusDay"
+            },
+            "type": "array"
+          },
+          "description": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "operational",
+              "degraded_performance",
+              "partial_outage",
+              "major_outage",
+              "unknown"
+            ],
+            "type": "string"
+          },
+          "uptimePercent": {
+            "description": "UptimePercent over the page's range, when the page shows it.",
+            "type": "number"
+          }
+        },
+        "required": [
+          "description",
+          "id",
+          "name",
+          "status"
+        ],
+        "type": "object"
+      },
+      "dto.PublicStatusDay": {
+        "properties": {
+          "avgResponseMs": {
+            "description": "AvgResponseMs: when the page shows response times.",
+            "type": "integer"
+          },
+          "day": {
+            "example": "2026-11-10",
+            "type": "string"
+          },
+          "downtimeMinutes": {
+            "type": "integer"
+          },
+          "grade": {
+            "enum": [
+              "no_data",
+              "unknown",
+              "ok",
+              "warning",
+              "minor",
+              "partial",
+              "major"
+            ],
+            "type": "string"
+          },
+          "uptimePercent": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "day",
+          "grade"
+        ],
+        "type": "object"
+      },
+      "dto.PublicStatusGroup": {
+        "properties": {
+          "collapsed": {
+            "type": "boolean"
+          },
+          "components": {
+            "items": {
+              "$ref": "#/components/schemas/dto.PublicStatusComponent"
+            },
+            "type": "array"
+          },
+          "description": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "operational",
+              "degraded_performance",
+              "partial_outage",
+              "major_outage",
+              "unknown"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "collapsed",
+          "components",
+          "description",
+          "id",
+          "name",
+          "status"
+        ],
+        "type": "object"
+      },
+      "dto.PublicStatusHistory": {
+        "properties": {
+          "incidents": {
+            "items": {
+              "$ref": "#/components/schemas/dto.PublicStatusIncident"
+            },
+            "type": "array"
+          },
+          "schemaVersion": {
+            "example": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "incidents",
+          "schemaVersion"
+        ],
+        "type": "object"
+      },
+      "dto.PublicStatusIncident": {
+        "properties": {
+          "components": {
+            "items": {
+              "$ref": "#/components/schemas/dto.PublicStatusAffected"
+            },
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "impact": {
+            "enum": [
+              "none",
+              "minor",
+              "major",
+              "critical"
+            ],
+            "type": "string"
+          },
+          "resolvedAt": {
+            "type": "string"
+          },
+          "startedAt": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "investigating",
+              "identified",
+              "monitoring",
+              "resolved"
+            ],
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "updates": {
+            "items": {
+              "$ref": "#/components/schemas/dto.PublicStatusUpdate"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "components",
+          "id",
+          "impact",
+          "startedAt",
+          "status",
+          "title",
+          "updates"
+        ],
+        "type": "object"
+      },
+      "dto.PublicStatusPage": {
+        "properties": {
+          "active": {
+            "description": "Active are the open posts, newest first.",
+            "items": {
+              "$ref": "#/components/schemas/dto.PublicStatusIncident"
+            },
+            "type": "array"
+          },
+          "asOf": {
+            "description": "AsOf is when the content last changed.",
+            "type": "string"
+          },
+          "components": {
+            "items": {
+              "$ref": "#/components/schemas/dto.PublicStatusComponent"
+            },
+            "type": "array"
+          },
+          "description": {
+            "type": "string"
+          },
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/dto.PublicStatusGroup"
+            },
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "indicator": {
+            "description": "Indicator is the page's one-word verdict.",
+            "enum": [
+              "none",
+              "minor",
+              "major",
+              "critical"
+            ],
+            "type": "string"
+          },
+          "name": {
+            "example": "Acme status",
+            "type": "string"
+          },
+          "published": {
+            "description": "Published false: only preview links show it.",
+            "type": "boolean"
+          },
+          "schemaVersion": {
+            "example": 1,
+            "type": "integer"
+          },
+          "searchIndexing": {
+            "type": "boolean"
+          },
+          "slug": {
+            "example": "acme",
+            "type": "string"
+          },
+          "timeZone": {
+            "example": "Europe/Prague",
+            "type": "string"
+          },
+          "uptimeDays": {
+            "description": "UptimeDays is how many days the bars cover.",
+            "example": 90,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "active",
+          "components",
+          "description",
+          "groups",
+          "id",
+          "indicator",
+          "name",
+          "published",
+          "schemaVersion",
+          "searchIndexing",
+          "slug",
+          "timeZone",
+          "uptimeDays"
+        ],
+        "type": "object"
+      },
+      "dto.PublicStatusPreview": {
+        "properties": {
+          "history": {
+            "$ref": "#/components/schemas/dto.PublicStatusHistory"
+          },
+          "page": {
+            "$ref": "#/components/schemas/dto.PublicStatusPage"
+          }
+        },
+        "required": [
+          "history",
+          "page"
+        ],
+        "type": "object"
+      },
+      "dto.PublicStatusUpdate": {
+        "properties": {
+          "body": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "investigating",
+              "identified",
+              "monitoring",
+              "resolved"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "body",
+          "createdAt",
+          "id",
+          "status"
+        ],
+        "type": "object"
+      },
       "dto.RenewedCertificate": {
         "properties": {
           "fingerprintSha256": {
@@ -2479,6 +2843,570 @@
           "id",
           "to"
         ],
+        "type": "object"
+      },
+      "dto.StatusPage": {
+        "properties": {
+          "createdAt": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "example": "Acme status",
+            "type": "string"
+          },
+          "published": {
+            "description": "Published pages are public; others answer 404.",
+            "type": "boolean"
+          },
+          "publishedAt": {
+            "type": "string"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/dto.StatusPageSettings"
+          },
+          "slug": {
+            "example": "acme",
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "url": {
+            "description": "URL is the page's public address.",
+            "example": "https://acme.norcubestatus.com",
+            "type": "string"
+          }
+        },
+        "required": [
+          "createdAt",
+          "description",
+          "id",
+          "name",
+          "published",
+          "settings",
+          "slug",
+          "updatedAt",
+          "url"
+        ],
+        "type": "object"
+      },
+      "dto.StatusPageAffected": {
+        "properties": {
+          "componentId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "operational",
+              "degraded_performance",
+              "partial_outage",
+              "major_outage"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "componentId",
+          "status"
+        ],
+        "type": "object"
+      },
+      "dto.StatusPageComponent": {
+        "properties": {
+          "aspects": {
+            "description": "Aspects: what counts towards a monitor component's status.",
+            "items": {
+              "enum": [
+                "availability",
+                "certificate",
+                "domain"
+              ],
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "description": {
+            "maxLength": 300,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "monitor",
+              "manual"
+            ],
+            "example": "monitor",
+            "type": "string"
+          },
+          "manualStatus": {
+            "description": "ManualStatus: a manual component's status.",
+            "enum": [
+              "operational",
+              "degraded_performance",
+              "partial_outage",
+              "major_outage"
+            ],
+            "type": "string"
+          },
+          "monitorId": {
+            "description": "MonitorID: a monitor component's monitor. The public never sees it.",
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "description": "Name is what the public sees; the monitor's name and target never are.",
+            "example": "Website",
+            "maxLength": 100,
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "name"
+        ],
+        "type": "object"
+      },
+      "dto.StatusPageCreate": {
+        "properties": {
+          "description": {
+            "maxLength": 500,
+            "type": "string"
+          },
+          "name": {
+            "example": "Acme status",
+            "maxLength": 100,
+            "type": "string"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/dto.StatusPageSettings"
+          },
+          "slug": {
+            "description": "Slug is the page's address: lowercase letters, digits and hyphens.",
+            "example": "acme",
+            "maxLength": 40,
+            "minLength": 3,
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "settings",
+          "slug"
+        ],
+        "type": "object"
+      },
+      "dto.StatusPageGroup": {
+        "properties": {
+          "collapsed": {
+            "type": "boolean"
+          },
+          "components": {
+            "items": {
+              "$ref": "#/components/schemas/dto.StatusPageComponent"
+            },
+            "type": "array"
+          },
+          "description": {
+            "maxLength": 300,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "example": "API",
+            "maxLength": 100,
+            "type": "string"
+          }
+        },
+        "required": [
+          "components",
+          "name"
+        ],
+        "type": "object"
+      },
+      "dto.StatusPageIncident": {
+        "properties": {
+          "components": {
+            "items": {
+              "$ref": "#/components/schemas/dto.StatusPageAffected"
+            },
+            "type": "array"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "impact": {
+            "enum": [
+              "none",
+              "minor",
+              "major",
+              "critical"
+            ],
+            "type": "string"
+          },
+          "monitorIncidentIds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "resolvedAt": {
+            "type": "string"
+          },
+          "startedAt": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "investigating",
+              "identified",
+              "monitoring",
+              "resolved"
+            ],
+            "type": "string"
+          },
+          "statusPageId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "updates": {
+            "items": {
+              "$ref": "#/components/schemas/dto.StatusPageIncidentEntry"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "components",
+          "createdAt",
+          "id",
+          "impact",
+          "monitorIncidentIds",
+          "startedAt",
+          "status",
+          "statusPageId",
+          "title",
+          "updatedAt",
+          "updates"
+        ],
+        "type": "object"
+      },
+      "dto.StatusPageIncidentCreate": {
+        "properties": {
+          "body": {
+            "description": "Body is the first update's text.",
+            "example": "We are looking into it.",
+            "maxLength": 5000,
+            "type": "string"
+          },
+          "components": {
+            "items": {
+              "$ref": "#/components/schemas/dto.StatusPageAffected"
+            },
+            "type": "array"
+          },
+          "impact": {
+            "enum": [
+              "none",
+              "minor",
+              "major",
+              "critical"
+            ],
+            "example": "minor",
+            "type": "string"
+          },
+          "monitorIncidentIds": {
+            "description": "MonitorIncidentIDs are the monitor incidents the post is about (for\nyour navigation, never published).",
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "startedAt": {
+            "description": "StartedAt defaults to now.",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "investigating",
+              "identified",
+              "monitoring",
+              "resolved"
+            ],
+            "example": "investigating",
+            "type": "string"
+          },
+          "title": {
+            "example": "Elevated API errors",
+            "maxLength": 200,
+            "type": "string"
+          }
+        },
+        "required": [
+          "body",
+          "impact",
+          "status",
+          "title"
+        ],
+        "type": "object"
+      },
+      "dto.StatusPageIncidentEntry": {
+        "properties": {
+          "body": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "investigating",
+              "identified",
+              "monitoring",
+              "resolved"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "body",
+          "createdAt",
+          "id",
+          "status"
+        ],
+        "type": "object"
+      },
+      "dto.StatusPageIncidentPost": {
+        "properties": {
+          "body": {
+            "example": "A fix is rolling out.",
+            "maxLength": 5000,
+            "type": "string"
+          },
+          "components": {
+            "description": "Components, when given, replaces the affected components.",
+            "items": {
+              "$ref": "#/components/schemas/dto.StatusPageAffected"
+            },
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "investigating",
+              "identified",
+              "monitoring",
+              "resolved"
+            ],
+            "example": "monitoring",
+            "type": "string"
+          }
+        },
+        "required": [
+          "body",
+          "status"
+        ],
+        "type": "object"
+      },
+      "dto.StatusPageIncidentUpdate": {
+        "properties": {
+          "components": {
+            "items": {
+              "$ref": "#/components/schemas/dto.StatusPageAffected"
+            },
+            "type": "array"
+          },
+          "impact": {
+            "enum": [
+              "none",
+              "minor",
+              "major",
+              "critical"
+            ],
+            "type": "string"
+          },
+          "monitorIncidentIds": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "startedAt": {
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 200,
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "dto.StatusPageLayout": {
+        "properties": {
+          "components": {
+            "items": {
+              "$ref": "#/components/schemas/dto.StatusPageComponent"
+            },
+            "type": "array"
+          },
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/dto.StatusPageGroup"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "components",
+          "groups"
+        ],
+        "type": "object"
+      },
+      "dto.StatusPagePreviewLink": {
+        "properties": {
+          "expiresAt": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "expiresAt",
+          "url"
+        ],
+        "type": "object"
+      },
+      "dto.StatusPageSettings": {
+        "properties": {
+          "historyDays": {
+            "description": "HistoryDays is how far back resolved incidents stay on the page.",
+            "example": 90,
+            "maximum": 365,
+            "minimum": 7,
+            "type": "integer"
+          },
+          "searchIndexing": {
+            "description": "SearchIndexing false asks search engines to leave the page out.",
+            "type": "boolean"
+          },
+          "showResponseTime": {
+            "type": "boolean"
+          },
+          "showUptimeBars": {
+            "type": "boolean"
+          },
+          "showUptimePercent": {
+            "type": "boolean"
+          },
+          "timeZone": {
+            "description": "TimeZone is the IANA zone times are shown in.",
+            "example": "Europe/Prague",
+            "type": "string"
+          },
+          "uptimeDays": {
+            "description": "UptimeDays is how many days the bars cover.",
+            "enum": [
+              30,
+              60,
+              90
+            ],
+            "example": 90,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "historyDays",
+          "searchIndexing",
+          "showResponseTime",
+          "showUptimeBars",
+          "showUptimePercent",
+          "timeZone",
+          "uptimeDays"
+        ],
+        "type": "object"
+      },
+      "dto.StatusPageSettingsUpdate": {
+        "properties": {
+          "historyDays": {
+            "maximum": 365,
+            "minimum": 7,
+            "type": "integer"
+          },
+          "searchIndexing": {
+            "type": "boolean"
+          },
+          "showResponseTime": {
+            "type": "boolean"
+          },
+          "showUptimeBars": {
+            "type": "boolean"
+          },
+          "showUptimePercent": {
+            "type": "boolean"
+          },
+          "timeZone": {
+            "example": "Europe/Prague",
+            "type": "string"
+          },
+          "uptimeDays": {
+            "enum": [
+              30,
+              60,
+              90
+            ],
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "dto.StatusPageUpdate": {
+        "properties": {
+          "description": {
+            "maxLength": 500,
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 100,
+            "type": "string"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/dto.StatusPageSettingsUpdate"
+          },
+          "slug": {
+            "maxLength": 40,
+            "minLength": 3,
+            "type": "string"
+          }
+        },
         "type": "object"
       },
       "dto.ThresholdAlert": {
@@ -2893,7 +3821,8 @@
           "monitor.read",
           "monitor.check",
           "monitor.write",
-          "monitor.channels"
+          "monitor.channels",
+          "monitor.statuspages"
         ]
       },
       "post": {
@@ -3086,7 +4015,8 @@
           "monitor.read",
           "monitor.check",
           "monitor.write",
-          "monitor.channels"
+          "monitor.channels",
+          "monitor.statuspages"
         ]
       },
       "patch": {
@@ -3296,7 +4226,8 @@
           "monitor.read",
           "monitor.check",
           "monitor.write",
-          "monitor.channels"
+          "monitor.channels",
+          "monitor.statuspages"
         ]
       }
     },
@@ -3755,7 +4686,8 @@
           "monitor.read",
           "monitor.check",
           "monitor.write",
-          "monitor.channels"
+          "monitor.channels",
+          "monitor.statuspages"
         ]
       }
     },
@@ -3803,7 +4735,8 @@
           "monitor.read",
           "monitor.check",
           "monitor.write",
-          "monitor.channels"
+          "monitor.channels",
+          "monitor.statuspages"
         ]
       }
     },
@@ -3873,7 +4806,8 @@
           "monitor.read",
           "monitor.check",
           "monitor.write",
-          "monitor.channels"
+          "monitor.channels",
+          "monitor.statuspages"
         ]
       }
     },
@@ -4091,7 +5025,8 @@
           "monitor.read",
           "monitor.check",
           "monitor.write",
-          "monitor.channels"
+          "monitor.channels",
+          "monitor.statuspages"
         ]
       },
       "post": {
@@ -4401,7 +5336,8 @@
           "monitor.read",
           "monitor.check",
           "monitor.write",
-          "monitor.channels"
+          "monitor.channels",
+          "monitor.statuspages"
         ]
       },
       "patch": {
@@ -4568,7 +5504,8 @@
           "monitor.read",
           "monitor.check",
           "monitor.write",
-          "monitor.channels"
+          "monitor.channels",
+          "monitor.statuspages"
         ]
       },
       "put": {
@@ -4745,7 +5682,8 @@
           "monitor.read",
           "monitor.check",
           "monitor.write",
-          "monitor.channels"
+          "monitor.channels",
+          "monitor.statuspages"
         ]
       }
     },
@@ -4815,7 +5753,8 @@
           "monitor.read",
           "monitor.check",
           "monitor.write",
-          "monitor.channels"
+          "monitor.channels",
+          "monitor.statuspages"
         ]
       }
     },
@@ -5097,7 +6036,8 @@
           "monitor.read",
           "monitor.check",
           "monitor.write",
-          "monitor.channels"
+          "monitor.channels",
+          "monitor.statuspages"
         ]
       }
     },
@@ -5258,7 +6198,8 @@
           "monitor.read",
           "monitor.check",
           "monitor.write",
-          "monitor.channels"
+          "monitor.channels",
+          "monitor.statuspages"
         ]
       }
     },
@@ -5369,7 +6310,1368 @@
           "monitor.read",
           "monitor.check",
           "monitor.write",
-          "monitor.channels"
+          "monitor.channels",
+          "monitor.statuspages"
+        ]
+      }
+    },
+    "/status-pages": {
+      "get": {
+        "description": "The organization's status pages, newest first. With monitorId, the pages that show that monitor instead (at most 50, not paginated).",
+        "operationId": "listStatusPages",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "MonitorID lists the pages that show this monitor instead (at most 50,\nnot paginated).",
+            "in": "query",
+            "name": "monitorId",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/response.APIResponseWithPagination"
+                    },
+                    {
+                      "properties": {
+                        "list": {
+                          "items": {
+                            "$ref": "#/components/schemas/dto.StatusPage"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          }
+        },
+        "summary": "List status pages",
+        "tags": [
+          "Status pages"
+        ],
+        "x-norcube-scopes": [
+          "monitor.read",
+          "monitor.check",
+          "monitor.write",
+          "monitor.channels",
+          "monitor.statuspages"
+        ]
+      },
+      "post": {
+        "description": "Creates a page, unpublished: add components with PUT layout, check it with a preview link, then publish it. The slug is its public address and must be free: 409 with reason SLUG_TAKEN. Past the plan's limit: 403 with reason STATUS_PAGE_LIMIT. An organization with unpaid invoices: 402.",
+        "operationId": "createStatusPage",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/dto.StatusPageCreate"
+              }
+            }
+          },
+          "description": "The page",
+          "required": true,
+          "x-originalParamName": "body"
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.StatusPage"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Payment Required"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "summary": "Create a status page",
+        "tags": [
+          "Status pages"
+        ],
+        "x-norcube-scopes": [
+          "monitor.statuspages"
+        ]
+      }
+    },
+    "/status-pages/{id}": {
+      "delete": {
+        "description": "Deletes a page with its layout and posted incidents, and takes it offline. The monitors stay.",
+        "operationId": "deleteStatusPage",
+        "parameters": [
+          {
+            "description": "Status page ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Delete a status page",
+        "tags": [
+          "Status pages"
+        ],
+        "x-norcube-scopes": [
+          "monitor.statuspages"
+        ]
+      },
+      "get": {
+        "description": "One page with its settings and public address.",
+        "operationId": "getStatusPage",
+        "parameters": [
+          {
+            "description": "Status page ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.StatusPage"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Get a status page",
+        "tags": [
+          "Status pages"
+        ],
+        "x-norcube-scopes": [
+          "monitor.read",
+          "monitor.check",
+          "monitor.write",
+          "monitor.channels",
+          "monitor.statuspages"
+        ]
+      },
+      "patch": {
+        "description": "Changes a page's address, name, description or settings; omitted fields stay. A published page that changes its slug redirects from the old address for 30 days.",
+        "operationId": "updateStatusPage",
+        "parameters": [
+          {
+            "description": "Status page ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/dto.StatusPageUpdate"
+              }
+            }
+          },
+          "description": "The changes",
+          "required": true,
+          "x-originalParamName": "body"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.StatusPage"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "summary": "Update a status page",
+        "tags": [
+          "Status pages"
+        ],
+        "x-norcube-scopes": [
+          "monitor.statuspages"
+        ]
+      }
+    },
+    "/status-pages/{id}/incidents": {
+      "get": {
+        "description": "The incidents posted on this page, newest first, with their updates. These are public posts, not the monitors' own incidents.",
+        "operationId": "listStatusPageIncidents",
+        "parameters": [
+          {
+            "description": "Status page ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Status filters on open or resolved.",
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "enum": [
+                "open",
+                "resolved"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/response.APIResponseWithPagination"
+                    },
+                    {
+                      "properties": {
+                        "list": {
+                          "items": {
+                            "$ref": "#/components/schemas/dto.StatusPageIncident"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "List a status page's posted incidents",
+        "tags": [
+          "Status pages"
+        ],
+        "x-norcube-scopes": [
+          "monitor.read",
+          "monitor.check",
+          "monitor.write",
+          "monitor.channels",
+          "monitor.statuspages"
+        ]
+      },
+      "post": {
+        "description": "Posts an incident with its first update. Public as soon as it is posted (within a minute) when the page is published. While it is open, the components it names show the status it gives them.",
+        "operationId": "createStatusPageIncident",
+        "parameters": [
+          {
+            "description": "Status page ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/dto.StatusPageIncidentCreate"
+              }
+            }
+          },
+          "description": "The post",
+          "required": true,
+          "x-originalParamName": "body"
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.StatusPageIncident"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Post an incident on a status page",
+        "tags": [
+          "Status pages"
+        ],
+        "x-norcube-scopes": [
+          "monitor.statuspages"
+        ]
+      }
+    },
+    "/status-pages/{id}/incidents/{incidentId}": {
+      "get": {
+        "description": "One post with its updates, the components it affects and the monitor incidents it links to.",
+        "operationId": "getStatusPageIncident",
+        "parameters": [
+          {
+            "description": "Status page ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Posted incident ID",
+            "in": "path",
+            "name": "incidentId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.StatusPageIncident"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Get a posted incident",
+        "tags": [
+          "Status pages"
+        ],
+        "x-norcube-scopes": [
+          "monitor.read",
+          "monitor.check",
+          "monitor.write",
+          "monitor.channels",
+          "monitor.statuspages"
+        ]
+      },
+      "patch": {
+        "description": "Corrects the title, impact, start, affected components or links; omitted fields stay. The status moves by posting an update.",
+        "operationId": "updateStatusPageIncident",
+        "parameters": [
+          {
+            "description": "Status page ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Posted incident ID",
+            "in": "path",
+            "name": "incidentId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/dto.StatusPageIncidentUpdate"
+              }
+            }
+          },
+          "description": "The corrections",
+          "required": true,
+          "x-originalParamName": "body"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.StatusPageIncident"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Correct a posted incident",
+        "tags": [
+          "Status pages"
+        ],
+        "x-norcube-scopes": [
+          "monitor.statuspages"
+        ]
+      }
+    },
+    "/status-pages/{id}/incidents/{incidentId}/updates": {
+      "post": {
+        "description": "Adds an update; its status becomes the incident's, and resolved ends the incident. A resolved incident takes no more updates: 409 with reason INCIDENT_RESOLVED.",
+        "operationId": "createStatusPageIncidentUpdate",
+        "parameters": [
+          {
+            "description": "Status page ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Posted incident ID",
+            "in": "path",
+            "name": "incidentId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/dto.StatusPageIncidentPost"
+              }
+            }
+          },
+          "description": "The update",
+          "required": true,
+          "x-originalParamName": "body"
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.StatusPageIncident"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "summary": "Post an update on an incident",
+        "tags": [
+          "Status pages"
+        ],
+        "x-norcube-scopes": [
+          "monitor.statuspages"
+        ]
+      }
+    },
+    "/status-pages/{id}/layout": {
+      "get": {
+        "description": "What the page shows, in order: the components outside any group, then the groups.",
+        "operationId": "getStatusPageLayout",
+        "parameters": [
+          {
+            "description": "Status page ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.StatusPageLayout"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Get a status page's layout",
+        "tags": [
+          "Status pages"
+        ],
+        "x-norcube-scopes": [
+          "monitor.read",
+          "monitor.check",
+          "monitor.write",
+          "monitor.channels",
+          "monitor.statuspages"
+        ]
+      },
+      "put": {
+        "description": "Replaces the layout as a whole, in the order given. Send a row's id to keep it (posted incidents name components by id); leave it out for a new one; rows left out are removed. Adding a monitor publishes its status, so you must be able to read every monitor you name. A public name is required; the monitor's name and target are never shown.",
+        "operationId": "setStatusPageLayout",
+        "parameters": [
+          {
+            "description": "Status page ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/dto.StatusPageLayout"
+              }
+            }
+          },
+          "description": "The whole layout",
+          "required": true,
+          "x-originalParamName": "body"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.StatusPageLayout"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Replace a status page's layout",
+        "tags": [
+          "Status pages"
+        ],
+        "x-norcube-scopes": [
+          "monitor.statuspages"
+        ]
+      }
+    },
+    "/status-pages/{id}/preview": {
+      "get": {
+        "description": "Exactly what the public would get for this page right now, published or not: the page snapshot and the incident history.",
+        "operationId": "previewStatusPage",
+        "parameters": [
+          {
+            "description": "Status page ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.PublicStatusPreview"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Preview a status page's data",
+        "tags": [
+          "Status pages"
+        ],
+        "x-norcube-scopes": [
+          "monitor.read",
+          "monitor.check",
+          "monitor.write",
+          "monitor.channels",
+          "monitor.statuspages"
+        ]
+      }
+    },
+    "/status-pages/{id}/preview-link": {
+      "post": {
+        "description": "A link to the rendered page that works for 15 minutes, published or not. Anyone with the link can open it while it works.",
+        "operationId": "createStatusPagePreviewLink",
+        "parameters": [
+          {
+            "description": "Status page ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.StatusPagePreviewLink"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Create a preview link",
+        "tags": [
+          "Status pages"
+        ],
+        "x-norcube-scopes": [
+          "monitor.statuspages"
+        ]
+      }
+    },
+    "/status-pages/{id}/publish": {
+      "post": {
+        "description": "Makes the page public at its address, within a minute. It needs at least one component: 409 otherwise. Publishing a published page changes nothing.",
+        "operationId": "publishStatusPage",
+        "parameters": [
+          {
+            "description": "Status page ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.StatusPage"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Payment Required"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "summary": "Publish a status page",
+        "tags": [
+          "Status pages"
+        ],
+        "x-norcube-scopes": [
+          "monitor.statuspages"
+        ]
+      }
+    },
+    "/status-pages/{id}/unpublish": {
+      "post": {
+        "description": "Takes the page offline; its address answers 404 within a minute. Everything on it stays, and publishing brings it back.",
+        "operationId": "unpublishStatusPage",
+        "parameters": [
+          {
+            "description": "Status page ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.StatusPage"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Unpublish a status page",
+        "tags": [
+          "Status pages"
+        ],
+        "x-norcube-scopes": [
+          "monitor.statuspages"
         ]
       }
     }

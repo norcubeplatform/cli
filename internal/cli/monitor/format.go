@@ -476,3 +476,130 @@ func withoutSecret(c monitor.DtoAlertChannelWithSecret) monitor.DtoAlertChannel 
 		UpdatedAt: c.UpdatedAt, Verified: c.Verified,
 	}
 }
+
+// ---------- status pages ----------
+
+func statusPageState(p monitor.DtoStatusPage) string {
+	if p.Published {
+		return "published"
+	}
+	return "draft"
+}
+
+func statusPageRow(p monitor.DtoStatusPage) []string {
+	return []string{p.Id.String(), p.Slug, p.Name, statusPageState(p), p.Url, output.WhenString(p.UpdatedAt)}
+}
+
+func statusPageTable(items []monitor.DtoStatusPage) output.Table[monitor.DtoStatusPage] {
+	return output.Table[monitor.DtoStatusPage]{
+		Headers:   []string{"ID", "SLUG", "NAME", "STATE", "URL", "UPDATED"},
+		MaxWidths: []int{0, 0, 32, 0, 0, 0},
+		Rows:      statusPageRow,
+		Items:     items,
+	}
+}
+
+func statusPageObject(p monitor.DtoStatusPage) output.Object {
+	s := p.Settings
+	return output.Object{Value: p, Text: statusPageRow(p), Fields: []output.Field{
+		{Name: "ID", Value: p.Id.String()},
+		{Name: "Slug", Value: p.Slug},
+		{Name: "Name", Value: p.Name},
+		{Name: "Description", Value: p.Description},
+		{Name: "URL", Value: p.Url},
+		{Name: "State", Value: statusPageState(p)},
+		{Name: "Published", Value: output.WhenString(cmdutil.Deref(p.PublishedAt))},
+		{Name: "Time zone", Value: s.TimeZone},
+		{Name: "Uptime days", Value: strconv.Itoa(int(s.UptimeDays))},
+		{Name: "History days", Value: strconv.Itoa(s.HistoryDays)},
+		{Name: "Uptime bars", Value: yesNo(s.ShowUptimeBars)},
+		{Name: "Uptime percent", Value: yesNo(s.ShowUptimePercent)},
+		{Name: "Response time", Value: yesNo(s.ShowResponseTime)},
+		{Name: "Search indexing", Value: yesNo(s.SearchIndexing)},
+		{Name: "Created", Value: output.WhenString(p.CreatedAt)},
+		{Name: "Updated", Value: output.WhenString(p.UpdatedAt)},
+	}}
+}
+
+// statusPageComponentLine is one component of a layout: its public name,
+// where its status comes from, and its id.
+func statusPageComponentLine(x monitor.DtoStatusPageComponent) string {
+	source := string(cmdutil.Deref(x.ManualStatus)) + " (manual)"
+	if x.MonitorId != nil {
+		aspects := make([]string, 0, len(cmdutil.Deref(x.Aspects)))
+		for _, a := range cmdutil.Deref(x.Aspects) {
+			aspects = append(aspects, string(a))
+		}
+		source = "monitor " + x.MonitorId.String() + " (" + strings.Join(aspects, ", ") + ")"
+	}
+	id := ""
+	if x.Id != nil {
+		id = x.Id.String() + "  "
+	}
+	return id + x.Name + ": " + source
+}
+
+func statusPageComponentLines(items []monitor.DtoStatusPageComponent) string {
+	lines := make([]string, 0, len(items))
+	for _, x := range items {
+		lines = append(lines, statusPageComponentLine(x))
+	}
+	return orNone(lines)
+}
+
+// statusPageLayoutObject shows a layout as its rows; JSON is the document
+// `layout set` takes. -o text prints the counts.
+func statusPageLayoutObject(l monitor.DtoStatusPageLayout) output.Object {
+	count := len(l.Components)
+	fields := []output.Field{{Name: "Components", Value: statusPageComponentLines(l.Components)}}
+	for _, g := range l.Groups {
+		count += len(g.Components)
+		fields = append(fields, output.Field{Name: "Group " + g.Name, Value: statusPageComponentLines(g.Components)})
+	}
+	return output.Object{Value: l, Fields: fields, Text: []string{strconv.Itoa(count), strconv.Itoa(len(l.Groups))}}
+}
+
+// ---------- posted incidents ----------
+
+func postRow(i monitor.DtoStatusPageIncident) []string {
+	return []string{
+		i.Id.String(), string(i.Status), string(i.Impact), i.Title,
+		output.WhenString(i.StartedAt), output.WhenString(cmdutil.Deref(i.ResolvedAt)), strconv.Itoa(len(i.Updates)),
+	}
+}
+
+func postTable(items []monitor.DtoStatusPageIncident) output.Table[monitor.DtoStatusPageIncident] {
+	return output.Table[monitor.DtoStatusPageIncident]{
+		Headers:   []string{"ID", "STATUS", "IMPACT", "TITLE", "STARTED", "RESOLVED", "UPDATES"},
+		MaxWidths: []int{0, 0, 0, 48, 0, 0, 0},
+		Rows:      postRow,
+		Items:     items,
+	}
+}
+
+func postObject(p monitor.DtoStatusPage, i monitor.DtoStatusPageIncident) output.Object {
+	address := "not public: the page isn't published"
+	if p.Published {
+		address = postURL(p, i.Id)
+	}
+	components := make([]string, 0, len(i.Components))
+	for _, x := range i.Components {
+		components = append(components, x.ComponentId.String()+"  "+string(x.Status))
+	}
+	updates := make([]string, 0, len(i.Updates))
+	for _, u := range i.Updates {
+		updates = append(updates, stamp(u.CreatedAt)+"  "+string(u.Status)+": "+u.Body)
+	}
+	return output.Object{Value: i, Text: postRow(i), Fields: []output.Field{
+		{Name: "ID", Value: i.Id.String()},
+		{Name: "Title", Value: i.Title},
+		{Name: "Status", Value: string(i.Status)},
+		{Name: "Impact", Value: string(i.Impact)},
+		{Name: "Started", Value: output.WhenString(i.StartedAt)},
+		{Name: "Resolved", Value: output.WhenString(cmdutil.Deref(i.ResolvedAt))},
+		{Name: "Address", Value: address},
+		{Name: "Components", Value: orNone(components)},
+		{Name: "Monitor incidents", Value: orNone(i.MonitorIncidentIds)},
+		{Name: "Updates", Value: orNone(updates)},
+	}}
+}
