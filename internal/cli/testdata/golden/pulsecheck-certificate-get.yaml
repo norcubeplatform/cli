@@ -1,0 +1,23 @@
+certificate:
+    chainValid: true
+    daysRemaining: 12
+    dnsNames:
+        - api.example.com
+    fingerprintSha256: aa:bb
+    hostnameValid: true
+    issuer: CN=Example CA
+    notAfter: "2026-11-15T12:00:00Z"
+    notBefore: "2026-08-17T12:00:00Z"
+    serialNumber: 04ab
+    subject: CN=api.example.com
+checkedAt: "2026-11-03T08:00:00Z"
+condition: cert_expiring
+daysRemaining: 12
+nextThresholdAt: "2026-11-08T12:00:00Z"
+nextThresholdDays: 7
+resultId: 77
+severity: warning
+thresholdsDays:
+    - 30
+    - 14
+    - 7

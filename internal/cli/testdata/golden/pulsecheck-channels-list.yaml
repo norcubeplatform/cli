@@ -1,0 +1,20 @@
+- createdAt: "2026-10-01T09:00:00Z"
+  enabled: true
+  id: 0c2d4f6a-8b1e-4c3d-9e5f-7a6b5c4d3e2f
+  isDefault: true
+  kind: webhook
+  name: On-call webhook
+  settings:
+    url: https://hooks.example.com/pulsecheck
+  updatedAt: "2026-10-01T09:00:00Z"
+  verified: true
+- createdAt: "2026-10-05T09:00:00Z"
+  enabled: true
+  id: 5e6f7a8b-9c0d-4e1f-8a2b-3c4d5e6f7a8b
+  isDefault: false
+  kind: sms
+  name: On-call phone
+  settings:
+    phone: "+420601123456"
+  updatedAt: "2026-10-05T09:00:00Z"
+  verified: false

@@ -1,0 +1,19 @@
+- changedAt: "2026-11-03T08:00:00Z"
+  checkResultId: 9000
+  condition: unexpected_status
+  durationSeconds: 600
+  events: []
+  from: ok
+  id: 2
+  message: HTTP 503
+  statusCode: 503
+  to: critical
+- changedAt: "2026-10-01T09:01:00Z"
+  checkResultId: 1
+  condition: ok
+  durationSeconds: 2847540
+  endedAt: "2026-11-03T08:00:00Z"
+  events: []
+  from: pending
+  id: 1
+  to: ok

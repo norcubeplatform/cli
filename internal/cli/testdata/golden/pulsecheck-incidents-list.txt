@@ -1,0 +1,2 @@
+ID                                    STATUS  SEVERITY  MONITOR  TITLE         OPENED            DURATION  ACK
+3f2c8a8e-6c1d-4a59-9a43-2b1f0f6f9d10  open    critical  Shop     Shop is down  2026-11-03 10:01  9m 0s     no

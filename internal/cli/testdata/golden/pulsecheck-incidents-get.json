@@ -1,0 +1,39 @@
+{
+  "alerts": [
+    {
+      "alertId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      "attempts": 1,
+      "channelId": "0c2d4f6a-8b1e-4c3d-9e5f-7a6b5c4d3e2f",
+      "channelKind": "webhook",
+      "channelName": "On-call webhook",
+      "event": "down",
+      "queuedAt": "2026-11-03T08:01:00Z",
+      "sentAt": "2026-11-03T08:01:02Z",
+      "status": "sent"
+    }
+  ],
+  "aspect": "availability",
+  "condition": "unexpected_status",
+  "durationSeconds": 540,
+  "facts": {
+    "statusCode": 503
+  },
+  "id": "3f2c8a8e-6c1d-4a59-9a43-2b1f0f6f9d10",
+  "monitorId": "7d1c2f7e-6a1f-4f5e-9b8a-1f7c2b3d4e5f",
+  "monitorName": "Shop",
+  "monitorTarget": "https://shop.example.com/health",
+  "monitorType": "http",
+  "monitorVariant": "keyword",
+  "openedAt": "2026-11-03T08:01:00Z",
+  "peakSeverity": "critical",
+  "severity": "critical",
+  "status": "open",
+  "summary": "HTTP 503",
+  "timeline": [
+    {
+      "at": "2026-11-03T08:01:00Z",
+      "type": "opened"
+    }
+  ],
+  "title": "Shop is down"
+}

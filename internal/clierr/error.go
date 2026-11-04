@@ -25,6 +25,10 @@ const (
 	// CodeJobFailed: a command waited (--wait) for a server-side job that
 	// ended unsuccessfully. Exit code 1.
 	CodeJobFailed = "job_failed"
+	// CodeUnhealthy: a command asked to fail on a state it reports
+	// (`pulsecheck status --fail-on`) found it, e.g. an open critical
+	// incident. Exit code 1; details hold what it found.
+	CodeUnhealthy = "unhealthy"
 )
 
 // Error is a failure described for both people and scripts. Printed as

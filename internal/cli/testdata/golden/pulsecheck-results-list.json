@@ -1,0 +1,33 @@
+[
+  {
+    "checkedAt": "2026-11-03T08:10:00Z",
+    "condition": "unexpected_status",
+    "errorMessage": "HTTP 503",
+    "id": 9002,
+    "region": "eu-central-1",
+    "severity": "critical",
+    "statusCode": 503,
+    "timings": {
+      "connectMs": 12,
+      "dnsMs": 4,
+      "tlsMs": 30,
+      "totalMs": 180,
+      "ttfbMs": 170
+    }
+  },
+  {
+    "checkedAt": "2026-11-03T07:59:00Z",
+    "condition": "ok",
+    "id": 9001,
+    "region": "eu-central-1",
+    "severity": "ok",
+    "statusCode": 200,
+    "timings": {
+      "connectMs": 11,
+      "dnsMs": 3,
+      "tlsMs": 28,
+      "totalMs": 110,
+      "ttfbMs": 100
+    }
+  }
+]

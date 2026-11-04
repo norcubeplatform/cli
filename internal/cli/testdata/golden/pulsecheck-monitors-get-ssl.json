@@ -1,0 +1,53 @@
+{
+  "aspects": [],
+  "condition": {
+    "alertedThresholds": [
+      {
+        "alertedAt": "2026-11-01T00:00:00Z",
+        "days": 14
+      }
+    ],
+    "code": "cert_expiring",
+    "facts": {
+      "daysRemaining": 12,
+      "expiresAt": "2026-11-15T12:00:00Z",
+      "thresholdDays": 14
+    },
+    "message": "Certificate expires in 12 days",
+    "since": "2026-11-01T00:00:00Z"
+  },
+  "createdAt": "2026-10-02T09:00:00Z",
+  "createdBy": "11111111-2222-4333-8444-555555555555",
+  "description": "",
+  "id": "2b3c4d5e-6f70-4a81-92a3-b4c5d6e7f809",
+  "intervalSeconds": 3600,
+  "lastCheck": {
+    "at": "2026-11-03T08:00:00Z",
+    "condition": "cert_expiring",
+    "severity": "warning",
+    "totalMs": 95
+  },
+  "name": "API cert",
+  "overallStatus": "warning",
+  "regions": [
+    {
+      "code": "eu-central-1",
+      "name": "Frankfurt"
+    }
+  ],
+  "ssl": {
+    "expiryThresholdsDays": [
+      30,
+      14,
+      7
+    ],
+    "host": "api.example.com",
+    "port": 443
+  },
+  "status": "warning",
+  "statusSince": "2026-11-01T00:00:00Z",
+  "target": "api.example.com:443",
+  "type": "ssl",
+  "updatedAt": "2026-10-02T09:00:00Z",
+  "variant": "ssl"
+}

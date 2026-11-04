@@ -14,6 +14,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/norcubeplatform/cli/internal/clierr"
 )
@@ -54,7 +55,22 @@ func Format(service string, resp *http.Response, body []byte, typed ...*Typed) e
 		}
 	}
 
-	// Every Norcube service answers errors as {"type": ..., "msg": ...},
+	// Newer services (PulseCheck) answer RFC 9457 problems: "code" is the
+	// stable code, "reason" a finer cause, "detail" the sentence.
+	if p, ok := parseProblem(body); ok {
+		e.Message, e.Type = p.message(), p.Code
+		mapped := p.Code
+		if strings.EqualFold(p.Reason, "INSUFFICIENT_SCOPE") {
+			mapped = p.Reason
+		}
+		e.Code = clierr.CodeForStatus(e.HTTPStatus, mapped)
+		if d := p.details(); d != nil {
+			e.Details = d
+		}
+		return e
+	}
+
+	// The other Norcube services answer errors as {"type": ..., "msg": ...},
 	// also on statuses the generated client has no typed field for.
 	var generic struct {
 		Type string `json:"type"`
@@ -84,4 +100,75 @@ func requestID(h http.Header) string {
 		}
 	}
 	return ""
+}
+
+// problem is an RFC 9457 problem document as Norcube services send it
+// (application/problem+json).
+type problem struct {
+	Code   string            `json:"code"`
+	Detail string            `json:"detail"`
+	Title  string            `json:"title"`
+	Reason string            `json:"reason"`
+	Data   map[string]string `json:"data"`
+	Errors []violation       `json:"errors"`
+}
+
+// violation is one invalid field of a VALIDATION_FAILED problem.
+type violation struct {
+	Pointer string         `json:"pointer"`
+	Rule    string         `json:"rule"`
+	Detail  string         `json:"detail"`
+	Params  map[string]any `json:"params,omitempty"`
+}
+
+// maxViolations bounds how many field errors the message lists; details
+// keep all of them.
+const maxViolations = 5
+
+func parseProblem(body []byte) (problem, bool) {
+	var p problem
+	if json.Unmarshal(body, &p) != nil || p.Code == "" || (p.Detail == "" && p.Title == "") {
+		return problem{}, false
+	}
+	return p, true
+}
+
+// message is the detail, followed by the invalid fields ("/http/url:
+// must be a public address").
+func (p problem) message() string {
+	msg := p.Detail
+	if msg == "" {
+		msg = p.Title
+	}
+	if len(p.Errors) == 0 {
+		return msg
+	}
+	parts := make([]string, 0, maxViolations+1)
+	for i, v := range p.Errors {
+		if i == maxViolations {
+			parts = append(parts, fmt.Sprintf("and %d more", len(p.Errors)-maxViolations))
+			break
+		}
+		parts = append(parts, strings.TrimSpace(v.Pointer+": "+v.Detail))
+	}
+	return msg + " (" + strings.Join(parts, "; ") + ")"
+}
+
+// details are the problem's machine-readable parts for the JSON error:
+// the reason, the field errors and the data, when there are any.
+func (p problem) details() map[string]any {
+	d := map[string]any{}
+	if p.Reason != "" {
+		d["reason"] = p.Reason
+	}
+	if len(p.Errors) > 0 {
+		d["errors"] = p.Errors
+	}
+	if len(p.Data) > 0 {
+		d["data"] = p.Data
+	}
+	if len(d) == 0 {
+		return nil
+	}
+	return d
 }

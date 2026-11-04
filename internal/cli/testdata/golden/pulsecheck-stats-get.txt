@@ -1,0 +1,10 @@
+From:          2026-11-02 10:00
+To:            2026-11-03 10:10
+Uptime:        98.61%
+Average:       120 ms
+Slowest:       980 ms
+Checks:        1440
+OK:            1420
+Warning:       0
+Critical:      20
+Inconclusive:  0

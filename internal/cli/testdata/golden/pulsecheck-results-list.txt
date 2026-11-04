@@ -1,0 +1,3 @@
+ID    CHECKED              RESULT  CONDITION          STATUS CODE  TIME    REGION
+9002  2026-11-03 10:10:00  Down    unexpected_status  503          180 ms  eu-central-1
+9001  2026-11-03 09:59:00  Up      ok                 200          110 ms  eu-central-1

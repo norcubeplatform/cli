@@ -39,7 +39,7 @@ maps them to stable codes and exit codes.
 | `internal/clierr` | Error codes, exit codes and the JSON error shape. |
 | `internal/completion` | Dynamic shell completion with a one-second budget and a one-minute cache. |
 | `internal/orgs` | Organization slug resolution and its cache. |
-| `internal/api/<service>` | Generated clients. Never edit `*.gen.go`; run `make codegen`. |
+| `internal/api/<service>` | Generated clients. Never edit `*.gen.go`; run `make codegen`. `internal/api/apierror` turns any error response (the `{type, msg}` shape and RFC 9457 problems) into a `clierr.Error`. |
 
 `internal/cli/commands.go` is `nrc commands`: it walks the cobra tree and
 prints the machine-readable command tree (schema in
@@ -126,7 +126,7 @@ secrets and the one-time setup.
   help text and an effect, nothing writes to stdout outside the result
   path, and no two sibling commands share a name or alias.
   `commands_test.go` pins the `nrc commands` schema (golden
-  `commands-billing.*`) and checks that it lists every visible command,
-  sorted, offline.
+  `commands-billing.*`; `commands-pulsecheck.json` pins a whole product
+  group) and checks that it lists every visible command, sorted, offline.
 - `go test -race ./...`, `go vet` and golangci-lint (pinned in CI) must
   pass.

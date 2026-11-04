@@ -1,0 +1,5 @@
+Routes:         0c2d4f6a-8b1e-4c3d-9e5f-7a6b5c4d3e2f: down,recovered
+Open after:     2 failed checks
+Resolve after:  1 good check
+Remind every:   1h
+Events:         down, warning, expiring, expired, recovered
