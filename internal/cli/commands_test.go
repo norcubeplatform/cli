@@ -136,6 +136,7 @@ func TestCommandsAllIncludesHiddenAndRenamed(t *testing.T) {
 	c := find(commandsJSON(t, "--all"), "norcube backup list")
 	if c == nil {
 		t.Fatal("--all does not list the renamed `backup list`")
+		return // staticcheck (SA5011) doesn't see t.Fatal as terminating here
 	}
 	if !c.Hidden || c.RenamedTo != "norcube backup jobs list" {
 		t.Errorf("hidden %v, renamedTo %q", c.Hidden, c.RenamedTo)
