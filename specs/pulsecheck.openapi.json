@@ -1,0 +1,5351 @@
+{
+  "components": {
+    "schemas": {
+      "constants.ErrorCode": {
+        "enum": [
+          "INTERNAL_ERROR",
+          "VALIDATION_FAILED",
+          "INVALID_PAYLOAD",
+          "UNAUTHORIZED",
+          "FORBIDDEN",
+          "NOT_FOUND",
+          "METHOD_NOT_ALLOWED",
+          "ALREADY_EXISTS",
+          "CONFLICT",
+          "MANAGED_RESOURCE",
+          "LIMIT_REACHED",
+          "ORG_BLOCKED",
+          "PAYLOAD_TOO_LARGE",
+          "TOO_MANY_REQUESTS",
+          "UNAVAILABLE"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "ErrorCodeInternal",
+          "ErrorCodeValidationFailed",
+          "ErrorCodeInvalidPayload",
+          "ErrorCodeUnauthorized",
+          "ErrorCodeForbidden",
+          "ErrorCodeNotFound",
+          "ErrorCodeMethodNotAllowed",
+          "ErrorCodeAlreadyExists",
+          "ErrorCodeConflict",
+          "ErrorCodeManagedResource",
+          "ErrorCodeLimitReached",
+          "ErrorCodeOrgBlocked",
+          "ErrorCodePayloadTooLarge",
+          "ErrorCodeTooManyRequests",
+          "ErrorCodeUnavailable"
+        ]
+      },
+      "constants.ErrorReason": {
+        "enum": [
+          "MONITOR_LIMIT",
+          "ALERT_CHANNEL_LIMIT",
+          "UNVERIFIED_CHANNEL_LIMIT",
+          "MISSING_ORGANIZATION_ID",
+          "INSUFFICIENT_SCOPE",
+          "CALLER_OUTSIDE_NAMESPACE",
+          "NOTHING_TO_VERIFY",
+          "ALREADY_VERIFIED",
+          "CODE_RECENTLY_SENT",
+          "CODE_EXPIRED",
+          "TOO_MANY_ATTEMPTS",
+          "CONTACT_UNVERIFIED",
+          "DELIVERY_REJECTED",
+          "CHANNEL_TYPE_UNAVAILABLE"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "ErrorReasonMonitorLimit",
+          "ErrorReasonAlertChannelLimit",
+          "ErrorReasonUnverifiedChannelLimit",
+          "ErrorReasonMissingOrganizationID",
+          "ErrorReasonInsufficientScope",
+          "ErrorReasonCallerOutsideNamespace",
+          "ErrorReasonNothingToVerify",
+          "ErrorReasonAlreadyVerified",
+          "ErrorReasonCodeRecentlySent",
+          "ErrorReasonCodeExpired",
+          "ErrorReasonTooManyAttempts",
+          "ErrorReasonContactUnverified",
+          "ErrorReasonDeliveryRejected",
+          "ErrorReasonChannelTypeUnavailable"
+        ]
+      },
+      "dto.AlertChannel": {
+        "properties": {
+          "createdAt": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "kind": {
+            "description": "Kind is how the channel delivers. voice is a voice-call channel made\nbefore calls were withdrawn: it stays disabled and gets no alerts;\nit can be renamed or deleted.",
+            "enum": [
+              "email",
+              "webhook",
+              "slack",
+              "discord",
+              "sms",
+              "voice"
+            ],
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/dto.AlertChannelSettings"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "verified": {
+            "description": "Verified is false for an SMS or email-address channel until\nits contact confirmed a code; such a channel gets no alerts.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "createdAt",
+          "enabled",
+          "id",
+          "isDefault",
+          "kind",
+          "name",
+          "settings",
+          "updatedAt",
+          "verified"
+        ],
+        "type": "object"
+      },
+      "dto.AlertChannelCreate": {
+        "properties": {
+          "isDefault": {
+            "description": "IsDefault channels get the alerts of monitors without their own\nalert settings.",
+            "example": true,
+            "type": "boolean"
+          },
+          "kind": {
+            "enum": [
+              "email",
+              "webhook",
+              "slack",
+              "discord",
+              "sms"
+            ],
+            "example": "webhook",
+            "type": "string"
+          },
+          "name": {
+            "example": "On-call webhook",
+            "type": "string"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/dto.AlertChannelSettingsInput"
+          }
+        },
+        "required": [
+          "kind",
+          "name",
+          "settings"
+        ],
+        "type": "object"
+      },
+      "dto.AlertChannelSettings": {
+        "properties": {
+          "address": {
+            "type": "string"
+          },
+          "hint": {
+            "example": "hooks.slack.com/…a1b2",
+            "type": "string"
+          },
+          "members": {
+            "type": "boolean"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "dto.AlertChannelSettingsInput": {
+        "properties": {
+          "address": {
+            "example": "ops@example.com",
+            "type": "string"
+          },
+          "members": {
+            "type": "boolean"
+          },
+          "phone": {
+            "example": "+420601123456",
+            "type": "string"
+          },
+          "signingSecret": {
+            "type": "string"
+          },
+          "url": {
+            "example": "https://example.com/hooks/pulsecheck",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "dto.AlertChannelTestResult": {
+        "properties": {
+          "providerRef": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "providerRef"
+        ],
+        "type": "object"
+      },
+      "dto.AlertChannelUpdate": {
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "rotateSecret": {
+            "type": "boolean"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/dto.AlertChannelSettingsInput"
+          }
+        },
+        "type": "object"
+      },
+      "dto.AlertChannelVerifyConfirm": {
+        "properties": {
+          "code": {
+            "example": "123456",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code"
+        ],
+        "type": "object"
+      },
+      "dto.AlertChannelWithSecret": {
+        "properties": {
+          "createdAt": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "kind": {
+            "description": "Kind is how the channel delivers. voice is a voice-call channel made\nbefore calls were withdrawn: it stays disabled and gets no alerts;\nit can be renamed or deleted.",
+            "enum": [
+              "email",
+              "webhook",
+              "slack",
+              "discord",
+              "sms",
+              "voice"
+            ],
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/dto.AlertChannelSettings"
+          },
+          "signingSecret": {
+            "example": "whsec_…",
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "verified": {
+            "description": "Verified is false for an SMS or email-address channel until\nits contact confirmed a code; such a channel gets no alerts.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "createdAt",
+          "enabled",
+          "id",
+          "isDefault",
+          "kind",
+          "name",
+          "settings",
+          "updatedAt",
+          "verified"
+        ],
+        "type": "object"
+      },
+      "dto.Availability": {
+        "properties": {
+          "checks": {
+            "type": "integer"
+          },
+          "critical": {
+            "type": "integer"
+          },
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/dto.DayAvailability"
+            },
+            "type": "array"
+          },
+          "downtimeMinutes": {
+            "type": "integer"
+          },
+          "from": {
+            "type": "string"
+          },
+          "inconclusive": {
+            "type": "integer"
+          },
+          "ok": {
+            "type": "integer"
+          },
+          "to": {
+            "type": "string"
+          },
+          "uptimePercent": {
+            "description": "UptimePercent is (ok + warning) / (ok + warning + critical); absent\nwithout conclusive checks, and for SSL and domain monitors (no\nuptime: their downtime is always 0).",
+            "example": 99.98,
+            "type": "number"
+          },
+          "warning": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "checks",
+          "critical",
+          "days",
+          "downtimeMinutes",
+          "from",
+          "inconclusive",
+          "ok",
+          "to",
+          "warning"
+        ],
+        "type": "object"
+      },
+      "dto.Certificate": {
+        "properties": {
+          "chain": {
+            "description": "Chain is what the server presented, leaf first; absent on results\nrecorded before chains were kept.",
+            "items": {
+              "$ref": "#/components/schemas/dto.ChainCertificate"
+            },
+            "type": "array"
+          },
+          "chainValid": {
+            "type": "boolean"
+          },
+          "daysRemaining": {
+            "type": "integer"
+          },
+          "dnsNames": {
+            "description": "DNSNames are the subject alternative names (SANs).",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "fingerprintSha256": {
+            "description": "FingerprintSHA256 is the SHA-256 of the certificate (DER), hex.",
+            "example": "5f1c…",
+            "type": "string"
+          },
+          "hostnameValid": {
+            "type": "boolean"
+          },
+          "issuer": {
+            "type": "string"
+          },
+          "issuerOrg": {
+            "type": "string"
+          },
+          "notAfter": {
+            "type": "string"
+          },
+          "notBefore": {
+            "type": "string"
+          },
+          "serialNumber": {
+            "example": "3a1f…",
+            "type": "string"
+          },
+          "signatureAlgorithm": {
+            "description": "SignatureAlgorithm as Go names it (\"SHA256-RSA\", \"ECDSA-SHA384\").",
+            "example": "ECDSA-SHA384",
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "verifiedChainLength": {
+            "description": "VerifiedChainLength counts the certificates from the leaf to a\ntrusted root, root included; absent when the chain doesn't verify.",
+            "example": 3,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "chainValid",
+          "daysRemaining",
+          "hostnameValid",
+          "issuer",
+          "notAfter",
+          "notBefore",
+          "subject"
+        ],
+        "type": "object"
+      },
+      "dto.CertificateRenewal": {
+        "properties": {
+          "current": {
+            "$ref": "#/components/schemas/dto.RenewedCertificate"
+          },
+          "previous": {
+            "$ref": "#/components/schemas/dto.RenewedCertificate"
+          }
+        },
+        "required": [
+          "current",
+          "previous"
+        ],
+        "type": "object"
+      },
+      "dto.ChainCertificate": {
+        "properties": {
+          "isCA": {
+            "type": "boolean"
+          },
+          "issuer": {
+            "type": "string"
+          },
+          "notAfter": {
+            "type": "string"
+          },
+          "notBefore": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "isCA",
+          "issuer",
+          "notAfter",
+          "notBefore",
+          "subject"
+        ],
+        "type": "object"
+      },
+      "dto.ChannelDelivery": {
+        "properties": {
+          "attempts": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "event": {
+            "enum": [
+              "down",
+              "warning",
+              "expiring",
+              "expired",
+              "recovered",
+              "reminder"
+            ],
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "incidentId": {
+            "description": "IncidentID is absent for an alert outside an incident.",
+            "format": "uuid",
+            "type": "string"
+          },
+          "lastError": {
+            "example": "endpoint answered 410",
+            "type": "string"
+          },
+          "monitorId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "monitorName": {
+            "type": "string"
+          },
+          "nextAttemptAt": {
+            "description": "NextAttemptAt is set while pending.",
+            "type": "string"
+          },
+          "sentAt": {
+            "type": "string"
+          },
+          "status": {
+            "description": "Status: pending (queued or waiting to retry), sent, dead (gave up).",
+            "enum": [
+              "pending",
+              "sent",
+              "dead"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "attempts",
+          "createdAt",
+          "event",
+          "id",
+          "monitorId",
+          "monitorName",
+          "status"
+        ],
+        "type": "object"
+      },
+      "dto.CheckRegion": {
+        "properties": {
+          "code": {
+            "description": "Code is the AWS region code, as results' region carries it.",
+            "example": "eu-central-1",
+            "type": "string"
+          },
+          "name": {
+            "description": "Name is the city people know the region by.",
+            "example": "Frankfurt",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "name"
+        ],
+        "type": "object"
+      },
+      "dto.CheckResult": {
+        "properties": {
+          "certificate": {
+            "$ref": "#/components/schemas/dto.Certificate"
+          },
+          "checkedAt": {
+            "type": "string"
+          },
+          "condition": {
+            "example": "ok",
+            "type": "string"
+          },
+          "domain": {
+            "$ref": "#/components/schemas/dto.DomainRegistration"
+          },
+          "errorMessage": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "redirects": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "region": {
+            "example": "eu-central-1",
+            "type": "string"
+          },
+          "severity": {
+            "enum": [
+              "ok",
+              "warning",
+              "critical",
+              "inconclusive"
+            ],
+            "type": "string"
+          },
+          "statusCode": {
+            "type": "integer"
+          },
+          "timings": {
+            "$ref": "#/components/schemas/dto.CheckTimings"
+          }
+        },
+        "required": [
+          "checkedAt",
+          "condition",
+          "id",
+          "region",
+          "severity",
+          "timings"
+        ],
+        "type": "object"
+      },
+      "dto.CheckTimings": {
+        "properties": {
+          "connectMs": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "dnsMs": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "redirectMs": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "tlsMs": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "totalMs": {
+            "type": "integer"
+          },
+          "ttfbMs": {
+            "nullable": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "totalMs"
+        ],
+        "type": "object"
+      },
+      "dto.ConditionFacts": {
+        "properties": {
+          "daysRemaining": {
+            "example": 5,
+            "type": "integer"
+          },
+          "expiresAt": {
+            "type": "string"
+          },
+          "responseTimeMs": {
+            "description": "ResponseTimeMs and SlowThresholdMs: a slow response's time and the\nthreshold it went over (slow_response only).",
+            "example": 1503,
+            "type": "integer"
+          },
+          "slowThresholdMs": {
+            "example": 500,
+            "type": "integer"
+          },
+          "statusCode": {
+            "example": 503,
+            "type": "integer"
+          },
+          "thresholdDays": {
+            "description": "ThresholdDays is the smallest expiry threshold the expiry is within.",
+            "example": 7,
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "dto.DayAvailability": {
+        "properties": {
+          "checks": {
+            "type": "integer"
+          },
+          "critical": {
+            "type": "integer"
+          },
+          "date": {
+            "description": "Date is the UTC day, YYYY-MM-DD.",
+            "example": "2026-10-29",
+            "type": "string"
+          },
+          "downtimeMinutes": {
+            "description": "DowntimeMinutes estimates the time spent down: the share of\ncritical checks among the conclusive ones times the minutes the\nday's checks cover. A warning is not downtime.",
+            "type": "integer"
+          },
+          "inconclusive": {
+            "type": "integer"
+          },
+          "noData": {
+            "description": "NoData: no checks that day (draw it gray, never as up).",
+            "type": "boolean"
+          },
+          "ok": {
+            "type": "integer"
+          },
+          "uptimePercent": {
+            "example": 100,
+            "type": "number"
+          },
+          "warning": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "checks",
+          "critical",
+          "date",
+          "downtimeMinutes",
+          "inconclusive",
+          "noData",
+          "ok",
+          "warning"
+        ],
+        "type": "object"
+      },
+      "dto.DomainRegistration": {
+        "properties": {
+          "checkedAt": {
+            "description": "CheckedAt is when the registry was asked (lookups are cached up to\nan hour).",
+            "type": "string"
+          },
+          "daysRemaining": {
+            "description": "DaysRemaining is 0 on the expiry day, negative after it.",
+            "type": "integer"
+          },
+          "dnssec": {
+            "description": "DNSSEC: signed when the registry holds DS records for the domain;\nabsent when the registry doesn't say.",
+            "enum": [
+              "signed",
+              "unsigned"
+            ],
+            "example": "signed",
+            "type": "string"
+          },
+          "domain": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "description": "ExpiresAt is the expiry date at 00:00 UTC; absent when the registry\npublishes none.",
+            "type": "string"
+          },
+          "nameservers": {
+            "description": "Nameservers are the delegation's nameservers, lower case, in the\nregistry's order; [] when unknown (results recorded before they were\nkept, registries that publish none).",
+            "example": [
+              "a.iana-servers.net",
+              "b.iana-servers.net"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "registered": {
+            "type": "boolean"
+          },
+          "registeredAt": {
+            "description": "RegisteredAt is the registration (creation) date at 00:00 UTC, and\nUpdatedAt the registry's last change of it; absent when the registry\ndoesn't publish them (and for dns answers).",
+            "type": "string"
+          },
+          "registrar": {
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "rdap",
+              "whois",
+              "dns"
+            ],
+            "type": "string"
+          },
+          "statusCodes": {
+            "description": "StatusCodes are the EPP status codes (RFC 5731), e.g. ok,\nclientTransferProhibited, serverHold, pendingDelete,\nredemptionPeriod; [] when unknown (dns answers).",
+            "example": [
+              "clientDeleteProhibited",
+              "clientTransferProhibited"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "checkedAt",
+          "domain",
+          "nameservers",
+          "registered",
+          "source",
+          "statusCodes"
+        ],
+        "type": "object"
+      },
+      "dto.DomainSettings": {
+        "properties": {
+          "domain": {
+            "type": "string"
+          },
+          "expiryThresholdsDays": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "domain",
+          "expiryThresholdsDays"
+        ],
+        "type": "object"
+      },
+      "dto.DomainSettingsInput": {
+        "properties": {
+          "domain": {
+            "example": "example.com",
+            "type": "string"
+          },
+          "expiryThresholdsDays": {
+            "example": [
+              30,
+              14,
+              7
+            ],
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "domain",
+          "expiryThresholdsDays"
+        ],
+        "type": "object"
+      },
+      "dto.ExpiryWatch": {
+        "properties": {
+          "thresholdsDays": {
+            "example": [
+              30,
+              14,
+              7
+            ],
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "thresholdsDays"
+        ],
+        "type": "object"
+      },
+      "dto.ExpiryWatchInput": {
+        "properties": {
+          "thresholdsDays": {
+            "description": "ThresholdsDays are the expiry warnings, in days before expiry.",
+            "example": [
+              30,
+              14,
+              7
+            ],
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "thresholdsDays"
+        ],
+        "type": "object"
+      },
+      "dto.HTTPHeader": {
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "secret": {
+            "type": "boolean"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "secret"
+        ],
+        "type": "object"
+      },
+      "dto.HTTPHeaderInput": {
+        "properties": {
+          "name": {
+            "example": "Authorization",
+            "type": "string"
+          },
+          "secret": {
+            "example": true,
+            "type": "boolean"
+          },
+          "value": {
+            "example": "Bearer …",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
+      "dto.HTTPSettings": {
+        "properties": {
+          "certificateExpiry": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/dto.ExpiryWatch"
+              }
+            ],
+            "description": "CertificateExpiry and DomainExpiry are the watches that are on;\nabsent when off."
+          },
+          "domainExpiry": {
+            "$ref": "#/components/schemas/dto.ExpiryWatch"
+          },
+          "expectedStatus": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "followRedirects": {
+            "type": "boolean"
+          },
+          "headers": {
+            "items": {
+              "$ref": "#/components/schemas/dto.HTTPHeader"
+            },
+            "type": "array"
+          },
+          "keyword": {
+            "type": "string"
+          },
+          "keywordCaseSensitive": {
+            "type": "boolean"
+          },
+          "keywordMode": {
+            "type": "string"
+          },
+          "maxRedirects": {
+            "type": "integer"
+          },
+          "method": {
+            "type": "string"
+          },
+          "requestBody": {
+            "type": "string"
+          },
+          "requestBodyContentType": {
+            "type": "string"
+          },
+          "slowThresholdMs": {
+            "type": "integer"
+          },
+          "timeoutMs": {
+            "type": "integer"
+          },
+          "url": {
+            "type": "string"
+          },
+          "verifyTls": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "expectedStatus",
+          "followRedirects",
+          "headers",
+          "keywordCaseSensitive",
+          "maxRedirects",
+          "method",
+          "timeoutMs",
+          "url",
+          "verifyTls"
+        ],
+        "type": "object"
+      },
+      "dto.HTTPSettingsInput": {
+        "properties": {
+          "certificateExpiry": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/dto.ExpiryWatchInput"
+              }
+            ],
+            "description": "CertificateExpiry watches the expiry of the certificate the URL\npresents (https:// URLs only), judged with every check; omit it to\nleave the watch off."
+          },
+          "domainExpiry": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/dto.ExpiryWatchInput"
+              }
+            ],
+            "description": "DomainExpiry watches the registration of the URL's registrable\ndomain (shop.example.com watches example.com), looked up twice a\nday; omit it to leave the watch off. Not for IP addresses."
+          },
+          "expectedStatus": {
+            "example": [
+              "2xx",
+              "301"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "followRedirects": {
+            "example": true,
+            "type": "boolean"
+          },
+          "headers": {
+            "items": {
+              "$ref": "#/components/schemas/dto.HTTPHeaderInput"
+            },
+            "type": "array"
+          },
+          "keyword": {
+            "description": "Keyword is looked for in the first 256 KiB of the response body.",
+            "example": "All systems operational",
+            "type": "string"
+          },
+          "keywordCaseSensitive": {
+            "type": "boolean"
+          },
+          "keywordMode": {
+            "enum": [
+              "present",
+              "absent"
+            ],
+            "type": "string"
+          },
+          "maxRedirects": {
+            "example": 5,
+            "maximum": 10,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "method": {
+            "enum": [
+              "GET",
+              "HEAD",
+              "POST",
+              "PUT",
+              "PATCH",
+              "DELETE",
+              "OPTIONS"
+            ],
+            "example": "GET",
+            "type": "string"
+          },
+          "requestBody": {
+            "type": "string"
+          },
+          "requestBodyContentType": {
+            "example": "application/json",
+            "type": "string"
+          },
+          "slowThresholdMs": {
+            "example": 2000,
+            "type": "integer"
+          },
+          "timeoutMs": {
+            "example": 10000,
+            "maximum": 30000,
+            "minimum": 1000,
+            "type": "integer"
+          },
+          "url": {
+            "example": "https://example.com/health",
+            "type": "string"
+          },
+          "verifyTls": {
+            "example": true,
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "expectedStatus",
+          "followRedirects",
+          "maxRedirects",
+          "method",
+          "timeoutMs",
+          "url",
+          "verifyTls"
+        ],
+        "type": "object"
+      },
+      "dto.HistoryBeat": {
+        "properties": {
+          "checkedAt": {
+            "type": "string"
+          },
+          "condition": {
+            "example": "unexpected_status",
+            "type": "string"
+          },
+          "responseTimeMs": {
+            "type": "integer"
+          },
+          "resultId": {
+            "type": "integer"
+          },
+          "severity": {
+            "enum": [
+              "ok",
+              "warning",
+              "critical",
+              "inconclusive"
+            ],
+            "type": "string"
+          },
+          "statusCode": {
+            "example": 503,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "checkedAt",
+          "condition",
+          "responseTimeMs",
+          "resultId",
+          "severity"
+        ],
+        "type": "object"
+      },
+      "dto.Incident": {
+        "properties": {
+          "acknowledgedAt": {
+            "type": "string"
+          },
+          "acknowledgedBy": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "aspect": {
+            "description": "Aspect is what the incident is about.",
+            "enum": [
+              "availability",
+              "certificate",
+              "domain"
+            ],
+            "type": "string"
+          },
+          "condition": {
+            "description": "Condition is what the latest check that changed the incident found;\nsummary is its message, facts its facts.",
+            "example": "unexpected_status",
+            "type": "string"
+          },
+          "durationSeconds": {
+            "description": "DurationSeconds is how long it lasted (or has lasted so far).",
+            "type": "integer"
+          },
+          "facts": {
+            "$ref": "#/components/schemas/dto.ConditionFacts"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "monitorId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "monitorName": {
+            "type": "string"
+          },
+          "monitorTarget": {
+            "example": "https://example.com/health",
+            "type": "string"
+          },
+          "monitorType": {
+            "enum": [
+              "http",
+              "ssl",
+              "domain"
+            ],
+            "type": "string"
+          },
+          "monitorVariant": {
+            "description": "MonitorVariant names what the monitor does, as on monitor rows\n(keyword for an HTTP monitor with a keyword).",
+            "enum": [
+              "http",
+              "keyword",
+              "ssl",
+              "domain"
+            ],
+            "type": "string"
+          },
+          "openedAt": {
+            "type": "string"
+          },
+          "peakSeverity": {
+            "enum": [
+              "warning",
+              "critical"
+            ],
+            "type": "string"
+          },
+          "resolvedAt": {
+            "type": "string"
+          },
+          "severity": {
+            "description": "Severity is the current one; peakSeverity the worst it reached (a\nde-escalated incident stays open at warning).",
+            "enum": [
+              "warning",
+              "critical"
+            ],
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "open",
+              "resolved"
+            ],
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "title": {
+            "description": "Title names the problem in the monitor type's words (an expiry's\ndays counted now, or when it ended).",
+            "example": "Certificate of example.com expires in 5 days",
+            "type": "string"
+          }
+        },
+        "required": [
+          "aspect",
+          "condition",
+          "durationSeconds",
+          "facts",
+          "id",
+          "monitorId",
+          "monitorName",
+          "monitorTarget",
+          "monitorType",
+          "monitorVariant",
+          "openedAt",
+          "peakSeverity",
+          "severity",
+          "status",
+          "summary",
+          "title"
+        ],
+        "type": "object"
+      },
+      "dto.IncidentDelivery": {
+        "properties": {
+          "alertId": {
+            "description": "AlertID is the alert this delivery sends: an alert goes to every\nchannel of its route, one delivery each.",
+            "format": "uuid",
+            "type": "string"
+          },
+          "attempts": {
+            "type": "integer"
+          },
+          "channelId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "channelKind": {
+            "type": "string"
+          },
+          "channelName": {
+            "type": "string"
+          },
+          "event": {
+            "enum": [
+              "down",
+              "warning",
+              "expiring",
+              "expired",
+              "recovered",
+              "reminder"
+            ],
+            "type": "string"
+          },
+          "lastError": {
+            "type": "string"
+          },
+          "nextAttemptAt": {
+            "description": "NextAttemptAt is when a pending delivery is tried again.",
+            "type": "string"
+          },
+          "queuedAt": {
+            "description": "QueuedAt is when the alert was queued: the time of the timeline\nentry that sent it (opened, escalated, threshold, reminder).",
+            "type": "string"
+          },
+          "sentAt": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "sent",
+              "dead"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "alertId",
+          "attempts",
+          "event",
+          "queuedAt",
+          "status"
+        ],
+        "type": "object"
+      },
+      "dto.IncidentDetail": {
+        "properties": {
+          "acknowledgedAt": {
+            "type": "string"
+          },
+          "acknowledgedBy": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "acknowledgedByName": {
+            "description": "AcknowledgedByName names who acknowledged it (their name, else\nemail); absent when nobody did or Norcube Auth couldn't say.",
+            "example": "Dev Owner",
+            "type": "string"
+          },
+          "alerts": {
+            "items": {
+              "$ref": "#/components/schemas/dto.IncidentDelivery"
+            },
+            "type": "array"
+          },
+          "aspect": {
+            "description": "Aspect is what the incident is about.",
+            "enum": [
+              "availability",
+              "certificate",
+              "domain"
+            ],
+            "type": "string"
+          },
+          "condition": {
+            "description": "Condition is what the latest check that changed the incident found;\nsummary is its message, facts its facts.",
+            "example": "unexpected_status",
+            "type": "string"
+          },
+          "durationSeconds": {
+            "description": "DurationSeconds is how long it lasted (or has lasted so far).",
+            "type": "integer"
+          },
+          "facts": {
+            "$ref": "#/components/schemas/dto.ConditionFacts"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "monitorId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "monitorName": {
+            "type": "string"
+          },
+          "monitorTarget": {
+            "example": "https://example.com/health",
+            "type": "string"
+          },
+          "monitorType": {
+            "enum": [
+              "http",
+              "ssl",
+              "domain"
+            ],
+            "type": "string"
+          },
+          "monitorVariant": {
+            "description": "MonitorVariant names what the monitor does, as on monitor rows\n(keyword for an HTTP monitor with a keyword).",
+            "enum": [
+              "http",
+              "keyword",
+              "ssl",
+              "domain"
+            ],
+            "type": "string"
+          },
+          "openedAt": {
+            "type": "string"
+          },
+          "peakSeverity": {
+            "enum": [
+              "warning",
+              "critical"
+            ],
+            "type": "string"
+          },
+          "resolvedAt": {
+            "type": "string"
+          },
+          "severity": {
+            "description": "Severity is the current one; peakSeverity the worst it reached (a\nde-escalated incident stays open at warning).",
+            "enum": [
+              "warning",
+              "critical"
+            ],
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "open",
+              "resolved"
+            ],
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "timeline": {
+            "items": {
+              "$ref": "#/components/schemas/dto.IncidentEvent"
+            },
+            "type": "array"
+          },
+          "title": {
+            "description": "Title names the problem in the monitor type's words (an expiry's\ndays counted now, or when it ended).",
+            "example": "Certificate of example.com expires in 5 days",
+            "type": "string"
+          }
+        },
+        "required": [
+          "alerts",
+          "aspect",
+          "condition",
+          "durationSeconds",
+          "facts",
+          "id",
+          "monitorId",
+          "monitorName",
+          "monitorTarget",
+          "monitorType",
+          "monitorVariant",
+          "openedAt",
+          "peakSeverity",
+          "severity",
+          "status",
+          "summary",
+          "timeline",
+          "title"
+        ],
+        "type": "object"
+      },
+      "dto.IncidentEvent": {
+        "properties": {
+          "at": {
+            "type": "string"
+          },
+          "detail": {
+            "additionalProperties": {},
+            "type": "object"
+          },
+          "type": {
+            "enum": [
+              "opened",
+              "escalated",
+              "deescalated",
+              "threshold",
+              "reminder",
+              "acknowledged",
+              "resolved",
+              "delivery_failed"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "at",
+          "type"
+        ],
+        "type": "object"
+      },
+      "dto.IncidentOpenCounts": {
+        "properties": {
+          "critical": {
+            "example": 1,
+            "type": "integer"
+          },
+          "total": {
+            "example": 3,
+            "type": "integer"
+          },
+          "unacknowledged": {
+            "example": 2,
+            "type": "integer"
+          },
+          "warning": {
+            "example": 2,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "critical",
+          "total",
+          "unacknowledged",
+          "warning"
+        ],
+        "type": "object"
+      },
+      "dto.IncidentSummary": {
+        "properties": {
+          "mttrLast30dSeconds": {
+            "description": "MttrLast30dSeconds is the mean time to resolve of those incidents;\nabsent when none was resolved.",
+            "example": 1260,
+            "type": "integer"
+          },
+          "open": {
+            "$ref": "#/components/schemas/dto.IncidentOpenCounts"
+          },
+          "resolvedLast30d": {
+            "description": "ResolvedLast30d counts incidents resolved in the last 30 days, the\nones mttrLast30dSeconds averages.",
+            "example": 12,
+            "type": "integer"
+          },
+          "resolvedLast7d": {
+            "description": "ResolvedLast7d counts incidents resolved in the last 7 days.",
+            "example": 4,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "open",
+          "resolvedLast30d",
+          "resolvedLast7d"
+        ],
+        "type": "object"
+      },
+      "dto.LastCheck": {
+        "properties": {
+          "at": {
+            "type": "string"
+          },
+          "condition": {
+            "example": "ok",
+            "type": "string"
+          },
+          "severity": {
+            "enum": [
+              "ok",
+              "warning",
+              "critical",
+              "inconclusive"
+            ],
+            "type": "string"
+          },
+          "totalMs": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "at",
+          "condition",
+          "severity"
+        ],
+        "type": "object"
+      },
+      "dto.Monitor": {
+        "properties": {
+          "aspects": {
+            "description": "Aspects are the monitor's watched aspects (an HTTP monitor's\ncertificate and domain watches that are on), on list rows too; []\nwithout watches.",
+            "items": {
+              "$ref": "#/components/schemas/dto.MonitorAspect"
+            },
+            "type": "array"
+          },
+          "condition": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/dto.MonitorCondition"
+              }
+            ],
+            "description": "Condition explains status; absent while pending."
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "createdBy": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "domain": {
+            "$ref": "#/components/schemas/dto.DomainSettings"
+          },
+          "history": {
+            "description": "History is set on list rows with include=history: the newest\nresults (at most 60), newest first; [] for a monitor never checked.",
+            "items": {
+              "$ref": "#/components/schemas/dto.HistoryBeat"
+            },
+            "type": "array"
+          },
+          "http": {
+            "$ref": "#/components/schemas/dto.HTTPSettings"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "intervalSeconds": {
+            "type": "integer"
+          },
+          "last24h": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/dto.WindowSummary"
+              }
+            ],
+            "description": "Last24h is set on list rows of monitors that track uptime (HTTP):\nthe last 24 full hours plus the current one. SSL and domain monitors\nshow days left (condition.facts) instead."
+          },
+          "lastCheck": {
+            "$ref": "#/components/schemas/dto.LastCheck"
+          },
+          "name": {
+            "type": "string"
+          },
+          "nextCheckAt": {
+            "type": "string"
+          },
+          "overallStatus": {
+            "description": "OverallStatus is the worst of status and the statuses of the\nmonitor's watched aspects (critical, warning, pending, ok), paused\nwhile disabled. The list status filter and sort use it.",
+            "enum": [
+              "pending",
+              "ok",
+              "warning",
+              "critical",
+              "paused"
+            ],
+            "type": "string"
+          },
+          "parentResource": {
+            "description": "ParentResource is set when the monitor belongs to a resource of\nanother Norcube service (\"domainradar:saved_domain:example.com\"). It\ncan't be deleted here, and its domain can't change.",
+            "example": "domainradar:saved_domain:example.com",
+            "type": "string"
+          },
+          "regions": {
+            "description": "Regions are where the monitor is checked from, on list rows too.\nToday every monitor is checked from the one region the service runs\nin; with probes in more regions (planned) a monitor may list\nseveral. Each result says which region checked it (region).",
+            "items": {
+              "$ref": "#/components/schemas/dto.CheckRegion"
+            },
+            "type": "array"
+          },
+          "ssl": {
+            "$ref": "#/components/schemas/dto.SSLSettings"
+          },
+          "status": {
+            "description": "Status is the primary aspect's: the severity of the last conclusive\ncheck, pending before one, paused while disabled. An inconclusive\ncheck (a failed registry lookup) never changes it.",
+            "enum": [
+              "pending",
+              "ok",
+              "warning",
+              "critical",
+              "paused"
+            ],
+            "type": "string"
+          },
+          "statusSince": {
+            "type": "string"
+          },
+          "target": {
+            "example": "https://example.com/health",
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "http",
+              "ssl",
+              "domain"
+            ],
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "variant": {
+            "description": "Variant is what the monitor does in one word, on list rows too\n(which carry no settings): keyword for an HTTP monitor that looks for\na keyword in the body, otherwise the type.",
+            "enum": [
+              "http",
+              "keyword",
+              "ssl",
+              "domain"
+            ],
+            "example": "keyword",
+            "type": "string"
+          }
+        },
+        "required": [
+          "aspects",
+          "createdAt",
+          "createdBy",
+          "description",
+          "id",
+          "intervalSeconds",
+          "name",
+          "overallStatus",
+          "regions",
+          "status",
+          "statusSince",
+          "target",
+          "type",
+          "updatedAt",
+          "variant"
+        ],
+        "type": "object"
+      },
+      "dto.MonitorAlertRoute": {
+        "properties": {
+          "channelId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "events": {
+            "example": [
+              "down",
+              "recovered"
+            ],
+            "items": {
+              "enum": [
+                "down",
+                "warning",
+                "expiring",
+                "expired",
+                "recovered"
+              ],
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "channelId",
+          "events"
+        ],
+        "type": "object"
+      },
+      "dto.MonitorAlerts": {
+        "properties": {
+          "applicableEvents": {
+            "description": "ApplicableEvents are the events monitors of this type can send\n(offer only these in a routing form).",
+            "example": [
+              "down",
+              "warning",
+              "recovered"
+            ],
+            "items": {
+              "enum": [
+                "down",
+                "warning",
+                "expiring",
+                "expired",
+                "recovered"
+              ],
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "confirmFailures": {
+            "type": "integer"
+          },
+          "confirmSuccesses": {
+            "type": "integer"
+          },
+          "reminderMinutes": {
+            "type": "integer"
+          },
+          "routes": {
+            "items": {
+              "$ref": "#/components/schemas/dto.MonitorAlertRoute"
+            },
+            "type": "array"
+          },
+          "useDefaults": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "applicableEvents",
+          "confirmFailures",
+          "confirmSuccesses",
+          "reminderMinutes",
+          "routes",
+          "useDefaults"
+        ],
+        "type": "object"
+      },
+      "dto.MonitorAlertsUpdate": {
+        "properties": {
+          "confirmFailures": {
+            "example": 2,
+            "maximum": 10,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "confirmSuccesses": {
+            "example": 1,
+            "maximum": 10,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "reminderMinutes": {
+            "example": 60,
+            "type": "integer"
+          },
+          "routes": {
+            "items": {
+              "$ref": "#/components/schemas/dto.MonitorAlertRoute"
+            },
+            "type": "array"
+          },
+          "useDefaults": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "dto.MonitorAspect": {
+        "properties": {
+          "alertedThresholds": {
+            "description": "AlertedThresholds are the expiry thresholds already alerted for the\ncurrent expiry, oldest first; [] before the first (or once renewed).",
+            "items": {
+              "$ref": "#/components/schemas/dto.ThresholdAlert"
+            },
+            "type": "array"
+          },
+          "aspect": {
+            "enum": [
+              "certificate",
+              "domain"
+            ],
+            "type": "string"
+          },
+          "checkedAt": {
+            "description": "CheckedAt is the last observation, conclusive or not; absent before\nthe first.",
+            "type": "string"
+          },
+          "condition": {
+            "description": "Condition explains status (\"ok\", \"cert_expiring\", \"domain_expired\",\n...); absent while pending.",
+            "example": "cert_expiring",
+            "type": "string"
+          },
+          "daysRemaining": {
+            "description": "DaysRemaining is counted when read from expiresAt, negative once\nexpired.",
+            "example": 12,
+            "type": "integer"
+          },
+          "expiresAt": {
+            "type": "string"
+          },
+          "message": {
+            "example": "certificate expires in 12 days (2026-11-12), within the 14-day threshold",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "ok",
+              "warning",
+              "critical"
+            ],
+            "type": "string"
+          },
+          "subject": {
+            "description": "Subject is what the aspect is about: the URL's host for the\ncertificate, its registrable domain for the domain.",
+            "example": "example.com",
+            "type": "string"
+          },
+          "thresholdsDays": {
+            "example": [
+              30,
+              14,
+              7
+            ],
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "alertedThresholds",
+          "aspect",
+          "status",
+          "subject",
+          "thresholdsDays"
+        ],
+        "type": "object"
+      },
+      "dto.MonitorBulkItem": {
+        "properties": {
+          "code": {
+            "example": "MANAGED_RESOURCE",
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "monitorId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "ok": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "monitorId",
+          "ok"
+        ],
+        "type": "object"
+      },
+      "dto.MonitorBulkRequest": {
+        "properties": {
+          "action": {
+            "enum": [
+              "pause",
+              "resume",
+              "delete"
+            ],
+            "example": "pause",
+            "type": "string"
+          },
+          "monitorIds": {
+            "example": [
+              "7d1c2f7e-6a1f-4f5e-9b8a-1f7c2b3d4e5f"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "action",
+          "monitorIds"
+        ],
+        "type": "object"
+      },
+      "dto.MonitorBulkResult": {
+        "properties": {
+          "action": {
+            "enum": [
+              "pause",
+              "resume",
+              "delete"
+            ],
+            "type": "string"
+          },
+          "failed": {
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/dto.MonitorBulkItem"
+            },
+            "type": "array"
+          },
+          "succeeded": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "action",
+          "failed",
+          "items",
+          "succeeded"
+        ],
+        "type": "object"
+      },
+      "dto.MonitorCertificate": {
+        "properties": {
+          "alertWindowStart": {
+            "description": "AlertWindowStart is when the largest threshold is crossed (notAfter\nminus it): shade from here to notAfter.",
+            "type": "string"
+          },
+          "certificate": {
+            "$ref": "#/components/schemas/dto.Certificate"
+          },
+          "checkedAt": {
+            "type": "string"
+          },
+          "condition": {
+            "example": "cert_expiring",
+            "type": "string"
+          },
+          "daysRemaining": {
+            "description": "DaysRemaining counts from now (certificate.daysRemaining from the\ncheck).",
+            "example": 41,
+            "type": "integer"
+          },
+          "errorMessage": {
+            "type": "string"
+          },
+          "nextThresholdAt": {
+            "type": "string"
+          },
+          "nextThresholdDays": {
+            "description": "NextThresholdDays / NextThresholdAt: the next threshold to cross\nand when; absent once past the smallest.",
+            "example": 30,
+            "type": "integer"
+          },
+          "resultId": {
+            "type": "integer"
+          },
+          "severity": {
+            "enum": [
+              "ok",
+              "warning",
+              "critical",
+              "inconclusive"
+            ],
+            "type": "string"
+          },
+          "thresholdsDays": {
+            "description": "ThresholdsDays are the SSL monitor's expiry thresholds, largest\nfirst; empty for an HTTP monitor (no expiry alerts).",
+            "example": [
+              30,
+              14,
+              7
+            ],
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "certificate",
+          "checkedAt",
+          "condition",
+          "daysRemaining",
+          "resultId",
+          "severity",
+          "thresholdsDays"
+        ],
+        "type": "object"
+      },
+      "dto.MonitorCondition": {
+        "properties": {
+          "alertedThresholds": {
+            "description": "AlertedThresholds are the expiry thresholds already alerted for the\ncurrent expiry (SSL and domain monitors), oldest first; [] otherwise.\nAn HTTP monitor's watched certificate and domain have theirs on\naspects.",
+            "items": {
+              "$ref": "#/components/schemas/dto.ThresholdAlert"
+            },
+            "type": "array"
+          },
+          "code": {
+            "description": "Code is the condition (\"ok\", \"slow_response\", \"cert_expiring\", ...),\nworded per monitor type by the dashboard.",
+            "example": "cert_expiring",
+            "type": "string"
+          },
+          "conclusiveAt": {
+            "description": "ConclusiveAt is when a check last confirmed it; older than\nlastCheck.at when the newest checks couldn't tell.",
+            "type": "string"
+          },
+          "facts": {
+            "$ref": "#/components/schemas/dto.ConditionFacts"
+          },
+          "message": {
+            "example": "certificate expires in 5 days (2026-11-05), within the 7-day threshold",
+            "type": "string"
+          },
+          "since": {
+            "description": "Since is when the status began (statusSince).",
+            "type": "string"
+          }
+        },
+        "required": [
+          "alertedThresholds",
+          "code",
+          "facts",
+          "since"
+        ],
+        "type": "object"
+      },
+      "dto.MonitorCreate": {
+        "properties": {
+          "description": {
+            "example": "Homepage, checked from Frankfurt",
+            "type": "string"
+          },
+          "domain": {
+            "$ref": "#/components/schemas/dto.DomainSettingsInput"
+          },
+          "http": {
+            "$ref": "#/components/schemas/dto.HTTPSettingsInput"
+          },
+          "intervalSeconds": {
+            "description": "The org's plan can require more than the 30-second floor (60 s by\ndefault), and domain monitors run at most hourly (3600); the error\nmessage names the minimum.",
+            "example": 60,
+            "maximum": 86400,
+            "minimum": 30,
+            "type": "integer"
+          },
+          "name": {
+            "example": "Marketing site",
+            "type": "string"
+          },
+          "ssl": {
+            "$ref": "#/components/schemas/dto.SSLSettingsInput"
+          },
+          "type": {
+            "enum": [
+              "http",
+              "ssl",
+              "domain"
+            ],
+            "example": "http",
+            "type": "string"
+          }
+        },
+        "required": [
+          "intervalSeconds",
+          "name",
+          "type"
+        ],
+        "type": "object"
+      },
+      "dto.MonitorEvent": {
+        "properties": {
+          "aspect": {
+            "enum": [
+              "availability",
+              "certificate",
+              "domain"
+            ],
+            "example": "certificate",
+            "type": "string"
+          },
+          "at": {
+            "type": "string"
+          },
+          "checkResultId": {
+            "description": "CheckResultID is the check that saw it.",
+            "type": "integer"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "renewal": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/dto.CertificateRenewal"
+              }
+            ],
+            "description": "Renewal is set on certificate_renewed."
+          },
+          "type": {
+            "description": "Type: certificate_renewed, a check saw a certificate other than the\nnewest one so far, expiring later (SSL monitors and HTTP monitors\nthat watch their certificate; an older certificate, say from a node\nbehind on renewals, is not one).",
+            "enum": [
+              "certificate_renewed"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "aspect",
+          "at",
+          "checkResultId",
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "dto.MonitorStats": {
+        "properties": {
+          "avgMs": {
+            "type": "integer"
+          },
+          "checks": {
+            "type": "integer"
+          },
+          "critical": {
+            "type": "integer"
+          },
+          "from": {
+            "type": "string"
+          },
+          "granularity": {
+            "enum": [
+              "hour",
+              "day"
+            ],
+            "type": "string"
+          },
+          "inconclusive": {
+            "type": "integer"
+          },
+          "maxMs": {
+            "type": "integer"
+          },
+          "ok": {
+            "type": "integer"
+          },
+          "series": {
+            "items": {
+              "$ref": "#/components/schemas/dto.StatsBucket"
+            },
+            "type": "array"
+          },
+          "to": {
+            "type": "string"
+          },
+          "uptimePercent": {
+            "description": "UptimePercent is (ok + warning) / (ok + warning + critical); absent\nwithout conclusive checks and for SSL and domain monitors.",
+            "example": 99.95,
+            "type": "number"
+          },
+          "warning": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "checks",
+          "critical",
+          "from",
+          "granularity",
+          "inconclusive",
+          "ok",
+          "series",
+          "to",
+          "warning"
+        ],
+        "type": "object"
+      },
+      "dto.MonitorUpdate": {
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "domain": {
+            "$ref": "#/components/schemas/dto.DomainSettingsInput"
+          },
+          "http": {
+            "$ref": "#/components/schemas/dto.HTTPSettingsInput"
+          },
+          "intervalSeconds": {
+            "maximum": 86400,
+            "minimum": 30,
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "ssl": {
+            "$ref": "#/components/schemas/dto.SSLSettingsInput"
+          }
+        },
+        "type": "object"
+      },
+      "dto.RenewedCertificate": {
+        "properties": {
+          "fingerprintSha256": {
+            "type": "string"
+          },
+          "issuer": {
+            "type": "string"
+          },
+          "notAfter": {
+            "type": "string"
+          },
+          "notBefore": {
+            "type": "string"
+          },
+          "serialNumber": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "issuer",
+          "notAfter",
+          "notBefore",
+          "serialNumber",
+          "subject"
+        ],
+        "type": "object"
+      },
+      "dto.SSLSettings": {
+        "properties": {
+          "expiryThresholdsDays": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "host": {
+            "type": "string"
+          },
+          "port": {
+            "type": "integer"
+          },
+          "serverName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "expiryThresholdsDays",
+          "host",
+          "port"
+        ],
+        "type": "object"
+      },
+      "dto.SSLSettingsInput": {
+        "properties": {
+          "expiryThresholdsDays": {
+            "example": [
+              30,
+              14,
+              7
+            ],
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "host": {
+            "example": "example.com",
+            "type": "string"
+          },
+          "port": {
+            "example": 443,
+            "maximum": 65535,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "serverName": {
+            "example": "example.com",
+            "type": "string"
+          }
+        },
+        "required": [
+          "expiryThresholdsDays",
+          "host",
+          "port"
+        ],
+        "type": "object"
+      },
+      "dto.StatsBucket": {
+        "properties": {
+          "avgMs": {
+            "type": "integer"
+          },
+          "checks": {
+            "type": "integer"
+          },
+          "critical": {
+            "type": "integer"
+          },
+          "inconclusive": {
+            "type": "integer"
+          },
+          "maxMs": {
+            "type": "integer"
+          },
+          "ok": {
+            "type": "integer"
+          },
+          "p50Ms": {
+            "type": "integer"
+          },
+          "p95Ms": {
+            "type": "integer"
+          },
+          "region": {
+            "type": "string"
+          },
+          "start": {
+            "type": "string"
+          },
+          "warning": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "avgMs",
+          "checks",
+          "critical",
+          "inconclusive",
+          "maxMs",
+          "ok",
+          "p50Ms",
+          "p95Ms",
+          "region",
+          "start",
+          "warning"
+        ],
+        "type": "object"
+      },
+      "dto.StatusChange": {
+        "properties": {
+          "changedAt": {
+            "type": "string"
+          },
+          "checkResultId": {
+            "description": "CheckResultID is the result that made the change (raw results are\nkept about 30 days, changes a year).",
+            "type": "integer"
+          },
+          "condition": {
+            "description": "Condition is what the check that made the change found.",
+            "example": "unexpected_status",
+            "type": "string"
+          },
+          "durationSeconds": {
+            "description": "DurationSeconds is how long the status lasted (until now for the\nnewest change).",
+            "type": "integer"
+          },
+          "endedAt": {
+            "description": "EndedAt is when the next change happened; absent for the newest\nchange (the current status, unless the monitor is paused).",
+            "type": "string"
+          },
+          "events": {
+            "description": "Events are what else happened while this status lasted (from\nchangedAt to endedAt), newest first: certificate renewals. [] when\nnothing did.",
+            "items": {
+              "$ref": "#/components/schemas/dto.MonitorEvent"
+            },
+            "type": "array"
+          },
+          "from": {
+            "enum": [
+              "pending",
+              "ok",
+              "warning",
+              "critical"
+            ],
+            "type": "string"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "message": {
+            "example": "status 503 is not accepted (2xx)",
+            "type": "string"
+          },
+          "statusCode": {
+            "example": 503,
+            "type": "integer"
+          },
+          "to": {
+            "enum": [
+              "ok",
+              "warning",
+              "critical"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "changedAt",
+          "checkResultId",
+          "condition",
+          "durationSeconds",
+          "events",
+          "from",
+          "id",
+          "to"
+        ],
+        "type": "object"
+      },
+      "dto.ThresholdAlert": {
+        "properties": {
+          "alertedAt": {
+            "type": "string"
+          },
+          "days": {
+            "example": 14,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "alertedAt",
+          "days"
+        ],
+        "type": "object"
+      },
+      "dto.WindowSummary": {
+        "properties": {
+          "avgMs": {
+            "example": 182,
+            "type": "integer"
+          },
+          "checks": {
+            "type": "integer"
+          },
+          "critical": {
+            "type": "integer"
+          },
+          "from": {
+            "type": "string"
+          },
+          "inconclusive": {
+            "type": "integer"
+          },
+          "ok": {
+            "type": "integer"
+          },
+          "p50Ms": {
+            "description": "P50Ms and P95Ms approximate the window's median and 95th percentile\nresponse time (the checks-weighted mean of the hourly percentiles).",
+            "example": 150,
+            "type": "integer"
+          },
+          "p95Ms": {
+            "example": 420,
+            "type": "integer"
+          },
+          "uptimePercent": {
+            "description": "UptimePercent is (ok + warning) / (ok + warning + critical): a\nwarning still answered, an inconclusive check counts neither way.\nWarningPercent is the warnings' share of the conclusive checks.",
+            "example": 99.93,
+            "type": "number"
+          },
+          "warning": {
+            "type": "integer"
+          },
+          "warningPercent": {
+            "example": 0.4,
+            "type": "number"
+          }
+        },
+        "required": [
+          "checks",
+          "critical",
+          "from",
+          "inconclusive",
+          "ok",
+          "warning"
+        ],
+        "type": "object"
+      },
+      "response.APIResponsePaginationCursors": {
+        "properties": {
+          "next": {
+            "example": "eyJpZCI6InUuLi4ifQ==",
+            "type": "string"
+          },
+          "prev": {
+            "example": "eyJpZCI6InUuLi4ifQ==",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "response.APIResponsePaginationMeta": {
+        "properties": {
+          "timestamp": {
+            "example": "2025-01-08T17:29:30.663Z",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "response.APIResponseWithPagination": {
+        "properties": {
+          "cursors": {
+            "$ref": "#/components/schemas/response.APIResponsePaginationCursors"
+          },
+          "list": {},
+          "meta": {
+            "$ref": "#/components/schemas/response.APIResponsePaginationMeta"
+          }
+        },
+        "required": [
+          "cursors",
+          "list",
+          "meta"
+        ],
+        "type": "object"
+      },
+      "response.Problem": {
+        "properties": {
+          "code": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/constants.ErrorCode"
+              }
+            ],
+            "example": "VALIDATION_FAILED"
+          },
+          "data": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Data holds stable facts about the error (\"limit\"), the same ones gRPC\nsends as ErrorInfo metadata.",
+            "type": "object"
+          },
+          "detail": {
+            "description": "Detail is an English sentence for people.",
+            "example": "The request has invalid fields.",
+            "type": "string"
+          },
+          "errors": {
+            "description": "Errors lists the field problems of a VALIDATION_FAILED problem.",
+            "items": {
+              "$ref": "#/components/schemas/validation.Violation"
+            },
+            "type": "array"
+          },
+          "instance": {
+            "description": "Instance identifies this occurrence: the request id the server\ngenerated, also sent as X-Request-ID and logged as request_id.",
+            "example": "urn:uuid:3f2c8a8e-6c1d-4a59-9a43-2b1f0f6f9d10",
+            "format": "uri",
+            "type": "string"
+          },
+          "reason": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/constants.ErrorReason"
+              }
+            ],
+            "description": "Reason is a finer stable cause within Code, when there is one."
+          },
+          "status": {
+            "example": 400,
+            "type": "integer"
+          },
+          "timestamp": {
+            "type": "string"
+          },
+          "title": {
+            "example": "Validation failed",
+            "type": "string"
+          },
+          "type": {
+            "description": "Type identifies the problem type (one per code); it may be\ndereferenced for documentation.",
+            "example": "https://docs.norcube.com/errors/validation-failed",
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "detail",
+          "instance",
+          "status",
+          "timestamp",
+          "title",
+          "type"
+        ],
+        "type": "object"
+      },
+      "validation.Params": {
+        "properties": {
+          "allowed": {
+            "description": "Allowed: oneOf.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "expected": {
+            "description": "Expected: type, mismatch.",
+            "type": "string"
+          },
+          "field": {
+            "description": "Field is the pointer of the other field: min and max compared with a\nfield, exclusive, dependsOn.",
+            "example": "/http/requestBody",
+            "type": "string"
+          },
+          "max": {
+            "description": "Max: range, max, maxLength, maxItems.",
+            "example": 30000,
+            "type": "integer"
+          },
+          "min": {
+            "description": "Min: range, min.",
+            "example": 1000,
+            "type": "integer"
+          },
+          "unit": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/validation.Unit"
+              }
+            ],
+            "description": "Unit: maxLength."
+          },
+          "value": {
+            "description": "Value: unsupported.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "validation.Rule": {
+        "enum": [
+          "required",
+          "min",
+          "max",
+          "range",
+          "maxLength",
+          "maxItems",
+          "oneOf",
+          "format",
+          "public",
+          "unique",
+          "exclusive",
+          "dependsOn",
+          "notAllowed",
+          "immutable",
+          "unknown",
+          "duplicate",
+          "type",
+          "reference",
+          "unverified",
+          "unsupported",
+          "mismatch"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "RuleRequired",
+          "RuleMin",
+          "RuleMax",
+          "RuleRange",
+          "RuleMaxLength",
+          "RuleMaxItems",
+          "RuleOneOf",
+          "RuleFormat",
+          "RulePublic",
+          "RuleUnique",
+          "RuleExclusive",
+          "RuleDependsOn",
+          "RuleNotAllowed",
+          "RuleImmutable",
+          "RuleUnknown",
+          "RuleDuplicate",
+          "RuleType",
+          "RuleReference",
+          "RuleUnverified",
+          "RuleUnsupported",
+          "RuleMismatch"
+        ]
+      },
+      "validation.Unit": {
+        "enum": [
+          "characters",
+          "bytes"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "UnitCharacters",
+          "UnitBytes"
+        ]
+      },
+      "validation.Violation": {
+        "properties": {
+          "detail": {
+            "example": "must be between 1000 and 30000",
+            "type": "string"
+          },
+          "params": {
+            "$ref": "#/components/schemas/validation.Params"
+          },
+          "pointer": {
+            "example": "/http/timeoutMs",
+            "type": "string"
+          },
+          "rule": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/validation.Rule"
+              }
+            ],
+            "example": "range"
+          }
+        },
+        "required": [
+          "detail",
+          "pointer",
+          "rule"
+        ],
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "contact": {
+      "email": "jan@jetlio.com",
+      "name": "Jan Švábík"
+    },
+    "description": "Uptime, SSL certificate and domain expiry monitoring.",
+    "title": "Norcube PulseCheck API",
+    "version": ""
+  },
+  "openapi": "3.0.3",
+  "paths": {
+    "/alert-channels": {
+      "get": {
+        "description": "The organization's alert channels, newest first. Credentials are never returned.",
+        "operationId": "listAlertChannels",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/response.APIResponseWithPagination"
+                    },
+                    {
+                      "properties": {
+                        "list": {
+                          "items": {
+                            "$ref": "#/components/schemas/dto.AlertChannel"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          }
+        },
+        "summary": "List alert channels",
+        "tags": [
+          "Alert channels"
+        ],
+        "x-norcube-scopes": [
+          "pulsecheck.read",
+          "pulsecheck.check",
+          "pulsecheck.write"
+        ]
+      },
+      "post": {
+        "description": "Creates a channel. A webhook's signing secret (Standard Webhooks, whsec_…) is returned this once; SMS channels get no alerts until their number is verified. Voice-call channels can't be created, nor SMS channels where no SMS provider is configured: 400 with reason CHANNEL_TYPE_UNAVAILABLE.",
+        "operationId": "createAlertChannel",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/dto.AlertChannelCreate"
+              }
+            }
+          },
+          "description": "Channel",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.AlertChannelWithSecret"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Invalid fields (VALIDATION_FAILED), reason CHANNEL_TYPE_UNAVAILABLE when the kind isn't offered"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Forbidden, or channel limit reached (LIMIT_REACHED), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          }
+        },
+        "summary": "Create an alert channel",
+        "tags": [
+          "Alert channels"
+        ],
+        "x-norcube-scopes": []
+      }
+    },
+    "/alert-channels/{id}": {
+      "delete": {
+        "description": "Deletes the channel and removes it from every monitor's alert settings. Pending alerts to it are dropped.",
+        "operationId": "deleteAlertChannel",
+        "parameters": [
+          {
+            "description": "Channel ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Delete an alert channel",
+        "tags": [
+          "Alert channels"
+        ],
+        "x-norcube-scopes": []
+      },
+      "get": {
+        "description": "One alert channel: kind, name, whether it is a default channel, enabled and verified, and its settings without credentials (a Slack or Discord URL as a hint, a webhook's signing secret never).",
+        "operationId": "getAlertChannel",
+        "parameters": [
+          {
+            "description": "Channel ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.AlertChannel"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Get an alert channel",
+        "tags": [
+          "Alert channels"
+        ],
+        "x-norcube-scopes": [
+          "pulsecheck.read",
+          "pulsecheck.check",
+          "pulsecheck.write"
+        ]
+      },
+      "patch": {
+        "description": "Changes the given fields. signingSecret is returned when a webhook's secret was rotated or replaced. A voice channel can be renamed but not enabled or given settings (400, reason CHANNEL_TYPE_UNAVAILABLE).",
+        "operationId": "updateAlertChannel",
+        "parameters": [
+          {
+            "description": "Channel ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/dto.AlertChannelUpdate"
+              }
+            }
+          },
+          "description": "Changes",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.AlertChannelWithSecret"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Update an alert channel",
+        "tags": [
+          "Alert channels"
+        ],
+        "x-norcube-scopes": []
+      }
+    },
+    "/alert-channels/{id}/deliveries": {
+      "get": {
+        "description": "Every alert given to this channel, newest first (kept 90 days): the event and monitor (and incident), status (pending: queued or waiting to retry; sent; dead: given up), attempts, the next attempt while pending, and the last error with URLs, email addresses, phone numbers and token-like strings removed. status=dead lists the failures nobody saw.",
+        "operationId": "listAlertChannelDeliveries",
+        "parameters": [
+          {
+            "description": "Alert channel ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "enum": [
+                "pending",
+                "sent",
+                "dead"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/response.APIResponseWithPagination"
+                    },
+                    {
+                      "properties": {
+                        "list": {
+                          "items": {
+                            "$ref": "#/components/schemas/dto.ChannelDelivery"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "List a channel's deliveries",
+        "tags": [
+          "Alert channels"
+        ],
+        "x-norcube-scopes": [
+          "pulsecheck.read",
+          "pulsecheck.check",
+          "pulsecheck.write"
+        ]
+      }
+    },
+    "/alert-channels/{id}/test": {
+      "post": {
+        "description": "Sends a test alert right away and returns the provider's reference. Rate limited; an SMS counts toward the daily SMS limit. Refused while the organization is blocked for unpaid invoices.",
+        "operationId": "testAlertChannel",
+        "parameters": [
+          {
+            "description": "Channel ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.AlertChannelTestResult"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Organization blocked for unpaid invoices"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "The provider refused it, the contact isn't verified, or a voice channel (CHANNEL_TYPE_UNAVAILABLE)"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "The provider didn't answer; retry"
+          }
+        },
+        "summary": "Send a test alert",
+        "tags": [
+          "Alert channels"
+        ],
+        "x-norcube-scopes": []
+      }
+    },
+    "/alert-channels/{id}/verify": {
+      "post": {
+        "description": "Texts (or, for an email-address channel, emails) a 6-digit code valid for 10 minutes. At most once a minute; an SMS counts toward the daily SMS limit.",
+        "operationId": "sendAlertChannelVerification",
+        "parameters": [
+          {
+            "description": "Channel ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "ORG_BLOCKED: unpaid invoices"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Nothing to verify, already verified, a code was just sent, or a voice channel (CHANNEL_TYPE_UNAVAILABLE)"
+          }
+        },
+        "summary": "Send a verification code",
+        "tags": [
+          "Alert channels"
+        ],
+        "x-norcube-scopes": []
+      }
+    },
+    "/alert-channels/{id}/verify/confirm": {
+      "post": {
+        "description": "Verifies the channel's number with the code sent. Five wrong codes (or an expired one) need a new code.",
+        "operationId": "confirmAlertChannelVerification",
+        "parameters": [
+          {
+            "description": "Channel ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/dto.AlertChannelVerifyConfirm"
+              }
+            }
+          },
+          "description": "Code",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.AlertChannel"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Wrong code"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Expired, or too many attempts"
+          }
+        },
+        "summary": "Confirm a verification code",
+        "tags": [
+          "Alert channels"
+        ],
+        "x-norcube-scopes": []
+      }
+    },
+    "/incidents": {
+      "get": {
+        "description": "The organization's incidents: open ones first (critical, then warning), then resolved ones, newest first within each. Filter by status (open, resolved), monitor, severity (an open incident's current severity, a resolved one's peak), aspect, acknowledged, q (part of the monitor's name or target, any case, at most 100 characters) and when it started (from inclusive, to exclusive). Every filter given must match. Rows carry the monitor's name, type, variant and target. An invalid filter is a VALIDATION_FAILED problem with the parameter's pointer (\"/severity\").",
+        "operationId": "listIncidents",
+        "parameters": [
+          {
+            "description": "Acknowledged: true for incidents someone acknowledged, false for\nthe others.",
+            "in": "query",
+            "name": "acknowledged",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Aspect is what the incident is about.",
+            "in": "query",
+            "name": "aspect",
+            "schema": {
+              "enum": [
+                "availability",
+                "certificate",
+                "domain"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "From and To bound when the incident started: from inclusive, to\nexclusive (RFC 3339).",
+            "in": "query",
+            "name": "from",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "monitorId",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Q is part of the monitor's name or target, any case.",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "maxLength": 100,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Severity matches an open incident's current severity and a resolved\none's peak severity (how bad it got).",
+            "in": "query",
+            "name": "severity",
+            "schema": {
+              "enum": [
+                "warning",
+                "critical"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "enum": [
+                "open",
+                "resolved"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/response.APIResponseWithPagination"
+                    },
+                    {
+                      "properties": {
+                        "list": {
+                          "items": {
+                            "$ref": "#/components/schemas/dto.Incident"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          }
+        },
+        "summary": "List incidents",
+        "tags": [
+          "Incidents"
+        ],
+        "x-norcube-scopes": [
+          "pulsecheck.read",
+          "pulsecheck.check",
+          "pulsecheck.write"
+        ]
+      }
+    },
+    "/incidents/summary": {
+      "get": {
+        "description": "The organization's incidents at a glance, for a page header: open incidents by current severity and those nobody acknowledged, incidents resolved in the last 7 days, and the mean time to resolve (opened to resolved) of incidents resolved in the last 30 days. Takes no filters: it describes the organization, not a list view.",
+        "operationId": "getIncidentSummary",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.IncidentSummary"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          }
+        },
+        "summary": "Summarize incidents",
+        "tags": [
+          "Incidents"
+        ],
+        "x-norcube-scopes": [
+          "pulsecheck.read",
+          "pulsecheck.check",
+          "pulsecheck.write"
+        ]
+      }
+    },
+    "/incidents/{id}": {
+      "get": {
+        "description": "An incident with its timeline and every alert sent for it (with delivery status, so a failing channel shows here).",
+        "operationId": "getIncident",
+        "parameters": [
+          {
+            "description": "Incident ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.IncidentDetail"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Get an incident",
+        "tags": [
+          "Incidents"
+        ],
+        "x-norcube-scopes": [
+          "pulsecheck.read",
+          "pulsecheck.check",
+          "pulsecheck.write"
+        ]
+      }
+    },
+    "/incidents/{id}/acknowledge": {
+      "post": {
+        "description": "Marks an open incident as being handled: its reminders stop. Idempotent; a resolved incident is returned unchanged.",
+        "operationId": "acknowledgeIncident",
+        "parameters": [
+          {
+            "description": "Incident ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.IncidentDetail"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Acknowledge an incident",
+        "tags": [
+          "Incidents"
+        ],
+        "x-norcube-scopes": [
+          "pulsecheck.write"
+        ]
+      }
+    },
+    "/monitors": {
+      "get": {
+        "description": "The organization's monitors with their current status, by default ordered by status severity (critical, warning, pending, ok, paused) then name; `sort` picks another order, and a cursor only continues the sort it came from. `status` is the severity of the last conclusive check (an inconclusive one, such as a failed registry lookup, never moves it) and `condition` its reason with facts (days left for SSL and domain monitors). Rows of HTTP monitors have `last24h` (checks by severity, uptime and warning share, approximate p50/p95 over the last 24 full hours plus the current one; no data is absent, not 100%). `include=history` adds each row's newest 60 results (`history`, newest first) for a heartbeat strip. Rows carry no settings; `variant` names what each monitor does (`keyword` for an HTTP monitor that looks for a keyword).",
+        "operationId": "listMonitors",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Include is a comma-separated list of optional row parts: history\nadds each row's last 60 check results.",
+            "in": "query",
+            "name": "include",
+            "schema": {
+              "enum": [
+                "history"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sort: status (default, by overall status: critical, warning,\npending, ok, paused, then name), name (A to Z), lastChecked (most recent first), uptime\n(lowest over last24h first; no data, and SSL and domain monitors,\nlast), created (newest first).\nA cursor only continues the sort it came from.",
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "enum": [
+                "status",
+                "name",
+                "lastChecked",
+                "uptime",
+                "created"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Status matches the overall status (the worst of the monitor's status\nand its watched aspects').",
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "enum": [
+                "pending",
+                "ok",
+                "warning",
+                "critical",
+                "paused"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "type",
+            "schema": {
+              "enum": [
+                "http",
+                "ssl",
+                "domain"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/response.APIResponseWithPagination"
+                    },
+                    {
+                      "properties": {
+                        "list": {
+                          "items": {
+                            "$ref": "#/components/schemas/dto.Monitor"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          }
+        },
+        "summary": "List monitors",
+        "tags": [
+          "Monitors"
+        ],
+        "x-norcube-scopes": [
+          "pulsecheck.read",
+          "pulsecheck.check",
+          "pulsecheck.write"
+        ]
+      },
+      "post": {
+        "description": "Creates an enabled monitor; its first check runs right away. Every check setting is required.",
+        "operationId": "createMonitor",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/dto.MonitorCreate"
+              }
+            }
+          },
+          "description": "Monitor",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.Monitor"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Organization blocked for unpaid invoices"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Forbidden, or monitor limit reached (LIMIT_REACHED), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Create a monitor",
+        "tags": [
+          "Monitors"
+        ],
+        "x-norcube-scopes": [
+          "pulsecheck.write"
+        ]
+      }
+    },
+    "/monitors/bulk": {
+      "post": {
+        "description": "Applies one action to up to 100 monitors, each exactly as its own request would (pause closes its open incident, resume checks soon, delete refuses a linked monitor with MANAGED_RESOURCE) after an IAM check on that monitor (UpdateMonitor for pause/resume, DeleteMonitor for delete). Not atomic: the answer has one item per id, in request order, ok or the problem code that monitor's own request would have had (NOT_FOUND, FORBIDDEN, MANAGED_RESOURCE, UNAVAILABLE, INTERNAL_ERROR). The request itself fails only when invalid (an unknown action, no ids, more than 100, a malformed or repeated id) or when permissions can't be checked (503). Shares the on-demand check budget (one unit per request).",
+        "operationId": "applyMonitorBulkAction",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/dto.MonitorBulkRequest"
+              }
+            }
+          },
+          "description": "Action and monitors",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.MonitorBulkResult"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Pause, resume or delete many monitors",
+        "tags": [
+          "Monitors"
+        ],
+        "x-norcube-scopes": [
+          "pulsecheck.write"
+        ]
+      }
+    },
+    "/monitors/{id}": {
+      "delete": {
+        "description": "Deletes the monitor and its whole check history. A monitor that belongs to a resource of another service (parentResource set) is refused with 409 MANAGED_RESOURCE: remove it there.",
+        "operationId": "deleteMonitor",
+        "parameters": [
+          {
+            "description": "Monitor ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Managed by another service (MANAGED_RESOURCE)"
+          }
+        },
+        "summary": "Delete a monitor",
+        "tags": [
+          "Monitors"
+        ],
+        "x-norcube-scopes": [
+          "pulsecheck.write"
+        ]
+      },
+      "get": {
+        "description": "A monitor with its settings and current status. Secret header values are never returned.",
+        "operationId": "getMonitor",
+        "parameters": [
+          {
+            "description": "Monitor ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.Monitor"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Get a monitor",
+        "tags": [
+          "Monitors"
+        ],
+        "x-norcube-scopes": [
+          "pulsecheck.read",
+          "pulsecheck.check",
+          "pulsecheck.write"
+        ]
+      },
+      "patch": {
+        "description": "Changes the given fields. A settings object replaces the settings as a whole; omit a secret header's value to keep the stored one. The type can't change, nor the domain of a monitor that belongs to another service's resource.",
+        "operationId": "updateMonitor",
+        "parameters": [
+          {
+            "description": "Monitor ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/dto.MonitorUpdate"
+              }
+            }
+          },
+          "description": "Changes",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.Monitor"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Update a monitor",
+        "tags": [
+          "Monitors"
+        ],
+        "x-norcube-scopes": [
+          "pulsecheck.write"
+        ]
+      }
+    },
+    "/monitors/{id}/alerts": {
+      "get": {
+        "description": "How the monitor alerts. useDefaults: alerts go to the organization's default channels (or, with none, its members by email) on down, expiring, expired and recovered, with the default confirmations shown. applicableEvents lists the events monitors of this type can send.",
+        "operationId": "getMonitorAlerts",
+        "parameters": [
+          {
+            "description": "Monitor ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.MonitorAlerts"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Get a monitor's alert settings",
+        "tags": [
+          "Monitors"
+        ],
+        "x-norcube-scopes": [
+          "pulsecheck.read",
+          "pulsecheck.check",
+          "pulsecheck.write"
+        ]
+      },
+      "put": {
+        "description": "Replaces how the monitor alerts: confirmations (failures before an incident opens, successes before it resolves), reminder interval (0: none) and which events go to which channels. An empty routes list sends no alerts. useDefaults: true returns to the organization defaults.",
+        "operationId": "setMonitorAlerts",
+        "parameters": [
+          {
+            "description": "Monitor ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/dto.MonitorAlertsUpdate"
+              }
+            }
+          },
+          "description": "Alert settings",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.MonitorAlerts"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Set a monitor's alert settings",
+        "tags": [
+          "Monitors"
+        ],
+        "x-norcube-scopes": [
+          "pulsecheck.write"
+        ]
+      }
+    },
+    "/monitors/{id}/availability": {
+      "get": {
+        "description": "One entry per UTC day, oldest first, for the `days` days ending today (default and maximum 90): check counts by severity, uptime % ((ok + warning) / conclusive checks) and an estimate of the minutes spent down (HTTP monitors; absent and 0 for SSL and domain monitors), and noData for a day without checks (draw it gray: it is never 100%). Today is refreshed every few minutes.",
+        "operationId": "getMonitorAvailability",
+        "parameters": [
+          {
+            "description": "Monitor ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Days is how many UTC days, ending today, the bar covers (default 90).",
+            "in": "query",
+            "name": "days",
+            "schema": {
+              "maximum": 90,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.Availability"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Get daily availability",
+        "tags": [
+          "Monitors"
+        ],
+        "x-norcube-scopes": [
+          "pulsecheck.read",
+          "pulsecheck.check",
+          "pulsecheck.write"
+        ]
+      }
+    },
+    "/monitors/{id}/certificate": {
+      "get": {
+        "description": "The newest certificate an SSL or HTTPS monitor saw: subject, issuer, SANs, validity, serial, the presented chain and whether it verifies, days left counted from now, and (SSL monitors) the expiry thresholds with the alert window and the next threshold to be crossed. 404 when no check has seen a certificate (plain HTTP and domain monitors never do).",
+        "operationId": "getMonitorCertificate",
+        "parameters": [
+          {
+            "description": "Monitor ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.MonitorCertificate"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Get the latest certificate",
+        "tags": [
+          "Monitors"
+        ],
+        "x-norcube-scopes": [
+          "pulsecheck.read",
+          "pulsecheck.check",
+          "pulsecheck.write"
+        ]
+      }
+    },
+    "/monitors/{id}/check": {
+      "post": {
+        "description": "Runs the monitor's check immediately (paused monitors too) and returns the stored result. Billed like a scheduled check; rate limited.",
+        "operationId": "runMonitorCheck",
+        "parameters": [
+          {
+            "description": "Monitor ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.CheckResult"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Organization blocked for unpaid invoices"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "summary": "Run a check now",
+        "tags": [
+          "Monitors"
+        ],
+        "x-norcube-scopes": [
+          "pulsecheck.check",
+          "pulsecheck.write"
+        ]
+      }
+    },
+    "/monitors/{id}/pause": {
+      "post": {
+        "description": "Stops scheduled checks. Idempotent.",
+        "operationId": "pauseMonitor",
+        "parameters": [
+          {
+            "description": "Monitor ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.Monitor"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Pause a monitor",
+        "tags": [
+          "Monitors"
+        ],
+        "x-norcube-scopes": [
+          "pulsecheck.write"
+        ]
+      }
+    },
+    "/monitors/{id}/results": {
+      "get": {
+        "description": "The monitor's check history in [from, to), newest first. Defaults to the last 24 hours. Raw results are kept at least 30 days (whole months are dropped once entirely past retention).",
+        "operationId": "listMonitorResults",
+        "parameters": [
+          {
+            "description": "Monitor ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/response.APIResponseWithPagination"
+                    },
+                    {
+                      "properties": {
+                        "list": {
+                          "items": {
+                            "$ref": "#/components/schemas/dto.CheckResult"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "List check results",
+        "tags": [
+          "Monitors"
+        ],
+        "x-norcube-scopes": [
+          "pulsecheck.read",
+          "pulsecheck.check",
+          "pulsecheck.write"
+        ]
+      }
+    },
+    "/monitors/{id}/resume": {
+      "post": {
+        "description": "Restarts scheduled checks; the next one runs right away. Idempotent.",
+        "operationId": "resumeMonitor",
+        "parameters": [
+          {
+            "description": "Monitor ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.Monitor"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Resume a monitor",
+        "tags": [
+          "Monitors"
+        ],
+        "x-norcube-scopes": [
+          "pulsecheck.write"
+        ]
+      }
+    },
+    "/monitors/{id}/stats": {
+      "get": {
+        "description": "Uptime %, latency and a bucketed series for the range ending now (hourly up to 7d, daily beyond). Uptime is (ok + warning) / (ok + warning + critical), HTTP monitors only. Refreshed every few minutes.",
+        "operationId": "getMonitorStats",
+        "parameters": [
+          {
+            "description": "Monitor ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "range",
+            "required": true,
+            "schema": {
+              "enum": [
+                "24h",
+                "7d",
+                "30d",
+                "90d"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.MonitorStats"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Get uptime stats",
+        "tags": [
+          "Monitors"
+        ],
+        "x-norcube-scopes": [
+          "pulsecheck.read",
+          "pulsecheck.check",
+          "pulsecheck.write"
+        ]
+      }
+    },
+    "/monitors/{id}/status-changes": {
+      "get": {
+        "description": "Every time a check moved the monitor to another status, newest first: from, to, when, how long it lasted (endedAt absent and the duration running until now for the newest), and what the check said (condition, statusCode, message). Inconclusive checks never change the status. Each change carries `events`: what else happened while its status lasted, newest first (`certificate_renewed` with the previous and the new certificate, for SSL monitors and HTTP monitors that watch their certificate; no alert is sent for it). Kept a year. Pausing is not a status change (see the audit log).",
+        "operationId": "listMonitorStatusChanges",
+        "parameters": [
+          {
+            "description": "Monitor ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/response.APIResponseWithPagination"
+                    },
+                    {
+                      "properties": {
+                        "list": {
+                          "items": {
+                            "$ref": "#/components/schemas/dto.StatusChange"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "List status changes",
+        "tags": [
+          "Monitors"
+        ],
+        "x-norcube-scopes": [
+          "pulsecheck.read",
+          "pulsecheck.check",
+          "pulsecheck.write"
+        ]
+      }
+    }
+  }
+}

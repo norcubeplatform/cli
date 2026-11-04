@@ -143,7 +143,7 @@ func goldenEnv(t *testing.T) string {
 		p.Environment = config.EnvCustom
 		p.Endpoints = map[string]string{
 			config.ServiceAuth: srv.URL, config.ServiceSnapDB: srv.URL, config.ServiceLangsync: srv.URL,
-			config.ServiceDomainradar: srv.URL, config.ServiceBilling: srv.URL,
+			config.ServiceDomainradar: srv.URL, config.ServiceBilling: srv.URL, config.ServicePulsecheck: srv.URL,
 		}
 		p.User = config.User{ID: "user-1", Name: "Dev Eloper", Email: "dev@example.com"}
 		p.SetActiveOrg(config.Organization{ID: homeOrgID, Slug: "home", Name: "Home"})
@@ -151,6 +151,7 @@ func goldenEnv(t *testing.T) string {
 	t.Setenv("NORCUBE_LANGSYNC_URL", "")
 	t.Setenv("NORCUBE_DOMAINRADAR_URL", "")
 	t.Setenv("NORCUBE_BILLING_URL", "")
+	t.Setenv("NORCUBE_PULSECHECK_URL", "")
 	if err := auth.SaveRefreshToken(config.DefaultProfileName, srv.URL, "refresh-0"); err != nil {
 		t.Fatal(err)
 	}
