@@ -5,6 +5,6 @@ isDefault: true
 kind: webhook
 name: On-call webhook
 settings:
-    url: https://hooks.example.com/pulsecheck
+    url: https://hooks.example.com/monitor
 updatedAt: "2026-10-01T09:00:00Z"
 verified: true

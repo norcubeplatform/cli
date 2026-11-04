@@ -1,8 +1,8 @@
-package: pulsecheck
+package: monitor
 generate:
   models: true
   client: true
-output: internal/api/pulsecheck/pulsecheck.gen.go
+output: internal/api/monitor/monitor.gen.go
 output-options:
   skip-prune: true
   # The service status route is not for organization members; leave it out

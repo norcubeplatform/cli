@@ -1,4 +1,4 @@
-package pulsecheck
+package monitor
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/norcubeplatform/cli/internal/api/pulsecheck"
+	"github.com/norcubeplatform/cli/internal/api/monitor"
 	"github.com/norcubeplatform/cli/internal/cmdutil"
 	"github.com/norcubeplatform/cli/internal/output"
 )
@@ -34,10 +34,10 @@ reminds until acknowledged, and resolves when the checks are good again.`,
 
 func newIncidentListCmd(d deps) *cobra.Command {
 	var (
-		pf                                cmdutil.PageFlags
-		status, severity, aspect, monitor string
-		search, since, until              string
-		acked, unacked                    bool
+		pf                                      cmdutil.PageFlags
+		status, severity, aspect, monitorRefArg string
+		search, since, until                    string
+		acked, unacked                          bool
 	)
 	cmd := &cobra.Command{
 		Use:         "list",
@@ -48,35 +48,35 @@ resolved ones, newest first within each. Every filter given must match.
 --severity reads an open incident's current severity and a resolved one's
 peak, so "--severity critical" finds every incident that ever paged.
 --since and --until select by when the incident started.`,
-		Example: `  norcube pulsecheck incidents list --status open
-  norcube pulsecheck incidents list --status open --unacknowledged --severity critical
-  norcube pulsecheck incidents list --monitor "Shop" --since 30d -o json`,
+		Example: `  norcube monitor incidents list --status open
+  norcube monitor incidents list --status open --unacknowledged --severity critical
+  norcube monitor incidents list --monitor "Shop" --since 30d -o json`,
 		Args: cobra.NoArgs,
 		RunE: cmdutil.Run(func(cmd *cobra.Command, _ []string) (any, error) {
-			params := pulsecheck.ListIncidentsParams{}
+			params := monitor.ListIncidentsParams{}
 			if status != "" {
 				if err := oneOf("--status", status, incidentStatuses); err != nil {
 					return nil, err
 				}
-				v := pulsecheck.ListIncidentsParamsStatus(status)
+				v := monitor.ListIncidentsParamsStatus(status)
 				params.Status = &v
 			}
 			if severity != "" {
 				if err := oneOf("--severity", severity, incidentSeverities); err != nil {
 					return nil, err
 				}
-				v := pulsecheck.ListIncidentsParamsSeverity(severity)
+				v := monitor.ListIncidentsParamsSeverity(severity)
 				params.Severity = &v
 			}
 			if aspect != "" {
 				if err := oneOf("--aspect", aspect, incidentAspects); err != nil {
 					return nil, err
 				}
-				v := pulsecheck.ListIncidentsParamsAspect(aspect)
+				v := monitor.ListIncidentsParamsAspect(aspect)
 				params.Aspect = &v
 			}
 			if acked || unacked {
-				v := pulsecheck.ListIncidentsParamsAcknowledged(strconv.FormatBool(acked))
+				v := monitor.ListIncidentsParamsAcknowledged(strconv.FormatBool(acked))
 				params.Acknowledged = &v
 			}
 			if search != "" {
@@ -89,14 +89,14 @@ peak, so "--severity critical" finds every incident that ever paged.
 			if err != nil {
 				return nil, err
 			}
-			if monitor != "" {
-				id, err := monitorRef(cmd.Context(), c, monitor)
+			if monitorRefArg != "" {
+				id, err := monitorRef(cmd.Context(), c, monitorRefArg)
 				if err != nil {
 					return nil, err
 				}
 				params.MonitorId = &id
 			}
-			page, err := cmdutil.Paginate(cmd.Context(), pf, func(ctx context.Context, cursor string, size int) ([]pulsecheck.DtoIncident, string, error) {
+			page, err := cmdutil.Paginate(cmd.Context(), pf, func(ctx context.Context, cursor string, size int) ([]monitor.DtoIncident, string, error) {
 				p := params
 				p.Limit = &size
 				if cursor != "" {
@@ -120,7 +120,7 @@ peak, so "--severity critical" finds every incident that ever paged.
 	cmd.Flags().StringVar(&status, "status", "", "Only open or resolved incidents")
 	cmd.Flags().StringVar(&severity, "severity", "", "Only warning or critical incidents (current severity while open, peak once resolved)")
 	cmd.Flags().StringVar(&aspect, "aspect", "", "Only incidents about availability, the certificate or the domain")
-	cmd.Flags().StringVar(&monitor, "monitor", "", "Only incidents of this monitor (id or exact name)")
+	cmd.Flags().StringVar(&monitorRefArg, "monitor", "", "Only incidents of this monitor (id or exact name)")
 	cmd.Flags().StringVar(&search, "search", "", "Only incidents whose monitor's name or target contains this text")
 	cmd.Flags().BoolVar(&acked, "acknowledged", false, "Only acknowledged incidents")
 	cmd.Flags().BoolVar(&unacked, "unacknowledged", false, "Only incidents nobody acknowledged yet")
@@ -141,8 +141,8 @@ func newIncidentGetCmd(d deps) *cobra.Command {
 		Long: `Shows the incident, its timeline (opened, escalated, reminders,
 acknowledged, resolved) and every alert sent for it with its delivery
 status, so a failing channel shows here.`,
-		Example: `  norcube pulsecheck incidents get 3f2c8a8e-6c1d-4a59-9a43-2b1f0f6f9d10
-  norcube pulsecheck incidents get 3f2c8a8e-6c1d-4a59-9a43-2b1f0f6f9d10 -o json --query timeline`,
+		Example: `  norcube monitor incidents get 3f2c8a8e-6c1d-4a59-9a43-2b1f0f6f9d10
+  norcube monitor incidents get 3f2c8a8e-6c1d-4a59-9a43-2b1f0f6f9d10 -o json --query timeline`,
 		Args: cobra.ExactArgs(1),
 		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
 			id, err := idArg("incident", args[0])
@@ -172,7 +172,7 @@ func newIncidentAckCmd(d deps) *cobra.Command {
 		Annotations: cmdutil.Writes(),
 		Short:       "Acknowledge an incident: someone is on it, stop the reminders",
 		Long:        "Marks an open incident as being handled; its reminders stop. Idempotent: a resolved or already acknowledged incident is returned unchanged.",
-		Example:     `  norcube pulsecheck incidents acknowledge 3f2c8a8e-6c1d-4a59-9a43-2b1f0f6f9d10`,
+		Example:     `  norcube monitor incidents acknowledge 3f2c8a8e-6c1d-4a59-9a43-2b1f0f6f9d10`,
 		Args:        cobra.ExactArgs(1),
 		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
 			id, err := idArg("incident", args[0])
@@ -208,9 +208,9 @@ func newIncidentSummaryCmd(d deps) *cobra.Command {
 		Long: `The organization's incidents at a glance: open ones by current severity
 and those nobody acknowledged, incidents resolved in the last 7 and 30
 days, and the mean time from opened to resolved over the last 30 days.
-For a pass or fail answer in CI use "pulsecheck status --fail-on".`,
-		Example: `  norcube pulsecheck incidents summary
-  norcube pulsecheck incidents summary -o json --query open.critical`,
+For a pass or fail answer in CI use "monitor status --fail-on".`,
+		Example: `  norcube monitor incidents summary
+  norcube monitor incidents summary -o json --query open.critical`,
 		Args: cobra.NoArgs,
 		RunE: cmdutil.Run(func(cmd *cobra.Command, _ []string) (any, error) {
 			c, err := d.client(cmd)
@@ -226,18 +226,18 @@ For a pass or fail answer in CI use "pulsecheck status --fail-on".`,
 	}
 }
 
-func incidentSummary(ctx context.Context, c *pcContext) (pulsecheck.DtoIncidentSummary, error) {
+func incidentSummary(ctx context.Context, c *monitorContext) (monitor.DtoIncidentSummary, error) {
 	res, err := c.API.GetIncidentSummaryWithResponse(ctx)
 	if err != nil {
-		return pulsecheck.DtoIncidentSummary{}, err
+		return monitor.DtoIncidentSummary{}, err
 	}
 	if res.JSON200 == nil {
-		return pulsecheck.DtoIncidentSummary{}, apiError(res.HTTPResponse, res.Body)
+		return monitor.DtoIncidentSummary{}, apiError(res.HTTPResponse, res.Body)
 	}
 	return *res.JSON200, nil
 }
 
-func summaryFields(s pulsecheck.DtoIncidentSummary) []output.Field {
+func summaryFields(s monitor.DtoIncidentSummary) []output.Field {
 	mttr := "—"
 	if s.MttrLast30dSeconds != nil {
 		mttr = duration(*s.MttrLast30dSeconds)
@@ -253,6 +253,6 @@ func summaryFields(s pulsecheck.DtoIncidentSummary) []output.Field {
 	}
 }
 
-func summaryObject(s pulsecheck.DtoIncidentSummary) output.Object {
+func summaryObject(s monitor.DtoIncidentSummary) output.Object {
 	return output.Object{Value: s, Fields: summaryFields(s)}
 }

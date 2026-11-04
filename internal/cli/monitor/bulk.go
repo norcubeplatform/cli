@@ -1,4 +1,4 @@
-package pulsecheck
+package monitor
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/norcubeplatform/cli/internal/api/pulsecheck"
+	"github.com/norcubeplatform/cli/internal/api/monitor"
 	"github.com/norcubeplatform/cli/internal/clierr"
 	"github.com/norcubeplatform/cli/internal/cmdutil"
 	"github.com/norcubeplatform/cli/internal/output"
@@ -30,10 +30,10 @@ result lists every monitor with ok or its problem code. The command exits
 	}
 	for _, a := range []struct{ action, short, example string }{
 		{"pause", "Pause many monitors", `  # Maintenance window: pause everything behind api.example.com
-  norcube pulsecheck monitors bulk pause --search api.example.com --yes`},
-		{"resume", "Resume many monitors", `  norcube pulsecheck monitors bulk resume --status paused --search api.example.com --yes`},
-		{"delete", "Delete many monitors and their history", `  norcube pulsecheck monitors bulk delete 7d1c2f7e-6a1f-4f5e-9b8a-1f7c2b3d4e5f "Old landing page"
-  norcube pulsecheck monitors bulk delete --file old-monitors.txt --yes`},
+  norcube monitor monitors bulk pause --search api.example.com --yes`},
+		{"resume", "Resume many monitors", `  norcube monitor monitors bulk resume --status paused --search api.example.com --yes`},
+		{"delete", "Delete many monitors and their history", `  norcube monitor monitors bulk delete 7d1c2f7e-6a1f-4f5e-9b8a-1f7c2b3d4e5f "Old landing page"
+  norcube monitor monitors bulk delete --file old-monitors.txt --yes`},
 	} {
 		cmd.AddCommand(newBulkActionCmd(d, a.action, a.short, a.example))
 	}
@@ -88,11 +88,11 @@ func newBulkActionCmd(d deps, action, short, example string) *cobra.Command {
 			if ok, err := cmdutil.Confirm(fmt.Sprintf("%s %d monitor(s)?", capitalize(action), len(ids)), yes); err != nil || !ok {
 				return nil, cmdutil.Cancelled(cmd, err)
 			}
-			result := pulsecheck.DtoMonitorBulkResult{Action: pulsecheck.DtoMonitorBulkResultAction(action), Items: []pulsecheck.DtoMonitorBulkItem{}}
+			result := monitor.DtoMonitorBulkResult{Action: monitor.DtoMonitorBulkResultAction(action), Items: []monitor.DtoMonitorBulkItem{}}
 			for start := 0; start < len(ids); start += bulkMax {
 				batch := ids[start:min(start+bulkMax, len(ids))]
-				res, err := c.API.ApplyMonitorBulkActionWithResponse(cmd.Context(), pulsecheck.DtoMonitorBulkRequest{
-					Action: pulsecheck.DtoMonitorBulkRequestAction(action), MonitorIds: batch,
+				res, err := c.API.ApplyMonitorBulkActionWithResponse(cmd.Context(), monitor.DtoMonitorBulkRequest{
+					Action: monitor.DtoMonitorBulkRequestAction(action), MonitorIds: batch,
 				})
 				if err != nil {
 					return nil, err
@@ -104,10 +104,10 @@ func newBulkActionCmd(d deps, action, short, example string) *cobra.Command {
 				result.Succeeded += res.JSON200.Succeeded
 				result.Failed += res.JSON200.Failed
 			}
-			table := output.Table[pulsecheck.DtoMonitorBulkItem]{
+			table := output.Table[monitor.DtoMonitorBulkItem]{
 				Headers: []string{"MONITOR", "RESULT", "DETAIL"},
 				Style:   output.Style{StatusColumn: 1},
-				Rows: func(it pulsecheck.DtoMonitorBulkItem) []string {
+				Rows: func(it monitor.DtoMonitorBulkItem) []string {
 					r := "ok"
 					if !it.Ok {
 						r = cmdutil.DerefOr(it.Code, "failed")
@@ -141,7 +141,7 @@ func newBulkActionCmd(d deps, action, short, example string) *cobra.Command {
 
 // bulkTargets resolves the named monitors, or lists the ones the filters
 // match (every page), into ids without duplicates.
-func bulkTargets(ctx context.Context, c *pcContext, refs []string, typ, status, search string) ([]string, error) {
+func bulkTargets(ctx context.Context, c *monitorContext, refs []string, typ, status, search string) ([]string, error) {
 	seen := map[string]bool{}
 	var ids []string
 	add := func(id string) {
@@ -161,13 +161,13 @@ func bulkTargets(ctx context.Context, c *pcContext, refs []string, typ, status, 
 		return ids, nil
 	}
 	limit := maxPageSize
-	p := pulsecheck.ListMonitorsParams{Limit: &limit}
+	p := monitor.ListMonitorsParams{Limit: &limit}
 	if typ != "" {
-		t := pulsecheck.ListMonitorsParamsType(typ)
+		t := monitor.ListMonitorsParamsType(typ)
 		p.Type = &t
 	}
 	if status != "" {
-		s := pulsecheck.ListMonitorsParamsStatus(status)
+		s := monitor.ListMonitorsParamsStatus(status)
 		p.Status = &s
 	}
 	if search != "" {

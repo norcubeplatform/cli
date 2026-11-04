@@ -198,7 +198,7 @@
             "type": "string"
           },
           "url": {
-            "example": "https://example.com/hooks/pulsecheck",
+            "example": "https://example.com/hooks/monitor",
             "type": "string"
           }
         },
@@ -2801,7 +2801,7 @@
       "name": "Jan Švábík"
     },
     "description": "Uptime, SSL certificate and domain expiry monitoring.",
-    "title": "Norcube PulseCheck API",
+    "title": "Norcube Monitor API",
     "version": ""
   },
   "openapi": "3.0.3",
@@ -2890,10 +2890,10 @@
           "Alert channels"
         ],
         "x-norcube-scopes": [
-          "pulsecheck.read",
-          "pulsecheck.check",
-          "pulsecheck.write",
-          "pulsecheck.channels"
+          "monitor.read",
+          "monitor.check",
+          "monitor.write",
+          "monitor.channels"
         ]
       },
       "post": {
@@ -2958,7 +2958,7 @@
           "Alert channels"
         ],
         "x-norcube-scopes": [
-          "pulsecheck.channels"
+          "monitor.channels"
         ]
       }
     },
@@ -3018,7 +3018,7 @@
           "Alert channels"
         ],
         "x-norcube-scopes": [
-          "pulsecheck.channels"
+          "monitor.channels"
         ]
       },
       "get": {
@@ -3083,10 +3083,10 @@
           "Alert channels"
         ],
         "x-norcube-scopes": [
-          "pulsecheck.read",
-          "pulsecheck.check",
-          "pulsecheck.write",
-          "pulsecheck.channels"
+          "monitor.read",
+          "monitor.check",
+          "monitor.write",
+          "monitor.channels"
         ]
       },
       "patch": {
@@ -3173,7 +3173,7 @@
           "Alert channels"
         ],
         "x-norcube-scopes": [
-          "pulsecheck.channels"
+          "monitor.channels"
         ]
       }
     },
@@ -3293,10 +3293,10 @@
           "Alert channels"
         ],
         "x-norcube-scopes": [
-          "pulsecheck.read",
-          "pulsecheck.check",
-          "pulsecheck.write",
-          "pulsecheck.channels"
+          "monitor.read",
+          "monitor.check",
+          "monitor.write",
+          "monitor.channels"
         ]
       }
     },
@@ -3403,7 +3403,7 @@
           "Alert channels"
         ],
         "x-norcube-scopes": [
-          "pulsecheck.channels"
+          "monitor.channels"
         ]
       }
     },
@@ -3483,7 +3483,7 @@
           "Alert channels"
         ],
         "x-norcube-scopes": [
-          "pulsecheck.channels"
+          "monitor.channels"
         ]
       }
     },
@@ -3582,7 +3582,7 @@
           "Alert channels"
         ],
         "x-norcube-scopes": [
-          "pulsecheck.channels"
+          "monitor.channels"
         ]
       }
     },
@@ -3752,10 +3752,10 @@
           "Incidents"
         ],
         "x-norcube-scopes": [
-          "pulsecheck.read",
-          "pulsecheck.check",
-          "pulsecheck.write",
-          "pulsecheck.channels"
+          "monitor.read",
+          "monitor.check",
+          "monitor.write",
+          "monitor.channels"
         ]
       }
     },
@@ -3800,10 +3800,10 @@
           "Incidents"
         ],
         "x-norcube-scopes": [
-          "pulsecheck.read",
-          "pulsecheck.check",
-          "pulsecheck.write",
-          "pulsecheck.channels"
+          "monitor.read",
+          "monitor.check",
+          "monitor.write",
+          "monitor.channels"
         ]
       }
     },
@@ -3870,10 +3870,10 @@
           "Incidents"
         ],
         "x-norcube-scopes": [
-          "pulsecheck.read",
-          "pulsecheck.check",
-          "pulsecheck.write",
-          "pulsecheck.channels"
+          "monitor.read",
+          "monitor.check",
+          "monitor.write",
+          "monitor.channels"
         ]
       }
     },
@@ -3940,7 +3940,7 @@
           "Incidents"
         ],
         "x-norcube-scopes": [
-          "pulsecheck.write"
+          "monitor.write"
         ]
       }
     },
@@ -4088,10 +4088,10 @@
           "Monitors"
         ],
         "x-norcube-scopes": [
-          "pulsecheck.read",
-          "pulsecheck.check",
-          "pulsecheck.write",
-          "pulsecheck.channels"
+          "monitor.read",
+          "monitor.check",
+          "monitor.write",
+          "monitor.channels"
         ]
       },
       "post": {
@@ -4176,7 +4176,7 @@
           "Monitors"
         ],
         "x-norcube-scopes": [
-          "pulsecheck.write"
+          "monitor.write"
         ]
       }
     },
@@ -4263,7 +4263,7 @@
           "Monitors"
         ],
         "x-norcube-scopes": [
-          "pulsecheck.write"
+          "monitor.write"
         ]
       }
     },
@@ -4333,7 +4333,7 @@
           "Monitors"
         ],
         "x-norcube-scopes": [
-          "pulsecheck.write"
+          "monitor.write"
         ]
       },
       "get": {
@@ -4398,10 +4398,10 @@
           "Monitors"
         ],
         "x-norcube-scopes": [
-          "pulsecheck.read",
-          "pulsecheck.check",
-          "pulsecheck.write",
-          "pulsecheck.channels"
+          "monitor.read",
+          "monitor.check",
+          "monitor.write",
+          "monitor.channels"
         ]
       },
       "patch": {
@@ -4498,7 +4498,7 @@
           "Monitors"
         ],
         "x-norcube-scopes": [
-          "pulsecheck.write"
+          "monitor.write"
         ]
       }
     },
@@ -4565,10 +4565,10 @@
           "Monitors"
         ],
         "x-norcube-scopes": [
-          "pulsecheck.read",
-          "pulsecheck.check",
-          "pulsecheck.write",
-          "pulsecheck.channels"
+          "monitor.read",
+          "monitor.check",
+          "monitor.write",
+          "monitor.channels"
         ]
       },
       "put": {
@@ -4655,7 +4655,7 @@
           "Monitors"
         ],
         "x-norcube-scopes": [
-          "pulsecheck.write"
+          "monitor.write"
         ]
       }
     },
@@ -4742,10 +4742,10 @@
           "Monitors"
         ],
         "x-norcube-scopes": [
-          "pulsecheck.read",
-          "pulsecheck.check",
-          "pulsecheck.write",
-          "pulsecheck.channels"
+          "monitor.read",
+          "monitor.check",
+          "monitor.write",
+          "monitor.channels"
         ]
       }
     },
@@ -4812,10 +4812,10 @@
           "Monitors"
         ],
         "x-norcube-scopes": [
-          "pulsecheck.read",
-          "pulsecheck.check",
-          "pulsecheck.write",
-          "pulsecheck.channels"
+          "monitor.read",
+          "monitor.check",
+          "monitor.write",
+          "monitor.channels"
         ]
       }
     },
@@ -4902,8 +4902,8 @@
           "Monitors"
         ],
         "x-norcube-scopes": [
-          "pulsecheck.check",
-          "pulsecheck.write"
+          "monitor.check",
+          "monitor.write"
         ]
       }
     },
@@ -4970,7 +4970,7 @@
           "Monitors"
         ],
         "x-norcube-scopes": [
-          "pulsecheck.write"
+          "monitor.write"
         ]
       }
     },
@@ -5094,10 +5094,10 @@
           "Monitors"
         ],
         "x-norcube-scopes": [
-          "pulsecheck.read",
-          "pulsecheck.check",
-          "pulsecheck.write",
-          "pulsecheck.channels"
+          "monitor.read",
+          "monitor.check",
+          "monitor.write",
+          "monitor.channels"
         ]
       }
     },
@@ -5164,7 +5164,7 @@
           "Monitors"
         ],
         "x-norcube-scopes": [
-          "pulsecheck.write"
+          "monitor.write"
         ]
       }
     },
@@ -5255,10 +5255,10 @@
           "Monitors"
         ],
         "x-norcube-scopes": [
-          "pulsecheck.read",
-          "pulsecheck.check",
-          "pulsecheck.write",
-          "pulsecheck.channels"
+          "monitor.read",
+          "monitor.check",
+          "monitor.write",
+          "monitor.channels"
         ]
       }
     },
@@ -5366,10 +5366,10 @@
           "Monitors"
         ],
         "x-norcube-scopes": [
-          "pulsecheck.read",
-          "pulsecheck.check",
-          "pulsecheck.write",
-          "pulsecheck.channels"
+          "monitor.read",
+          "monitor.check",
+          "monitor.write",
+          "monitor.channels"
         ]
       }
     }

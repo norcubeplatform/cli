@@ -62,15 +62,15 @@ services:
       file: backend_swagger.json
     package: billing
 
-  - key: pulsecheck
-    name: Norcube PulseCheck
-    command: pulsecheck
-    audience: pulsecheck
-    endpoint: https://pulsecheck.api.norcube.com/app/v1
+  - key: monitor
+    name: Norcube Monitor
+    command: monitor
+    audience: monitor
+    endpoint: https://monitor.api.norcube.com/app/v1
     spec:
-      app: pulsecheck
+      app: monitor
       file: app_swagger.json
-    package: pulsecheck
+    package: monitor
 
   - key: prompthub
     name: PromptHub

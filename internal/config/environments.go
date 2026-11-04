@@ -14,7 +14,7 @@ const (
 	ServiceLangsync    = "langsync"
 	ServiceDomainradar = "domainradar"
 	ServiceBilling     = "billing"
-	ServicePulsecheck  = "pulsecheck"
+	ServiceMonitor     = "monitor"
 	ServicePrompthub   = "prompthub"
 )
 

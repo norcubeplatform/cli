@@ -42,7 +42,7 @@
     {
       "name": "endpoint-url",
       "type": "stringArray",
-      "description": "Override a service endpoint, service=url (repeatable; services: auth, web_app, snapdb, langsync, domainradar, billing, pulsecheck, prompthub)",
+      "description": "Override a service endpoint, service=url (repeatable; services: auth, web_app, snapdb, langsync, domainradar, billing, monitor, prompthub)",
       "required": false,
       "repeatable": true
     },
@@ -123,19 +123,19 @@
   ],
   "commands": [
     {
-      "command": "norcube pulsecheck",
+      "command": "norcube monitor",
       "path": [
-        "pulsecheck"
+        "monitor"
       ],
-      "name": "pulsecheck",
+      "name": "monitor",
       "short": "Monitor uptime, SSL certificates and domain expiry, and manage incidents and alerts",
-      "long": "PulseCheck checks your sites, certificates and domains on a schedule\nfrom Norcube's servers. A monitor is an HTTP check (optionally with a\nkeyword), an SSL certificate check or a domain expiry check. Problems\nconfirmed by consecutive checks open incidents, which alert through your\nalert channels (email, webhook, Slack, Discord, SMS).\n\nMonitors and channels are named by their id or, where a command says so,\nby their exact name. Checks count towards your PulseCheck usage, on a\nschedule and when you run one now.\n\nIn CI, \"pulsecheck status --fail-on critical\" fails the job while a\ncritical incident is open, and \"pulsecheck monitors run \u003cmonitor\u003e --wait\"\nfails it when the check finds the monitor down. CI tokens need a\nPulseCheck scope: pulsecheck.read (everything that reads),\npulsecheck.check (run checks), pulsecheck.write (manage monitors and\nincidents) or pulsecheck.channels (manage alert channels, which\npulsecheck.write doesn't include).",
-      "usage": "norcube pulsecheck \u003ccommand\u003e",
+      "long": "Norcube Monitor checks your sites, certificates and domains on a schedule\nfrom Norcube's servers. A monitor is an HTTP check (optionally with a\nkeyword), an SSL certificate check or a domain expiry check. Problems\nconfirmed by consecutive checks open incidents, which alert through your\nalert channels (email, webhook, Slack, Discord, SMS).\n\nMonitors and channels are named by their id or, where a command says so,\nby their exact name. Checks count towards your Norcube Monitor usage, on a\nschedule and when you run one now.\n\nIn CI, \"monitor status --fail-on critical\" fails the job while a\ncritical incident is open, and \"monitor monitors run \u003cmonitor\u003e --wait\"\nfails it when the check finds the monitor down. CI tokens need a\nNorcube Monitor scope: monitor.read (everything that reads),\nmonitor.check (run checks), monitor.write (manage monitors and\nincidents) or monitor.channels (manage alert channels, which\nmonitor.write doesn't include).",
+      "usage": "norcube monitor \u003ccommand\u003e",
       "group": true,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "confirm": false,
       "wait": false,
@@ -143,9 +143,9 @@
       "flags": []
     },
     {
-      "command": "norcube pulsecheck channels",
+      "command": "norcube monitor channels",
       "path": [
-        "pulsecheck",
+        "monitor",
         "channels"
       ],
       "name": "channels",
@@ -154,13 +154,13 @@
         "alert-channels"
       ],
       "short": "Manage alert channels: email, webhooks, Slack, Discord and SMS",
-      "long": "Alert channels are where incidents alert. Default channels get the\nalerts of every monitor that follows the organization's defaults; a\nmonitor's own routes (\"monitors alerts set\") name channels directly.\n\nCredentials stay secret: Slack and Discord URLs are read from a file or\nstandard input and shown only as a hint, and a webhook's signing secret is\nwritten to a file you name, never printed. Email-address and SMS channels\nget no alerts until their contact confirms a code (\"channels verify\").\nA CI token changes channels only with the pulsecheck.channels scope\n(pulsecheck.write doesn't include it); any PulseCheck scope reads them.",
-      "usage": "norcube pulsecheck channels \u003ccommand\u003e",
+      "long": "Alert channels are where incidents alert. Default channels get the\nalerts of every monitor that follows the organization's defaults; a\nmonitor's own routes (\"monitors alerts set\") name channels directly.\n\nCredentials stay secret: Slack and Discord URLs are read from a file or\nstandard input and shown only as a hint, and a webhook's signing secret is\nwritten to a file you name, never printed. Email-address and SMS channels\nget no alerts until their contact confirms a code (\"channels verify\").\nA CI token changes channels only with the monitor.channels scope\n(monitor.write doesn't include it); any Norcube Monitor scope reads them.",
+      "usage": "norcube monitor channels \u003ccommand\u003e",
       "group": true,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "confirm": false,
       "wait": false,
@@ -168,23 +168,23 @@
       "flags": []
     },
     {
-      "command": "norcube pulsecheck channels create",
+      "command": "norcube monitor channels create",
       "path": [
-        "pulsecheck",
+        "monitor",
         "channels",
         "create"
       ],
       "name": "create",
       "short": "Create an alert channel",
-      "long": "Creates a channel of one kind:\n\n  email    --address (confirmed with a code sent there) or --members\n  webhook  --url; signed with a secret PulseCheck generates (saved with\n           --secret-file, never printed) or yours (--signing-secret-file)\n  slack    --url-file: the incoming-webhook URL, from a file or stdin\n  discord  --url-file: the webhook URL, from a file or stdin\n  sms      --phone (confirmed with a code texted there)\n\nEmail-address and SMS channels get no alerts until verified: run\n\"channels verify \u003cchannel\u003e\" (on a terminal it asks for the code).",
-      "usage": "norcube pulsecheck channels create \u003cname\u003e [flags]",
+      "long": "Creates a channel of one kind:\n\n  email    --address (confirmed with a code sent there) or --members\n  webhook  --url; signed with a secret Norcube Monitor generates (saved with\n           --secret-file, never printed) or yours (--signing-secret-file)\n  slack    --url-file: the incoming-webhook URL, from a file or stdin\n  discord  --url-file: the webhook URL, from a file or stdin\n  sms      --phone (confirmed with a code texted there)\n\nEmail-address and SMS channels get no alerts until verified: run\n\"channels verify \u003cchannel\u003e\" (on a terminal it asks for the code).",
+      "usage": "norcube monitor channels create \u003cname\u003e [flags]",
       "args": "\u003cname\u003e",
-      "example": "norcube pulsecheck channels create \"Ops\" --kind email --address ops@example.com --default\nnorcube pulsecheck channels create \"On-call webhook\" --kind webhook --url https://example.com/hooks/pulsecheck --secret-file webhook-secret.txt\npbpaste | norcube pulsecheck channels create \"#alerts\" --kind slack --url-file -\nnorcube pulsecheck channels create \"On-call phone\" --kind sms --phone +420601123456",
+      "example": "norcube monitor channels create \"Ops\" --kind email --address ops@example.com --default\nnorcube monitor channels create \"On-call webhook\" --kind webhook --url https://example.com/hooks/monitor --secret-file webhook-secret.txt\npbpaste | norcube monitor channels create \"#alerts\" --kind slack --url-file -\nnorcube monitor channels create \"On-call phone\" --kind sms --phone +420601123456",
       "group": false,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "effect": "write",
       "confirm": false,
@@ -258,7 +258,7 @@
         {
           "name": "url",
           "type": "string",
-          "description": "webhook: the URL PulseCheck posts signed alerts to",
+          "description": "webhook: the URL Norcube Monitor posts signed alerts to",
           "required": false,
           "repeatable": false
         },
@@ -272,23 +272,23 @@
       ]
     },
     {
-      "command": "norcube pulsecheck channels delete",
+      "command": "norcube monitor channels delete",
       "path": [
-        "pulsecheck",
+        "monitor",
         "channels",
         "delete"
       ],
       "name": "delete",
       "short": "Delete an alert channel",
       "long": "Deletes the channel and removes it from every monitor's alert routes; alerts still queued for it are dropped.",
-      "usage": "norcube pulsecheck channels delete \u003cchannel\u003e [flags]",
+      "usage": "norcube monitor channels delete \u003cchannel\u003e [flags]",
       "args": "\u003cchannel\u003e",
-      "example": "norcube pulsecheck channels delete \"Old webhook\"\nnorcube pulsecheck channels delete 0c2d4f6a-8b1e-4c3d-9e5f-7a6b5c4d3e2f --yes",
+      "example": "norcube monitor channels delete \"Old webhook\"\nnorcube monitor channels delete 0c2d4f6a-8b1e-4c3d-9e5f-7a6b5c4d3e2f --yes",
       "group": false,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "effect": "write",
       "confirm": true,
@@ -312,20 +312,20 @@
       ]
     },
     {
-      "command": "norcube pulsecheck channels deliveries",
+      "command": "norcube monitor channels deliveries",
       "path": [
-        "pulsecheck",
+        "monitor",
         "channels",
         "deliveries"
       ],
       "name": "deliveries",
       "short": "The alerts a channel was given to send",
-      "usage": "norcube pulsecheck channels deliveries \u003ccommand\u003e",
+      "usage": "norcube monitor channels deliveries \u003ccommand\u003e",
       "group": true,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "confirm": false,
       "wait": false,
@@ -333,9 +333,9 @@
       "flags": []
     },
     {
-      "command": "norcube pulsecheck channels deliveries list",
+      "command": "norcube monitor channels deliveries list",
       "path": [
-        "pulsecheck",
+        "monitor",
         "channels",
         "deliveries",
         "list"
@@ -343,14 +343,14 @@
       "name": "list",
       "short": "List a channel's deliveries, newest first",
       "long": "Lists every alert given to the channel (kept 90 days): the event, monitor\nand incident, whether it was sent, is pending (queued or waiting to retry)\nor dead (given up), the attempts and the last error, with URLs, addresses\nand phone numbers removed. --status dead lists the failures nobody saw.",
-      "usage": "norcube pulsecheck channels deliveries list \u003cchannel\u003e [flags]",
+      "usage": "norcube monitor channels deliveries list \u003cchannel\u003e [flags]",
       "args": "\u003cchannel\u003e",
-      "example": "norcube pulsecheck channels deliveries list \"On-call webhook\" --status dead",
+      "example": "norcube monitor channels deliveries list \"On-call webhook\" --status dead",
       "group": false,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "effect": "read",
       "confirm": false,
@@ -417,22 +417,22 @@
       ]
     },
     {
-      "command": "norcube pulsecheck channels get",
+      "command": "norcube monitor channels get",
       "path": [
-        "pulsecheck",
+        "monitor",
         "channels",
         "get"
       ],
       "name": "get",
       "short": "Show an alert channel",
-      "usage": "norcube pulsecheck channels get \u003cchannel\u003e",
+      "usage": "norcube monitor channels get \u003cchannel\u003e",
       "args": "\u003cchannel\u003e",
-      "example": "norcube pulsecheck channels get \"On-call webhook\"",
+      "example": "norcube monitor channels get \"On-call webhook\"",
       "group": false,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "effect": "read",
       "confirm": false,
@@ -447,21 +447,21 @@
       "flags": []
     },
     {
-      "command": "norcube pulsecheck channels list",
+      "command": "norcube monitor channels list",
       "path": [
-        "pulsecheck",
+        "monitor",
         "channels",
         "list"
       ],
       "name": "list",
       "short": "List alert channels",
-      "usage": "norcube pulsecheck channels list [flags]",
-      "example": "norcube pulsecheck channels list",
+      "usage": "norcube monitor channels list [flags]",
+      "example": "norcube monitor channels list",
       "group": false,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "effect": "read",
       "confirm": false,
@@ -516,23 +516,23 @@
       ]
     },
     {
-      "command": "norcube pulsecheck channels test",
+      "command": "norcube monitor channels test",
       "path": [
-        "pulsecheck",
+        "monitor",
         "channels",
         "test"
       ],
       "name": "test",
       "short": "Send a test alert through a channel now",
       "long": "Sends a test alert right away and prints the provider's reference. Rate\nlimited (20 per user and 60 per organization an hour); an SMS counts\ntoward the daily SMS limit, so SMS channels ask first (--yes skips it).",
-      "usage": "norcube pulsecheck channels test \u003cchannel\u003e [flags]",
+      "usage": "norcube monitor channels test \u003cchannel\u003e [flags]",
       "args": "\u003cchannel\u003e",
-      "example": "norcube pulsecheck channels test \"On-call webhook\"",
+      "example": "norcube monitor channels test \"On-call webhook\"",
       "group": false,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "effect": "write",
       "confirm": true,
@@ -556,23 +556,23 @@
       ]
     },
     {
-      "command": "norcube pulsecheck channels update",
+      "command": "norcube monitor channels update",
       "path": [
-        "pulsecheck",
+        "monitor",
         "channels",
         "update"
       ],
       "name": "update",
       "short": "Rename, enable, disable or reconfigure an alert channel",
       "long": "Changes only what you pass. New settings replace the kind's settings as a\nwhole (a Slack or Discord URL must be given again); a new address or phone\nnumber needs verifying again. --rotate-secret gives a webhook a new\nsigning secret, written to --secret-file.",
-      "usage": "norcube pulsecheck channels update \u003cchannel\u003e [flags]",
+      "usage": "norcube monitor channels update \u003cchannel\u003e [flags]",
       "args": "\u003cchannel\u003e",
-      "example": "norcube pulsecheck channels update \"Ops\" --default=false\nnorcube pulsecheck channels update \"On-call webhook\" --rotate-secret --secret-file new-secret.txt\nnorcube pulsecheck channels update \"On-call phone\" --phone +420601999888",
+      "example": "norcube monitor channels update \"Ops\" --default=false\nnorcube monitor channels update \"On-call webhook\" --rotate-secret --secret-file new-secret.txt\nnorcube monitor channels update \"On-call phone\" --phone +420601999888",
       "group": false,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "effect": "write",
       "confirm": false,
@@ -663,7 +663,7 @@
         {
           "name": "url",
           "type": "string",
-          "description": "webhook: the URL PulseCheck posts signed alerts to",
+          "description": "webhook: the URL Norcube Monitor posts signed alerts to",
           "required": false,
           "repeatable": false
         },
@@ -677,23 +677,23 @@
       ]
     },
     {
-      "command": "norcube pulsecheck channels verify",
+      "command": "norcube monitor channels verify",
       "path": [
-        "pulsecheck",
+        "monitor",
         "channels",
         "verify"
       ],
       "name": "verify",
       "short": "Confirm an SMS or email-address channel with the code sent to it",
       "long": "Email-address and SMS channels get no alerts until their contact\nconfirms a 6-digit code (valid 10 minutes, 5 attempts).\n\nOn a terminal, verify sends a code and asks for it. In a script, run it\nonce to send the code, then again with --code-file (- reads standard\ninput) to confirm. The code is never taken as an argument nor printed.\nA new code can be sent after a minute (--resend), at most 5 a day.",
-      "usage": "norcube pulsecheck channels verify \u003cchannel\u003e [flags]",
+      "usage": "norcube monitor channels verify \u003cchannel\u003e [flags]",
       "args": "\u003cchannel\u003e",
-      "example": "norcube pulsecheck channels verify \"On-call phone\"\nnorcube pulsecheck channels verify 0c2d4f6a-8b1e-4c3d-9e5f-7a6b5c4d3e2f --resend\necho 123456 | norcube pulsecheck channels verify 0c2d4f6a-8b1e-4c3d-9e5f-7a6b5c4d3e2f --code-file -",
+      "example": "norcube monitor channels verify \"On-call phone\"\nnorcube monitor channels verify 0c2d4f6a-8b1e-4c3d-9e5f-7a6b5c4d3e2f --resend\necho 123456 | norcube monitor channels verify 0c2d4f6a-8b1e-4c3d-9e5f-7a6b5c4d3e2f --code-file -",
       "group": false,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "effect": "write",
       "confirm": false,
@@ -724,9 +724,9 @@
       ]
     },
     {
-      "command": "norcube pulsecheck incidents",
+      "command": "norcube monitor incidents",
       "path": [
-        "pulsecheck",
+        "monitor",
         "incidents"
       ],
       "name": "incidents",
@@ -735,12 +735,12 @@
       ],
       "short": "List, inspect and acknowledge incidents",
       "long": "An incident is a confirmed problem with one aspect of a monitor: its\navailability, its certificate or its domain. It opens after the monitor's\nconfirmations (or at once for an expiry), alerts the monitor's channels,\nreminds until acknowledged, and resolves when the checks are good again.",
-      "usage": "norcube pulsecheck incidents \u003ccommand\u003e",
+      "usage": "norcube monitor incidents \u003ccommand\u003e",
       "group": true,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "confirm": false,
       "wait": false,
@@ -748,9 +748,9 @@
       "flags": []
     },
     {
-      "command": "norcube pulsecheck incidents acknowledge",
+      "command": "norcube monitor incidents acknowledge",
       "path": [
-        "pulsecheck",
+        "monitor",
         "incidents",
         "acknowledge"
       ],
@@ -760,14 +760,14 @@
       ],
       "short": "Acknowledge an incident: someone is on it, stop the reminders",
       "long": "Marks an open incident as being handled; its reminders stop. Idempotent: a resolved or already acknowledged incident is returned unchanged.",
-      "usage": "norcube pulsecheck incidents acknowledge \u003cincident\u003e",
+      "usage": "norcube monitor incidents acknowledge \u003cincident\u003e",
       "args": "\u003cincident\u003e",
-      "example": "norcube pulsecheck incidents acknowledge 3f2c8a8e-6c1d-4a59-9a43-2b1f0f6f9d10",
+      "example": "norcube monitor incidents acknowledge 3f2c8a8e-6c1d-4a59-9a43-2b1f0f6f9d10",
       "group": false,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "effect": "write",
       "confirm": false,
@@ -782,23 +782,23 @@
       "flags": []
     },
     {
-      "command": "norcube pulsecheck incidents get",
+      "command": "norcube monitor incidents get",
       "path": [
-        "pulsecheck",
+        "monitor",
         "incidents",
         "get"
       ],
       "name": "get",
       "short": "Show an incident with its timeline and the alerts sent",
       "long": "Shows the incident, its timeline (opened, escalated, reminders,\nacknowledged, resolved) and every alert sent for it with its delivery\nstatus, so a failing channel shows here.",
-      "usage": "norcube pulsecheck incidents get \u003cincident\u003e",
+      "usage": "norcube monitor incidents get \u003cincident\u003e",
       "args": "\u003cincident\u003e",
-      "example": "norcube pulsecheck incidents get 3f2c8a8e-6c1d-4a59-9a43-2b1f0f6f9d10\nnorcube pulsecheck incidents get 3f2c8a8e-6c1d-4a59-9a43-2b1f0f6f9d10 -o json --query timeline",
+      "example": "norcube monitor incidents get 3f2c8a8e-6c1d-4a59-9a43-2b1f0f6f9d10\nnorcube monitor incidents get 3f2c8a8e-6c1d-4a59-9a43-2b1f0f6f9d10 -o json --query timeline",
       "group": false,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "effect": "read",
       "confirm": false,
@@ -813,22 +813,22 @@
       "flags": []
     },
     {
-      "command": "norcube pulsecheck incidents list",
+      "command": "norcube monitor incidents list",
       "path": [
-        "pulsecheck",
+        "monitor",
         "incidents",
         "list"
       ],
       "name": "list",
       "short": "List incidents, open ones first",
       "long": "Lists incidents: open critical ones first, then open warnings, then\nresolved ones, newest first within each. Every filter given must match.\n--severity reads an open incident's current severity and a resolved one's\npeak, so \"--severity critical\" finds every incident that ever paged.\n--since and --until select by when the incident started.",
-      "usage": "norcube pulsecheck incidents list [flags]",
-      "example": "norcube pulsecheck incidents list --status open\nnorcube pulsecheck incidents list --status open --unacknowledged --severity critical\nnorcube pulsecheck incidents list --monitor \"Shop\" --since 30d -o json",
+      "usage": "norcube monitor incidents list [flags]",
+      "example": "norcube monitor incidents list --status open\nnorcube monitor incidents list --status open --unacknowledged --severity critical\nnorcube monitor incidents list --monitor \"Shop\" --since 30d -o json",
       "group": false,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "effect": "read",
       "confirm": false,
@@ -961,22 +961,22 @@
       ]
     },
     {
-      "command": "norcube pulsecheck incidents summary",
+      "command": "norcube monitor incidents summary",
       "path": [
-        "pulsecheck",
+        "monitor",
         "incidents",
         "summary"
       ],
       "name": "summary",
       "short": "Count open incidents by severity, and resolved ones with the time to resolve",
-      "long": "The organization's incidents at a glance: open ones by current severity\nand those nobody acknowledged, incidents resolved in the last 7 and 30\ndays, and the mean time from opened to resolved over the last 30 days.\nFor a pass or fail answer in CI use \"pulsecheck status --fail-on\".",
-      "usage": "norcube pulsecheck incidents summary",
-      "example": "norcube pulsecheck incidents summary\nnorcube pulsecheck incidents summary -o json --query open.critical",
+      "long": "The organization's incidents at a glance: open ones by current severity\nand those nobody acknowledged, incidents resolved in the last 7 and 30\ndays, and the mean time from opened to resolved over the last 30 days.\nFor a pass or fail answer in CI use \"monitor status --fail-on\".",
+      "usage": "norcube monitor incidents summary",
+      "example": "norcube monitor incidents summary\nnorcube monitor incidents summary -o json --query open.critical",
       "group": false,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "effect": "read",
       "confirm": false,
@@ -991,9 +991,9 @@
       "flags": []
     },
     {
-      "command": "norcube pulsecheck monitors",
+      "command": "norcube monitor monitors",
       "path": [
-        "pulsecheck",
+        "monitor",
         "monitors"
       ],
       "name": "monitors",
@@ -1002,12 +1002,12 @@
       ],
       "short": "Create, inspect and manage monitors and their check history",
       "long": "A monitor checks one thing on a schedule: an HTTP endpoint (optionally\nfor a keyword), an SSL certificate, or a domain's registration. Commands\nthat take a \u003cmonitor\u003e accept its id or its exact name.",
-      "usage": "norcube pulsecheck monitors \u003ccommand\u003e",
+      "usage": "norcube monitor monitors \u003ccommand\u003e",
       "group": true,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "confirm": false,
       "wait": false,
@@ -1015,21 +1015,21 @@
       "flags": []
     },
     {
-      "command": "norcube pulsecheck monitors alerts",
+      "command": "norcube monitor monitors alerts",
       "path": [
-        "pulsecheck",
+        "monitor",
         "monitors",
         "alerts"
       ],
       "name": "alerts",
       "short": "Where and when a monitor alerts",
       "long": "A monitor either follows the organization's defaults (its default\nchannels, or the members by email when none is default) or has its own\nroutes: which events go to which channels, how many failed checks open an\nincident, how many good ones resolve it, and how often to remind.",
-      "usage": "norcube pulsecheck monitors alerts \u003ccommand\u003e",
+      "usage": "norcube monitor monitors alerts \u003ccommand\u003e",
       "group": true,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "confirm": false,
       "wait": false,
@@ -1037,23 +1037,23 @@
       "flags": []
     },
     {
-      "command": "norcube pulsecheck monitors alerts get",
+      "command": "norcube monitor monitors alerts get",
       "path": [
-        "pulsecheck",
+        "monitor",
         "monitors",
         "alerts",
         "get"
       ],
       "name": "get",
       "short": "Show how a monitor alerts",
-      "usage": "norcube pulsecheck monitors alerts get \u003cmonitor\u003e",
+      "usage": "norcube monitor monitors alerts get \u003cmonitor\u003e",
       "args": "\u003cmonitor\u003e",
-      "example": "norcube pulsecheck monitors alerts get \"Shop\"",
+      "example": "norcube monitor monitors alerts get \"Shop\"",
       "group": false,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "effect": "read",
       "confirm": false,
@@ -1068,24 +1068,24 @@
       "flags": []
     },
     {
-      "command": "norcube pulsecheck monitors alerts set",
+      "command": "norcube monitor monitors alerts set",
       "path": [
-        "pulsecheck",
+        "monitor",
         "monitors",
         "alerts",
         "set"
       ],
       "name": "set",
       "short": "Set where and when a monitor alerts",
-      "long": "Replaces the monitor's alerting. --defaults returns it to the\norganization's defaults. Otherwise give its routes, each a channel (id or\nexact name) and the events it gets (down, warning, expiring, expired,\nrecovered), or --mute for no alerts; settings you leave out keep their\ncurrent values. Channels themselves are managed with \"pulsecheck channels\".",
-      "usage": "norcube pulsecheck monitors alerts set \u003cmonitor\u003e [flags]",
+      "long": "Replaces the monitor's alerting. --defaults returns it to the\norganization's defaults. Otherwise give its routes, each a channel (id or\nexact name) and the events it gets (down, warning, expiring, expired,\nrecovered), or --mute for no alerts; settings you leave out keep their\ncurrent values. Channels themselves are managed with \"monitor channels\".",
+      "usage": "norcube monitor monitors alerts set \u003cmonitor\u003e [flags]",
       "args": "\u003cmonitor\u003e",
-      "example": "norcube pulsecheck monitors alerts set \"Shop\" --route \"On-call webhook=down,recovered\" --route ops-email=down\nnorcube pulsecheck monitors alerts set \"Shop\" --confirm-failures 3 --reminder 30m\nnorcube pulsecheck monitors alerts set \"Shop\" --mute\nnorcube pulsecheck monitors alerts set \"Shop\" --defaults",
+      "example": "norcube monitor monitors alerts set \"Shop\" --route \"On-call webhook=down,recovered\" --route ops-email=down\nnorcube monitor monitors alerts set \"Shop\" --confirm-failures 3 --reminder 30m\nnorcube monitor monitors alerts set \"Shop\" --mute\nnorcube monitor monitors alerts set \"Shop\" --defaults",
       "group": false,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "effect": "write",
       "confirm": false,
@@ -1155,20 +1155,20 @@
       ]
     },
     {
-      "command": "norcube pulsecheck monitors availability",
+      "command": "norcube monitor monitors availability",
       "path": [
-        "pulsecheck",
+        "monitor",
         "monitors",
         "availability"
       ],
       "name": "availability",
       "short": "A monitor's uptime and downtime per day",
-      "usage": "norcube pulsecheck monitors availability \u003ccommand\u003e",
+      "usage": "norcube monitor monitors availability \u003ccommand\u003e",
       "group": true,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "confirm": false,
       "wait": false,
@@ -1176,9 +1176,9 @@
       "flags": []
     },
     {
-      "command": "norcube pulsecheck monitors availability get",
+      "command": "norcube monitor monitors availability get",
       "path": [
-        "pulsecheck",
+        "monitor",
         "monitors",
         "availability",
         "get"
@@ -1186,14 +1186,14 @@
       "name": "get",
       "short": "Show uptime and estimated downtime per UTC day",
       "long": "One row per UTC day ending today, oldest first: check counts, uptime and\nan estimate of the minutes spent down (HTTP monitors). A day without\nchecks has no uptime, never 100%.",
-      "usage": "norcube pulsecheck monitors availability get \u003cmonitor\u003e [flags]",
+      "usage": "norcube monitor monitors availability get \u003cmonitor\u003e [flags]",
       "args": "\u003cmonitor\u003e",
-      "example": "norcube pulsecheck monitors availability get \"Shop\" --days 30",
+      "example": "norcube monitor monitors availability get \"Shop\" --days 30",
       "group": false,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "effect": "read",
       "confirm": false,
@@ -1217,21 +1217,21 @@
       ]
     },
     {
-      "command": "norcube pulsecheck monitors bulk",
+      "command": "norcube monitor monitors bulk",
       "path": [
-        "pulsecheck",
+        "monitor",
         "monitors",
         "bulk"
       ],
       "name": "bulk",
       "short": "Pause, resume or delete many monitors at once",
       "long": "Applies one action to many monitors: the ones you name (ids or exact\nnames, as arguments or one per line with --file), or every monitor the\nlist filters match (--type, --status, --search). Each monitor is handled as\nits own request would be, so one refusal doesn't stop the others; the\nresult lists every monitor with ok or its problem code. The command exits\n1 when any monitor failed.",
-      "usage": "norcube pulsecheck monitors bulk \u003ccommand\u003e",
+      "usage": "norcube monitor monitors bulk \u003ccommand\u003e",
       "group": true,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "confirm": false,
       "wait": false,
@@ -1239,23 +1239,23 @@
       "flags": []
     },
     {
-      "command": "norcube pulsecheck monitors bulk delete",
+      "command": "norcube monitor monitors bulk delete",
       "path": [
-        "pulsecheck",
+        "monitor",
         "monitors",
         "bulk",
         "delete"
       ],
       "name": "delete",
       "short": "Delete many monitors and their history",
-      "usage": "norcube pulsecheck monitors bulk delete [\u003cmonitor\u003e...] [flags]",
+      "usage": "norcube monitor monitors bulk delete [\u003cmonitor\u003e...] [flags]",
       "args": "[\u003cmonitor\u003e...]",
-      "example": "norcube pulsecheck monitors bulk delete 7d1c2f7e-6a1f-4f5e-9b8a-1f7c2b3d4e5f \"Old landing page\"\nnorcube pulsecheck monitors bulk delete --file old-monitors.txt --yes",
+      "example": "norcube monitor monitors bulk delete 7d1c2f7e-6a1f-4f5e-9b8a-1f7c2b3d4e5f \"Old landing page\"\nnorcube monitor monitors bulk delete --file old-monitors.txt --yes",
       "group": false,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "effect": "write",
       "confirm": true,
@@ -1320,23 +1320,23 @@
       ]
     },
     {
-      "command": "norcube pulsecheck monitors bulk pause",
+      "command": "norcube monitor monitors bulk pause",
       "path": [
-        "pulsecheck",
+        "monitor",
         "monitors",
         "bulk",
         "pause"
       ],
       "name": "pause",
       "short": "Pause many monitors",
-      "usage": "norcube pulsecheck monitors bulk pause [\u003cmonitor\u003e...] [flags]",
+      "usage": "norcube monitor monitors bulk pause [\u003cmonitor\u003e...] [flags]",
       "args": "[\u003cmonitor\u003e...]",
-      "example": "# Maintenance window: pause everything behind api.example.com\nnorcube pulsecheck monitors bulk pause --search api.example.com --yes",
+      "example": "# Maintenance window: pause everything behind api.example.com\nnorcube monitor monitors bulk pause --search api.example.com --yes",
       "group": false,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "effect": "write",
       "confirm": true,
@@ -1401,23 +1401,23 @@
       ]
     },
     {
-      "command": "norcube pulsecheck monitors bulk resume",
+      "command": "norcube monitor monitors bulk resume",
       "path": [
-        "pulsecheck",
+        "monitor",
         "monitors",
         "bulk",
         "resume"
       ],
       "name": "resume",
       "short": "Resume many monitors",
-      "usage": "norcube pulsecheck monitors bulk resume [\u003cmonitor\u003e...] [flags]",
+      "usage": "norcube monitor monitors bulk resume [\u003cmonitor\u003e...] [flags]",
       "args": "[\u003cmonitor\u003e...]",
-      "example": "norcube pulsecheck monitors bulk resume --status paused --search api.example.com --yes",
+      "example": "norcube monitor monitors bulk resume --status paused --search api.example.com --yes",
       "group": false,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "effect": "write",
       "confirm": true,
@@ -1482,9 +1482,9 @@
       ]
     },
     {
-      "command": "norcube pulsecheck monitors certificate",
+      "command": "norcube monitor monitors certificate",
       "path": [
-        "pulsecheck",
+        "monitor",
         "monitors",
         "certificate"
       ],
@@ -1493,12 +1493,12 @@
         "cert"
       ],
       "short": "The newest TLS certificate an SSL or HTTPS monitor saw",
-      "usage": "norcube pulsecheck monitors certificate \u003ccommand\u003e",
+      "usage": "norcube monitor monitors certificate \u003ccommand\u003e",
       "group": true,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "confirm": false,
       "wait": false,
@@ -1506,9 +1506,9 @@
       "flags": []
     },
     {
-      "command": "norcube pulsecheck monitors certificate get",
+      "command": "norcube monitor monitors certificate get",
       "path": [
-        "pulsecheck",
+        "monitor",
         "monitors",
         "certificate",
         "get"
@@ -1516,14 +1516,14 @@
       "name": "get",
       "short": "Show the monitor's newest certificate and when it expires",
       "long": "Shows the newest certificate the monitor's checks saw: subject, issuer,\nnames, validity, whether the chain and hostname verify, and days left. SSL\nmonitors add the expiry thresholds and the next one to be crossed. Exits 3\nwhen no check has seen a certificate (plain HTTP and domain monitors).",
-      "usage": "norcube pulsecheck monitors certificate get \u003cmonitor\u003e",
+      "usage": "norcube monitor monitors certificate get \u003cmonitor\u003e",
       "args": "\u003cmonitor\u003e",
-      "example": "norcube pulsecheck monitors certificate get \"API cert\"\nnorcube pulsecheck monitors cert get \"Shop\" -o json --query certificate.notAfter",
+      "example": "norcube monitor monitors certificate get \"API cert\"\nnorcube monitor monitors cert get \"Shop\" -o json --query certificate.notAfter",
       "group": false,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "effect": "read",
       "confirm": false,
@@ -1538,23 +1538,23 @@
       "flags": []
     },
     {
-      "command": "norcube pulsecheck monitors create",
+      "command": "norcube monitor monitors create",
       "path": [
-        "pulsecheck",
+        "monitor",
         "monitors",
         "create"
       ],
       "name": "create",
       "short": "Create a monitor; its first check runs right away",
-      "long": "Creates an enabled monitor of one type:\n\n  http     requests --url and expects --expect (default 2xx) within --timeout;\n           for https URLs it also watches the certificate and the domain's\n           registration unless --no-cert-watch / --no-domain-watch\n  keyword  an HTTP monitor that also looks for --keyword in the body\n           (--keyword-mode absent: alerts when it appears)\n  ssl      checks the certificate of --host:--port and alerts --alert-days\n           before it expires\n  domain   checks the registration of --domain and alerts --alert-days\n           before it expires\n\nSettings not given start from the dashboard's defaults. For anything the\nflags don't cover, pass the API's JSON body with --from-file (see \"nrc api\npulsecheck POST /monitors\"). Secret header values come from a file or\nstandard input only (--secret-headers-file), never from arguments. The\nfirst check runs at once and is billed like a scheduled one.",
-      "usage": "norcube pulsecheck monitors create \u003cname\u003e [flags]",
+      "long": "Creates an enabled monitor of one type:\n\n  http     requests --url and expects --expect (default 2xx) within --timeout;\n           for https URLs it also watches the certificate and the domain's\n           registration unless --no-cert-watch / --no-domain-watch\n  keyword  an HTTP monitor that also looks for --keyword in the body\n           (--keyword-mode absent: alerts when it appears)\n  ssl      checks the certificate of --host:--port and alerts --alert-days\n           before it expires\n  domain   checks the registration of --domain and alerts --alert-days\n           before it expires\n\nSettings not given start from the dashboard's defaults. For anything the\nflags don't cover, pass the API's JSON body with --from-file (see \"nrc api\nmonitor POST /monitors\"). Secret header values come from a file or\nstandard input only (--secret-headers-file), never from arguments. The\nfirst check runs at once and is billed like a scheduled one.",
+      "usage": "norcube monitor monitors create \u003cname\u003e [flags]",
       "args": "\u003cname\u003e",
-      "example": "norcube pulsecheck monitors create \"Shop\" --type http --url https://shop.example.com/health\nnorcube pulsecheck monitors create \"Login page\" --type keyword --url https://example.com/login --keyword \"Sign in\"\nnorcube pulsecheck monitors create \"API cert\" --type ssl --host api.example.com --alert-days 30,7\nnorcube pulsecheck monitors create \"example.com\" --type domain --domain example.com --interval 24h\nprintf 'Authorization: Bearer %s\\n' \"$TOKEN\" | norcube pulsecheck monitors create \"Admin API\" --type http --url https://example.com/admin/health --secret-headers-file -\nnorcube pulsecheck monitors create --from-file monitor.json",
+      "example": "norcube monitor monitors create \"Shop\" --type http --url https://shop.example.com/health\nnorcube monitor monitors create \"Login page\" --type keyword --url https://example.com/login --keyword \"Sign in\"\nnorcube monitor monitors create \"API cert\" --type ssl --host api.example.com --alert-days 30,7\nnorcube monitor monitors create \"example.com\" --type domain --domain example.com --interval 24h\nprintf 'Authorization: Bearer %s\\n' \"$TOKEN\" | norcube monitor monitors create \"Admin API\" --type http --url https://example.com/admin/health --secret-headers-file -\nnorcube monitor monitors create --from-file monitor.json",
       "group": false,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "effect": "write",
       "confirm": false,
@@ -1795,23 +1795,23 @@
       ]
     },
     {
-      "command": "norcube pulsecheck monitors delete",
+      "command": "norcube monitor monitors delete",
       "path": [
-        "pulsecheck",
+        "monitor",
         "monitors",
         "delete"
       ],
       "name": "delete",
       "short": "Delete a monitor and its whole check history",
       "long": "Deletes the monitor with its results, status history and incidents.\nTo stop checks but keep the history, use \"monitors pause\". A monitor that\nbelongs to another Norcube product (a DomainRadar saved domain's expiry\nalerts) can't be deleted here (exit 8): remove it in that product.",
-      "usage": "norcube pulsecheck monitors delete \u003cmonitor\u003e [flags]",
+      "usage": "norcube monitor monitors delete \u003cmonitor\u003e [flags]",
       "args": "\u003cmonitor\u003e",
-      "example": "norcube pulsecheck monitors delete \"Old landing page\"\nnorcube pulsecheck monitors delete 7d1c2f7e-6a1f-4f5e-9b8a-1f7c2b3d4e5f --yes",
+      "example": "norcube monitor monitors delete \"Old landing page\"\nnorcube monitor monitors delete 7d1c2f7e-6a1f-4f5e-9b8a-1f7c2b3d4e5f --yes",
       "group": false,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "effect": "write",
       "confirm": true,
@@ -1835,23 +1835,23 @@
       ]
     },
     {
-      "command": "norcube pulsecheck monitors get",
+      "command": "norcube monitor monitors get",
       "path": [
-        "pulsecheck",
+        "monitor",
         "monitors",
         "get"
       ],
       "name": "get",
       "short": "Show a monitor's settings and current status",
       "long": "Shows the monitor, its check settings (secret header values are never returned), its status with the reason, and the certificate and domain it watches.",
-      "usage": "norcube pulsecheck monitors get \u003cmonitor\u003e",
+      "usage": "norcube monitor monitors get \u003cmonitor\u003e",
       "args": "\u003cmonitor\u003e",
-      "example": "norcube pulsecheck monitors get \"Shop API\"\nnorcube pulsecheck monitors get 7d1c2f7e-6a1f-4f5e-9b8a-1f7c2b3d4e5f -o json",
+      "example": "norcube monitor monitors get \"Shop API\"\nnorcube monitor monitors get 7d1c2f7e-6a1f-4f5e-9b8a-1f7c2b3d4e5f -o json",
       "group": false,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "effect": "read",
       "confirm": false,
@@ -1866,22 +1866,22 @@
       "flags": []
     },
     {
-      "command": "norcube pulsecheck monitors list",
+      "command": "norcube monitor monitors list",
       "path": [
-        "pulsecheck",
+        "monitor",
         "monitors",
         "list"
       ],
       "name": "list",
       "short": "List monitors with their current status",
       "long": "Lists the organization's monitors, by default the ones that need\nattention first (critical, warning, pending, ok, paused, then by name).\n--status filters by the overall status: the worse of the monitor's own\nstatus and the certificate and domain it watches.",
-      "usage": "norcube pulsecheck monitors list [flags]",
-      "example": "norcube pulsecheck monitors list\nnorcube pulsecheck monitors list --status critical --type http\nnorcube pulsecheck monitors list --search shop --sort uptime --all-pages -o json",
+      "usage": "norcube monitor monitors list [flags]",
+      "example": "norcube monitor monitors list\nnorcube monitor monitors list --status critical --type http\nnorcube monitor monitors list --search shop --sort uptime --all-pages -o json",
       "group": false,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "effect": "read",
       "confirm": false,
@@ -1991,23 +1991,23 @@
       ]
     },
     {
-      "command": "norcube pulsecheck monitors pause",
+      "command": "norcube monitor monitors pause",
       "path": [
-        "pulsecheck",
+        "monitor",
         "monitors",
         "pause"
       ],
       "name": "pause",
       "short": "Stop a monitor's scheduled checks",
       "long": "Stops scheduled checks; the history stays. Pausing closes the monitor's\nopen incident without alerting. Idempotent.",
-      "usage": "norcube pulsecheck monitors pause \u003cmonitor\u003e",
+      "usage": "norcube monitor monitors pause \u003cmonitor\u003e",
       "args": "\u003cmonitor\u003e",
-      "example": "norcube pulsecheck monitors pause \"Shop API\"",
+      "example": "norcube monitor monitors pause \"Shop API\"",
       "group": false,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "effect": "write",
       "confirm": false,
@@ -2022,9 +2022,9 @@
       "flags": []
     },
     {
-      "command": "norcube pulsecheck monitors results",
+      "command": "norcube monitor monitors results",
       "path": [
-        "pulsecheck",
+        "monitor",
         "monitors",
         "results"
       ],
@@ -2033,12 +2033,12 @@
         "checks"
       ],
       "short": "A monitor's check results",
-      "usage": "norcube pulsecheck monitors results \u003ccommand\u003e",
+      "usage": "norcube monitor monitors results \u003ccommand\u003e",
       "group": true,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "confirm": false,
       "wait": false,
@@ -2046,9 +2046,9 @@
       "flags": []
     },
     {
-      "command": "norcube pulsecheck monitors results list",
+      "command": "norcube monitor monitors results list",
       "path": [
-        "pulsecheck",
+        "monitor",
         "monitors",
         "results",
         "list"
@@ -2056,14 +2056,14 @@
       "name": "list",
       "short": "List a monitor's check results, newest first",
       "long": "Lists the monitor's checks in [--since, --until), newest first; by default\nthe last 24 hours. Raw results are kept at least 30 days. JSON has every\ndetail of a result: timings, the certificate seen, the domain's\nregistration.",
-      "usage": "norcube pulsecheck monitors results list \u003cmonitor\u003e [flags]",
+      "usage": "norcube monitor monitors results list \u003cmonitor\u003e [flags]",
       "args": "\u003cmonitor\u003e",
-      "example": "norcube pulsecheck monitors results list \"Shop\"\nnorcube pulsecheck monitors results list \"Shop\" --since 7d --all-pages -o json --query \"[?severity=='critical'].checkedAt\"",
+      "example": "norcube monitor monitors results list \"Shop\"\nnorcube monitor monitors results list \"Shop\" --since 7d --all-pages -o json --query \"[?severity=='critical'].checkedAt\"",
       "group": false,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "effect": "read",
       "confirm": false,
@@ -2132,23 +2132,23 @@
       ]
     },
     {
-      "command": "norcube pulsecheck monitors resume",
+      "command": "norcube monitor monitors resume",
       "path": [
-        "pulsecheck",
+        "monitor",
         "monitors",
         "resume"
       ],
       "name": "resume",
       "short": "Restart a paused monitor's scheduled checks",
       "long": "Restarts scheduled checks; the next one runs right away unless the last\none is less than an interval old. Idempotent.",
-      "usage": "norcube pulsecheck monitors resume \u003cmonitor\u003e",
+      "usage": "norcube monitor monitors resume \u003cmonitor\u003e",
       "args": "\u003cmonitor\u003e",
-      "example": "norcube pulsecheck monitors resume \"Shop API\"",
+      "example": "norcube monitor monitors resume \"Shop API\"",
       "group": false,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "effect": "write",
       "confirm": false,
@@ -2163,23 +2163,23 @@
       "flags": []
     },
     {
-      "command": "norcube pulsecheck monitors run",
+      "command": "norcube monitor monitors run",
       "path": [
-        "pulsecheck",
+        "monitor",
         "monitors",
         "run"
       ],
       "name": "run",
       "short": "Run a monitor's check now and show the result",
       "long": "Runs the monitor's check right away (paused monitors too) and prints the\nstored result. The check is billed like a scheduled one and rate limited\n(200 per user and 600 per organization an hour).\n\nThe check runs while the command waits, so the result is always final.\n--wait makes the result the command's outcome, for deploy pipelines: it\nexits 1 with code job_failed (the result in \"details\") when the check\nfound the monitor critical or couldn't reach a verdict (inconclusive), or\nwith --fail-on warning also when it found a warning, and prints nothing\non stdout then; it exits 7 when no result arrives within --wait-timeout. Without --wait the command exits 0\nwhatever the check found.",
-      "usage": "norcube pulsecheck monitors run \u003cmonitor\u003e [flags]",
+      "usage": "norcube monitor monitors run \u003cmonitor\u003e [flags]",
       "args": "\u003cmonitor\u003e",
-      "example": "norcube pulsecheck monitors run \"Shop API\"\n# Fail a deploy when the site is down after it\nnorcube pulsecheck monitors run \"Shop API\" --wait\nnorcube pulsecheck monitors run 7d1c2f7e-6a1f-4f5e-9b8a-1f7c2b3d4e5f --wait --fail-on warning -o json",
+      "example": "norcube monitor monitors run \"Shop API\"\n# Fail a deploy when the site is down after it\nnorcube monitor monitors run \"Shop API\" --wait\nnorcube monitor monitors run 7d1c2f7e-6a1f-4f5e-9b8a-1f7c2b3d4e5f --wait --fail-on warning -o json",
       "group": false,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "effect": "write",
       "confirm": false,
@@ -2222,20 +2222,20 @@
       ]
     },
     {
-      "command": "norcube pulsecheck monitors stats",
+      "command": "norcube monitor monitors stats",
       "path": [
-        "pulsecheck",
+        "monitor",
         "monitors",
         "stats"
       ],
       "name": "stats",
       "short": "A monitor's uptime and response times",
-      "usage": "norcube pulsecheck monitors stats \u003ccommand\u003e",
+      "usage": "norcube monitor monitors stats \u003ccommand\u003e",
       "group": true,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "confirm": false,
       "wait": false,
@@ -2243,9 +2243,9 @@
       "flags": []
     },
     {
-      "command": "norcube pulsecheck monitors stats get",
+      "command": "norcube monitor monitors stats get",
       "path": [
-        "pulsecheck",
+        "monitor",
         "monitors",
         "stats",
         "get"
@@ -2253,14 +2253,14 @@
       "name": "get",
       "short": "Show uptime, response times and check counts over a range",
       "long": "Shows uptime ((ok + warning) / conclusive checks, HTTP monitors only),\naverage and maximum response time and check counts for the range ending\nnow. JSON adds the series: hourly buckets up to 7d, daily beyond.\nRefreshed every few minutes.",
-      "usage": "norcube pulsecheck monitors stats get \u003cmonitor\u003e [flags]",
+      "usage": "norcube monitor monitors stats get \u003cmonitor\u003e [flags]",
       "args": "\u003cmonitor\u003e",
-      "example": "norcube pulsecheck monitors stats get \"Shop\"\nnorcube pulsecheck monitors stats get \"Shop\" --range 30d -o json --query uptimePercent",
+      "example": "norcube monitor monitors stats get \"Shop\"\nnorcube monitor monitors stats get \"Shop\" --range 30d -o json --query uptimePercent",
       "group": false,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "effect": "read",
       "confirm": false,
@@ -2290,9 +2290,9 @@
       ]
     },
     {
-      "command": "norcube pulsecheck monitors status-changes",
+      "command": "norcube monitor monitors status-changes",
       "path": [
-        "pulsecheck",
+        "monitor",
         "monitors",
         "status-changes"
       ],
@@ -2301,12 +2301,12 @@
         "history"
       ],
       "short": "When a monitor went up, down, or expiring, and for how long",
-      "usage": "norcube pulsecheck monitors status-changes \u003ccommand\u003e",
+      "usage": "norcube monitor monitors status-changes \u003ccommand\u003e",
       "group": true,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "confirm": false,
       "wait": false,
@@ -2314,9 +2314,9 @@
       "flags": []
     },
     {
-      "command": "norcube pulsecheck monitors status-changes list",
+      "command": "norcube monitor monitors status-changes list",
       "path": [
-        "pulsecheck",
+        "monitor",
         "monitors",
         "status-changes",
         "list"
@@ -2324,14 +2324,14 @@
       "name": "list",
       "short": "List every status change of a monitor, newest first",
       "long": "Lists each time a check moved the monitor to another status: from, to,\nwhen, how long it lasted (the newest one is still going) and what the\ncheck said. Kept a year. Pausing is not a status change. JSON adds the\nevents in each span (a renewed certificate).",
-      "usage": "norcube pulsecheck monitors status-changes list \u003cmonitor\u003e [flags]",
+      "usage": "norcube monitor monitors status-changes list \u003cmonitor\u003e [flags]",
       "args": "\u003cmonitor\u003e",
-      "example": "norcube pulsecheck monitors status-changes list \"Shop\"\nnorcube pulsecheck monitors history list \"Shop\" -o json",
+      "example": "norcube monitor monitors status-changes list \"Shop\"\nnorcube monitor monitors history list \"Shop\" -o json",
       "group": false,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "effect": "read",
       "confirm": false,
@@ -2386,23 +2386,23 @@
       ]
     },
     {
-      "command": "norcube pulsecheck monitors update",
+      "command": "norcube monitor monitors update",
       "path": [
-        "pulsecheck",
+        "monitor",
         "monitors",
         "update"
       ],
       "name": "update",
       "short": "Change a monitor's name, interval or check settings",
       "long": "Changes only what you pass. Check settings start from the monitor's\ncurrent ones, so \"--timeout 5s\" keeps everything else; secret headers keep\ntheir stored values unless --secret-headers-file replaces them (and only\nwhile the URL keeps its origin). The type can't change. --from-file sends\nthe API's PATCH body as it is (a settings object there replaces the\nsettings as a whole).",
-      "usage": "norcube pulsecheck monitors update \u003cmonitor\u003e [flags]",
+      "usage": "norcube monitor monitors update \u003cmonitor\u003e [flags]",
       "args": "\u003cmonitor\u003e",
-      "example": "norcube pulsecheck monitors update \"Shop\" --interval 30s --slow 1500ms\nnorcube pulsecheck monitors update \"Shop\" --name \"Shop (EU)\" --expect 2xx,301\nnorcube pulsecheck monitors update \"API cert\" --alert-days 21,7\nnorcube pulsecheck monitors update 7d1c2f7e-6a1f-4f5e-9b8a-1f7c2b3d4e5f --from-file patch.json",
+      "example": "norcube monitor monitors update \"Shop\" --interval 30s --slow 1500ms\nnorcube monitor monitors update \"Shop\" --name \"Shop (EU)\" --expect 2xx,301\nnorcube monitor monitors update \"API cert\" --alert-days 21,7\nnorcube monitor monitors update 7d1c2f7e-6a1f-4f5e-9b8a-1f7c2b3d4e5f --from-file patch.json",
       "group": false,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "effect": "write",
       "confirm": false,
@@ -2653,21 +2653,21 @@
       ]
     },
     {
-      "command": "norcube pulsecheck status",
+      "command": "norcube monitor status",
       "path": [
-        "pulsecheck",
+        "monitor",
         "status"
       ],
       "name": "status",
       "short": "Show the organization's monitoring status, or fail a CI job on open incidents",
       "long": "Shows the open incidents by severity, the monitors by status, and every\nmonitor that is critical or warning. The verdict (\"status\" in JSON) comes\nfrom open incidents, which are problems the checks confirmed: critical\nwhile a critical incident is open, warning while only warnings are, else\nok.\n\n--fail-on turns the verdict into the exit code: with --fail-on critical\nthe command exits 1 (code unhealthy, the report in the error's details)\nwhile a critical incident is open, with --fail-on warning while any\nincident is open. The report is printed either way. The default, none,\nalways exits 0.",
-      "usage": "norcube pulsecheck status [flags]",
-      "example": "norcube pulsecheck status\n# Gate a deploy on PulseCheck\nnorcube pulsecheck status --fail-on critical\nnorcube pulsecheck status -o json --query problems[].name",
+      "usage": "norcube monitor status [flags]",
+      "example": "norcube monitor status\n# Gate a deploy on Norcube Monitor\nnorcube monitor status --fail-on critical\nnorcube monitor status -o json --query problems[].name",
       "group": false,
       "service": {
-        "key": "pulsecheck",
-        "name": "Norcube PulseCheck",
-        "audience": "pulsecheck"
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
       },
       "effect": "read",
       "confirm": false,

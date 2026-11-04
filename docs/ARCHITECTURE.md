@@ -126,7 +126,7 @@ secrets and the one-time setup.
   help text and an effect, nothing writes to stdout outside the result
   path, and no two sibling commands share a name or alias.
   `commands_test.go` pins the `nrc commands` schema (golden
-  `commands-billing.*`; `commands-pulsecheck.json` pins a whole product
+  `commands-billing.*`; `commands-monitor.json` pins a whole product
   group) and checks that it lists every visible command, sorted, offline.
 - `go test -race ./...`, `go vet` and golangci-lint (pinned in CI) must
   pass.

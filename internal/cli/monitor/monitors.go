@@ -1,4 +1,4 @@
-package pulsecheck
+package monitor
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 
-	"github.com/norcubeplatform/cli/internal/api/pulsecheck"
+	"github.com/norcubeplatform/cli/internal/api/monitor"
 	"github.com/norcubeplatform/cli/internal/clierr"
 	"github.com/norcubeplatform/cli/internal/cmdutil"
 	"github.com/norcubeplatform/cli/internal/output"
@@ -66,45 +66,45 @@ func newMonitorListCmd(d deps) *cobra.Command {
 attention first (critical, warning, pending, ok, paused, then by name).
 --status filters by the overall status: the worse of the monitor's own
 status and the certificate and domain it watches.`,
-		Example: `  norcube pulsecheck monitors list
-  norcube pulsecheck monitors list --status critical --type http
-  norcube pulsecheck monitors list --search shop --sort uptime --all-pages -o json`,
+		Example: `  norcube monitor monitors list
+  norcube monitor monitors list --status critical --type http
+  norcube monitor monitors list --search shop --sort uptime --all-pages -o json`,
 		Args: cobra.NoArgs,
 		RunE: cmdutil.Run(func(cmd *cobra.Command, _ []string) (any, error) {
-			params := pulsecheck.ListMonitorsParams{}
+			params := monitor.ListMonitorsParams{}
 			if typ != "" {
 				if err := oneOf("--type", typ, monitorTypes); err != nil {
 					return nil, err
 				}
-				t := pulsecheck.ListMonitorsParamsType(typ)
+				t := monitor.ListMonitorsParamsType(typ)
 				params.Type = &t
 			}
 			if status != "" {
 				if err := oneOf("--status", status, monitorStatuses); err != nil {
 					return nil, err
 				}
-				s := pulsecheck.ListMonitorsParamsStatus(status)
+				s := monitor.ListMonitorsParamsStatus(status)
 				params.Status = &s
 			}
 			if order != "" {
 				if err := oneOf("--sort", order, monitorSorts); err != nil {
 					return nil, err
 				}
-				s := pulsecheck.ListMonitorsParamsSort(order)
+				s := monitor.ListMonitorsParamsSort(order)
 				params.Sort = &s
 			}
 			if search != "" {
 				params.Q = &search
 			}
 			if history {
-				h := pulsecheck.ListMonitorsParamsInclude("history")
+				h := monitor.ListMonitorsParamsInclude("history")
 				params.Include = &h
 			}
 			c, err := d.client(cmd)
 			if err != nil {
 				return nil, err
 			}
-			page, err := cmdutil.Paginate(cmd.Context(), pf, func(ctx context.Context, cursor string, size int) ([]pulsecheck.DtoMonitor, string, error) {
+			page, err := cmdutil.Paginate(cmd.Context(), pf, func(ctx context.Context, cursor string, size int) ([]monitor.DtoMonitor, string, error) {
 				p := params
 				p.Limit = &size
 				if cursor != "" {
@@ -143,8 +143,8 @@ func newMonitorGetCmd(d deps) *cobra.Command {
 		Annotations: cmdutil.Reads(),
 		Short:       "Show a monitor's settings and current status",
 		Long:        "Shows the monitor, its check settings (secret header values are never returned), its status with the reason, and the certificate and domain it watches.",
-		Example: `  norcube pulsecheck monitors get "Shop API"
-  norcube pulsecheck monitors get 7d1c2f7e-6a1f-4f5e-9b8a-1f7c2b3d4e5f -o json`,
+		Example: `  norcube monitor monitors get "Shop API"
+  norcube monitor monitors get 7d1c2f7e-6a1f-4f5e-9b8a-1f7c2b3d4e5f -o json`,
 		Args: cobra.ExactArgs(1),
 		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
 			c, err := d.client(cmd)
@@ -161,17 +161,17 @@ func newMonitorGetCmd(d deps) *cobra.Command {
 }
 
 // getMonitor resolves ref and fetches the monitor.
-func getMonitor(ctx context.Context, c *pcContext, ref string) (pulsecheck.DtoMonitor, error) {
+func getMonitor(ctx context.Context, c *monitorContext, ref string) (monitor.DtoMonitor, error) {
 	id, err := monitorRef(ctx, c, ref)
 	if err != nil {
-		return pulsecheck.DtoMonitor{}, err
+		return monitor.DtoMonitor{}, err
 	}
 	res, err := c.API.GetMonitorWithResponse(ctx, id)
 	if err != nil {
-		return pulsecheck.DtoMonitor{}, err
+		return monitor.DtoMonitor{}, err
 	}
 	if res.JSON200 == nil {
-		return pulsecheck.DtoMonitor{}, apiError(res.HTTPResponse, res.Body)
+		return monitor.DtoMonitor{}, apiError(res.HTTPResponse, res.Body)
 	}
 	return *res.JSON200, nil
 }
@@ -186,8 +186,8 @@ func newMonitorDeleteCmd(d deps) *cobra.Command {
 To stop checks but keep the history, use "monitors pause". A monitor that
 belongs to another Norcube product (a DomainRadar saved domain's expiry
 alerts) can't be deleted here (exit 8): remove it in that product.`,
-		Example: `  norcube pulsecheck monitors delete "Old landing page"
-  norcube pulsecheck monitors delete 7d1c2f7e-6a1f-4f5e-9b8a-1f7c2b3d4e5f --yes`,
+		Example: `  norcube monitor monitors delete "Old landing page"
+  norcube monitor monitors delete 7d1c2f7e-6a1f-4f5e-9b8a-1f7c2b3d4e5f --yes`,
 		Args: cobra.ExactArgs(1),
 		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
 			c, err := d.client(cmd)
@@ -228,7 +228,7 @@ type deleted struct {
 // monitorAction is pause or resume of one monitor.
 type monitorAction struct {
 	use, short, long, example, done string
-	call                            func(ctx context.Context, c *pcContext, id uuid.UUID) (*pulsecheck.DtoMonitor, *http.Response, []byte, error)
+	call                            func(ctx context.Context, c *monitorContext, id uuid.UUID) (*monitor.DtoMonitor, *http.Response, []byte, error)
 }
 
 func newMonitorPauseCmd(d deps) *cobra.Command {
@@ -237,9 +237,9 @@ func newMonitorPauseCmd(d deps) *cobra.Command {
 		short: "Stop a monitor's scheduled checks",
 		long: `Stops scheduled checks; the history stays. Pausing closes the monitor's
 open incident without alerting. Idempotent.`,
-		example: `  norcube pulsecheck monitors pause "Shop API"`,
+		example: `  norcube monitor monitors pause "Shop API"`,
 		done:    "Paused",
-		call: func(ctx context.Context, c *pcContext, id uuid.UUID) (*pulsecheck.DtoMonitor, *http.Response, []byte, error) {
+		call: func(ctx context.Context, c *monitorContext, id uuid.UUID) (*monitor.DtoMonitor, *http.Response, []byte, error) {
 			res, err := c.API.PauseMonitorWithResponse(ctx, id)
 			if err != nil {
 				return nil, nil, nil, err
@@ -255,9 +255,9 @@ func newMonitorResumeCmd(d deps) *cobra.Command {
 		short: "Restart a paused monitor's scheduled checks",
 		long: `Restarts scheduled checks; the next one runs right away unless the last
 one is less than an interval old. Idempotent.`,
-		example: `  norcube pulsecheck monitors resume "Shop API"`,
+		example: `  norcube monitor monitors resume "Shop API"`,
 		done:    "Resumed",
-		call: func(ctx context.Context, c *pcContext, id uuid.UUID) (*pulsecheck.DtoMonitor, *http.Response, []byte, error) {
+		call: func(ctx context.Context, c *monitorContext, id uuid.UUID) (*monitor.DtoMonitor, *http.Response, []byte, error) {
 			res, err := c.API.ResumeMonitorWithResponse(ctx, id)
 			if err != nil {
 				return nil, nil, nil, err
@@ -325,10 +325,10 @@ found the monitor critical or couldn't reach a verdict (inconclusive), or
 with --fail-on warning also when it found a warning, and prints nothing
 on stdout then; it exits 7 when no result arrives within --wait-timeout. Without --wait the command exits 0
 whatever the check found.`,
-		Example: `  norcube pulsecheck monitors run "Shop API"
+		Example: `  norcube monitor monitors run "Shop API"
   # Fail a deploy when the site is down after it
-  norcube pulsecheck monitors run "Shop API" --wait
-  norcube pulsecheck monitors run 7d1c2f7e-6a1f-4f5e-9b8a-1f7c2b3d4e5f --wait --fail-on warning -o json`,
+  norcube monitor monitors run "Shop API" --wait
+  norcube monitor monitors run 7d1c2f7e-6a1f-4f5e-9b8a-1f7c2b3d4e5f --wait --fail-on warning -o json`,
 		Args: cobra.ExactArgs(1),
 		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
 			if failOn != "" {

@@ -1,11 +1,11 @@
-package pulsecheck
+package monitor
 
 import (
 	"fmt"
 
 	"github.com/spf13/cobra"
 
-	"github.com/norcubeplatform/cli/internal/api/pulsecheck"
+	"github.com/norcubeplatform/cli/internal/api/monitor"
 	"github.com/norcubeplatform/cli/internal/completion"
 )
 
@@ -13,9 +13,9 @@ import (
 // lookup is one request of at most 100 items, within completion's
 // one-second budget, cached a minute per profile and organization.
 const (
-	completeMonitors  = "pulsecheck-monitors"
-	completeChannels  = "pulsecheck-channels"
-	completeIncidents = "pulsecheck-incidents"
+	completeMonitors  = "monitor-monitors"
+	completeChannels  = "monitor-channels"
+	completeIncidents = "monitor-incidents"
 )
 
 // registerCompletions offers monitor ids (named, with their status),
@@ -62,7 +62,7 @@ func monitorCandidates(d deps) completion.Fetcher {
 			return nil, err
 		}
 		limit := maxPageSize
-		res, err := c.API.ListMonitorsWithResponse(cmd.Context(), &pulsecheck.ListMonitorsParams{Limit: &limit})
+		res, err := c.API.ListMonitorsWithResponse(cmd.Context(), &monitor.ListMonitorsParams{Limit: &limit})
 		if err != nil {
 			return nil, err
 		}
@@ -84,7 +84,7 @@ func channelCandidates(d deps) completion.Fetcher {
 			return nil, err
 		}
 		limit := maxPageSize
-		res, err := c.API.ListAlertChannelsWithResponse(cmd.Context(), &pulsecheck.ListAlertChannelsParams{Limit: &limit})
+		res, err := c.API.ListAlertChannelsWithResponse(cmd.Context(), &monitor.ListAlertChannelsParams{Limit: &limit})
 		if err != nil {
 			return nil, err
 		}
@@ -108,7 +108,7 @@ func incidentCandidates(d deps) completion.Fetcher {
 			return nil, err
 		}
 		limit := maxPageSize
-		res, err := c.API.ListIncidentsWithResponse(cmd.Context(), &pulsecheck.ListIncidentsParams{Limit: &limit})
+		res, err := c.API.ListIncidentsWithResponse(cmd.Context(), &monitor.ListIncidentsParams{Limit: &limit})
 		if err != nil {
 			return nil, err
 		}

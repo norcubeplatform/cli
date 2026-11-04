@@ -59,7 +59,7 @@ func TestFormatProblem(t *testing.T) {
 	body := []byte(`{"type":"https://docs.norcube.com/errors/validation-failed","title":"Validation failed","status":400,
 		"detail":"The request has invalid fields.","code":"VALIDATION_FAILED",
 		"errors":[{"pointer":"/http/timeoutMs","rule":"range","params":{"min":1000,"max":30000},"detail":"must be between 1000 and 30000"}]}`)
-	err := Format("pulsecheck", respFor("POST", "https://api.test/monitors", 400), body)
+	err := Format("monitor", respFor("POST", "https://api.test/monitors", 400), body)
 	var ce *clierr.Error
 	if !errors.As(err, &ce) {
 		t.Fatalf("not a clierr.Error: %T", err)
@@ -77,13 +77,13 @@ func TestFormatProblem(t *testing.T) {
 
 func TestFormatProblemScopeAndForbidden(t *testing.T) {
 	scope := []byte(`{"title":"Forbidden","status":403,"detail":"This token can't change monitors.","code":"FORBIDDEN","reason":"INSUFFICIENT_SCOPE"}`)
-	err := Format("pulsecheck", respFor("DELETE", "https://api.test/monitors/m", 403), scope)
+	err := Format("monitor", respFor("DELETE", "https://api.test/monitors/m", 403), scope)
 	var ce *clierr.Error
 	if !errors.As(err, &ce) || ce.Code != clierr.CodeInsufficientScope || ce.ExitCode() != clierr.ExitAccess {
 		t.Fatalf("scope refusal: %+v", err)
 	}
-	plain := []byte(`{"title":"Forbidden","status":403,"detail":"You don't have access to this in PulseCheck.","code":"FORBIDDEN"}`)
-	err = Format("pulsecheck", respFor("GET", "https://api.test/monitors", 403), plain)
+	plain := []byte(`{"title":"Forbidden","status":403,"detail":"You don't have access to this in Norcube Monitor.","code":"FORBIDDEN"}`)
+	err = Format("monitor", respFor("GET", "https://api.test/monitors", 403), plain)
 	if !errors.As(err, &ce) || ce.Code != clierr.CodePermissionDenied || ce.Details != nil {
 		t.Fatalf("permission refusal: %+v", ce)
 	}

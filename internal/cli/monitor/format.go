@@ -1,4 +1,4 @@
-package pulsecheck
+package monitor
 
 import (
 	"fmt"
@@ -6,12 +6,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/norcubeplatform/cli/internal/api/pulsecheck"
+	"github.com/norcubeplatform/cli/internal/api/monitor"
 	"github.com/norcubeplatform/cli/internal/cmdutil"
 	"github.com/norcubeplatform/cli/internal/output"
 )
 
-// Status words are PulseCheck's own vocabulary (the service README's
+// Status words are Norcube Monitor's own vocabulary (the service README's
 // status model): an HTTP monitor is Up or Down, a certificate Valid,
 // Expiring or Expired, a domain Registered or Expiring. JSON keeps the
 // API's codes (status, condition); only tables and text show words.
@@ -187,7 +187,7 @@ func joinInts(v []int) string {
 
 var monitorHeaders = []string{"ID", "NAME", "TYPE", "STATUS", "TARGET", "UPTIME 24H", "LAST CHECK"}
 
-func monitorWord(m pulsecheck.DtoMonitor) string {
+func monitorWord(m monitor.DtoMonitor) string {
 	cond := ""
 	if m.Condition != nil {
 		cond = m.Condition.Code
@@ -195,7 +195,7 @@ func monitorWord(m pulsecheck.DtoMonitor) string {
 	return statusWord(string(m.Type), string(m.Status), cond)
 }
 
-func monitorRow(m pulsecheck.DtoMonitor) []string {
+func monitorRow(m monitor.DtoMonitor) []string {
 	uptime, last := "—", "—"
 	if m.Last24h != nil {
 		uptime = percent(m.Last24h.UptimePercent)
@@ -206,8 +206,8 @@ func monitorRow(m pulsecheck.DtoMonitor) []string {
 	return []string{m.Id.String(), m.Name, string(m.Variant), monitorWord(m), m.Target, uptime, last}
 }
 
-func monitorTable(items []pulsecheck.DtoMonitor) output.Table[pulsecheck.DtoMonitor] {
-	return output.Table[pulsecheck.DtoMonitor]{
+func monitorTable(items []monitor.DtoMonitor) output.Table[monitor.DtoMonitor] {
+	return output.Table[monitor.DtoMonitor]{
 		Headers:   monitorHeaders,
 		MaxWidths: []int{0, 32, 0, 0, 48, 0, 0},
 		Style:     output.Style{StatusColumn: 3},
@@ -216,7 +216,7 @@ func monitorTable(items []pulsecheck.DtoMonitor) output.Table[pulsecheck.DtoMoni
 	}
 }
 
-func monitorObject(m pulsecheck.DtoMonitor) output.Object {
+func monitorObject(m monitor.DtoMonitor) output.Object {
 	f := []output.Field{
 		{Name: "ID", Value: m.Id.String()},
 		{Name: "Name", Value: m.Name},
@@ -270,7 +270,7 @@ func monitorObject(m pulsecheck.DtoMonitor) output.Object {
 
 // settingsFields are a monitor's check settings for its detail view.
 // Secret header values never reach the CLI (the API withholds them).
-func settingsFields(m pulsecheck.DtoMonitor) []output.Field {
+func settingsFields(m monitor.DtoMonitor) []output.Field {
 	var f []output.Field
 	switch {
 	case m.Http != nil:
@@ -317,8 +317,8 @@ func settingsFields(m pulsecheck.DtoMonitor) []output.Field {
 
 var resultHeaders = []string{"ID", "CHECKED", "RESULT", "CONDITION", "STATUS CODE", "TIME", "REGION"}
 
-func resultRow(monitorType string) func(r pulsecheck.DtoCheckResult) []string {
-	return func(r pulsecheck.DtoCheckResult) []string {
+func resultRow(monitorType string) func(r monitor.DtoCheckResult) []string {
+	return func(r monitor.DtoCheckResult) []string {
 		return []string{
 			strconv.Itoa(r.Id),
 			output.WhenStringSeconds(r.CheckedAt),
@@ -331,7 +331,7 @@ func resultRow(monitorType string) func(r pulsecheck.DtoCheckResult) []string {
 	}
 }
 
-func resultObject(monitorType string, r pulsecheck.DtoCheckResult) output.Object {
+func resultObject(monitorType string, r monitor.DtoCheckResult) output.Object {
 	row := resultRow(monitorType)(r)
 	f := []output.Field{
 		{Name: "Result", Value: row[2]},
@@ -359,7 +359,7 @@ func resultObject(monitorType string, r pulsecheck.DtoCheckResult) output.Object
 
 var incidentHeaders = []string{"ID", "STATUS", "SEVERITY", "MONITOR", "TITLE", "OPENED", "DURATION", "ACK"}
 
-func incidentRow(i pulsecheck.DtoIncident) []string {
+func incidentRow(i monitor.DtoIncident) []string {
 	ack := "no"
 	if i.AcknowledgedAt != nil {
 		ack = "yes"
@@ -370,8 +370,8 @@ func incidentRow(i pulsecheck.DtoIncident) []string {
 	}
 }
 
-func incidentTable(items []pulsecheck.DtoIncident) output.Table[pulsecheck.DtoIncident] {
-	return output.Table[pulsecheck.DtoIncident]{
+func incidentTable(items []monitor.DtoIncident) output.Table[monitor.DtoIncident] {
+	return output.Table[monitor.DtoIncident]{
 		Headers:   incidentHeaders,
 		MaxWidths: []int{0, 0, 0, 28, 48, 0, 0, 0},
 		Style:     output.Style{StatusColumn: 2},
@@ -380,7 +380,7 @@ func incidentTable(items []pulsecheck.DtoIncident) output.Table[pulsecheck.DtoIn
 	}
 }
 
-func incidentObject(i pulsecheck.DtoIncidentDetail) output.Object {
+func incidentObject(i monitor.DtoIncidentDetail) output.Object {
 	ack := "no"
 	if i.AcknowledgedAt != nil {
 		ack = output.WhenString(*i.AcknowledgedAt)
@@ -411,8 +411,8 @@ func incidentObject(i pulsecheck.DtoIncidentDetail) output.Object {
 		alerts = append(alerts, fmt.Sprintf("%s  %s to %s: %s (%s)", stamp(a.QueuedAt), a.Event, to, a.Status, plural(a.Attempts, "attempt")))
 	}
 	f = append(f, output.Field{Name: "Timeline", Value: orNone(timeline)}, output.Field{Name: "Alerts", Value: orNone(alerts)})
-	row := incidentRow(pulsecheck.DtoIncident{
-		Id: i.Id, Status: pulsecheck.DtoIncidentStatus(i.Status), Severity: pulsecheck.DtoIncidentSeverity(i.Severity),
+	row := incidentRow(monitor.DtoIncident{
+		Id: i.Id, Status: monitor.DtoIncidentStatus(i.Status), Severity: monitor.DtoIncidentSeverity(i.Severity),
 		MonitorName: i.MonitorName, Title: i.Title, OpenedAt: i.OpenedAt, DurationSeconds: i.DurationSeconds, AcknowledgedAt: i.AcknowledgedAt,
 	})
 	return output.Object{Value: i, Fields: f, Text: row}
@@ -424,7 +424,7 @@ var channelHeaders = []string{"ID", "NAME", "KIND", "DESTINATION", "DEFAULT", "E
 
 // destination is where a channel delivers, as the API shows it (never a
 // credential: Slack and Discord URLs are hints).
-func destination(c pulsecheck.DtoAlertChannel) string {
+func destination(c monitor.DtoAlertChannel) string {
 	s := c.Settings
 	switch {
 	case cmdutil.Deref(s.Members):
@@ -441,12 +441,12 @@ func destination(c pulsecheck.DtoAlertChannel) string {
 	return "—"
 }
 
-func channelRow(c pulsecheck.DtoAlertChannel) []string {
+func channelRow(c monitor.DtoAlertChannel) []string {
 	return []string{c.Id.String(), c.Name, string(c.Kind), destination(c), yesNo(c.IsDefault), yesNo(c.Enabled), yesNo(c.Verified)}
 }
 
-func channelTable(items []pulsecheck.DtoAlertChannel) output.Table[pulsecheck.DtoAlertChannel] {
-	return output.Table[pulsecheck.DtoAlertChannel]{
+func channelTable(items []monitor.DtoAlertChannel) output.Table[monitor.DtoAlertChannel] {
+	return output.Table[monitor.DtoAlertChannel]{
 		Headers:   channelHeaders,
 		MaxWidths: []int{0, 28, 0, 40, 0, 0, 0},
 		Style:     output.NoStyle,
@@ -455,7 +455,7 @@ func channelTable(items []pulsecheck.DtoAlertChannel) output.Table[pulsecheck.Dt
 	}
 }
 
-func channelObject(c pulsecheck.DtoAlertChannel) output.Object {
+func channelObject(c monitor.DtoAlertChannel) output.Object {
 	row := channelRow(c)
 	f := make([]output.Field, 0, len(row)+2)
 	names := []string{"ID", "Name", "Kind", "Destination", "Default", "Enabled", "Verified"}
@@ -469,10 +469,10 @@ func channelObject(c pulsecheck.DtoAlertChannel) output.Object {
 
 // withoutSecret drops the one-time signing secret from a channel the API
 // returned with one, so it never reaches stdout.
-func withoutSecret(c pulsecheck.DtoAlertChannelWithSecret) pulsecheck.DtoAlertChannel {
-	return pulsecheck.DtoAlertChannel{
+func withoutSecret(c monitor.DtoAlertChannelWithSecret) monitor.DtoAlertChannel {
+	return monitor.DtoAlertChannel{
 		CreatedAt: c.CreatedAt, Enabled: c.Enabled, Id: c.Id, IsDefault: c.IsDefault,
-		Kind: pulsecheck.DtoAlertChannelKind(c.Kind), Name: c.Name, Settings: c.Settings,
+		Kind: monitor.DtoAlertChannelKind(c.Kind), Name: c.Name, Settings: c.Settings,
 		UpdatedAt: c.UpdatedAt, Verified: c.Verified,
 	}
 }

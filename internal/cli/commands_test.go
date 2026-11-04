@@ -29,7 +29,7 @@ func commandsEnv(t *testing.T) {
 		p := f.Profile(config.DefaultProfileName)
 		p.Environment = config.EnvCustom
 		p.Endpoints = map[string]string{}
-		for _, key := range []string{config.ServiceAuth, config.ServiceSnapDB, config.ServiceLangsync, config.ServiceDomainradar, config.ServiceBilling, config.ServicePulsecheck} {
+		for _, key := range []string{config.ServiceAuth, config.ServiceSnapDB, config.ServiceLangsync, config.ServiceDomainradar, config.ServiceBilling, config.ServiceMonitor} {
 			p.Endpoints[key] = srv.URL
 		}
 	})

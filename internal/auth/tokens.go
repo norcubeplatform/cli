@@ -33,7 +33,7 @@ const (
 	AudienceDomainradar = "domainradar"
 	AudiencePrompthub   = "prompthub"
 	AudienceCMS         = "cms-api"
-	AudiencePulsecheck  = "pulsecheck"
+	AudienceMonitor     = "monitor"
 )
 
 // TokenSource returns a valid Bearer access token for a (audience, organization)

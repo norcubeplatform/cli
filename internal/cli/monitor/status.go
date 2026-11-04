@@ -1,4 +1,4 @@
-package pulsecheck
+package monitor
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/norcubeplatform/cli/internal/api/pulsecheck"
+	"github.com/norcubeplatform/cli/internal/api/monitor"
 	"github.com/norcubeplatform/cli/internal/clierr"
 	"github.com/norcubeplatform/cli/internal/cmdutil"
 	"github.com/norcubeplatform/cli/internal/output"
@@ -16,13 +16,13 @@ import (
 // What `status --fail-on` accepts, from the strictest to none.
 var statusFailOn = []string{"warning", "critical", "none"}
 
-// statusReport is what `pulsecheck status` prints as JSON.
+// statusReport is what `monitor status` prints as JSON.
 type statusReport struct {
 	// Status is the organization's verdict from its open incidents:
 	// critical, warning or ok.
-	Status    string                        `json:"status" yaml:"status"`
-	Incidents pulsecheck.DtoIncidentSummary `json:"incidents" yaml:"incidents"`
-	Monitors  monitorCounts                 `json:"monitors" yaml:"monitors"`
+	Status    string                     `json:"status" yaml:"status"`
+	Incidents monitor.DtoIncidentSummary `json:"incidents" yaml:"incidents"`
+	Monitors  monitorCounts              `json:"monitors" yaml:"monitors"`
 	// Problems are the monitors whose overall status is critical or
 	// warning, worst first.
 	Problems []problemMonitor `json:"problems" yaml:"problems"`
@@ -69,10 +69,10 @@ the command exits 1 (code unhealthy, the report in the error's details)
 while a critical incident is open, with --fail-on warning while any
 incident is open. The report is printed either way. The default, none,
 always exits 0.`,
-		Example: `  norcube pulsecheck status
-  # Gate a deploy on PulseCheck
-  norcube pulsecheck status --fail-on critical
-  norcube pulsecheck status -o json --query problems[].name`,
+		Example: `  norcube monitor status
+  # Gate a deploy on Norcube Monitor
+  norcube monitor status --fail-on critical
+  norcube monitor status -o json --query problems[].name`,
 		Args: cobra.NoArgs,
 		RunE: cmdutil.Run(func(cmd *cobra.Command, _ []string) (any, error) {
 			if err := oneOf("--fail-on", failOn, statusFailOn); err != nil {
@@ -97,8 +97,8 @@ always exits 0.`,
 			}
 			return nil, &clierr.Error{
 				Code:    clierr.CodeUnhealthy,
-				Message: fmt.Sprintf("PulseCheck is %s: %d critical and %d warning incident(s) open", report.Status, report.Incidents.Open.Critical, report.Incidents.Open.Warning),
-				Hint:    "See them with `norcube pulsecheck incidents list --status open`.",
+				Message: fmt.Sprintf("Norcube Monitor is %s: %d critical and %d warning incident(s) open", report.Status, report.Incidents.Open.Critical, report.Incidents.Open.Warning),
+				Hint:    "See them with `norcube monitor incidents list --status open`.",
 				Details: report,
 			}
 		}),
@@ -108,7 +108,7 @@ always exits 0.`,
 	return cmd
 }
 
-func buildStatus(ctx context.Context, c *pcContext) (statusReport, error) {
+func buildStatus(ctx context.Context, c *monitorContext) (statusReport, error) {
 	summary, err := incidentSummary(ctx, c)
 	if err != nil {
 		return statusReport{}, err
@@ -122,7 +122,7 @@ func buildStatus(ctx context.Context, c *pcContext) (statusReport, error) {
 	}
 	// Sorted by status (the API's default): critical and warning first.
 	limit := maxPageSize
-	p := pulsecheck.ListMonitorsParams{Limit: &limit}
+	p := monitor.ListMonitorsParams{Limit: &limit}
 	for r.Monitors.Total < maxItems {
 		res, err := c.API.ListMonitorsWithResponse(ctx, &p)
 		if err != nil {

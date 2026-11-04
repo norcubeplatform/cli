@@ -20,9 +20,10 @@ this file collects what users and scripts need to know.
 - Shell completion offers the allowed values of `-o`, `auth token
   --audience`, `langsync init --seed` and `backup datasources update
   --region`.
-- PulseCheck: `norcube pulsecheck` covers every operation of the
-  PulseCheck API an organization member has.
-  - `pulsecheck status` shows open incidents, monitors by status and every
+- Norcube Monitor (formerly PulseCheck) commands: `norcube monitor`
+  covers every operation of the Norcube Monitor API an organization
+  member has.
+  - `monitor status` shows open incidents, monitors by status and every
     monitor that needs attention; `--fail-on critical` (or `warning`)
     fails a CI job while such an incident is open.
   - `monitors list | get | create | update | delete | pause | resume`,
@@ -44,13 +45,13 @@ this file collects what users and scripts need to know.
     `--secret-file` and never printed; Slack and Discord URLs are read
     from a file or stdin; `verify` asks for the code on a terminal or
     reads it with `--code-file`.
-  - Completion for monitor, channel and incident ids; `nrc api pulsecheck`
-    and `auth token --audience pulsecheck`; CI tokens with the
-    `pulsecheck.read`, `pulsecheck.check`, `pulsecheck.write` and
-    `pulsecheck.channels` scopes (alert channels need the last one;
-    `pulsecheck.write` doesn't include it).
-- Errors of services that answer RFC 9457 problems (PulseCheck) show the
-  problem's detail and invalid fields, and `-o json` errors carry its
+  - Completion for monitor, channel and incident ids; `nrc api monitor`
+    and `auth token --audience monitor`; CI tokens with the
+    `monitor.read`, `monitor.check`, `monitor.write` and
+    `monitor.channels` scopes (alert channels need the last one;
+    `monitor.write` doesn't include it).
+- Errors of services that answer RFC 9457 problems (Norcube Monitor) show
+  the problem's detail and invalid fields, and `-o json` errors carry its
   `reason`, field `errors` and `data` in `details`.
 
 ### Changes for scripts
@@ -58,10 +59,10 @@ this file collects what users and scripts need to know.
 - The `norcube commands` document is a contract: within `schemaVersion` 1
   fields, values and commands are only ever added. A breaking change
   bumps `schemaVersion`.
-- New error code `unhealthy` (exit 1): `pulsecheck status --fail-on`
+- New error code `unhealthy` (exit 1): `monitor status --fail-on`
   found what it was told to fail on; `details` holds the report.
-- `--endpoint-url`, `NORCUBE_PULSECHECK_URL` and the `endpoints` table of
-  a profile accept the new service key `pulsecheck`.
+- `--endpoint-url`, `NORCUBE_MONITOR_URL` and the `endpoints` table of
+  a profile accept the new service key `monitor`.
 
 ## 0.21.4 (2026-10-30)
 

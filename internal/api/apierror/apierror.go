@@ -55,7 +55,7 @@ func Format(service string, resp *http.Response, body []byte, typed ...*Typed) e
 		}
 	}
 
-	// Newer services (PulseCheck) answer RFC 9457 problems: "code" is the
+	// Newer services (Norcube Monitor) answer RFC 9457 problems: "code" is the
 	// stable code, "reason" a finer cause, "detail" the sentence.
 	if p, ok := parseProblem(body); ok {
 		e.Message, e.Type = p.message(), p.Code

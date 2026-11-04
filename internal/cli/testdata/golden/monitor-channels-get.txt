@@ -1,7 +1,7 @@
 ID:           0c2d4f6a-8b1e-4c3d-9e5f-7a6b5c4d3e2f
 Name:         On-call webhook
 Kind:         webhook
-Destination:  https://hooks.example.com/pulsecheck
+Destination:  https://hooks.example.com/monitor
 Default:      yes
 Enabled:      yes
 Verified:     yes

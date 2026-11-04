@@ -1,4 +1,4 @@
-package pulsecheck
+package monitor
 
 import (
 	"bytes"
@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/norcubeplatform/cli/internal/api/pulsecheck"
+	"github.com/norcubeplatform/cli/internal/api/monitor"
 	"github.com/norcubeplatform/cli/internal/clierr"
 	"github.com/norcubeplatform/cli/internal/cmdutil"
 	"github.com/norcubeplatform/cli/internal/output"
@@ -164,15 +164,15 @@ func newMonitorCreateCmd(d deps) *cobra.Command {
 
 Settings not given start from the dashboard's defaults. For anything the
 flags don't cover, pass the API's JSON body with --from-file (see "nrc api
-pulsecheck POST /monitors"). Secret header values come from a file or
+monitor POST /monitors"). Secret header values come from a file or
 standard input only (--secret-headers-file), never from arguments. The
 first check runs at once and is billed like a scheduled one.`,
-		Example: `  norcube pulsecheck monitors create "Shop" --type http --url https://shop.example.com/health
-  norcube pulsecheck monitors create "Login page" --type keyword --url https://example.com/login --keyword "Sign in"
-  norcube pulsecheck monitors create "API cert" --type ssl --host api.example.com --alert-days 30,7
-  norcube pulsecheck monitors create "example.com" --type domain --domain example.com --interval 24h
-  printf 'Authorization: Bearer %s\n' "$TOKEN" | norcube pulsecheck monitors create "Admin API" --type http --url https://example.com/admin/health --secret-headers-file -
-  norcube pulsecheck monitors create --from-file monitor.json`,
+		Example: `  norcube monitor monitors create "Shop" --type http --url https://shop.example.com/health
+  norcube monitor monitors create "Login page" --type keyword --url https://example.com/login --keyword "Sign in"
+  norcube monitor monitors create "API cert" --type ssl --host api.example.com --alert-days 30,7
+  norcube monitor monitors create "example.com" --type domain --domain example.com --interval 24h
+  printf 'Authorization: Bearer %s\n' "$TOKEN" | norcube monitor monitors create "Admin API" --type http --url https://example.com/admin/health --secret-headers-file -
+  norcube monitor monitors create --from-file monitor.json`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
 			body, err := createBody(cmd, f, typ, args)
@@ -205,8 +205,8 @@ first check runs at once and is billed like a scheduled one.`,
 }
 
 // createBody builds and validates POST /monitors before any request.
-func createBody(cmd *cobra.Command, f monitorFlags, typ string, args []string) (pulsecheck.DtoMonitorCreate, error) {
-	var body pulsecheck.DtoMonitorCreate
+func createBody(cmd *cobra.Command, f monitorFlags, typ string, args []string) (monitor.DtoMonitorCreate, error) {
+	var body monitor.DtoMonitorCreate
 	changed := changedSettings(cmd)
 	if f.fromFile != "" {
 		if typ != "" || len(changed) > 0 || cmd.Flags().Changed("interval") || cmd.Flags().Changed("description") {
@@ -221,7 +221,7 @@ func createBody(cmd *cobra.Command, f monitorFlags, typ string, args []string) (
 		return body, nil
 	}
 	if len(args) == 0 {
-		return body, clierr.Usage(fmt.Errorf("name the monitor: norcube pulsecheck monitors create <name> --type <type>"))
+		return body, clierr.Usage(fmt.Errorf("name the monitor: norcube monitor monitors create <name> --type <type>"))
 	}
 	if typ == "" {
 		return body, clierr.Usage(fmt.Errorf("--type is required: one of %s", strings.Join(createTypes, ", ")))
@@ -240,7 +240,7 @@ func createBody(cmd *cobra.Command, f monitorFlags, typ string, args []string) (
 		return body, err
 	}
 	body.Name = strings.TrimSpace(args[0])
-	body.Type = pulsecheck.DtoMonitorCreateType(apiType)
+	body.Type = monitor.DtoMonitorCreateType(apiType)
 	if f.description != "" {
 		body.Description = &f.description
 	}
@@ -290,15 +290,15 @@ their stored values unless --secret-headers-file replaces them (and only
 while the URL keeps its origin). The type can't change. --from-file sends
 the API's PATCH body as it is (a settings object there replaces the
 settings as a whole).`,
-		Example: `  norcube pulsecheck monitors update "Shop" --interval 30s --slow 1500ms
-  norcube pulsecheck monitors update "Shop" --name "Shop (EU)" --expect 2xx,301
-  norcube pulsecheck monitors update "API cert" --alert-days 21,7
-  norcube pulsecheck monitors update 7d1c2f7e-6a1f-4f5e-9b8a-1f7c2b3d4e5f --from-file patch.json`,
+		Example: `  norcube monitor monitors update "Shop" --interval 30s --slow 1500ms
+  norcube monitor monitors update "Shop" --name "Shop (EU)" --expect 2xx,301
+  norcube monitor monitors update "API cert" --alert-days 21,7
+  norcube monitor monitors update 7d1c2f7e-6a1f-4f5e-9b8a-1f7c2b3d4e5f --from-file patch.json`,
 		Args: cobra.ExactArgs(1),
 		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
 			changed := changedSettings(cmd)
 			others := cmd.Flags().Changed("name") || cmd.Flags().Changed("description") || cmd.Flags().Changed("interval")
-			var body pulsecheck.DtoMonitorUpdate
+			var body monitor.DtoMonitorUpdate
 			if f.fromFile != "" {
 				if len(changed) > 0 || others {
 					return nil, clierr.Usage(fmt.Errorf("--from-file can't be combined with setting flags; put them in the file"))
@@ -377,13 +377,13 @@ func intervalSeconds(d time.Duration) (int, error) {
 
 // httpSettings builds the HTTP settings object: from base (the monitor's
 // current settings) or the defaults, with the flags given applied.
-func httpSettings(cmd *cobra.Command, f monitorFlags, base *pulsecheck.DtoHTTPSettings, set func(string) bool) (*pulsecheck.DtoHTTPSettingsInput, error) {
-	in := &pulsecheck.DtoHTTPSettingsInput{
+func httpSettings(cmd *cobra.Command, f monitorFlags, base *monitor.DtoHTTPSettings, set func(string) bool) (*monitor.DtoHTTPSettingsInput, error) {
+	in := &monitor.DtoHTTPSettingsInput{
 		Method: "GET", ExpectedStatus: []string{"2xx"}, TimeoutMs: int(defaultTimeout / time.Millisecond),
 		FollowRedirects: true, MaxRedirects: defaultMaxRedirects, VerifyTls: true,
 	}
 	if base != nil {
-		in.Url, in.Method, in.ExpectedStatus = base.Url, pulsecheck.DtoHTTPSettingsInputMethod(base.Method), base.ExpectedStatus
+		in.Url, in.Method, in.ExpectedStatus = base.Url, monitor.DtoHTTPSettingsInputMethod(base.Method), base.ExpectedStatus
 		in.TimeoutMs, in.SlowThresholdMs = base.TimeoutMs, base.SlowThresholdMs
 		in.FollowRedirects, in.MaxRedirects, in.VerifyTls = base.FollowRedirects, base.MaxRedirects, base.VerifyTls
 		in.Keyword, in.RequestBody, in.RequestBodyContentType = base.Keyword, base.RequestBody, base.RequestBodyContentType
@@ -391,22 +391,22 @@ func httpSettings(cmd *cobra.Command, f monitorFlags, base *pulsecheck.DtoHTTPSe
 			cs := base.KeywordCaseSensitive
 			in.KeywordCaseSensitive = &cs
 			if base.KeywordMode != nil {
-				km := pulsecheck.DtoHTTPSettingsInputKeywordMode(*base.KeywordMode)
+				km := monitor.DtoHTTPSettingsInputKeywordMode(*base.KeywordMode)
 				in.KeywordMode = &km
 			}
 		}
-		headers := make([]pulsecheck.DtoHTTPHeaderInput, 0, len(base.Headers))
+		headers := make([]monitor.DtoHTTPHeaderInput, 0, len(base.Headers))
 		for _, h := range base.Headers {
 			secret := h.Secret
 			// A secret header without a value keeps its stored one.
-			headers = append(headers, pulsecheck.DtoHTTPHeaderInput{Name: h.Name, Secret: &secret, Value: h.Value})
+			headers = append(headers, monitor.DtoHTTPHeaderInput{Name: h.Name, Secret: &secret, Value: h.Value})
 		}
 		in.Headers = &headers
 		if base.CertificateExpiry != nil {
-			in.CertificateExpiry = &pulsecheck.DtoExpiryWatchInput{ThresholdsDays: base.CertificateExpiry.ThresholdsDays}
+			in.CertificateExpiry = &monitor.DtoExpiryWatchInput{ThresholdsDays: base.CertificateExpiry.ThresholdsDays}
 		}
 		if base.DomainExpiry != nil {
-			in.DomainExpiry = &pulsecheck.DtoExpiryWatchInput{ThresholdsDays: base.DomainExpiry.ThresholdsDays}
+			in.DomainExpiry = &monitor.DtoExpiryWatchInput{ThresholdsDays: base.DomainExpiry.ThresholdsDays}
 		}
 	}
 	if set("url") {
@@ -417,7 +417,7 @@ func httpSettings(cmd *cobra.Command, f monitorFlags, base *pulsecheck.DtoHTTPSe
 		if err := oneOf("--method", m, httpMethods); err != nil {
 			return nil, err
 		}
-		in.Method = pulsecheck.DtoHTTPSettingsInputMethod(m)
+		in.Method = monitor.DtoHTTPSettingsInputMethod(m)
 	}
 	if set("expect") {
 		in.ExpectedStatus = f.expect
@@ -448,7 +448,7 @@ func httpSettings(cmd *cobra.Command, f monitorFlags, base *pulsecheck.DtoHTTPSe
 		if err := oneOf("--keyword-mode", f.keywordMode, keywordModes); err != nil {
 			return nil, err
 		}
-		km := pulsecheck.DtoHTTPSettingsInputKeywordMode(f.keywordMode)
+		km := monitor.DtoHTTPSettingsInputKeywordMode(f.keywordMode)
 		in.KeywordMode = &km
 	}
 	if set("keyword-case-sensitive") {
@@ -475,21 +475,21 @@ func httpSettings(cmd *cobra.Command, f monitorFlags, base *pulsecheck.DtoHTTPSe
 		// domain, like the dashboard's create form.
 		if u, err := url.Parse(in.Url); err == nil && u.Scheme == "https" {
 			if !f.noCertWatch {
-				in.CertificateExpiry = &pulsecheck.DtoExpiryWatchInput{ThresholdsDays: defaultExpiryDays}
+				in.CertificateExpiry = &monitor.DtoExpiryWatchInput{ThresholdsDays: defaultExpiryDays}
 			}
 			if !f.noDomainWatch && net.ParseIP(u.Hostname()) == nil && strings.Contains(u.Hostname(), ".") {
-				in.DomainExpiry = &pulsecheck.DtoExpiryWatchInput{ThresholdsDays: defaultExpiryDays}
+				in.DomainExpiry = &monitor.DtoExpiryWatchInput{ThresholdsDays: defaultExpiryDays}
 			}
 		}
 	}
 	if set("cert-expiry-days") {
-		in.CertificateExpiry = &pulsecheck.DtoExpiryWatchInput{ThresholdsDays: f.certDays}
+		in.CertificateExpiry = &monitor.DtoExpiryWatchInput{ThresholdsDays: f.certDays}
 	}
 	if f.noCertWatch {
 		in.CertificateExpiry = nil
 	}
 	if set("domain-expiry-days") {
-		in.DomainExpiry = &pulsecheck.DtoExpiryWatchInput{ThresholdsDays: f.domainDays}
+		in.DomainExpiry = &monitor.DtoExpiryWatchInput{ThresholdsDays: f.domainDays}
 	}
 	if f.noDomainWatch {
 		in.DomainExpiry = nil
@@ -499,15 +499,15 @@ func httpSettings(cmd *cobra.Command, f monitorFlags, base *pulsecheck.DtoHTTPSe
 
 // applyHeaders sets the request headers: --header replaces the plain ones,
 // --secret-headers-file the secret ones, --clear-headers removes all.
-func applyHeaders(cmd *cobra.Command, f monitorFlags, in *pulsecheck.DtoHTTPSettingsInput, set func(string) bool) error {
-	current := []pulsecheck.DtoHTTPHeaderInput{}
+func applyHeaders(cmd *cobra.Command, f monitorFlags, in *monitor.DtoHTTPSettingsInput, set func(string) bool) error {
+	current := []monitor.DtoHTTPHeaderInput{}
 	if in.Headers != nil {
 		current = *in.Headers
 	}
 	if f.clearHeaders {
 		current = nil
 	}
-	split := func(secret bool) (keep []pulsecheck.DtoHTTPHeaderInput) {
+	split := func(secret bool) (keep []monitor.DtoHTTPHeaderInput) {
 		for _, h := range current {
 			if cmdutil.Deref(h.Secret) != secret {
 				keep = append(keep, h)
@@ -516,7 +516,7 @@ func applyHeaders(cmd *cobra.Command, f monitorFlags, in *pulsecheck.DtoHTTPSett
 		return keep
 	}
 	if set("header") {
-		plain := make([]pulsecheck.DtoHTTPHeaderInput, 0, len(f.headers))
+		plain := make([]monitor.DtoHTTPHeaderInput, 0, len(f.headers))
 		for _, raw := range f.headers {
 			h, err := parseHeader(raw, "--header")
 			if err != nil {
@@ -531,7 +531,7 @@ func applyHeaders(cmd *cobra.Command, f monitorFlags, in *pulsecheck.DtoHTTPSett
 		if err != nil {
 			return err
 		}
-		var secrets []pulsecheck.DtoHTTPHeaderInput
+		var secrets []monitor.DtoHTTPHeaderInput
 		for _, line := range strings.Split(text, "\n") {
 			line = strings.TrimSpace(line)
 			if line == "" || strings.HasPrefix(line, "#") {
@@ -553,17 +553,17 @@ func applyHeaders(cmd *cobra.Command, f monitorFlags, in *pulsecheck.DtoHTTPSett
 
 // parseHeader reads "Name: value". The error never repeats the value: it
 // may be a secret.
-func parseHeader(raw, flag string) (pulsecheck.DtoHTTPHeaderInput, error) {
+func parseHeader(raw, flag string) (monitor.DtoHTTPHeaderInput, error) {
 	name, value, ok := strings.Cut(raw, ":")
 	name, value = strings.TrimSpace(name), strings.TrimSpace(value)
 	if !ok || name == "" || strings.ContainsAny(name, " \t") {
-		return pulsecheck.DtoHTTPHeaderInput{}, clierr.Usage(fmt.Errorf(`%s: write each header as "Name: value"`, flag))
+		return monitor.DtoHTTPHeaderInput{}, clierr.Usage(fmt.Errorf(`%s: write each header as "Name: value"`, flag))
 	}
-	return pulsecheck.DtoHTTPHeaderInput{Name: name, Value: &value}, nil
+	return monitor.DtoHTTPHeaderInput{Name: name, Value: &value}, nil
 }
 
-func sslSettings(f monitorFlags, base *pulsecheck.DtoSSLSettings, set func(string) bool) *pulsecheck.DtoSSLSettingsInput {
-	in := &pulsecheck.DtoSSLSettingsInput{Port: 443, ExpiryThresholdsDays: defaultExpiryDays}
+func sslSettings(f monitorFlags, base *monitor.DtoSSLSettings, set func(string) bool) *monitor.DtoSSLSettingsInput {
+	in := &monitor.DtoSSLSettingsInput{Port: 443, ExpiryThresholdsDays: defaultExpiryDays}
 	if base != nil {
 		in.Host, in.Port, in.ServerName, in.ExpiryThresholdsDays = base.Host, base.Port, base.ServerName, base.ExpiryThresholdsDays
 	}
@@ -582,8 +582,8 @@ func sslSettings(f monitorFlags, base *pulsecheck.DtoSSLSettings, set func(strin
 	return in
 }
 
-func domainSettings(f monitorFlags, base *pulsecheck.DtoDomainSettings, set func(string) bool) *pulsecheck.DtoDomainSettingsInput {
-	in := &pulsecheck.DtoDomainSettingsInput{ExpiryThresholdsDays: defaultExpiryDays}
+func domainSettings(f monitorFlags, base *monitor.DtoDomainSettings, set func(string) bool) *monitor.DtoDomainSettingsInput {
+	in := &monitor.DtoDomainSettingsInput{ExpiryThresholdsDays: defaultExpiryDays}
 	if base != nil {
 		in.Domain, in.ExpiryThresholdsDays = base.Domain, base.ExpiryThresholdsDays
 	}

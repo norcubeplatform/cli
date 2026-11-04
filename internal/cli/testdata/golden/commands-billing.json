@@ -42,7 +42,7 @@
     {
       "name": "endpoint-url",
       "type": "stringArray",
-      "description": "Override a service endpoint, service=url (repeatable; services: auth, web_app, snapdb, langsync, domainradar, billing, pulsecheck, prompthub)",
+      "description": "Override a service endpoint, service=url (repeatable; services: auth, web_app, snapdb, langsync, domainradar, billing, monitor, prompthub)",
       "required": false,
       "repeatable": true
     },

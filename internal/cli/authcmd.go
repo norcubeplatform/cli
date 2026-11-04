@@ -245,7 +245,7 @@ func checkSessions(ctx context.Context, flags *clictx.Flags, rows []authStatus) 
 }
 
 // ciAudiences are the services a CI token can be exchanged for.
-var ciAudiences = []string{auth.AudienceLangsync, auth.AudienceSnapDB, auth.AudienceDomainradar, auth.AudienceBilling, auth.AudienceCMS, auth.AudiencePulsecheck}
+var ciAudiences = []string{auth.AudienceLangsync, auth.AudienceSnapDB, auth.AudienceDomainradar, auth.AudienceBilling, auth.AudienceCMS, auth.AudienceMonitor}
 
 // checkCIToken exchanges the CI token for every service it may reach, in
 // parallel, and fills s with the token's organization, name, expiry and
@@ -334,7 +334,7 @@ var audiences = map[string]string{
 	"langsync":    auth.AudienceLangsync,
 	"domainradar": auth.AudienceDomainradar,
 	"prompthub":   auth.AudiencePrompthub,
-	"pulsecheck":  auth.AudiencePulsecheck,
+	"monitor":     auth.AudienceMonitor,
 }
 
 func audienceNames() []string {
@@ -419,7 +419,7 @@ type tokenResult struct {
 // token, which only works in its own organization.
 func printCIAccessToken(cmd *cobra.Command, flags *clictx.Flags, ci *auth.CIExchanger, name, aud string) error {
 	if aud == auth.AudienceAuth || aud == auth.AudiencePrompthub {
-		return clierr.Usage(fmt.Errorf("a CI token can't be exchanged for %s; pick one of langsync, backup, domainradar, billing, pulsecheck", name))
+		return clierr.Usage(fmt.Errorf("a CI token can't be exchanged for %s; pick one of langsync, backup, domainradar, billing, monitor", name))
 	}
 	g, err := ci.Grant(cmd.Context(), aud)
 	if err != nil {

@@ -37,8 +37,8 @@ stale; either way, fix one of them in the same change.
 
 One open-source (Apache 2.0) binary that drives every Norcube product
 from a terminal, a script or a CI job: Norcube Backup, LangSync,
-DomainRadar, PulseCheck, Billing and the platform itself (sign-in, organizations,
-CLI sessions, CI tokens). It is a client of the products' public HTTP
+DomainRadar, Norcube Monitor, Billing and the platform itself (sign-in,
+organizations, CLI sessions, CI tokens). It is a client of the products' public HTTP
 APIs and nothing else: it holds no business logic the API does not have,
 and every typed client in it is generated from the backend's Swagger
 specs.
@@ -113,9 +113,9 @@ meaning across the tree:
 | `pause` / `resume` | Stop and restart a schedule without deleting it | `backup datasources pause`, `backup policies resume` |
 | `download` / `export` | Write server data to a file or stdout | `backup jobs download`, `billing invoices download`, `domainradar bulk export` |
 | `sync` / `pull` / `init` | LangSync project files | `langsync sync` |
-| `acknowledge` | Mark something as being handled without changing it otherwise | `pulsecheck incidents acknowledge` (alias `ack`) |
-| `verify` | Confirm a contact with a code sent to it | `pulsecheck channels verify` |
-| `summary` | Counts over a whole resource, not a list | `pulsecheck incidents summary` |
+| `acknowledge` | Mark something as being handled without changing it otherwise | `monitor incidents acknowledge` (alias `ack`) |
+| `verify` | Confirm a contact with a code sent to it | `monitor channels verify` |
+| `summary` | Counts over a whole resource, not a list | `monitor incidents summary` |
 | `cancel`, `watch`, `results`, `status`, `check`, `generate`, `import`, `set`, `revoke`, `use` | As named | `domainradar bulk watch`, `langsync terms import status` |
 
 `rm` is an alias of `remove` only, never of `delete`.
@@ -199,7 +199,7 @@ exit codes may not.
 | Exit | Codes | Meaning |
 | --- | --- | --- |
 | 0 | | Success |
-| 1 | `error`, `server_error`, `job_failed`, `unhealthy` | General failure; a waited-for job ended unsuccessfully (`details` holds the job); a `--fail-on` state was found (`pulsecheck status`, `details` holds the report) |
+| 1 | `error`, `server_error`, `job_failed`, `unhealthy` | General failure; a waited-for job ended unsuccessfully (`details` holds the job); a `--fail-on` state was found (`monitor status`, `details` holds the report) |
 | 2 | `usage_error`, `validation_failed`, `org_not_found` | Fix the command line or input; also any prompt without a terminal |
 | 3 | `not_found` | The API answered 404 |
 | 4 | `login_required` | Not signed in, session expired or revoked, CI token expired, revoked or unknown |
@@ -371,7 +371,7 @@ is declared where the command is defined, with the annotations of P13.
 **Enforced.** `TestEveryCommandHasAnExample`, `TestHelpTextIsComplete`
 and `TestEveryCommandDeclaresAnEffect` in
 [`contract_test.go`](../internal/cli/contract_test.go); the schema golden
-`commands-billing.*` (and `commands-pulsecheck.json` for a whole product
+`commands-billing.*` (and `commands-monitor.json` for a whole product
 group) and the tree tests in
 [`commands_test.go`](../internal/cli/commands_test.go) (every visible
 command listed, hidden ones only with `--all`, sorted output, offline);
@@ -577,8 +577,8 @@ generated package). Each entry gives:
 | `spec`, `package` | `make codegen` input and output |
 
 Today the registry holds Auth, the web app, Backup (`snapdb`), LangSync,
-DomainRadar, Billing, PulseCheck and PromptHub (callable with `nrc api`,
-no command group yet).
+DomainRadar, Billing, Norcube Monitor (`monitor`) and PromptHub (callable
+with `nrc api`, no command group yet).
 
 Not yet derived from the registry, and therefore also edited by hand when
 a service is added: the per-service fields and `switch` statements of
@@ -726,7 +726,7 @@ flag; [CHANGELOG.md](../CHANGELOG.md) says when each arrived.
 | `langsync` | `init`, `sync`, `pull`; `namespaces list | create | update | delete`; `terms list | add | update | delete | import`, `terms import status`; `translations get | set | suggest | translate-missing`; `languages list | add | remove | create | delete`; `prompts list | get | create | update | delete`; `glossary get`, `glossary items list | get | create | translate | delete`, `glossary languages attach`; `api-keys list | create | revoke`; `audit list` |
 | `domainradar` | `check`; `bulk create | list | get | results | watch | export | cancel | delete`; `saved list | add | remove`; `watchers list | get | create | update | delete`; `hits list | get`; `names generate | list | get | results | check | delete` |
 | `billing` | `status`; `subscriptions list`; `usage estimate | metrics`; `invoices list | download`; `budget get | set` |
-| `pulsecheck` | `status` (`--fail-on`); `monitors list | get | create | update | delete | pause | resume | run` (`--wait`), `monitors bulk pause | resume | delete`, `monitors results list`, `monitors status-changes list`, `monitors stats get`, `monitors availability get`, `monitors certificate get`, `monitors alerts get | set`; `incidents list | get | acknowledge | summary`; `channels list | get | create | update | delete | test | verify`, `channels deliveries list` |
+| `monitor` | `status` (`--fail-on`); `monitors list | get | create | update | delete | pause | resume | run` (`--wait`), `monitors bulk pause | resume | delete`, `monitors results list`, `monitors status-changes list`, `monitors stats get`, `monitors availability get`, `monitors certificate get`, `monitors alerts get | set`; `incidents list | get | acknowledge | summary`; `channels list | get | create | update | delete | test | verify`, `channels deliveries list` |
 | PromptHub | No command group; `nrc api prompthub ...` |
 | CMS | None (CMS has no public API) |
 
@@ -734,10 +734,10 @@ CI token scopes, as defined by Norcube Auth and listed by
 `nrc auth ci-token scopes`: `backup.read`, `backup.write` (run backups
 now), `backup.verify` (restore tests), `domainradar.check`,
 `langsync.read`, `langsync.sync`, `langsync.write`, `billing.read`,
-`cms.read`, `cms.write`, `pulsecheck.read`, `pulsecheck.check` (run a
-monitor's check now), `pulsecheck.write` (manage monitors, alert routing,
-acknowledge incidents), `pulsecheck.channels` (manage alert channels, test
-sends and verification codes; not included in `pulsecheck.write`, because
+`cms.read`, `cms.write`, `monitor.read`, `monitor.check` (run a
+monitor's check now), `monitor.write` (manage monitors, alert routing,
+acknowledge incidents), `monitor.channels` (manage alert channels, test
+sends and verification codes; not included in `monitor.write`, because
 channels hold credentials and sends cost money).
 
 Installation channels: Homebrew cask (with `nrc`), `.deb` / `.rpm` /
@@ -783,8 +783,9 @@ changelog, and the owner's decisions in the planning sessions of
 | 2026-10-29 | The CLI becomes a first-party OAuth client of Norcube Auth (PKCE, scoped logins, Connected apps, revocation) | Owner: "i want the proper way". Rejected: scopes on today's CLI sessions, which keeps the refresh token passing through dashboard JavaScript and three token models | owner |
 | 2026-10-30 | Pin the Go toolchain, check `go mod tidy`, run govulncheck in CI with documented acceptances | Releases had been built with a Go patch with reachable stdlib advisories | 3b2e964 (v0.21.4) |
 | 2026-10-30 | Engineering reviews are written down as reports and fixed in separate, deliberate changes, not by automatic fix agents | Owner's instruction | owner |
-| 2026-11-04 | PulseCheck in the CLI. Monitors and channels are named by id or exact name (a name matching several is a usage error, never a guess); sub-resources of a monitor are nested resources with standard verbs (`monitors results list`, `monitors stats get`) rather than new verbs; `monitors run --wait` makes the synchronous check's verdict the exit code (`job_failed` on critical or inconclusive, `--fail-on warning`); `pulsecheck status --fail-on` exits 1 with the new code `unhealthy` and prints the report either way (default `none`); bulk actions are their own subgroup (`monitors bulk ...`) so one command's output shape never depends on how many ids it got; a webhook's signing secret is written to `--secret-file` and never printed, Slack and Discord URLs and secret headers come from files or stdin; `output.Object.Text` keeps `-o text` columns fixed for objects whose fields depend on the resource; RFC 9457 problems (`code`, `reason`, `errors`) are parsed by the shared error formatter. No `pc` alias: no product has an abbreviation, and P13 asks for one name. Alert channels get their own scope (`pulsecheck.channels`), granted explicitly and not implied by `pulsecheck.write` (owner: "everything should be well scoped") | Owner's brief: every PulseCheck operation, robust, scriptable. Rejected: `--wait` polling a check that is already synchronous; printing the webhook secret once like a CI token (the owner asked that webhook secrets never be printed); `monitors pause a b c` switching to the bulk endpoint and its shape with two or more ids | owner |
+| 2026-11-04 | Norcube Monitor in the CLI. Monitors and channels are named by id or exact name (a name matching several is a usage error, never a guess); sub-resources of a monitor are nested resources with standard verbs (`monitors results list`, `monitors stats get`) rather than new verbs; `monitors run --wait` makes the synchronous check's verdict the exit code (`job_failed` on critical or inconclusive, `--fail-on warning`); `monitor status --fail-on` exits 1 with the new code `unhealthy` and prints the report either way (default `none`); bulk actions are their own subgroup (`monitors bulk ...`) so one command's output shape never depends on how many ids it got; a webhook's signing secret is written to `--secret-file` and never printed, Slack and Discord URLs and secret headers come from files or stdin; `output.Object.Text` keeps `-o text` columns fixed for objects whose fields depend on the resource; RFC 9457 problems (`code`, `reason`, `errors`) are parsed by the shared error formatter. No short alias: no product has an abbreviation, and P13 asks for one name. Alert channels get their own scope (`monitor.channels`), granted explicitly and not implied by `monitor.write` (owner: "everything should be well scoped") | Owner's brief: every Norcube Monitor operation, robust, scriptable. Rejected: `--wait` polling a check that is already synchronous; printing the webhook secret once like a CI token (the owner asked that webhook secrets never be printed); `monitors pause a b c` switching to the bulk endpoint and its shape with two or more ids | owner |
 | 2026-11-04 | `nrc commands`: the whole command tree as one versioned, offline document; what the tree cannot reveal is declared with annotations (`effect`, flag enums, service), never inferred from verbs | Agents should not crawl dozens of `--help` pages. Prior art: `kubectl api-resources` / `explain` (verbs per resource, offline schema), `aws ... --generate-cli-skeleton` (machine-readable input), cobra's doc generation (`tools/gendocs` already walks the tree). Global flags listed once rather than on every command, to keep the document small; a verb-based guess of the effect was rejected because domain verbs like `check`, `suggest` or `init` don't say whether they change anything | owner |
+| 2026-11-04 | PulseCheck is renamed Norcube Monitor before its first release, every technical name included: command group `monitor` (`nrc monitor monitors list`), registry key, OAuth audience and generated package `monitor`, scopes `monitor.read`, `monitor.check`, `monitor.write`, `monitor.channels`, endpoint `https://monitor.api.norcube.com/app/v1`, `NORCUBE_MONITOR_URL`. No `pulsecheck` alias or `cmdutil.Renamed` entry | The old name was never in a release, so no script, config file or token depends on it and P10 has nothing to keep; the backend renamed its service, audience and scopes in the same change. Rejected: keeping `pulsecheck` as a hidden alias, which would be a second name for one thing (P13) with no user to serve | owner |
 
 ---
 
@@ -855,15 +856,15 @@ it with the same guarantees as every other product. The steps, in order:
     add the product there.
 14. **Changelog** under `## Unreleased`, then release (section 6.6).
 
-**Worked example: PulseCheck (state on 2026-11-04).**
+**Worked example: Norcube Monitor (state on 2026-11-04).**
 
 | Step | State |
 | --- | --- |
-| 1 Audience | `pulsecheck` exists in Norcube Auth (sign-in audience list, CI token exchange) |
-| 2 Scopes | `pulsecheck.read`, `pulsecheck.check`, `pulsecheck.write`, `pulsecheck.channels` in the CI token catalog (and so the CLI sign-in catalog), with IAM actions; channel changes and sends only with `pulsecheck.channels`, which `pulsecheck.write` doesn't include; not on the MCP consent screen until the MCP redesign |
+| 1 Audience | `monitor` exists in Norcube Auth (sign-in audience list, CI token exchange) |
+| 2 Scopes | `monitor.read`, `monitor.check`, `monitor.write`, `monitor.channels` in the CI token catalog (and so the CLI sign-in catalog), with IAM actions; channel changes and sends only with `monitor.channels`, which `monitor.write` doesn't include; not on the MCP consent screen until the MCP redesign |
 | 3 Enforcement | Default-closed route table (`internal/routers/app/scopes.go`) after the token middleware, coverage and matrix tests, and IAM refusing a scoped request the table never checked |
 | 4 Contract | Every operation has a verb-noun `@Id`, `@Security Bearer`, 401/403 problems and `x-norcube-scopes`; the status route is tagged `Status` and excluded here |
-| 5 to 10 CLI | Registry entry, hand-kept tables, client, `nrc pulsecheck` commands, completion, command and golden tests |
+| 5 to 10 CLI | Registry entry, hand-kept tables, client, `nrc monitor` commands, completion, command and golden tests |
 | 11 MCP | No tools yet |
 | 12 to 14 | Changelog entry; the product's CLI guide page and the website mention are still to write |
 
@@ -1060,7 +1061,7 @@ observable contract and will be announced in the changelog.
 - **First-party OAuth sign-in** (P12): in development; scoped logins
   (`nrc login --scopes`), Connected apps, RFC 7009 revocation; the current
   exchange endpoint retires two releases after it ships.
-- **PulseCheck**: a docs guide page (`/pulsecheck/cli`), the website
+- **Norcube Monitor**: a docs guide page (`/monitor/cli`), the website
   demo, MCP tools (section 6.1 table).
 - **Coverage still missing in the CLI:** organization members and IAM
   (`org members ...`), Backup destinations beyond `list`, notifications

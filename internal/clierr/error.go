@@ -26,7 +26,7 @@ const (
 	// ended unsuccessfully. Exit code 1.
 	CodeJobFailed = "job_failed"
 	// CodeUnhealthy: a command asked to fail on a state it reports
-	// (`pulsecheck status --fail-on`) found it, e.g. an open critical
+	// (`monitor status --fail-on`) found it, e.g. an open critical
 	// incident. Exit code 1; details hold what it found.
 	CodeUnhealthy = "unhealthy"
 )

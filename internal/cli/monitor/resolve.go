@@ -1,4 +1,4 @@
-package pulsecheck
+package monitor
 
 import (
 	"context"
@@ -7,14 +7,14 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/norcubeplatform/cli/internal/api/pulsecheck"
+	"github.com/norcubeplatform/cli/internal/api/monitor"
 	"github.com/norcubeplatform/cli/internal/clierr"
 )
 
 // monitorRef resolves a monitor named on the command line: its id, or its
 // exact name (case-insensitive). A name that matches no monitor is a 404
 // (exit 3); one that matches several is a usage error naming their ids.
-func monitorRef(ctx context.Context, c *pcContext, ref string) (uuid.UUID, error) {
+func monitorRef(ctx context.Context, c *monitorContext, ref string) (uuid.UUID, error) {
 	ref = strings.TrimSpace(ref)
 	if id, err := uuid.Parse(ref); err == nil {
 		return id, nil
@@ -24,8 +24,8 @@ func monitorRef(ctx context.Context, c *pcContext, ref string) (uuid.UUID, error
 	}
 	q := ref
 	limit := maxPageSize
-	var matches []pulsecheck.DtoMonitor
-	params := &pulsecheck.ListMonitorsParams{Q: &q, Limit: &limit}
+	var matches []monitor.DtoMonitor
+	params := &monitor.ListMonitorsParams{Q: &q, Limit: &limit}
 	for {
 		res, err := c.API.ListMonitorsWithResponse(ctx, params)
 		if err != nil {
@@ -48,7 +48,7 @@ func monitorRef(ctx context.Context, c *pcContext, ref string) (uuid.UUID, error
 	switch len(matches) {
 	case 0:
 		return uuid.Nil, &clierr.Error{Code: clierr.CodeNotFound, Message: fmt.Sprintf("no monitor named %q", ref),
-			Hint: "List them with `norcube pulsecheck monitors list --search " + ref + "`."}
+			Hint: "List them with `norcube monitor monitors list --search " + ref + "`."}
 	case 1:
 		return matches[0].Id, nil
 	}
@@ -70,7 +70,7 @@ func idArg(what, v string) (uuid.UUID, error) {
 
 // channelRef resolves an alert channel by id or exact name
 // (case-insensitive), the same way monitorRef does.
-func channelRef(ctx context.Context, c *pcContext, ref string) (uuid.UUID, error) {
+func channelRef(ctx context.Context, c *monitorContext, ref string) (uuid.UUID, error) {
 	ref = strings.TrimSpace(ref)
 	if id, err := uuid.Parse(ref); err == nil {
 		return id, nil
@@ -79,7 +79,7 @@ func channelRef(ctx context.Context, c *pcContext, ref string) (uuid.UUID, error
 		return uuid.Nil, clierr.Usage(fmt.Errorf("no alert channel given"))
 	}
 	limit := maxPageSize
-	params := &pulsecheck.ListAlertChannelsParams{Limit: &limit}
+	params := &monitor.ListAlertChannelsParams{Limit: &limit}
 	var ids []string
 	for {
 		res, err := c.API.ListAlertChannelsWithResponse(ctx, params)
@@ -103,7 +103,7 @@ func channelRef(ctx context.Context, c *pcContext, ref string) (uuid.UUID, error
 	switch len(ids) {
 	case 0:
 		return uuid.Nil, &clierr.Error{Code: clierr.CodeNotFound, Message: fmt.Sprintf("no alert channel named %q", ref),
-			Hint: "List them with `norcube pulsecheck channels list`."}
+			Hint: "List them with `norcube monitor channels list`."}
 	case 1:
 		return uuid.MustParse(ids[0]), nil
 	}

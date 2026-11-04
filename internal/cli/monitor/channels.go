@@ -1,4 +1,4 @@
-package pulsecheck
+package monitor
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 
-	"github.com/norcubeplatform/cli/internal/api/pulsecheck"
+	"github.com/norcubeplatform/cli/internal/api/monitor"
 	"github.com/norcubeplatform/cli/internal/clierr"
 	"github.com/norcubeplatform/cli/internal/cmdutil"
 	"github.com/norcubeplatform/cli/internal/output"
@@ -39,8 +39,8 @@ Credentials stay secret: Slack and Discord URLs are read from a file or
 standard input and shown only as a hint, and a webhook's signing secret is
 written to a file you name, never printed. Email-address and SMS channels
 get no alerts until their contact confirms a code ("channels verify").
-A CI token changes channels only with the pulsecheck.channels scope
-(pulsecheck.write doesn't include it); any PulseCheck scope reads them.`,
+A CI token changes channels only with the monitor.channels scope
+(monitor.write doesn't include it); any Norcube Monitor scope reads them.`,
 	}
 	cmd.AddCommand(
 		newChannelListCmd(d), newChannelGetCmd(d), newChannelCreateCmd(d), newChannelUpdateCmd(d),
@@ -55,15 +55,15 @@ func newChannelListCmd(d deps) *cobra.Command {
 		Use:         "list",
 		Annotations: cmdutil.Reads(),
 		Short:       "List alert channels",
-		Example:     `  norcube pulsecheck channels list`,
+		Example:     `  norcube monitor channels list`,
 		Args:        cobra.NoArgs,
 		RunE: cmdutil.Run(func(cmd *cobra.Command, _ []string) (any, error) {
 			c, err := d.client(cmd)
 			if err != nil {
 				return nil, err
 			}
-			page, err := cmdutil.Paginate(cmd.Context(), pf, func(ctx context.Context, cursor string, size int) ([]pulsecheck.DtoAlertChannel, string, error) {
-				p := pulsecheck.ListAlertChannelsParams{Limit: &size}
+			page, err := cmdutil.Paginate(cmd.Context(), pf, func(ctx context.Context, cursor string, size int) ([]monitor.DtoAlertChannel, string, error) {
+				p := monitor.ListAlertChannelsParams{Limit: &size}
 				if cursor != "" {
 					p.Cursor = &cursor
 				}
@@ -91,7 +91,7 @@ func newChannelGetCmd(d deps) *cobra.Command {
 		Use:         "get <channel>",
 		Annotations: cmdutil.Reads(),
 		Short:       "Show an alert channel",
-		Example:     `  norcube pulsecheck channels get "On-call webhook"`,
+		Example:     `  norcube monitor channels get "On-call webhook"`,
 		Args:        cobra.ExactArgs(1),
 		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
 			c, err := d.client(cmd)
@@ -107,17 +107,17 @@ func newChannelGetCmd(d deps) *cobra.Command {
 	}
 }
 
-func getChannel(ctx context.Context, c *pcContext, ref string) (pulsecheck.DtoAlertChannel, error) {
+func getChannel(ctx context.Context, c *monitorContext, ref string) (monitor.DtoAlertChannel, error) {
 	id, err := channelRef(ctx, c, ref)
 	if err != nil {
-		return pulsecheck.DtoAlertChannel{}, err
+		return monitor.DtoAlertChannel{}, err
 	}
 	res, err := c.API.GetAlertChannelWithResponse(ctx, id)
 	if err != nil {
-		return pulsecheck.DtoAlertChannel{}, err
+		return monitor.DtoAlertChannel{}, err
 	}
 	if res.JSON200 == nil {
-		return pulsecheck.DtoAlertChannel{}, apiError(res.HTTPResponse, res.Body)
+		return monitor.DtoAlertChannel{}, apiError(res.HTTPResponse, res.Body)
 	}
 	return *res.JSON200, nil
 }
@@ -133,7 +133,7 @@ func addChannelFlags(cmd *cobra.Command, f *channelFlags) {
 	fl := cmd.Flags()
 	fl.StringVar(&f.address, "address", "", "email: the address to alert (it gets a code to confirm)")
 	fl.BoolVar(&f.members, "members", false, "email: alert the organization's members instead of one address")
-	fl.StringVar(&f.url, "url", "", "webhook: the URL PulseCheck posts signed alerts to")
+	fl.StringVar(&f.url, "url", "", "webhook: the URL Norcube Monitor posts signed alerts to")
 	fl.StringVar(&f.urlFile, "url-file", "", "slack, discord: read the incoming-webhook URL (a credential) from this file (- for standard input)")
 	fl.StringVar(&f.phone, "phone", "", "sms: a mobile number in international format, e.g. +420601123456 (it gets a code to confirm)")
 	fl.StringVar(&f.signingSecretFile, "signing-secret-file", "", "webhook: use your own signing secret (whsec_…) read from this file (- for standard input)")
@@ -145,7 +145,7 @@ func addChannelFlags(cmd *cobra.Command, f *channelFlags) {
 
 // settingsFor builds a kind's settings from the flags, refusing flags of
 // other kinds and credentials in arguments.
-func settingsFor(cmd *cobra.Command, kind string, f channelFlags) (*pulsecheck.DtoAlertChannelSettingsInput, error) {
+func settingsFor(cmd *cobra.Command, kind string, f channelFlags) (*monitor.DtoAlertChannelSettingsInput, error) {
 	set := cmd.Flags().Changed
 	allowed := map[string][]string{
 		"email":   {"address", "members"},
@@ -162,7 +162,7 @@ func settingsFor(cmd *cobra.Command, kind string, f channelFlags) (*pulsecheck.D
 			return nil, clierr.Usage(fmt.Errorf("--%s doesn't apply to %s channels", n, kind))
 		}
 	}
-	in := &pulsecheck.DtoAlertChannelSettingsInput{}
+	in := &monitor.DtoAlertChannelSettingsInput{}
 	any := false
 	switch kind {
 	case "email":
@@ -216,7 +216,7 @@ func newChannelCreateCmd(d deps) *cobra.Command {
 		Long: `Creates a channel of one kind:
 
   email    --address (confirmed with a code sent there) or --members
-  webhook  --url; signed with a secret PulseCheck generates (saved with
+  webhook  --url; signed with a secret Norcube Monitor generates (saved with
            --secret-file, never printed) or yours (--signing-secret-file)
   slack    --url-file: the incoming-webhook URL, from a file or stdin
   discord  --url-file: the webhook URL, from a file or stdin
@@ -224,10 +224,10 @@ func newChannelCreateCmd(d deps) *cobra.Command {
 
 Email-address and SMS channels get no alerts until verified: run
 "channels verify <channel>" (on a terminal it asks for the code).`,
-		Example: `  norcube pulsecheck channels create "Ops" --kind email --address ops@example.com --default
-  norcube pulsecheck channels create "On-call webhook" --kind webhook --url https://example.com/hooks/pulsecheck --secret-file webhook-secret.txt
-  pbpaste | norcube pulsecheck channels create "#alerts" --kind slack --url-file -
-  norcube pulsecheck channels create "On-call phone" --kind sms --phone +420601123456`,
+		Example: `  norcube monitor channels create "Ops" --kind email --address ops@example.com --default
+  norcube monitor channels create "On-call webhook" --kind webhook --url https://example.com/hooks/monitor --secret-file webhook-secret.txt
+  pbpaste | norcube monitor channels create "#alerts" --kind slack --url-file -
+  norcube monitor channels create "On-call phone" --kind sms --phone +420601123456`,
 		Args: cobra.ExactArgs(1),
 		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
 			if kind == "" {
@@ -247,7 +247,7 @@ Email-address and SMS channels get no alerts until verified: run
 				need := map[string]string{"email": "--address or --members", "webhook": "--url", "slack": "--url-file", "discord": "--url-file", "sms": "--phone"}[kind]
 				return nil, clierr.Usage(fmt.Errorf("%s channels need %s", kind, need))
 			}
-			body := pulsecheck.DtoAlertChannelCreate{Kind: pulsecheck.DtoAlertChannelCreateKind(kind), Name: strings.TrimSpace(args[0]), Settings: *settings}
+			body := monitor.DtoAlertChannelCreate{Kind: monitor.DtoAlertChannelCreateKind(kind), Name: strings.TrimSpace(args[0]), Settings: *settings}
 			if cmd.Flags().Changed("default") {
 				body.IsDefault = &f.isDefault
 			}
@@ -269,7 +269,7 @@ Email-address and SMS channels get no alerts until verified: run
 			ch := withoutSecret(created)
 			msg := fmt.Sprintf("Created %s channel %s (%s).", ch.Kind, ch.Name, ch.Id)
 			if !ch.Verified && (kind == "sms" || (kind == "email" && !f.members)) {
-				msg += " Confirm it with: norcube pulsecheck channels verify " + ch.Id.String()
+				msg += " Confirm it with: norcube monitor channels verify " + ch.Id.String()
 			}
 			return output.Done{Message: msg, Value: ch, Fields: []output.Field{{Value: ch.Id.String()}, {Value: ch.Name}}}, nil
 		}),
@@ -283,13 +283,13 @@ Email-address and SMS channels get no alerts until verified: run
 // keepSecret writes a signing secret the API returned this once to the
 // file named by --secret-file, or says on stderr that it was not kept.
 // It never reaches stdout.
-func keepSecret(cmd *cobra.Command, ch pulsecheck.DtoAlertChannelWithSecret, dest string) error {
+func keepSecret(cmd *cobra.Command, ch monitor.DtoAlertChannelWithSecret, dest string) error {
 	secret := cmdutil.Deref(ch.SigningSecret)
 	if secret == "" {
 		return nil
 	}
 	if dest == "" {
-		fmt.Fprintf(cmdutil.Stderr(cmd), "The webhook's signing secret was not kept (pass --secret-file to save it). Get a new one with: norcube pulsecheck channels update %s --rotate-secret --secret-file <file>\n", ch.Id)
+		fmt.Fprintf(cmdutil.Stderr(cmd), "The webhook's signing secret was not kept (pass --secret-file to save it). Get a new one with: norcube monitor channels update %s --rotate-secret --secret-file <file>\n", ch.Id)
 		return nil
 	}
 	if _, err := cmdutil.SaveStream(cmd, strings.NewReader(secret+"\n"), dest, 0o600); err != nil {
@@ -314,9 +314,9 @@ func newChannelUpdateCmd(d deps) *cobra.Command {
 whole (a Slack or Discord URL must be given again); a new address or phone
 number needs verifying again. --rotate-secret gives a webhook a new
 signing secret, written to --secret-file.`,
-		Example: `  norcube pulsecheck channels update "Ops" --default=false
-  norcube pulsecheck channels update "On-call webhook" --rotate-secret --secret-file new-secret.txt
-  norcube pulsecheck channels update "On-call phone" --phone +420601999888`,
+		Example: `  norcube monitor channels update "Ops" --default=false
+  norcube monitor channels update "On-call webhook" --rotate-secret --secret-file new-secret.txt
+  norcube monitor channels update "On-call phone" --phone +420601999888`,
 		Args: cobra.ExactArgs(1),
 		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
 			if f.secretOut == "-" {
@@ -341,7 +341,7 @@ signing secret, written to --secret-file.`,
 			if err != nil {
 				return nil, err
 			}
-			body := pulsecheck.DtoAlertChannelUpdate{Settings: settings}
+			body := monitor.DtoAlertChannelUpdate{Settings: settings}
 			changed := settings != nil
 			if cmd.Flags().Changed("name") {
 				n := strings.TrimSpace(name)
@@ -394,8 +394,8 @@ func newChannelDeleteCmd(d deps) *cobra.Command {
 		Annotations: cmdutil.Writes(),
 		Short:       "Delete an alert channel",
 		Long:        "Deletes the channel and removes it from every monitor's alert routes; alerts still queued for it are dropped.",
-		Example: `  norcube pulsecheck channels delete "Old webhook"
-  norcube pulsecheck channels delete 0c2d4f6a-8b1e-4c3d-9e5f-7a6b5c4d3e2f --yes`,
+		Example: `  norcube monitor channels delete "Old webhook"
+  norcube monitor channels delete 0c2d4f6a-8b1e-4c3d-9e5f-7a6b5c4d3e2f --yes`,
 		Args: cobra.ExactArgs(1),
 		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
 			c, err := d.client(cmd)
@@ -436,7 +436,7 @@ func newChannelTestCmd(d deps) *cobra.Command {
 		Long: `Sends a test alert right away and prints the provider's reference. Rate
 limited (20 per user and 60 per organization an hour); an SMS counts
 toward the daily SMS limit, so SMS channels ask first (--yes skips it).`,
-		Example: `  norcube pulsecheck channels test "On-call webhook"`,
+		Example: `  norcube monitor channels test "On-call webhook"`,
 		Args:    cobra.ExactArgs(1),
 		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
 			c, err := d.client(cmd)
@@ -495,9 +495,9 @@ On a terminal, verify sends a code and asks for it. In a script, run it
 once to send the code, then again with --code-file (- reads standard
 input) to confirm. The code is never taken as an argument nor printed.
 A new code can be sent after a minute (--resend), at most 5 a day.`,
-		Example: `  norcube pulsecheck channels verify "On-call phone"
-  norcube pulsecheck channels verify 0c2d4f6a-8b1e-4c3d-9e5f-7a6b5c4d3e2f --resend
-  echo 123456 | norcube pulsecheck channels verify 0c2d4f6a-8b1e-4c3d-9e5f-7a6b5c4d3e2f --code-file -`,
+		Example: `  norcube monitor channels verify "On-call phone"
+  norcube monitor channels verify 0c2d4f6a-8b1e-4c3d-9e5f-7a6b5c4d3e2f --resend
+  echo 123456 | norcube monitor channels verify 0c2d4f6a-8b1e-4c3d-9e5f-7a6b5c4d3e2f --code-file -`,
 		Args: cobra.ExactArgs(1),
 		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
 			if resend && codeFile != "" {
@@ -520,7 +520,7 @@ A new code can be sent after a minute (--resend), at most 5 a day.`,
 				}
 				sent = true
 				if !term.StdinIsTerminal() {
-					fmt.Fprintf(stderr, "Sent a code. Confirm it with: norcube pulsecheck channels verify %s --code-file -\n", id)
+					fmt.Fprintf(stderr, "Sent a code. Confirm it with: norcube monitor channels verify %s --code-file -\n", id)
 					return output.Done{Message: "Code sent.", Value: verifyResult{ID: id.String(), CodeSent: true},
 						Fields: []output.Field{{Value: id.String()}, {Value: "sent"}}}, nil
 				}
@@ -541,7 +541,7 @@ A new code can be sent after a minute (--resend), at most 5 a day.`,
 			if !verificationCode.MatchString(code) {
 				return nil, clierr.Usage(fmt.Errorf("the code is the 6 digits sent to the channel"))
 			}
-			res, err := c.API.ConfirmAlertChannelVerificationWithResponse(cmd.Context(), id, pulsecheck.DtoAlertChannelVerifyConfirm{Code: code})
+			res, err := c.API.ConfirmAlertChannelVerificationWithResponse(cmd.Context(), id, monitor.DtoAlertChannelVerifyConfirm{Code: code})
 			if err != nil {
 				return nil, err
 			}
@@ -561,7 +561,7 @@ A new code can be sent after a minute (--resend), at most 5 a day.`,
 	return cmd
 }
 
-func sendCode(ctx context.Context, c *pcContext, id uuid.UUID) error {
+func sendCode(ctx context.Context, c *monitorContext, id uuid.UUID) error {
 	res, err := c.API.SendAlertChannelVerificationWithResponse(ctx, id)
 	if err != nil {
 		return err
@@ -612,15 +612,15 @@ func newDeliveriesCmd(d deps) *cobra.Command {
 and incident, whether it was sent, is pending (queued or waiting to retry)
 or dead (given up), the attempts and the last error, with URLs, addresses
 and phone numbers removed. --status dead lists the failures nobody saw.`,
-		Example: `  norcube pulsecheck channels deliveries list "On-call webhook" --status dead`,
+		Example: `  norcube monitor channels deliveries list "On-call webhook" --status dead`,
 		Args:    cobra.ExactArgs(1),
 		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
-			params := pulsecheck.ListAlertChannelDeliveriesParams{}
+			params := monitor.ListAlertChannelDeliveriesParams{}
 			if status != "" {
 				if err := oneOf("--status", status, deliveryStatuses); err != nil {
 					return nil, err
 				}
-				s := pulsecheck.ListAlertChannelDeliveriesParamsStatus(status)
+				s := monitor.ListAlertChannelDeliveriesParamsStatus(status)
 				params.Status = &s
 			}
 			c, err := d.client(cmd)
@@ -631,7 +631,7 @@ and phone numbers removed. --status dead lists the failures nobody saw.`,
 			if err != nil {
 				return nil, err
 			}
-			page, err := cmdutil.Paginate(cmd.Context(), pf, func(ctx context.Context, cursor string, size int) ([]pulsecheck.DtoChannelDelivery, string, error) {
+			page, err := cmdutil.Paginate(cmd.Context(), pf, func(ctx context.Context, cursor string, size int) ([]monitor.DtoChannelDelivery, string, error) {
 				p := params
 				p.Limit = &size
 				if cursor != "" {
@@ -649,11 +649,11 @@ and phone numbers removed. --status dead lists the failures nobody saw.`,
 			if err != nil {
 				return nil, err
 			}
-			return nil, page.Print(cmd, output.Table[pulsecheck.DtoChannelDelivery]{
+			return nil, page.Print(cmd, output.Table[monitor.DtoChannelDelivery]{
 				Headers:   []string{"CREATED", "EVENT", "MONITOR", "STATUS", "ATTEMPTS", "SENT", "LAST ERROR"},
 				MaxWidths: []int{0, 0, 28, 0, 0, 0, 60},
 				Style:     output.Style{StatusColumn: 3},
-				Rows: func(x pulsecheck.DtoChannelDelivery) []string {
+				Rows: func(x monitor.DtoChannelDelivery) []string {
 					return []string{output.WhenString(x.CreatedAt), string(x.Event), x.MonitorName, string(x.Status),
 						fmt.Sprint(x.Attempts), output.WhenString(cmdutil.Deref(x.SentAt)), strOr(x.LastError)}
 				},

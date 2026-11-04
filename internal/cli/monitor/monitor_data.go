@@ -1,4 +1,4 @@
-package pulsecheck
+package monitor
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/norcubeplatform/cli/internal/api/pulsecheck"
+	"github.com/norcubeplatform/cli/internal/api/monitor"
 	"github.com/norcubeplatform/cli/internal/clierr"
 	"github.com/norcubeplatform/cli/internal/cmdutil"
 	"github.com/norcubeplatform/cli/internal/output"
@@ -40,11 +40,11 @@ func newResultsListCmd(d deps) *cobra.Command {
 the last 24 hours. Raw results are kept at least 30 days. JSON has every
 detail of a result: timings, the certificate seen, the domain's
 registration.`,
-		Example: `  norcube pulsecheck monitors results list "Shop"
-  norcube pulsecheck monitors results list "Shop" --since 7d --all-pages -o json --query "[?severity=='critical'].checkedAt"`,
+		Example: `  norcube monitor monitors results list "Shop"
+  norcube monitor monitors results list "Shop" --since 7d --all-pages -o json --query "[?severity=='critical'].checkedAt"`,
 		Args: cobra.ExactArgs(1),
 		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
-			params := pulsecheck.ListMonitorResultsParams{}
+			params := monitor.ListMonitorResultsParams{}
 			if err := timeRange(since, until, d.now(), &params.From, &params.To); err != nil {
 				return nil, err
 			}
@@ -56,7 +56,7 @@ registration.`,
 			if err != nil {
 				return nil, err
 			}
-			page, err := cmdutil.Paginate(cmd.Context(), pf, func(ctx context.Context, cursor string, size int) ([]pulsecheck.DtoCheckResult, string, error) {
+			page, err := cmdutil.Paginate(cmd.Context(), pf, func(ctx context.Context, cursor string, size int) ([]monitor.DtoCheckResult, string, error) {
 				p := params
 				p.Limit = &size
 				if cursor != "" {
@@ -74,7 +74,7 @@ registration.`,
 			if err != nil {
 				return nil, err
 			}
-			return nil, page.Print(cmd, output.Table[pulsecheck.DtoCheckResult]{
+			return nil, page.Print(cmd, output.Table[monitor.DtoCheckResult]{
 				Headers: resultHeaders,
 				Style:   output.Style{StatusColumn: 2},
 				Rows:    resultRow(string(m.Type)),
@@ -136,8 +136,8 @@ func newStatusChangesListCmd(d deps) *cobra.Command {
 when, how long it lasted (the newest one is still going) and what the
 check said. Kept a year. Pausing is not a status change. JSON adds the
 events in each span (a renewed certificate).`,
-		Example: `  norcube pulsecheck monitors status-changes list "Shop"
-  norcube pulsecheck monitors history list "Shop" -o json`,
+		Example: `  norcube monitor monitors status-changes list "Shop"
+  norcube monitor monitors history list "Shop" -o json`,
 		Args: cobra.ExactArgs(1),
 		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
 			c, err := d.client(cmd)
@@ -148,8 +148,8 @@ events in each span (a renewed certificate).`,
 			if err != nil {
 				return nil, err
 			}
-			page, err := cmdutil.Paginate(cmd.Context(), pf, func(ctx context.Context, cursor string, size int) ([]pulsecheck.DtoStatusChange, string, error) {
-				p := pulsecheck.ListMonitorStatusChangesParams{Limit: &size}
+			page, err := cmdutil.Paginate(cmd.Context(), pf, func(ctx context.Context, cursor string, size int) ([]monitor.DtoStatusChange, string, error) {
+				p := monitor.ListMonitorStatusChangesParams{Limit: &size}
 				if cursor != "" {
 					p.Cursor = &cursor
 				}
@@ -166,11 +166,11 @@ events in each span (a renewed certificate).`,
 				return nil, err
 			}
 			typ := string(m.Type)
-			return nil, page.Print(cmd, output.Table[pulsecheck.DtoStatusChange]{
+			return nil, page.Print(cmd, output.Table[monitor.DtoStatusChange]{
 				Headers:   []string{"CHANGED", "FROM", "TO", "FOR", "CONDITION", "MESSAGE"},
 				MaxWidths: []int{0, 0, 0, 0, 0, 60},
 				Style:     output.Style{StatusColumn: 2},
-				Rows: func(s pulsecheck.DtoStatusChange) []string {
+				Rows: func(s monitor.DtoStatusChange) []string {
 					return []string{
 						output.WhenStringSeconds(s.ChangedAt),
 						statusWord(typ, string(s.From), ""),
@@ -206,14 +206,14 @@ func newStatsCmd(d deps) *cobra.Command {
 average and maximum response time and check counts for the range ending
 now. JSON adds the series: hourly buckets up to 7d, daily beyond.
 Refreshed every few minutes.`,
-		Example: `  norcube pulsecheck monitors stats get "Shop"
-  norcube pulsecheck monitors stats get "Shop" --range 30d -o json --query uptimePercent`,
+		Example: `  norcube monitor monitors stats get "Shop"
+  norcube monitor monitors stats get "Shop" --range 30d -o json --query uptimePercent`,
 		Args: cobra.ExactArgs(1),
 		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
 			if err := oneOf("--range", rng, statsRanges); err != nil {
 				return nil, err
 			}
-			params := pulsecheck.GetMonitorStatsParams{Range: pulsecheck.GetMonitorStatsParamsRange(rng)}
+			params := monitor.GetMonitorStatsParams{Range: monitor.GetMonitorStatsParamsRange(rng)}
 			c, err := d.client(cmd)
 			if err != nil {
 				return nil, err
@@ -265,10 +265,10 @@ func newAvailabilityCmd(d deps) *cobra.Command {
 		Long: `One row per UTC day ending today, oldest first: check counts, uptime and
 an estimate of the minutes spent down (HTTP monitors). A day without
 checks has no uptime, never 100%.`,
-		Example: `  norcube pulsecheck monitors availability get "Shop" --days 30`,
+		Example: `  norcube monitor monitors availability get "Shop" --days 30`,
 		Args:    cobra.ExactArgs(1),
 		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
-			params := pulsecheck.GetMonitorAvailabilityParams{}
+			params := monitor.GetMonitorAvailabilityParams{}
 			if cmd.Flags().Changed("days") {
 				if days < 1 || days > 90 {
 					return nil, clierr.Usage(fmt.Errorf("--days must be between 1 and 90"))
@@ -300,11 +300,11 @@ checks has no uptime, never 100%.`,
 
 // availabilityView shows a table of days; JSON and YAML keep the whole
 // answer (the range's totals too).
-func availabilityView(a pulsecheck.DtoAvailability) output.View[pulsecheck.DtoDayAvailability] {
-	return output.View[pulsecheck.DtoDayAvailability]{Value: a, Table: output.Table[pulsecheck.DtoDayAvailability]{
+func availabilityView(a monitor.DtoAvailability) output.View[monitor.DtoDayAvailability] {
+	return output.View[monitor.DtoDayAvailability]{Value: a, Table: output.Table[monitor.DtoDayAvailability]{
 		Headers: []string{"DAY", "UPTIME", "DOWNTIME", "CHECKS", "OK", "WARNING", "CRITICAL"},
 		Style:   output.NoStyle,
-		Rows: func(day pulsecheck.DtoDayAvailability) []string {
+		Rows: func(day monitor.DtoDayAvailability) []string {
 			up := percent(day.UptimePercent)
 			if day.NoData {
 				up = "no data"
@@ -332,8 +332,8 @@ func newCertificateCmd(d deps) *cobra.Command {
 names, validity, whether the chain and hostname verify, and days left. SSL
 monitors add the expiry thresholds and the next one to be crossed. Exits 3
 when no check has seen a certificate (plain HTTP and domain monitors).`,
-		Example: `  norcube pulsecheck monitors certificate get "API cert"
-  norcube pulsecheck monitors cert get "Shop" -o json --query certificate.notAfter`,
+		Example: `  norcube monitor monitors certificate get "API cert"
+  norcube monitor monitors cert get "Shop" -o json --query certificate.notAfter`,
 		Args: cobra.ExactArgs(1),
 		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
 			c, err := d.client(cmd)
@@ -401,7 +401,7 @@ incident, how many good ones resolve it, and how often to remind.`,
 	return cmd
 }
 
-func alertsObject(a pulsecheck.DtoMonitorAlerts) output.Object {
+func alertsObject(a monitor.DtoMonitorAlerts) output.Object {
 	routes := "organization defaults"
 	if !a.UseDefaults {
 		parts := make([]string, 0, len(a.Routes))
@@ -439,7 +439,7 @@ func newAlertsGetCmd(d deps) *cobra.Command {
 		Use:         "get <monitor>",
 		Annotations: cmdutil.Reads(),
 		Short:       "Show how a monitor alerts",
-		Example:     `  norcube pulsecheck monitors alerts get "Shop"`,
+		Example:     `  norcube monitor monitors alerts get "Shop"`,
 		Args:        cobra.ExactArgs(1),
 		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
 			c, err := d.client(cmd)
@@ -478,11 +478,11 @@ func newAlertsSetCmd(d deps) *cobra.Command {
 organization's defaults. Otherwise give its routes, each a channel (id or
 exact name) and the events it gets (down, warning, expiring, expired,
 recovered), or --mute for no alerts; settings you leave out keep their
-current values. Channels themselves are managed with "pulsecheck channels".`,
-		Example: `  norcube pulsecheck monitors alerts set "Shop" --route "On-call webhook=down,recovered" --route ops-email=down
-  norcube pulsecheck monitors alerts set "Shop" --confirm-failures 3 --reminder 30m
-  norcube pulsecheck monitors alerts set "Shop" --mute
-  norcube pulsecheck monitors alerts set "Shop" --defaults`,
+current values. Channels themselves are managed with "monitor channels".`,
+		Example: `  norcube monitor monitors alerts set "Shop" --route "On-call webhook=down,recovered" --route ops-email=down
+  norcube monitor monitors alerts set "Shop" --confirm-failures 3 --reminder 30m
+  norcube monitor monitors alerts set "Shop" --mute
+  norcube monitor monitors alerts set "Shop" --defaults`,
 		Args: cobra.ExactArgs(1),
 		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
 			set := cmd.Flags().Changed
@@ -502,7 +502,7 @@ current values. Channels themselves are managed with "pulsecheck channels".`,
 			}
 			type route struct {
 				channel string
-				events  []pulsecheck.DtoMonitorAlertRouteEvents
+				events  []monitor.DtoMonitorAlertRouteEvents
 			}
 			var parsed []route
 			for _, r := range routes {
@@ -510,13 +510,13 @@ current values. Channels themselves are managed with "pulsecheck channels".`,
 				if !ok || strings.TrimSpace(ch) == "" || strings.TrimSpace(evs) == "" {
 					return nil, clierr.Usage(fmt.Errorf(`--route %q: write it as <channel>=<event>[,<event>...]`, r))
 				}
-				var events []pulsecheck.DtoMonitorAlertRouteEvents
+				var events []monitor.DtoMonitorAlertRouteEvents
 				for _, e := range strings.Split(evs, ",") {
 					e = strings.TrimSpace(e)
 					if err := oneOf("--route event", e, alertEvents); err != nil {
 						return nil, err
 					}
-					events = append(events, pulsecheck.DtoMonitorAlertRouteEvents(e))
+					events = append(events, monitor.DtoMonitorAlertRouteEvents(e))
 				}
 				parsed = append(parsed, route{strings.TrimSpace(ch), events})
 			}
@@ -528,7 +528,7 @@ current values. Channels themselves are managed with "pulsecheck channels".`,
 			if err != nil {
 				return nil, err
 			}
-			var body pulsecheck.DtoMonitorAlertsUpdate
+			var body monitor.DtoMonitorAlertsUpdate
 			switch {
 			case fromFile != "":
 				if err := readJSON(cmd, fromFile, "the alert settings", &body); err != nil {
@@ -560,23 +560,23 @@ current values. Channels themselves are managed with "pulsecheck channels".`,
 				}
 				rs := a.Routes
 				if a.UseDefaults {
-					rs = []pulsecheck.DtoMonitorAlertRoute{}
+					rs = []monitor.DtoMonitorAlertRoute{}
 				}
 				if set("route") {
-					rs = make([]pulsecheck.DtoMonitorAlertRoute, 0, len(parsed))
+					rs = make([]monitor.DtoMonitorAlertRoute, 0, len(parsed))
 					for _, r := range parsed {
 						chID, err := channelRef(cmd.Context(), c, r.channel)
 						if err != nil {
 							return nil, err
 						}
-						rs = append(rs, pulsecheck.DtoMonitorAlertRoute{ChannelId: chID, Events: r.events})
+						rs = append(rs, monitor.DtoMonitorAlertRoute{ChannelId: chID, Events: r.events})
 					}
 				}
 				if mute {
-					rs = []pulsecheck.DtoMonitorAlertRoute{}
+					rs = []monitor.DtoMonitorAlertRoute{}
 				}
 				fls := false
-				body = pulsecheck.DtoMonitorAlertsUpdate{UseDefaults: &fls, ConfirmFailures: &f, ConfirmSuccesses: &s, ReminderMinutes: &rm, Routes: &rs}
+				body = monitor.DtoMonitorAlertsUpdate{UseDefaults: &fls, ConfirmFailures: &f, ConfirmSuccesses: &s, ReminderMinutes: &rm, Routes: &rs}
 			}
 			res, err := c.API.SetMonitorAlertsWithResponse(cmd.Context(), id, body)
 			if err != nil {
