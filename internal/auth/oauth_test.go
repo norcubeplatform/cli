@@ -16,6 +16,7 @@ import (
 	"github.com/norcubeplatform/cli/internal/auth/authtest"
 	"github.com/norcubeplatform/cli/internal/clierr"
 	"github.com/norcubeplatform/cli/internal/credstore"
+	"github.com/norcubeplatform/cli/internal/registry"
 )
 
 // browserFollows plays the browser: it opens the authorization URL and
@@ -764,5 +765,54 @@ func TestOAuthTokenSourceRediscoversMovedEndpoint(t *testing.T) {
 	}
 	if e, ok := cachedMetadata(s.URL); !ok || e.Metadata.TokenEndpoint != s.URL+"/oauth/token" {
 		t.Fatal("the moved endpoint is still cached")
+	}
+}
+
+// A full sign-in reaches every service the CLI can call. A product added
+// to the registry without its audience on the fake (or the server) fails
+// here.
+func TestFullSignInCoversEveryService(t *testing.T) {
+	s := authtest.New()
+	defer s.Close()
+	signedInOAuth(t, s)
+	_ = discover(t, s)
+	services := registry.Callable()
+	if len(services) == 0 {
+		t.Fatal("no callable services")
+	}
+	for _, svc := range services {
+		tok, err := oauthSource(t, s, svc.Audience, authtest.HomeOrgID).Token(context.Background())
+		if err != nil {
+			t.Errorf("%s: %v", svc.Command, err)
+			continue
+		}
+		if a, _, _, ok := s.ProductToken(tok); !ok || a != svc.Audience {
+			t.Errorf("%s: token for %q (valid %v), want %q", svc.Command, a, ok, svc.Audience)
+		}
+	}
+}
+
+// Every scope `login --scopes` offers is one the server knows, and a
+// Monitor scope gets a token for Monitor only.
+func TestLoginScopesAreKnownAndLimit(t *testing.T) {
+	s := authtest.New()
+	defer s.Close()
+	for _, ls := range LoginScopes {
+		if !s.KnowsScope(ls.Name) {
+			t.Errorf("--scopes offers %s, which the fake's catalog doesn't have", ls.Name)
+		}
+	}
+
+	signedInOAuth(t, s, "monitor.read")
+	_ = discover(t, s)
+	tok, err := oauthSource(t, s, AudienceMonitor, authtest.HomeOrgID).Token(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if a, _, _, ok := s.ProductToken(tok); !ok || a != AudienceMonitor {
+		t.Fatalf("token for %q (valid %v)", a, ok)
+	}
+	if _, err := oauthSource(t, s, AudienceSnapDB, authtest.HomeOrgID).Token(context.Background()); err == nil {
+		t.Fatal("a monitor.read sign-in got a Backup token")
 	}
 }

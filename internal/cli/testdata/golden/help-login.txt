@@ -44,14 +44,14 @@ Flags:
       --force            Re-authenticate even if a valid session already exists; the previous session is ended on Norcube
   -h, --help             help for login
       --no-browser       Print the login URL instead of opening a browser
-      --scopes strings   Limit the login to these scopes, comma-separated (default full: everything you can do in the dashboard); one of full, backup.read, backup.write, backup.verify, domainradar.check, langsync.read, langsync.sync, langsync.write, billing.read, cms.read, cms.write
+      --scopes strings   Limit the login to these scopes, comma-separated (default full: everything you can do in the dashboard); one of full, backup.read, backup.write, backup.verify, domainradar.check, langsync.read, langsync.sync, langsync.write, billing.read, cms.read, cms.write, monitor.read, monitor.check, monitor.write, monitor.channels
 
 Global Flags:
       --auth-url string            Override the auth service base URL, same as --endpoint-url auth=URL (env: NORCUBE_AUTH_URL)
       --cli-connect-timeout int    Seconds to wait for a connection, 0 for no limit (env: NORCUBE_CONNECT_TIMEOUT) (default 10)
       --cli-read-timeout int       Seconds to wait for each API response, 0 for no limit (env: NORCUBE_READ_TIMEOUT) (default 60)
       --debug                      Print every HTTP request and response to stderr, with credentials redacted (env: NORCUBE_DEBUG=1)
-      --endpoint-url stringArray   Override a service endpoint, service=url (repeatable; services: auth, web_app, snapdb, langsync, domainradar, billing, prompthub)
+      --endpoint-url stringArray   Override a service endpoint, service=url (repeatable; services: auth, web_app, snapdb, langsync, domainradar, billing, monitor, prompthub)
       --max-attempts int           Attempts for a request that hit throttling or a transient failure, 1 disables retries (env: NORCUBE_MAX_ATTEMPTS) (default 3)
       --no-color                   Disable color and styling (env: NO_COLOR, CLICOLOR=0)
       --no-pager                   Disable automatic paging of long table output (env: $PAGER controls the pager, default: less)
