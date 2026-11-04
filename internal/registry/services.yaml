@@ -62,6 +62,16 @@ services:
       file: backend_swagger.json
     package: billing
 
+  - key: monitor
+    name: Norcube Monitor
+    command: monitor
+    audience: monitor
+    endpoint: https://monitor.api.norcube.com/app/v1
+    spec:
+      app: monitor
+      file: app_swagger.json
+    package: monitor
+
   - key: prompthub
     name: PromptHub
     command: prompthub

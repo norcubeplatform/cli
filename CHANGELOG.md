@@ -3,7 +3,7 @@
 Notable changes, newest first. Release notes on GitHub list every commit;
 this file collects what users and scripts need to know.
 
-## Unreleased
+## 0.22.0 (2026-11-04)
 
 ### New
 
@@ -20,12 +20,49 @@ this file collects what users and scripts need to know.
 - Shell completion offers the allowed values of `-o`, `auth token
   --audience`, `langsync init --seed` and `backup datasources update
   --region`.
+- Norcube Monitor (formerly PulseCheck) commands: `norcube monitor`
+  covers every operation of the Norcube Monitor API an organization
+  member has.
+  - `monitor status` shows open incidents, monitors by status and every
+    monitor that needs attention; `--fail-on critical` (or `warning`)
+    fails a CI job while such an incident is open.
+  - `monitors list | get | create | update | delete | pause | resume`,
+    with typed flags per type (`--type http | keyword | ssl | domain`) or
+    the API's JSON body with `--from-file`; secret header values only from
+    a file or stdin (`--secret-headers-file`). Monitors are named by id or
+    exact name.
+  - `monitors run <monitor>` runs a check now; with `--wait` a critical or
+    inconclusive result (or a warning with `--fail-on warning`) exits 1
+    with `job_failed`, for deploy pipelines.
+  - `monitors bulk pause | resume | delete` by ids, a file, or the list
+    filters, in batches of 100.
+  - `monitors results list`, `status-changes list` (alias `history`),
+    `stats get`, `availability get`, `certificate get`, `alerts get | set`.
+  - `incidents list` (every API filter), `get` (timeline and alerts),
+    `acknowledge` (alias `ack`), `summary`.
+  - `channels list | get | create | update | delete | test | verify` and
+    `channels deliveries list`. A webhook's signing secret is written to
+    `--secret-file` and never printed; Slack and Discord URLs are read
+    from a file or stdin; `verify` asks for the code on a terminal or
+    reads it with `--code-file`.
+  - Completion for monitor, channel and incident ids; `nrc api monitor`
+    and `auth token --audience monitor`; CI tokens with the
+    `monitor.read`, `monitor.check`, `monitor.write` and
+    `monitor.channels` scopes (alert channels need the last one;
+    `monitor.write` doesn't include it).
+- Errors of services that answer RFC 9457 problems (Norcube Monitor) show
+  the problem's detail and invalid fields, and `-o json` errors carry its
+  `reason`, field `errors` and `data` in `details`.
 
 ### Changes for scripts
 
 - The `norcube commands` document is a contract: within `schemaVersion` 1
   fields, values and commands are only ever added. A breaking change
   bumps `schemaVersion`.
+- New error code `unhealthy` (exit 1): `monitor status --fail-on`
+  found what it was told to fail on; `details` holds the report.
+- `--endpoint-url`, `NORCUBE_MONITOR_URL` and the `endpoints` table of
+  a profile accept the new service key `monitor`.
 
 ## 0.21.4 (2026-10-30)
 

@@ -106,6 +106,7 @@ web_app = 'http://localhost:51730'
 			p := f.Profiles[DefaultProfileName]
 			if p == nil {
 				t.Fatal("no default profile")
+				return // staticcheck (SA5011) doesn't see t.Fatal as terminating here
 			}
 			if p.Environment != tt.env {
 				t.Errorf("environment %q, want %q", p.Environment, tt.env)

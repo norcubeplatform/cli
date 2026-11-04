@@ -117,3 +117,23 @@ func TestObjectAlignsMultiLineValues(t *testing.T) {
 		t.Fatalf("%q, %v", b.String(), err)
 	}
 }
+
+// An object's Text replaces its field values in -o text; the table still
+// shows the fields.
+func TestObjectTextRecord(t *testing.T) {
+	o := Object{Value: map[string]int{"a": 1}, Fields: []Field{{Name: "A", Value: "1"}, {Name: "Extra", Value: "x"}},
+		Text: []string{"1", WhenString("2026-10-28T09:00:00Z")}}
+	var text, table strings.Builder
+	if err := Print(&text, FormatText, o); err != nil {
+		t.Fatal(err)
+	}
+	if got := text.String(); got != "1\t2026-10-28T09:00:00Z\n" {
+		t.Errorf("text %q", got)
+	}
+	if err := Print(&table, FormatTable, o); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(table.String(), "Extra:") {
+		t.Errorf("table %q", table.String())
+	}
+}

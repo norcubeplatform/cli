@@ -28,3 +28,12 @@ func TestIsUsage(t *testing.T) {
 		t.Error("Usage(nil) must stay nil")
 	}
 }
+
+// Codes that report an outcome rather than a failure of the CLI exit 1.
+func TestOutcomeCodesExitOne(t *testing.T) {
+	for _, c := range []string{CodeJobFailed, CodeUnhealthy} {
+		if got := ExitFor(c); got != ExitError {
+			t.Errorf("%s exits %d, want %d", c, got, ExitError)
+		}
+	}
+}

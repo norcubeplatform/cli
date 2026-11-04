@@ -1,0 +1,14 @@
+{
+  "avgMs": 120,
+  "checks": 1440,
+  "critical": 20,
+  "from": "2026-11-02T08:00:00Z",
+  "granularity": "hour",
+  "inconclusive": 0,
+  "maxMs": 980,
+  "ok": 1420,
+  "series": [],
+  "to": "2026-11-03T08:10:00Z",
+  "uptimePercent": 98.61,
+  "warning": 0
+}

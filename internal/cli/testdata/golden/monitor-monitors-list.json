@@ -1,0 +1,197 @@
+[
+  {
+    "aspects": [
+      {
+        "alertedThresholds": [],
+        "aspect": "certificate",
+        "condition": "ok",
+        "daysRemaining": 64,
+        "status": "ok",
+        "subject": "shop.example.com",
+        "thresholdsDays": [
+          30,
+          14,
+          7
+        ]
+      }
+    ],
+    "condition": {
+      "alertedThresholds": [],
+      "code": "unexpected_status",
+      "facts": {
+        "statusCode": 503
+      },
+      "message": "HTTP 503",
+      "since": "2026-11-03T08:00:00Z"
+    },
+    "createdAt": "2026-10-01T09:00:00Z",
+    "createdBy": "11111111-2222-4333-8444-555555555555",
+    "description": "",
+    "http": {
+      "certificateExpiry": {
+        "thresholdsDays": [
+          30,
+          14,
+          7
+        ]
+      },
+      "expectedStatus": [
+        "2xx"
+      ],
+      "followRedirects": true,
+      "headers": [
+        {
+          "name": "Authorization",
+          "secret": true
+        },
+        {
+          "name": "X-Env",
+          "secret": false,
+          "value": "prod"
+        }
+      ],
+      "keyword": "ok",
+      "keywordCaseSensitive": false,
+      "keywordMode": "present",
+      "maxRedirects": 5,
+      "method": "GET",
+      "slowThresholdMs": 1500,
+      "timeoutMs": 10000,
+      "url": "https://shop.example.com/health",
+      "verifyTls": true
+    },
+    "id": "7d1c2f7e-6a1f-4f5e-9b8a-1f7c2b3d4e5f",
+    "intervalSeconds": 60,
+    "last24h": {
+      "avgMs": 120,
+      "checks": 1440,
+      "critical": 20,
+      "from": "2026-11-02T08:00:00Z",
+      "inconclusive": 0,
+      "ok": 1420,
+      "p50Ms": 110,
+      "p95Ms": 240,
+      "uptimePercent": 98.61,
+      "warning": 0,
+      "warningPercent": 0
+    },
+    "lastCheck": {
+      "at": "2026-11-03T08:10:00Z",
+      "condition": "unexpected_status",
+      "severity": "critical",
+      "totalMs": 180
+    },
+    "name": "Shop",
+    "nextCheckAt": "2026-11-03T08:11:00Z",
+    "overallStatus": "critical",
+    "regions": [
+      {
+        "code": "eu-central-1",
+        "name": "Frankfurt"
+      }
+    ],
+    "status": "critical",
+    "statusSince": "2026-11-03T08:00:00Z",
+    "target": "https://shop.example.com/health",
+    "type": "http",
+    "updatedAt": "2026-10-01T09:00:00Z",
+    "variant": "keyword"
+  },
+  {
+    "aspects": [],
+    "condition": {
+      "alertedThresholds": [
+        {
+          "alertedAt": "2026-11-01T00:00:00Z",
+          "days": 14
+        }
+      ],
+      "code": "cert_expiring",
+      "facts": {
+        "daysRemaining": 12,
+        "expiresAt": "2026-11-15T12:00:00Z",
+        "thresholdDays": 14
+      },
+      "message": "Certificate expires in 12 days",
+      "since": "2026-11-01T00:00:00Z"
+    },
+    "createdAt": "2026-10-02T09:00:00Z",
+    "createdBy": "11111111-2222-4333-8444-555555555555",
+    "description": "",
+    "id": "2b3c4d5e-6f70-4a81-92a3-b4c5d6e7f809",
+    "intervalSeconds": 3600,
+    "lastCheck": {
+      "at": "2026-11-03T08:00:00Z",
+      "condition": "cert_expiring",
+      "severity": "warning",
+      "totalMs": 95
+    },
+    "name": "API cert",
+    "overallStatus": "warning",
+    "regions": [
+      {
+        "code": "eu-central-1",
+        "name": "Frankfurt"
+      }
+    ],
+    "ssl": {
+      "expiryThresholdsDays": [
+        30,
+        14,
+        7
+      ],
+      "host": "api.example.com",
+      "port": 443
+    },
+    "status": "warning",
+    "statusSince": "2026-11-01T00:00:00Z",
+    "target": "api.example.com:443",
+    "type": "ssl",
+    "updatedAt": "2026-10-02T09:00:00Z",
+    "variant": "ssl"
+  },
+  {
+    "aspects": [],
+    "condition": {
+      "alertedThresholds": [],
+      "code": "ok",
+      "facts": {
+        "daysRemaining": 271
+      },
+      "message": "Registered until 2027-08-01",
+      "since": "2026-10-03T09:00:00Z"
+    },
+    "createdAt": "2026-10-03T09:00:00Z",
+    "createdBy": "11111111-2222-4333-8444-555555555555",
+    "description": "Company domain",
+    "domain": {
+      "domain": "example.com",
+      "expiryThresholdsDays": [
+        60,
+        30
+      ]
+    },
+    "id": "9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d",
+    "intervalSeconds": 43200,
+    "lastCheck": {
+      "at": "2026-11-03T06:00:00Z",
+      "condition": "ok",
+      "severity": "ok",
+      "totalMs": 420
+    },
+    "name": "example.com",
+    "overallStatus": "ok",
+    "regions": [
+      {
+        "code": "eu-central-1",
+        "name": "Frankfurt"
+      }
+    ],
+    "status": "ok",
+    "statusSince": "2026-10-03T09:00:00Z",
+    "target": "example.com",
+    "type": "domain",
+    "updatedAt": "2026-10-03T09:00:00Z",
+    "variant": "domain"
+  }
+]

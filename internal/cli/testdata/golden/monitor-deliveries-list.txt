@@ -1,0 +1,2 @@
+CREATED           EVENT  MONITOR  STATUS  ATTEMPTS  SENT              LAST ERROR
+2026-11-03 10:01  down   Shop     sent    1         2026-11-03 10:01  —

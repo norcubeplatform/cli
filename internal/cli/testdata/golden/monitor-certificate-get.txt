@@ -1,0 +1,15 @@
+Subject:             CN=api.example.com
+Issuer:              CN=Example CA
+Names:               api.example.com
+Valid from:          2026-08-17 14:00
+Expires:             2026-11-15 14:00
+Days left:           12
+Chain valid:         yes
+Hostname valid:      yes
+Status:              Expiring
+Serial:              04ab
+SHA-256:             aa:bb
+Seen:                2026-11-03 10:00
+Alert at days:       30, 14, 7
+Next alert:          2026-11-08 14:00
+Next alert at days:  7

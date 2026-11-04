@@ -1,0 +1,98 @@
+{
+  "aspects": [
+    {
+      "alertedThresholds": [],
+      "aspect": "certificate",
+      "condition": "ok",
+      "daysRemaining": 64,
+      "status": "ok",
+      "subject": "shop.example.com",
+      "thresholdsDays": [
+        30,
+        14,
+        7
+      ]
+    }
+  ],
+  "condition": {
+    "alertedThresholds": [],
+    "code": "unexpected_status",
+    "facts": {
+      "statusCode": 503
+    },
+    "message": "HTTP 503",
+    "since": "2026-11-03T08:00:00Z"
+  },
+  "createdAt": "2026-10-01T09:00:00Z",
+  "createdBy": "11111111-2222-4333-8444-555555555555",
+  "description": "",
+  "http": {
+    "certificateExpiry": {
+      "thresholdsDays": [
+        30,
+        14,
+        7
+      ]
+    },
+    "expectedStatus": [
+      "2xx"
+    ],
+    "followRedirects": true,
+    "headers": [
+      {
+        "name": "Authorization",
+        "secret": true
+      },
+      {
+        "name": "X-Env",
+        "secret": false,
+        "value": "prod"
+      }
+    ],
+    "keyword": "ok",
+    "keywordCaseSensitive": false,
+    "keywordMode": "present",
+    "maxRedirects": 5,
+    "method": "GET",
+    "slowThresholdMs": 1500,
+    "timeoutMs": 10000,
+    "url": "https://shop.example.com/health",
+    "verifyTls": true
+  },
+  "id": "7d1c2f7e-6a1f-4f5e-9b8a-1f7c2b3d4e5f",
+  "intervalSeconds": 60,
+  "last24h": {
+    "avgMs": 120,
+    "checks": 1440,
+    "critical": 20,
+    "from": "2026-11-02T08:00:00Z",
+    "inconclusive": 0,
+    "ok": 1420,
+    "p50Ms": 110,
+    "p95Ms": 240,
+    "uptimePercent": 98.61,
+    "warning": 0,
+    "warningPercent": 0
+  },
+  "lastCheck": {
+    "at": "2026-11-03T08:10:00Z",
+    "condition": "unexpected_status",
+    "severity": "critical",
+    "totalMs": 180
+  },
+  "name": "Shop",
+  "nextCheckAt": "2026-11-03T08:11:00Z",
+  "overallStatus": "critical",
+  "regions": [
+    {
+      "code": "eu-central-1",
+      "name": "Frankfurt"
+    }
+  ],
+  "status": "critical",
+  "statusSince": "2026-11-03T08:00:00Z",
+  "target": "https://shop.example.com/health",
+  "type": "http",
+  "updatedAt": "2026-10-01T09:00:00Z",
+  "variant": "keyword"
+}

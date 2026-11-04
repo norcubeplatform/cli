@@ -1,0 +1,46 @@
+{
+  "status": "critical",
+  "incidents": {
+    "mttrLast30dSeconds": 1260,
+    "open": {
+      "critical": 1,
+      "total": 1,
+      "unacknowledged": 1,
+      "warning": 0
+    },
+    "resolvedLast30d": 12,
+    "resolvedLast7d": 4
+  },
+  "monitors": {
+    "total": 3,
+    "ok": 1,
+    "warning": 1,
+    "critical": 1,
+    "pending": 0,
+    "paused": 0
+  },
+  "problems": [
+    {
+      "id": "7d1c2f7e-6a1f-4f5e-9b8a-1f7c2b3d4e5f",
+      "name": "Shop",
+      "type": "http",
+      "variant": "keyword",
+      "target": "https://shop.example.com/health",
+      "status": "critical",
+      "overallStatus": "critical",
+      "condition": "unexpected_status",
+      "message": "HTTP 503"
+    },
+    {
+      "id": "2b3c4d5e-6f70-4a81-92a3-b4c5d6e7f809",
+      "name": "API cert",
+      "type": "ssl",
+      "variant": "ssl",
+      "target": "api.example.com:443",
+      "status": "warning",
+      "overallStatus": "warning",
+      "condition": "cert_expiring",
+      "message": "Certificate expires in 12 days"
+    }
+  ]
+}

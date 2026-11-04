@@ -1,0 +1,24 @@
+ID:                               7d1c2f7e-6a1f-4f5e-9b8a-1f7c2b3d4e5f
+Name:                             Shop
+Type:                             keyword
+Target:                           https://shop.example.com/health
+Status:                           Down
+Since:                            2026-11-03 10:00
+Reason:                           HTTP 503
+Certificate of shop.example.com:  Valid (64 days left)
+Interval:                         1m
+Uptime 24h:                       98.61%
+Response p95:                     240 ms
+Last check:                       2026-11-03 10:10
+Next check:                       2026-11-03 10:11
+Regions:                          Frankfurt
+Request:                          GET https://shop.example.com/health
+Expected status:                  2xx
+Timeout:                          10000 ms
+Slow above:                       1500 ms
+Keyword:                          "ok" must be present
+Header Authorization:             (secret)
+Header X-Env:                     prod
+Redirects:                        followed, at most 5
+Verify TLS:                       yes
+Created:                          2026-10-01 11:00

@@ -390,7 +390,7 @@ globalFlags:
       repeatable: false
       required: false
       type: bool
-    - description: 'Override a service endpoint, service=url (repeatable; services: auth, web_app, snapdb, langsync, domainradar, billing, prompthub)'
+    - description: 'Override a service endpoint, service=url (repeatable; services: auth, web_app, snapdb, langsync, domainradar, billing, monitor, prompthub)'
       name: endpoint-url
       repeatable: true
       required: false

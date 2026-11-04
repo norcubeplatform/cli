@@ -1,0 +1,4 @@
+ID                                    NAME         TYPE     STATUS      TARGET                           UPTIME 24H  LAST CHECK
+7d1c2f7e-6a1f-4f5e-9b8a-1f7c2b3d4e5f  Shop         keyword  Down        https://shop.example.com/health  98.61%      2026-11-03 10:10
+2b3c4d5e-6f70-4a81-92a3-b4c5d6e7f809  API cert     ssl      Expiring    api.example.com:443              —           2026-11-03 10:00
+9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d  example.com  domain   Registered  example.com                      —           2026-11-03 08:00

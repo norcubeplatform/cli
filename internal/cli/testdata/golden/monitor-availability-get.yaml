@@ -1,0 +1,36 @@
+checks: 4300
+critical: 40
+days:
+    - checks: 1440
+      critical: 0
+      date: "2026-11-01"
+      downtimeMinutes: 0
+      inconclusive: 0
+      noData: false
+      ok: 1440
+      uptimePercent: 100
+      warning: 0
+    - checks: 1440
+      critical: 20
+      date: "2026-11-02"
+      downtimeMinutes: 20
+      inconclusive: 0
+      noData: false
+      ok: 1420
+      uptimePercent: 98.61
+      warning: 0
+    - checks: 0
+      critical: 0
+      date: "2026-11-03"
+      downtimeMinutes: 0
+      inconclusive: 0
+      noData: true
+      ok: 0
+      warning: 0
+downtimeMinutes: 40
+from: "2026-11-01"
+inconclusive: 0
+ok: 4260
+to: "2026-11-03"
+uptimePercent: 99.07
+warning: 0

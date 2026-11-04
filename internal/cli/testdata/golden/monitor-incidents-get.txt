@@ -1,0 +1,13 @@
+ID:            3f2c8a8e-6c1d-4a59-9a43-2b1f0f6f9d10
+Title:         Shop is down
+Status:        open
+Severity:      critical (peak critical)
+Monitor:       Shop (keyword, https://shop.example.com/health)
+Aspect:        availability
+Summary:       HTTP 503
+Opened:        2026-11-03 10:01
+Resolved:      —
+Duration:      9m 0s
+Acknowledged:  no
+Timeline:      2026-11-03 10:01  opened
+Alerts:        2026-11-03 10:01  down to On-call webhook: sent (1 attempt)

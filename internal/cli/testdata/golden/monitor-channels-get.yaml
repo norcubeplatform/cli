@@ -1,0 +1,10 @@
+createdAt: "2026-10-01T09:00:00Z"
+enabled: true
+id: 0c2d4f6a-8b1e-4c3d-9e5f-7a6b5c4d3e2f
+isDefault: true
+kind: webhook
+name: On-call webhook
+settings:
+    url: https://hooks.example.com/monitor
+updatedAt: "2026-10-01T09:00:00Z"
+verified: true

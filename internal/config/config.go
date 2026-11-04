@@ -148,6 +148,7 @@ type Config struct {
 	Langsync    string
 	Domainradar string
 	Billing     string
+	Monitor     string
 	Prompthub   string
 
 	User      User
@@ -169,6 +170,8 @@ func (c *Config) Endpoint(service string) string {
 		return c.Domainradar
 	case ServiceBilling:
 		return c.Billing
+	case ServiceMonitor:
+		return c.Monitor
 	case ServicePrompthub:
 		return c.Prompthub
 	}
@@ -190,6 +193,8 @@ func (c *Config) SetEndpoint(service, url string) {
 		c.Domainradar = url
 	case ServiceBilling:
 		c.Billing = url
+	case ServiceMonitor:
+		c.Monitor = url
 	case ServicePrompthub:
 		c.Prompthub = url
 	}

@@ -29,7 +29,7 @@ func commandsEnv(t *testing.T) {
 		p := f.Profile(config.DefaultProfileName)
 		p.Environment = config.EnvCustom
 		p.Endpoints = map[string]string{}
-		for _, key := range []string{config.ServiceAuth, config.ServiceSnapDB, config.ServiceLangsync, config.ServiceDomainradar, config.ServiceBilling} {
+		for _, key := range []string{config.ServiceAuth, config.ServiceSnapDB, config.ServiceLangsync, config.ServiceDomainradar, config.ServiceBilling, config.ServiceMonitor} {
 			p.Endpoints[key] = srv.URL
 		}
 	})
@@ -136,6 +136,7 @@ func TestCommandsAllIncludesHiddenAndRenamed(t *testing.T) {
 	c := find(commandsJSON(t, "--all"), "norcube backup list")
 	if c == nil {
 		t.Fatal("--all does not list the renamed `backup list`")
+		return // staticcheck (SA5011) doesn't see t.Fatal as terminating here
 	}
 	if !c.Hidden || c.RenamedTo != "norcube backup jobs list" {
 		t.Errorf("hidden %v, renamedTo %q", c.Hidden, c.RenamedTo)

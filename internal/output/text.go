@@ -22,10 +22,14 @@ const placeholder = "—"
 
 // Object is a single resource. JSON and YAML encode Value; a table shows
 // Fields as aligned name/value lines; text prints the field values on one
-// tab-separated line, in Fields order.
+// tab-separated line, in Fields order, or Text when it is set.
 type Object struct {
 	Value  any
 	Fields []Field
+	// Text, when set, is the record -o text prints instead of the field
+	// values: for objects whose fields depend on the resource (a monitor's
+	// settings by type), so the text columns stay fixed.
+	Text []string
 }
 
 // Field is one line of an Object's table view.
@@ -58,6 +62,13 @@ func (o Object) writeTable(w io.Writer) error {
 }
 
 func (o Object) writeText(w io.Writer) error {
+	if o.Text != nil {
+		cells := make([]string, len(o.Text))
+		for i, c := range o.Text {
+			cells[i] = textCell(c)
+		}
+		return writeLine(w, cells)
+	}
 	cells := make([]string, len(o.Fields))
 	for i, f := range o.Fields {
 		cells[i] = textCell(f.Value)
