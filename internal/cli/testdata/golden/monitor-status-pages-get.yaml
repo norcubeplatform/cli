@@ -1,0 +1,17 @@
+createdAt: "2026-11-01T09:00:00Z"
+description: Our services
+id: 6e0f4b1a-2c3d-4e5f-8a9b-0c1d2e3f4a5b
+name: Acme status
+published: true
+publishedAt: "2026-11-02T09:00:00Z"
+settings:
+    historyDays: 90
+    searchIndexing: true
+    showResponseTime: false
+    showUptimeBars: true
+    showUptimePercent: true
+    timeZone: Europe/Prague
+    uptimeDays: 90
+slug: acme
+updatedAt: "2026-11-02T09:00:00Z"
+url: https://acme.norcubestatus.com

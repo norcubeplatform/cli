@@ -109,3 +109,65 @@ func channelRef(ctx context.Context, c *monitorContext, ref string) (uuid.UUID, 
 	}
 	return uuid.Nil, clierr.Usage(fmt.Errorf("%d alert channels are named %q: name one by id (%s)", len(ids), ref, strings.Join(ids, ", ")))
 }
+
+// statusPageID resolves a status page named on the command line: its id,
+// which needs no request, or its exact slug.
+func statusPageID(ctx context.Context, c *monitorContext, ref string) (uuid.UUID, error) {
+	ref = strings.TrimSpace(ref)
+	if id, err := uuid.Parse(ref); err == nil {
+		return id, nil
+	}
+	p, err := statusPageBySlug(ctx, c, ref)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	return p.Id, nil
+}
+
+// getStatusPage returns a status page named by its id or exact slug.
+func getStatusPage(ctx context.Context, c *monitorContext, ref string) (monitor.DtoStatusPage, error) {
+	ref = strings.TrimSpace(ref)
+	id, err := uuid.Parse(ref)
+	if err != nil {
+		return statusPageBySlug(ctx, c, ref)
+	}
+	res, err := c.API.GetStatusPageWithResponse(ctx, id)
+	if err != nil {
+		return monitor.DtoStatusPage{}, err
+	}
+	if res.JSON200 == nil {
+		return monitor.DtoStatusPage{}, apiError(res.HTTPResponse, res.Body)
+	}
+	return *res.JSON200, nil
+}
+
+// statusPageBySlug looks through the organization's pages: the API has no
+// lookup by slug. Slugs are unique, so at most one matches.
+func statusPageBySlug(ctx context.Context, c *monitorContext, slug string) (monitor.DtoStatusPage, error) {
+	if slug == "" {
+		return monitor.DtoStatusPage{}, clierr.Usage(fmt.Errorf("no status page given"))
+	}
+	limit := maxPageSize
+	params := &monitor.ListStatusPagesParams{Limit: &limit}
+	for {
+		res, err := c.API.ListStatusPagesWithResponse(ctx, params)
+		if err != nil {
+			return monitor.DtoStatusPage{}, err
+		}
+		if res.JSON200 == nil {
+			return monitor.DtoStatusPage{}, apiError(res.HTTPResponse, res.Body)
+		}
+		for _, p := range res.JSON200.List {
+			if p.Slug == slug {
+				return p, nil
+			}
+		}
+		next := nextCursor(res.JSON200.Cursors)
+		if next == "" {
+			break
+		}
+		params.Cursor = &next
+	}
+	return monitor.DtoStatusPage{}, &clierr.Error{Code: clierr.CodeNotFound, Message: fmt.Sprintf("no status page with the slug %q", slug),
+		Hint: "List them with `norcube monitor status-pages list`."}
+}

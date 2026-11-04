@@ -129,7 +129,7 @@
       ],
       "name": "monitor",
       "short": "Monitor uptime, SSL certificates and domain expiry, and manage incidents and alerts",
-      "long": "Norcube Monitor checks your sites, certificates and domains on a schedule\nfrom Norcube's servers. A monitor is an HTTP check (optionally with a\nkeyword), an SSL certificate check or a domain expiry check. Problems\nconfirmed by consecutive checks open incidents, which alert through your\nalert channels (email, webhook, Slack, Discord, SMS).\n\nMonitors and channels are named by their id or, where a command says so,\nby their exact name. Checks count towards your Norcube Monitor usage, on a\nschedule and when you run one now.\n\nIn CI, \"monitor status --fail-on critical\" fails the job while a\ncritical incident is open, and \"monitor monitors run \u003cmonitor\u003e --wait\"\nfails it when the check finds the monitor down. CI tokens need a\nNorcube Monitor scope: monitor.read (everything that reads),\nmonitor.check (run checks), monitor.write (manage monitors and\nincidents) or monitor.channels (manage alert channels, which\nmonitor.write doesn't include).",
+      "long": "Norcube Monitor checks your sites, certificates and domains on a schedule\nfrom Norcube's servers. A monitor is an HTTP check (optionally with a\nkeyword), an SSL certificate check or a domain expiry check. Problems\nconfirmed by consecutive checks open incidents, which alert through your\nalert channels (email, webhook, Slack, Discord, SMS). Status pages show\nchosen monitors to the public.\n\nMonitors and channels are named by their id or, where a command says so,\nby their exact name. Checks count towards your Norcube Monitor usage, on a\nschedule and when you run one now.\n\nIn CI, \"monitor status --fail-on critical\" fails the job while a\ncritical incident is open, and \"monitor monitors run \u003cmonitor\u003e --wait\"\nfails it when the check finds the monitor down. CI tokens need a\nNorcube Monitor scope: monitor.read (everything that reads),\nmonitor.check (run checks), monitor.write (manage monitors and\nincidents), monitor.channels (manage alert channels) or\nmonitor.statuspages (manage status pages and post on them). monitor.write\nincludes neither of the last two.",
       "usage": "norcube monitor \u003ccommand\u003e",
       "group": true,
       "service": {
@@ -2691,6 +2691,1020 @@
             "warning",
             "critical",
             "none"
+          ]
+        }
+      ]
+    },
+    {
+      "command": "norcube monitor status-pages",
+      "path": [
+        "monitor",
+        "status-pages"
+      ],
+      "name": "status-pages",
+      "aliases": [
+        "status-page"
+      ],
+      "short": "Manage public status pages, their layout and the incidents posted on them",
+      "long": "A status page is a public page that shows chosen monitors and manual rows\nas components, under names you pick; a monitor's own name and target are\nnever shown. A page starts unpublished: set its layout, check it with a\npreview link, then publish it. Changes to a published page, and incidents\nposted on it, are public within a minute.\n\nPages are named by their id or exact slug. Any Norcube Monitor scope reads\nthem; a CI token changes them or posts on them only with the\nmonitor.statuspages scope, which no other scope includes, because\neverything it changes is public.",
+      "usage": "norcube monitor status-pages \u003ccommand\u003e",
+      "group": true,
+      "service": {
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
+      },
+      "confirm": false,
+      "wait": false,
+      "paginated": false,
+      "flags": []
+    },
+    {
+      "command": "norcube monitor status-pages create",
+      "path": [
+        "monitor",
+        "status-pages",
+        "create"
+      ],
+      "name": "create",
+      "short": "Create a status page, unpublished",
+      "long": "Creates a page that nobody can see yet: set what it shows with \"layout\nset\", check it with \"preview-link\", then \"publish\" it. Every setting is\nrequired: the page's public face is your choice, so nothing is filled in\nfor you. A boolean takes =false to turn it off.\n\nYour plan limits how many pages an organization has, published or not.",
+      "usage": "norcube monitor status-pages create \u003cname\u003e [flags]",
+      "args": "\u003cname\u003e",
+      "example": "norcube monitor status-pages create \"Acme status\" --slug acme --time-zone Europe/Prague --uptime-days 90 --history-days 90 --show-uptime-bars --show-uptime-percent --show-response-time=false --search-indexing",
+      "group": false,
+      "service": {
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
+      },
+      "effect": "write",
+      "confirm": false,
+      "wait": false,
+      "paginated": false,
+      "outputFormats": [
+        "table",
+        "json",
+        "yaml",
+        "text"
+      ],
+      "flags": [
+        {
+          "name": "description",
+          "type": "string",
+          "description": "Public text shown under the page's name",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "history-days",
+          "type": "int",
+          "default": "0",
+          "description": "Days resolved incidents stay on the page, 7 to 365",
+          "required": true,
+          "repeatable": false
+        },
+        {
+          "name": "search-indexing",
+          "type": "bool",
+          "default": "false",
+          "description": "Let search engines index the page (--search-indexing=false asks them to leave it out)",
+          "required": true,
+          "repeatable": false
+        },
+        {
+          "name": "show-response-time",
+          "type": "bool",
+          "default": "false",
+          "description": "Show each component's average response time (--show-response-time=false hides it)",
+          "required": true,
+          "repeatable": false
+        },
+        {
+          "name": "show-uptime-bars",
+          "type": "bool",
+          "default": "false",
+          "description": "Show daily uptime bars (--show-uptime-bars=false hides them)",
+          "required": true,
+          "repeatable": false
+        },
+        {
+          "name": "show-uptime-percent",
+          "type": "bool",
+          "default": "false",
+          "description": "Show each component's uptime percentage (--show-uptime-percent=false hides it)",
+          "required": true,
+          "repeatable": false
+        },
+        {
+          "name": "slug",
+          "type": "string",
+          "description": "The page's public address: 3 to 40 lowercase letters, digits or hyphens",
+          "required": true,
+          "repeatable": false
+        },
+        {
+          "name": "time-zone",
+          "type": "string",
+          "description": "IANA time zone the page shows times in, e.g. Europe/Prague",
+          "required": true,
+          "repeatable": false
+        },
+        {
+          "name": "uptime-days",
+          "type": "int",
+          "default": "0",
+          "description": "Days the uptime bars cover: 30, 60 or 90",
+          "required": true,
+          "repeatable": false,
+          "enum": [
+            "30",
+            "60",
+            "90"
+          ]
+        }
+      ]
+    },
+    {
+      "command": "norcube monitor status-pages delete",
+      "path": [
+        "monitor",
+        "status-pages",
+        "delete"
+      ],
+      "name": "delete",
+      "short": "Delete a status page with its layout and posted incidents",
+      "long": "Deletes the page and everything on it, takes it offline and gives up its\nold addresses. The monitors it shows are not touched.",
+      "usage": "norcube monitor status-pages delete \u003cpage\u003e [flags]",
+      "args": "\u003cpage\u003e",
+      "example": "norcube monitor status-pages delete acme\nnorcube monitor status-pages delete 6e0f4b1a-2c3d-4e5f-8a9b-0c1d2e3f4a5b --yes",
+      "group": false,
+      "service": {
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
+      },
+      "effect": "write",
+      "confirm": true,
+      "wait": false,
+      "paginated": false,
+      "outputFormats": [
+        "table",
+        "json",
+        "yaml",
+        "text"
+      ],
+      "flags": [
+        {
+          "name": "yes",
+          "type": "bool",
+          "default": "false",
+          "description": "Don't ask for confirmation",
+          "required": false,
+          "repeatable": false
+        }
+      ]
+    },
+    {
+      "command": "norcube monitor status-pages get",
+      "path": [
+        "monitor",
+        "status-pages",
+        "get"
+      ],
+      "name": "get",
+      "short": "Show a status page and its settings",
+      "usage": "norcube monitor status-pages get \u003cpage\u003e",
+      "args": "\u003cpage\u003e",
+      "example": "norcube monitor status-pages get acme\nnorcube monitor status-pages get acme -o json --query url",
+      "group": false,
+      "service": {
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
+      },
+      "effect": "read",
+      "confirm": false,
+      "wait": false,
+      "paginated": false,
+      "outputFormats": [
+        "table",
+        "json",
+        "yaml",
+        "text"
+      ],
+      "flags": []
+    },
+    {
+      "command": "norcube monitor status-pages incidents",
+      "path": [
+        "monitor",
+        "status-pages",
+        "incidents"
+      ],
+      "name": "incidents",
+      "aliases": [
+        "incident"
+      ],
+      "short": "Post incidents on a status page and keep them updated",
+      "long": "A posted incident is what you tell the public: a title, an impact and a\nseries of updates. It is separate from a monitor's own incidents, which stay\ninternal; a post may link to them for your navigation, but those links are\nnever published.\n\nWhile a post is open, the status it gives an affected component wins over\nwhat the component's monitor says. A post with status resolved moves to the\npage's history. On a published page everything here is public within a\nminute.",
+      "usage": "norcube monitor status-pages incidents \u003ccommand\u003e",
+      "group": true,
+      "service": {
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
+      },
+      "confirm": false,
+      "wait": false,
+      "paginated": false,
+      "flags": []
+    },
+    {
+      "command": "norcube monitor status-pages incidents create",
+      "path": [
+        "monitor",
+        "status-pages",
+        "incidents",
+        "create"
+      ],
+      "name": "create",
+      "short": "Post an incident on a status page; public within a minute on a published page",
+      "long": "Posts an incident with its first update. On a published page it is public\nwithin a minute: write it for your customers. It counts toward the page's\noverall status while it is open, and --component sets what the page shows\nfor the components it affects.\n\n--monitor-incident links the monitor incidents the post is about, for your\nown navigation; the links are never published.",
+      "usage": "norcube monitor status-pages incidents create \u003cpage\u003e [flags]",
+      "args": "\u003cpage\u003e",
+      "example": "norcube monitor status-pages incidents create acme --title \"Elevated API errors\" --status investigating --impact minor --message \"We are looking into it.\"\nnorcube monitor status-pages incidents create acme --title \"Checkout is down\" --status identified --impact major --message-file update.txt --component \"Checkout=major_outage\" --started-at 20m",
+      "group": false,
+      "service": {
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
+      },
+      "effect": "write",
+      "confirm": false,
+      "wait": false,
+      "paginated": false,
+      "outputFormats": [
+        "table",
+        "json",
+        "yaml",
+        "text"
+      ],
+      "flags": [
+        {
+          "name": "component",
+          "type": "stringArray",
+          "description": "An affected component and the status the page shows it in while the incident is open, as \"\u003cid or name\u003e=\u003cstatus\u003e\" (repeatable): operational, degraded_performance, partial_outage or major_outage",
+          "required": false,
+          "repeatable": true
+        },
+        {
+          "name": "impact",
+          "type": "string",
+          "description": "How bad it is: none, minor, major or critical",
+          "required": true,
+          "repeatable": false,
+          "enum": [
+            "none",
+            "minor",
+            "major",
+            "critical"
+          ]
+        },
+        {
+          "name": "message",
+          "type": "string",
+          "description": "The first update's text; public",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "message-file",
+          "type": "string",
+          "description": "Read the message from this file (- for standard input)",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "monitor-incident",
+          "type": "stringSlice",
+          "description": "Id of a monitor incident this post is about (repeat or comma-separate); never published",
+          "required": false,
+          "repeatable": true
+        },
+        {
+          "name": "started-at",
+          "type": "string",
+          "description": "When it began, if not now: an RFC 3339 timestamp, a date or an age (20m, 2h)",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "Where it stands: investigating, identified, monitoring or resolved",
+          "required": true,
+          "repeatable": false,
+          "enum": [
+            "investigating",
+            "identified",
+            "monitoring",
+            "resolved"
+          ]
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": "The incident's public title",
+          "required": true,
+          "repeatable": false
+        }
+      ]
+    },
+    {
+      "command": "norcube monitor status-pages incidents get",
+      "path": [
+        "monitor",
+        "status-pages",
+        "incidents",
+        "get"
+      ],
+      "name": "get",
+      "short": "Show a posted incident with its updates and public address",
+      "usage": "norcube monitor status-pages incidents get \u003cpage\u003e \u003cincident\u003e",
+      "args": "\u003cpage\u003e \u003cincident\u003e",
+      "example": "norcube monitor status-pages incidents get acme 8c7d6e5f-4a3b-4c2d-9e1f-0a1b2c3d4e5f",
+      "group": false,
+      "service": {
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
+      },
+      "effect": "read",
+      "confirm": false,
+      "wait": false,
+      "paginated": false,
+      "outputFormats": [
+        "table",
+        "json",
+        "yaml",
+        "text"
+      ],
+      "flags": []
+    },
+    {
+      "command": "norcube monitor status-pages incidents list",
+      "path": [
+        "monitor",
+        "status-pages",
+        "incidents",
+        "list"
+      ],
+      "name": "list",
+      "short": "List the incidents posted on a status page, newest first",
+      "usage": "norcube monitor status-pages incidents list \u003cpage\u003e [flags]",
+      "args": "\u003cpage\u003e",
+      "example": "norcube monitor status-pages incidents list acme\nnorcube monitor status-pages incidents list acme --status open",
+      "group": false,
+      "service": {
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
+      },
+      "effect": "read",
+      "confirm": false,
+      "wait": false,
+      "paginated": true,
+      "outputFormats": [
+        "table",
+        "json",
+        "yaml",
+        "text"
+      ],
+      "flags": [
+        {
+          "name": "all-pages",
+          "type": "bool",
+          "default": "false",
+          "description": "Follow cursors until every page is fetched (capped by --max-items)",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "cursor",
+          "type": "string",
+          "description": "Continue from the cursor a previous page printed",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "limit",
+          "type": "int",
+          "default": "0",
+          "description": "Same as --page-size",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "max-items",
+          "type": "int",
+          "default": "0",
+          "description": "Cap for --all-pages (0 = 10000)",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "page-size",
+          "type": "int",
+          "default": "0",
+          "description": "Items per request (0 = 50)",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "Only open or resolved incidents",
+          "required": false,
+          "repeatable": false,
+          "enum": [
+            "open",
+            "resolved"
+          ]
+        }
+      ]
+    },
+    {
+      "command": "norcube monitor status-pages incidents update",
+      "path": [
+        "monitor",
+        "status-pages",
+        "incidents",
+        "update"
+      ],
+      "name": "update",
+      "short": "Correct a posted incident; public within a minute on a published page",
+      "long": "Corrects a post's title, impact, start or references, and changes only what\nyou pass. It adds no update and doesn't move the status: for that, use\n\"incidents updates create\". --component replaces the affected components as\na whole. Resolved posts can be corrected too. On a published page a\ncorrection is public within a minute.",
+      "usage": "norcube monitor status-pages incidents update \u003cpage\u003e \u003cincident\u003e [flags]",
+      "args": "\u003cpage\u003e \u003cincident\u003e",
+      "example": "norcube monitor status-pages incidents update acme 8c7d6e5f-4a3b-4c2d-9e1f-0a1b2c3d4e5f --title \"Elevated API errors in Europe\"\nnorcube monitor status-pages incidents update acme 8c7d6e5f-4a3b-4c2d-9e1f-0a1b2c3d4e5f --impact major --component \"API=partial_outage\"",
+      "group": false,
+      "service": {
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
+      },
+      "effect": "write",
+      "confirm": false,
+      "wait": false,
+      "paginated": false,
+      "outputFormats": [
+        "table",
+        "json",
+        "yaml",
+        "text"
+      ],
+      "flags": [
+        {
+          "name": "component",
+          "type": "stringArray",
+          "description": "An affected component and the status the page shows it in while the incident is open, as \"\u003cid or name\u003e=\u003cstatus\u003e\" (repeatable): operational, degraded_performance, partial_outage or major_outage",
+          "required": false,
+          "repeatable": true
+        },
+        {
+          "name": "impact",
+          "type": "string",
+          "description": "New impact: none, minor, major or critical",
+          "required": false,
+          "repeatable": false,
+          "enum": [
+            "none",
+            "minor",
+            "major",
+            "critical"
+          ]
+        },
+        {
+          "name": "monitor-incident",
+          "type": "stringSlice",
+          "description": "Replace the linked monitor incidents with these ids (repeat or comma-separate); never published",
+          "required": false,
+          "repeatable": true
+        },
+        {
+          "name": "no-components",
+          "type": "bool",
+          "default": "false",
+          "description": "Remove every affected component",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "no-monitor-incidents",
+          "type": "bool",
+          "default": "false",
+          "description": "Remove every link to a monitor incident",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "started-at",
+          "type": "string",
+          "description": "When it began: an RFC 3339 timestamp, a date or an age (20m, 2h)",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": "New public title",
+          "required": false,
+          "repeatable": false
+        }
+      ]
+    },
+    {
+      "command": "norcube monitor status-pages incidents updates",
+      "path": [
+        "monitor",
+        "status-pages",
+        "incidents",
+        "updates"
+      ],
+      "name": "updates",
+      "short": "Add updates to a posted incident",
+      "long": "Updates are the timeline of a posted incident: \"incidents get\" shows them,\nand they can't be edited or removed.",
+      "usage": "norcube monitor status-pages incidents updates \u003ccommand\u003e",
+      "group": true,
+      "service": {
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
+      },
+      "confirm": false,
+      "wait": false,
+      "paginated": false,
+      "flags": []
+    },
+    {
+      "command": "norcube monitor status-pages incidents updates create",
+      "path": [
+        "monitor",
+        "status-pages",
+        "incidents",
+        "updates",
+        "create"
+      ],
+      "name": "create",
+      "short": "Post an update on an incident; public within a minute on a published page",
+      "long": "Adds an update to an open post. Its status becomes the post's; resolved ends\nthe post and moves it to the page's history, after which it takes no more\nupdates (post a new incident instead). On a published page the update is\npublic within a minute. --component replaces the affected components.",
+      "usage": "norcube monitor status-pages incidents updates create \u003cpage\u003e \u003cincident\u003e [flags]",
+      "args": "\u003cpage\u003e \u003cincident\u003e",
+      "example": "norcube monitor status-pages incidents updates create acme 8c7d6e5f-4a3b-4c2d-9e1f-0a1b2c3d4e5f --status monitoring --message \"A fix is rolling out.\"\nnorcube monitor status-pages incidents updates create acme 8c7d6e5f-4a3b-4c2d-9e1f-0a1b2c3d4e5f --status resolved --message \"All clear.\"",
+      "group": false,
+      "service": {
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
+      },
+      "effect": "write",
+      "confirm": false,
+      "wait": false,
+      "paginated": false,
+      "outputFormats": [
+        "table",
+        "json",
+        "yaml",
+        "text"
+      ],
+      "flags": [
+        {
+          "name": "component",
+          "type": "stringArray",
+          "description": "An affected component and the status the page shows it in while the incident is open, as \"\u003cid or name\u003e=\u003cstatus\u003e\" (repeatable): operational, degraded_performance, partial_outage or major_outage",
+          "required": false,
+          "repeatable": true
+        },
+        {
+          "name": "message",
+          "type": "string",
+          "description": "The update's text; public",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "message-file",
+          "type": "string",
+          "description": "Read the message from this file (- for standard input)",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "no-components",
+          "type": "bool",
+          "default": "false",
+          "description": "Remove every affected component",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "Where it stands now: investigating, identified, monitoring or resolved",
+          "required": true,
+          "repeatable": false,
+          "enum": [
+            "investigating",
+            "identified",
+            "monitoring",
+            "resolved"
+          ]
+        }
+      ]
+    },
+    {
+      "command": "norcube monitor status-pages layout",
+      "path": [
+        "monitor",
+        "status-pages",
+        "layout"
+      ],
+      "name": "layout",
+      "short": "Show or replace what a status page shows",
+      "long": "A layout lists a page's components: first those outside any group, then the\ngroups, each in the order given. A component follows a monitor (kind\nmonitor, with the aspects that count: availability, certificate, domain)\nor has a status you set (kind manual, with manualStatus operational,\ndegraded_performance, partial_outage or major_outage). The name is what\nthe public sees; the monitor's name and target never are.",
+      "usage": "norcube monitor status-pages layout \u003ccommand\u003e",
+      "group": true,
+      "service": {
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
+      },
+      "confirm": false,
+      "wait": false,
+      "paginated": false,
+      "flags": []
+    },
+    {
+      "command": "norcube monitor status-pages layout get",
+      "path": [
+        "monitor",
+        "status-pages",
+        "layout",
+        "get"
+      ],
+      "name": "get",
+      "short": "Show a status page's layout",
+      "long": "-o json prints the document \"layout set\" takes, so you can edit and send it back.",
+      "usage": "norcube monitor status-pages layout get \u003cpage\u003e",
+      "args": "\u003cpage\u003e",
+      "example": "norcube monitor status-pages layout get acme\nnorcube monitor status-pages layout get acme -o json \u003e layout.json",
+      "group": false,
+      "service": {
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
+      },
+      "effect": "read",
+      "confirm": false,
+      "wait": false,
+      "paginated": false,
+      "outputFormats": [
+        "table",
+        "json",
+        "yaml",
+        "text"
+      ],
+      "flags": []
+    },
+    {
+      "command": "norcube monitor status-pages layout set",
+      "path": [
+        "monitor",
+        "status-pages",
+        "layout",
+        "set"
+      ],
+      "name": "set",
+      "short": "Replace a status page's layout from a JSON file; public within a minute on a published page",
+      "long": "Replaces the layout as a whole and prints the saved one. On a published page\nthe result is public within a minute, and adding a monitor publishes its\nstatus, so you must be able to read every monitor you name.\n\nThe file has \"components\" and \"groups\" (use [] for none), in the shape\n\"layout get -o json\" prints. Keep a row's id to keep the row, leave it out\nfor a new one. A row left out of the file is removed, and with it its place\non any posted incident.",
+      "usage": "norcube monitor status-pages layout set \u003cpage\u003e [flags]",
+      "args": "\u003cpage\u003e",
+      "example": "norcube monitor status-pages layout set acme --file layout.json\nnorcube monitor status-pages layout get acme -o json | jq '.groups[0].collapsed = true' | norcube monitor status-pages layout set acme --file -",
+      "group": false,
+      "service": {
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
+      },
+      "effect": "write",
+      "confirm": false,
+      "wait": false,
+      "paginated": false,
+      "outputFormats": [
+        "table",
+        "json",
+        "yaml",
+        "text"
+      ],
+      "flags": [
+        {
+          "name": "file",
+          "type": "string",
+          "description": "Read the layout as JSON from this file (- for standard input)",
+          "required": true,
+          "repeatable": false
+        }
+      ]
+    },
+    {
+      "command": "norcube monitor status-pages list",
+      "path": [
+        "monitor",
+        "status-pages",
+        "list"
+      ],
+      "name": "list",
+      "short": "List status pages, newest first",
+      "long": "Lists the organization's status pages, published or not. --monitor lists\nthe pages that show one monitor instead (at most 50, on one page).",
+      "usage": "norcube monitor status-pages list [flags]",
+      "example": "norcube monitor status-pages list\nnorcube monitor status-pages list --monitor \"Shop\"\nnorcube monitor status-pages list -o json --query \"[?published].url\"",
+      "group": false,
+      "service": {
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
+      },
+      "effect": "read",
+      "confirm": false,
+      "wait": false,
+      "paginated": true,
+      "outputFormats": [
+        "table",
+        "json",
+        "yaml",
+        "text"
+      ],
+      "flags": [
+        {
+          "name": "all-pages",
+          "type": "bool",
+          "default": "false",
+          "description": "Follow cursors until every page is fetched (capped by --max-items)",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "cursor",
+          "type": "string",
+          "description": "Continue from the cursor a previous page printed",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "limit",
+          "type": "int",
+          "default": "0",
+          "description": "Same as --page-size",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "max-items",
+          "type": "int",
+          "default": "0",
+          "description": "Cap for --all-pages (0 = 10000)",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "monitor",
+          "type": "string",
+          "description": "Only pages that show this monitor (id or exact name)",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "page-size",
+          "type": "int",
+          "default": "0",
+          "description": "Items per request (0 = 50)",
+          "required": false,
+          "repeatable": false
+        }
+      ]
+    },
+    {
+      "command": "norcube monitor status-pages preview-link",
+      "path": [
+        "monitor",
+        "status-pages",
+        "preview-link"
+      ],
+      "name": "preview-link",
+      "short": "Print a link to the rendered page that works for 15 minutes",
+      "long": "Prints a signed link to the page as the public would see it, published or\nnot. Anyone with the link can open it until it expires, 15 minutes later,\nso treat it like a draft you are sharing. It changes nothing, but a CI\ntoken needs the monitor.statuspages scope to get one.",
+      "usage": "norcube monitor status-pages preview-link \u003cpage\u003e",
+      "args": "\u003cpage\u003e",
+      "example": "norcube monitor status-pages preview-link acme\nnorcube monitor status-pages preview-link acme -o text | cut -f1",
+      "group": false,
+      "service": {
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
+      },
+      "effect": "read",
+      "confirm": false,
+      "wait": false,
+      "paginated": false,
+      "outputFormats": [
+        "table",
+        "json",
+        "yaml",
+        "text"
+      ],
+      "flags": []
+    },
+    {
+      "command": "norcube monitor status-pages publish",
+      "path": [
+        "monitor",
+        "status-pages",
+        "publish"
+      ],
+      "name": "publish",
+      "short": "Make a status page public within a minute",
+      "long": "Publishes the page at its address: it is public within a minute, along\nwith its page.json and its Atom feed. It needs at least one component.\nPublishing a published page changes nothing.",
+      "usage": "norcube monitor status-pages publish \u003cpage\u003e",
+      "args": "\u003cpage\u003e",
+      "example": "norcube monitor status-pages publish acme",
+      "group": false,
+      "service": {
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
+      },
+      "effect": "write",
+      "confirm": false,
+      "wait": false,
+      "paginated": false,
+      "outputFormats": [
+        "table",
+        "json",
+        "yaml",
+        "text"
+      ],
+      "flags": []
+    },
+    {
+      "command": "norcube monitor status-pages unpublish",
+      "path": [
+        "monitor",
+        "status-pages",
+        "unpublish"
+      ],
+      "name": "unpublish",
+      "short": "Take a status page offline, keeping everything on it",
+      "long": "The page's address stops answering and its old addresses are given up, so\nanother organization can take them. Its layout and posted incidents stay,\nand preview links keep working. Unpublishing an unpublished page changes\nnothing.",
+      "usage": "norcube monitor status-pages unpublish \u003cpage\u003e [flags]",
+      "args": "\u003cpage\u003e",
+      "example": "norcube monitor status-pages unpublish acme\nnorcube monitor status-pages unpublish acme --yes",
+      "group": false,
+      "service": {
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
+      },
+      "effect": "write",
+      "confirm": true,
+      "wait": false,
+      "paginated": false,
+      "outputFormats": [
+        "table",
+        "json",
+        "yaml",
+        "text"
+      ],
+      "flags": [
+        {
+          "name": "yes",
+          "type": "bool",
+          "default": "false",
+          "description": "Don't ask for confirmation",
+          "required": false,
+          "repeatable": false
+        }
+      ]
+    },
+    {
+      "command": "norcube monitor status-pages update",
+      "path": [
+        "monitor",
+        "status-pages",
+        "update"
+      ],
+      "name": "update",
+      "short": "Change a status page's address, texts or settings",
+      "long": "Changes only what you pass. On a published page the change is public within\na minute.\n\n--slug moves the page to a new address. The old address of a published\npage redirects to the new one for 30 days, and no other organization can\ntake it meanwhile; unpublishing or deleting the page gives it up.",
+      "usage": "norcube monitor status-pages update \u003cpage\u003e [flags]",
+      "args": "\u003cpage\u003e",
+      "example": "norcube monitor status-pages update acme --name \"Acme Inc. status\"\nnorcube monitor status-pages update acme --slug acme-inc\nnorcube monitor status-pages update acme --uptime-days 30 --show-response-time",
+      "group": false,
+      "service": {
+        "key": "monitor",
+        "name": "Norcube Monitor",
+        "audience": "monitor"
+      },
+      "effect": "write",
+      "confirm": false,
+      "wait": false,
+      "paginated": false,
+      "outputFormats": [
+        "table",
+        "json",
+        "yaml",
+        "text"
+      ],
+      "flags": [
+        {
+          "name": "description",
+          "type": "string",
+          "description": "Public text shown under the page's name",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "history-days",
+          "type": "int",
+          "default": "0",
+          "description": "Days resolved incidents stay on the page, 7 to 365",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "description": "New public name",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "search-indexing",
+          "type": "bool",
+          "default": "false",
+          "description": "Let search engines index the page (--search-indexing=false asks them to leave it out)",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "show-response-time",
+          "type": "bool",
+          "default": "false",
+          "description": "Show each component's average response time (--show-response-time=false hides it)",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "show-uptime-bars",
+          "type": "bool",
+          "default": "false",
+          "description": "Show daily uptime bars (--show-uptime-bars=false hides them)",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "show-uptime-percent",
+          "type": "bool",
+          "default": "false",
+          "description": "Show each component's uptime percentage (--show-uptime-percent=false hides it)",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "slug",
+          "type": "string",
+          "description": "The page's public address: 3 to 40 lowercase letters, digits or hyphens",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "time-zone",
+          "type": "string",
+          "description": "IANA time zone the page shows times in, e.g. Europe/Prague",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "uptime-days",
+          "type": "int",
+          "default": "0",
+          "description": "Days the uptime bars cover: 30, 60 or 90",
+          "required": false,
+          "repeatable": false,
+          "enum": [
+            "30",
+            "60",
+            "90"
           ]
         }
       ]

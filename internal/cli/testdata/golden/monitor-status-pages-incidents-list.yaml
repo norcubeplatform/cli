@@ -1,0 +1,18 @@
+- components:
+    - componentId: a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5e
+      status: partial_outage
+  createdAt: "2026-11-03T08:05:00Z"
+  id: 8c7d6e5f-4a3b-4c2d-9e1f-0a1b2c3d4e5f
+  impact: minor
+  monitorIncidentIds:
+    - 3f2c8a8e-6c1d-4a59-9a43-2b1f0f6f9d10
+  startedAt: "2026-11-03T08:00:00Z"
+  status: investigating
+  statusPageId: 6e0f4b1a-2c3d-4e5f-8a9b-0c1d2e3f4a5b
+  title: Elevated API errors
+  updatedAt: "2026-11-03T08:05:00Z"
+  updates:
+    - body: We are looking into it.
+      createdAt: "2026-11-03T08:05:00Z"
+      id: d4e5f6a7-b8c9-4d0e-8f1a-2b3c4d5e6f70
+      status: investigating

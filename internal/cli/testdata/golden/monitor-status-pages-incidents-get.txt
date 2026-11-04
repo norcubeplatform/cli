@@ -1,0 +1,10 @@
+ID:                 8c7d6e5f-4a3b-4c2d-9e1f-0a1b2c3d4e5f
+Title:              Elevated API errors
+Status:             investigating
+Impact:             minor
+Started:            2026-11-03 10:00
+Resolved:           —
+Address:            https://acme.norcubestatus.com/incidents/8c7d6e5f-4a3b-4c2d-9e1f-0a1b2c3d4e5f
+Components:         a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5e  partial_outage
+Monitor incidents:  3f2c8a8e-6c1d-4a59-9a43-2b1f0f6f9d10
+Updates:            2026-11-03 10:05  investigating: We are looking into it.

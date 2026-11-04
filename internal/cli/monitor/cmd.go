@@ -1,7 +1,7 @@
 // Package monitor implements the `norcube monitor ...` command tree:
 // uptime, SSL certificate and domain expiry monitors, their check history,
-// incidents and alert channels, and an organization-wide status for
-// scripts and CI.
+// incidents and alert channels, public status pages, and an
+// organization-wide status for scripts and CI.
 package monitor
 
 import (
@@ -57,7 +57,8 @@ func newCmd(d deps) *cobra.Command {
 from Norcube's servers. A monitor is an HTTP check (optionally with a
 keyword), an SSL certificate check or a domain expiry check. Problems
 confirmed by consecutive checks open incidents, which alert through your
-alert channels (email, webhook, Slack, Discord, SMS).
+alert channels (email, webhook, Slack, Discord, SMS). Status pages show
+chosen monitors to the public.
 
 Monitors and channels are named by their id or, where a command says so,
 by their exact name. Checks count towards your Norcube Monitor usage, on a
@@ -68,14 +69,16 @@ critical incident is open, and "monitor monitors run <monitor> --wait"
 fails it when the check finds the monitor down. CI tokens need a
 Norcube Monitor scope: monitor.read (everything that reads),
 monitor.check (run checks), monitor.write (manage monitors and
-incidents) or monitor.channels (manage alert channels, which
-monitor.write doesn't include).`,
+incidents), monitor.channels (manage alert channels) or
+monitor.statuspages (manage status pages and post on them). monitor.write
+includes neither of the last two.`,
 	}
 	cmd.AddCommand(
 		newStatusCmd(d),
 		newMonitorsCmd(d),
 		newIncidentsCmd(d),
 		newChannelsCmd(d),
+		newStatusPagesCmd(d),
 	)
 	registerCompletions(cmd, d)
 	return cmd

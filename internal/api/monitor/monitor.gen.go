@@ -85,10 +85,13 @@ const (
 	ErrorReasonCodeRecentlySent       ConstantsErrorReason = "CODE_RECENTLY_SENT"
 	ErrorReasonContactUnverified      ConstantsErrorReason = "CONTACT_UNVERIFIED"
 	ErrorReasonDeliveryRejected       ConstantsErrorReason = "DELIVERY_REJECTED"
+	ErrorReasonIncidentResolved       ConstantsErrorReason = "INCIDENT_RESOLVED"
 	ErrorReasonInsufficientScope      ConstantsErrorReason = "INSUFFICIENT_SCOPE"
 	ErrorReasonMissingOrganizationID  ConstantsErrorReason = "MISSING_ORGANIZATION_ID"
 	ErrorReasonMonitorLimit           ConstantsErrorReason = "MONITOR_LIMIT"
 	ErrorReasonNothingToVerify        ConstantsErrorReason = "NOTHING_TO_VERIFY"
+	ErrorReasonSlugTaken              ConstantsErrorReason = "SLUG_TAKEN"
+	ErrorReasonStatusPageLimit        ConstantsErrorReason = "STATUS_PAGE_LIMIT"
 	ErrorReasonTooManyAttempts        ConstantsErrorReason = "TOO_MANY_ATTEMPTS"
 	ErrorReasonUnverifiedChannelLimit ConstantsErrorReason = "UNVERIFIED_CHANNEL_LIMIT"
 )
@@ -112,6 +115,8 @@ func (e ConstantsErrorReason) Valid() bool {
 		return true
 	case ErrorReasonDeliveryRejected:
 		return true
+	case ErrorReasonIncidentResolved:
+		return true
 	case ErrorReasonInsufficientScope:
 		return true
 	case ErrorReasonMissingOrganizationID:
@@ -119,6 +124,10 @@ func (e ConstantsErrorReason) Valid() bool {
 	case ErrorReasonMonitorLimit:
 		return true
 	case ErrorReasonNothingToVerify:
+		return true
+	case ErrorReasonSlugTaken:
+		return true
+	case ErrorReasonStatusPageLimit:
 		return true
 	case ErrorReasonTooManyAttempts:
 		return true
@@ -1092,6 +1101,213 @@ func (e DtoMonitorStatsGranularity) Valid() bool {
 	}
 }
 
+// Defines values for DtoPublicStatusAffectedStatus.
+const (
+	DtoPublicStatusAffectedStatusDegradedPerformance DtoPublicStatusAffectedStatus = "degraded_performance"
+	DtoPublicStatusAffectedStatusMajorOutage         DtoPublicStatusAffectedStatus = "major_outage"
+	DtoPublicStatusAffectedStatusOperational         DtoPublicStatusAffectedStatus = "operational"
+	DtoPublicStatusAffectedStatusPartialOutage       DtoPublicStatusAffectedStatus = "partial_outage"
+)
+
+// Valid indicates whether the value is a known member of the DtoPublicStatusAffectedStatus enum.
+func (e DtoPublicStatusAffectedStatus) Valid() bool {
+	switch e {
+	case DtoPublicStatusAffectedStatusDegradedPerformance:
+		return true
+	case DtoPublicStatusAffectedStatusMajorOutage:
+		return true
+	case DtoPublicStatusAffectedStatusOperational:
+		return true
+	case DtoPublicStatusAffectedStatusPartialOutage:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DtoPublicStatusComponentStatus.
+const (
+	DtoPublicStatusComponentStatusDegradedPerformance DtoPublicStatusComponentStatus = "degraded_performance"
+	DtoPublicStatusComponentStatusMajorOutage         DtoPublicStatusComponentStatus = "major_outage"
+	DtoPublicStatusComponentStatusOperational         DtoPublicStatusComponentStatus = "operational"
+	DtoPublicStatusComponentStatusPartialOutage       DtoPublicStatusComponentStatus = "partial_outage"
+	DtoPublicStatusComponentStatusUnknown             DtoPublicStatusComponentStatus = "unknown"
+)
+
+// Valid indicates whether the value is a known member of the DtoPublicStatusComponentStatus enum.
+func (e DtoPublicStatusComponentStatus) Valid() bool {
+	switch e {
+	case DtoPublicStatusComponentStatusDegradedPerformance:
+		return true
+	case DtoPublicStatusComponentStatusMajorOutage:
+		return true
+	case DtoPublicStatusComponentStatusOperational:
+		return true
+	case DtoPublicStatusComponentStatusPartialOutage:
+		return true
+	case DtoPublicStatusComponentStatusUnknown:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DtoPublicStatusDayGrade.
+const (
+	DtoPublicStatusDayGradeMajor   DtoPublicStatusDayGrade = "major"
+	DtoPublicStatusDayGradeMinor   DtoPublicStatusDayGrade = "minor"
+	DtoPublicStatusDayGradeNoData  DtoPublicStatusDayGrade = "no_data"
+	DtoPublicStatusDayGradeOk      DtoPublicStatusDayGrade = "ok"
+	DtoPublicStatusDayGradePartial DtoPublicStatusDayGrade = "partial"
+	DtoPublicStatusDayGradeUnknown DtoPublicStatusDayGrade = "unknown"
+	DtoPublicStatusDayGradeWarning DtoPublicStatusDayGrade = "warning"
+)
+
+// Valid indicates whether the value is a known member of the DtoPublicStatusDayGrade enum.
+func (e DtoPublicStatusDayGrade) Valid() bool {
+	switch e {
+	case DtoPublicStatusDayGradeMajor:
+		return true
+	case DtoPublicStatusDayGradeMinor:
+		return true
+	case DtoPublicStatusDayGradeNoData:
+		return true
+	case DtoPublicStatusDayGradeOk:
+		return true
+	case DtoPublicStatusDayGradePartial:
+		return true
+	case DtoPublicStatusDayGradeUnknown:
+		return true
+	case DtoPublicStatusDayGradeWarning:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DtoPublicStatusGroupStatus.
+const (
+	DtoPublicStatusGroupStatusDegradedPerformance DtoPublicStatusGroupStatus = "degraded_performance"
+	DtoPublicStatusGroupStatusMajorOutage         DtoPublicStatusGroupStatus = "major_outage"
+	DtoPublicStatusGroupStatusOperational         DtoPublicStatusGroupStatus = "operational"
+	DtoPublicStatusGroupStatusPartialOutage       DtoPublicStatusGroupStatus = "partial_outage"
+	DtoPublicStatusGroupStatusUnknown             DtoPublicStatusGroupStatus = "unknown"
+)
+
+// Valid indicates whether the value is a known member of the DtoPublicStatusGroupStatus enum.
+func (e DtoPublicStatusGroupStatus) Valid() bool {
+	switch e {
+	case DtoPublicStatusGroupStatusDegradedPerformance:
+		return true
+	case DtoPublicStatusGroupStatusMajorOutage:
+		return true
+	case DtoPublicStatusGroupStatusOperational:
+		return true
+	case DtoPublicStatusGroupStatusPartialOutage:
+		return true
+	case DtoPublicStatusGroupStatusUnknown:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DtoPublicStatusIncidentImpact.
+const (
+	DtoPublicStatusIncidentImpactCritical DtoPublicStatusIncidentImpact = "critical"
+	DtoPublicStatusIncidentImpactMajor    DtoPublicStatusIncidentImpact = "major"
+	DtoPublicStatusIncidentImpactMinor    DtoPublicStatusIncidentImpact = "minor"
+	DtoPublicStatusIncidentImpactNone     DtoPublicStatusIncidentImpact = "none"
+)
+
+// Valid indicates whether the value is a known member of the DtoPublicStatusIncidentImpact enum.
+func (e DtoPublicStatusIncidentImpact) Valid() bool {
+	switch e {
+	case DtoPublicStatusIncidentImpactCritical:
+		return true
+	case DtoPublicStatusIncidentImpactMajor:
+		return true
+	case DtoPublicStatusIncidentImpactMinor:
+		return true
+	case DtoPublicStatusIncidentImpactNone:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DtoPublicStatusIncidentStatus.
+const (
+	DtoPublicStatusIncidentStatusIdentified    DtoPublicStatusIncidentStatus = "identified"
+	DtoPublicStatusIncidentStatusInvestigating DtoPublicStatusIncidentStatus = "investigating"
+	DtoPublicStatusIncidentStatusMonitoring    DtoPublicStatusIncidentStatus = "monitoring"
+	DtoPublicStatusIncidentStatusResolved      DtoPublicStatusIncidentStatus = "resolved"
+)
+
+// Valid indicates whether the value is a known member of the DtoPublicStatusIncidentStatus enum.
+func (e DtoPublicStatusIncidentStatus) Valid() bool {
+	switch e {
+	case DtoPublicStatusIncidentStatusIdentified:
+		return true
+	case DtoPublicStatusIncidentStatusInvestigating:
+		return true
+	case DtoPublicStatusIncidentStatusMonitoring:
+		return true
+	case DtoPublicStatusIncidentStatusResolved:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DtoPublicStatusPageIndicator.
+const (
+	DtoPublicStatusPageIndicatorCritical DtoPublicStatusPageIndicator = "critical"
+	DtoPublicStatusPageIndicatorMajor    DtoPublicStatusPageIndicator = "major"
+	DtoPublicStatusPageIndicatorMinor    DtoPublicStatusPageIndicator = "minor"
+	DtoPublicStatusPageIndicatorNone     DtoPublicStatusPageIndicator = "none"
+)
+
+// Valid indicates whether the value is a known member of the DtoPublicStatusPageIndicator enum.
+func (e DtoPublicStatusPageIndicator) Valid() bool {
+	switch e {
+	case DtoPublicStatusPageIndicatorCritical:
+		return true
+	case DtoPublicStatusPageIndicatorMajor:
+		return true
+	case DtoPublicStatusPageIndicatorMinor:
+		return true
+	case DtoPublicStatusPageIndicatorNone:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DtoPublicStatusUpdateStatus.
+const (
+	DtoPublicStatusUpdateStatusIdentified    DtoPublicStatusUpdateStatus = "identified"
+	DtoPublicStatusUpdateStatusInvestigating DtoPublicStatusUpdateStatus = "investigating"
+	DtoPublicStatusUpdateStatusMonitoring    DtoPublicStatusUpdateStatus = "monitoring"
+	DtoPublicStatusUpdateStatusResolved      DtoPublicStatusUpdateStatus = "resolved"
+)
+
+// Valid indicates whether the value is a known member of the DtoPublicStatusUpdateStatus enum.
+func (e DtoPublicStatusUpdateStatus) Valid() bool {
+	switch e {
+	case DtoPublicStatusUpdateStatusIdentified:
+		return true
+	case DtoPublicStatusUpdateStatusInvestigating:
+		return true
+	case DtoPublicStatusUpdateStatusMonitoring:
+		return true
+	case DtoPublicStatusUpdateStatusResolved:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for DtoStatusChangeFrom.
 const (
 	DtoStatusChangeFromCritical DtoStatusChangeFrom = "critical"
@@ -1131,6 +1347,303 @@ func (e DtoStatusChangeTo) Valid() bool {
 	case DtoStatusChangeToOk:
 		return true
 	case DtoStatusChangeToWarning:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DtoStatusPageAffectedStatus.
+const (
+	DtoStatusPageAffectedStatusDegradedPerformance DtoStatusPageAffectedStatus = "degraded_performance"
+	DtoStatusPageAffectedStatusMajorOutage         DtoStatusPageAffectedStatus = "major_outage"
+	DtoStatusPageAffectedStatusOperational         DtoStatusPageAffectedStatus = "operational"
+	DtoStatusPageAffectedStatusPartialOutage       DtoStatusPageAffectedStatus = "partial_outage"
+)
+
+// Valid indicates whether the value is a known member of the DtoStatusPageAffectedStatus enum.
+func (e DtoStatusPageAffectedStatus) Valid() bool {
+	switch e {
+	case DtoStatusPageAffectedStatusDegradedPerformance:
+		return true
+	case DtoStatusPageAffectedStatusMajorOutage:
+		return true
+	case DtoStatusPageAffectedStatusOperational:
+		return true
+	case DtoStatusPageAffectedStatusPartialOutage:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DtoStatusPageComponentAspects.
+const (
+	DtoStatusPageComponentAspectsAvailability DtoStatusPageComponentAspects = "availability"
+	DtoStatusPageComponentAspectsCertificate  DtoStatusPageComponentAspects = "certificate"
+	DtoStatusPageComponentAspectsDomain       DtoStatusPageComponentAspects = "domain"
+)
+
+// Valid indicates whether the value is a known member of the DtoStatusPageComponentAspects enum.
+func (e DtoStatusPageComponentAspects) Valid() bool {
+	switch e {
+	case DtoStatusPageComponentAspectsAvailability:
+		return true
+	case DtoStatusPageComponentAspectsCertificate:
+		return true
+	case DtoStatusPageComponentAspectsDomain:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DtoStatusPageComponentKind.
+const (
+	Manual  DtoStatusPageComponentKind = "manual"
+	Monitor DtoStatusPageComponentKind = "monitor"
+)
+
+// Valid indicates whether the value is a known member of the DtoStatusPageComponentKind enum.
+func (e DtoStatusPageComponentKind) Valid() bool {
+	switch e {
+	case Manual:
+		return true
+	case Monitor:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DtoStatusPageComponentManualStatus.
+const (
+	DegradedPerformance DtoStatusPageComponentManualStatus = "degraded_performance"
+	MajorOutage         DtoStatusPageComponentManualStatus = "major_outage"
+	Operational         DtoStatusPageComponentManualStatus = "operational"
+	PartialOutage       DtoStatusPageComponentManualStatus = "partial_outage"
+)
+
+// Valid indicates whether the value is a known member of the DtoStatusPageComponentManualStatus enum.
+func (e DtoStatusPageComponentManualStatus) Valid() bool {
+	switch e {
+	case DegradedPerformance:
+		return true
+	case MajorOutage:
+		return true
+	case Operational:
+		return true
+	case PartialOutage:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DtoStatusPageIncidentImpact.
+const (
+	DtoStatusPageIncidentImpactCritical DtoStatusPageIncidentImpact = "critical"
+	DtoStatusPageIncidentImpactMajor    DtoStatusPageIncidentImpact = "major"
+	DtoStatusPageIncidentImpactMinor    DtoStatusPageIncidentImpact = "minor"
+	DtoStatusPageIncidentImpactNone     DtoStatusPageIncidentImpact = "none"
+)
+
+// Valid indicates whether the value is a known member of the DtoStatusPageIncidentImpact enum.
+func (e DtoStatusPageIncidentImpact) Valid() bool {
+	switch e {
+	case DtoStatusPageIncidentImpactCritical:
+		return true
+	case DtoStatusPageIncidentImpactMajor:
+		return true
+	case DtoStatusPageIncidentImpactMinor:
+		return true
+	case DtoStatusPageIncidentImpactNone:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DtoStatusPageIncidentStatus.
+const (
+	DtoStatusPageIncidentStatusIdentified    DtoStatusPageIncidentStatus = "identified"
+	DtoStatusPageIncidentStatusInvestigating DtoStatusPageIncidentStatus = "investigating"
+	DtoStatusPageIncidentStatusMonitoring    DtoStatusPageIncidentStatus = "monitoring"
+	DtoStatusPageIncidentStatusResolved      DtoStatusPageIncidentStatus = "resolved"
+)
+
+// Valid indicates whether the value is a known member of the DtoStatusPageIncidentStatus enum.
+func (e DtoStatusPageIncidentStatus) Valid() bool {
+	switch e {
+	case DtoStatusPageIncidentStatusIdentified:
+		return true
+	case DtoStatusPageIncidentStatusInvestigating:
+		return true
+	case DtoStatusPageIncidentStatusMonitoring:
+		return true
+	case DtoStatusPageIncidentStatusResolved:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DtoStatusPageIncidentCreateImpact.
+const (
+	DtoStatusPageIncidentCreateImpactCritical DtoStatusPageIncidentCreateImpact = "critical"
+	DtoStatusPageIncidentCreateImpactMajor    DtoStatusPageIncidentCreateImpact = "major"
+	DtoStatusPageIncidentCreateImpactMinor    DtoStatusPageIncidentCreateImpact = "minor"
+	DtoStatusPageIncidentCreateImpactNone     DtoStatusPageIncidentCreateImpact = "none"
+)
+
+// Valid indicates whether the value is a known member of the DtoStatusPageIncidentCreateImpact enum.
+func (e DtoStatusPageIncidentCreateImpact) Valid() bool {
+	switch e {
+	case DtoStatusPageIncidentCreateImpactCritical:
+		return true
+	case DtoStatusPageIncidentCreateImpactMajor:
+		return true
+	case DtoStatusPageIncidentCreateImpactMinor:
+		return true
+	case DtoStatusPageIncidentCreateImpactNone:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DtoStatusPageIncidentCreateStatus.
+const (
+	DtoStatusPageIncidentCreateStatusIdentified    DtoStatusPageIncidentCreateStatus = "identified"
+	DtoStatusPageIncidentCreateStatusInvestigating DtoStatusPageIncidentCreateStatus = "investigating"
+	DtoStatusPageIncidentCreateStatusMonitoring    DtoStatusPageIncidentCreateStatus = "monitoring"
+	DtoStatusPageIncidentCreateStatusResolved      DtoStatusPageIncidentCreateStatus = "resolved"
+)
+
+// Valid indicates whether the value is a known member of the DtoStatusPageIncidentCreateStatus enum.
+func (e DtoStatusPageIncidentCreateStatus) Valid() bool {
+	switch e {
+	case DtoStatusPageIncidentCreateStatusIdentified:
+		return true
+	case DtoStatusPageIncidentCreateStatusInvestigating:
+		return true
+	case DtoStatusPageIncidentCreateStatusMonitoring:
+		return true
+	case DtoStatusPageIncidentCreateStatusResolved:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DtoStatusPageIncidentEntryStatus.
+const (
+	DtoStatusPageIncidentEntryStatusIdentified    DtoStatusPageIncidentEntryStatus = "identified"
+	DtoStatusPageIncidentEntryStatusInvestigating DtoStatusPageIncidentEntryStatus = "investigating"
+	DtoStatusPageIncidentEntryStatusMonitoring    DtoStatusPageIncidentEntryStatus = "monitoring"
+	DtoStatusPageIncidentEntryStatusResolved      DtoStatusPageIncidentEntryStatus = "resolved"
+)
+
+// Valid indicates whether the value is a known member of the DtoStatusPageIncidentEntryStatus enum.
+func (e DtoStatusPageIncidentEntryStatus) Valid() bool {
+	switch e {
+	case DtoStatusPageIncidentEntryStatusIdentified:
+		return true
+	case DtoStatusPageIncidentEntryStatusInvestigating:
+		return true
+	case DtoStatusPageIncidentEntryStatusMonitoring:
+		return true
+	case DtoStatusPageIncidentEntryStatusResolved:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DtoStatusPageIncidentPostStatus.
+const (
+	DtoStatusPageIncidentPostStatusIdentified    DtoStatusPageIncidentPostStatus = "identified"
+	DtoStatusPageIncidentPostStatusInvestigating DtoStatusPageIncidentPostStatus = "investigating"
+	DtoStatusPageIncidentPostStatusMonitoring    DtoStatusPageIncidentPostStatus = "monitoring"
+	DtoStatusPageIncidentPostStatusResolved      DtoStatusPageIncidentPostStatus = "resolved"
+)
+
+// Valid indicates whether the value is a known member of the DtoStatusPageIncidentPostStatus enum.
+func (e DtoStatusPageIncidentPostStatus) Valid() bool {
+	switch e {
+	case DtoStatusPageIncidentPostStatusIdentified:
+		return true
+	case DtoStatusPageIncidentPostStatusInvestigating:
+		return true
+	case DtoStatusPageIncidentPostStatusMonitoring:
+		return true
+	case DtoStatusPageIncidentPostStatusResolved:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DtoStatusPageIncidentUpdateImpact.
+const (
+	DtoStatusPageIncidentUpdateImpactCritical DtoStatusPageIncidentUpdateImpact = "critical"
+	DtoStatusPageIncidentUpdateImpactMajor    DtoStatusPageIncidentUpdateImpact = "major"
+	DtoStatusPageIncidentUpdateImpactMinor    DtoStatusPageIncidentUpdateImpact = "minor"
+	DtoStatusPageIncidentUpdateImpactNone     DtoStatusPageIncidentUpdateImpact = "none"
+)
+
+// Valid indicates whether the value is a known member of the DtoStatusPageIncidentUpdateImpact enum.
+func (e DtoStatusPageIncidentUpdateImpact) Valid() bool {
+	switch e {
+	case DtoStatusPageIncidentUpdateImpactCritical:
+		return true
+	case DtoStatusPageIncidentUpdateImpactMajor:
+		return true
+	case DtoStatusPageIncidentUpdateImpactMinor:
+		return true
+	case DtoStatusPageIncidentUpdateImpactNone:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DtoStatusPageSettingsUptimeDays.
+const (
+	DtoStatusPageSettingsUptimeDaysN30 DtoStatusPageSettingsUptimeDays = 30
+	DtoStatusPageSettingsUptimeDaysN60 DtoStatusPageSettingsUptimeDays = 60
+	DtoStatusPageSettingsUptimeDaysN90 DtoStatusPageSettingsUptimeDays = 90
+)
+
+// Valid indicates whether the value is a known member of the DtoStatusPageSettingsUptimeDays enum.
+func (e DtoStatusPageSettingsUptimeDays) Valid() bool {
+	switch e {
+	case DtoStatusPageSettingsUptimeDaysN30:
+		return true
+	case DtoStatusPageSettingsUptimeDaysN60:
+		return true
+	case DtoStatusPageSettingsUptimeDaysN90:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DtoStatusPageSettingsUpdateUptimeDays.
+const (
+	DtoStatusPageSettingsUpdateUptimeDaysN30 DtoStatusPageSettingsUpdateUptimeDays = 30
+	DtoStatusPageSettingsUpdateUptimeDaysN60 DtoStatusPageSettingsUpdateUptimeDays = 60
+	DtoStatusPageSettingsUpdateUptimeDaysN90 DtoStatusPageSettingsUpdateUptimeDays = 90
+)
+
+// Valid indicates whether the value is a known member of the DtoStatusPageSettingsUpdateUptimeDays enum.
+func (e DtoStatusPageSettingsUpdateUptimeDays) Valid() bool {
+	switch e {
+	case DtoStatusPageSettingsUpdateUptimeDaysN30:
+		return true
+	case DtoStatusPageSettingsUpdateUptimeDaysN60:
+		return true
+	case DtoStatusPageSettingsUpdateUptimeDaysN90:
 		return true
 	default:
 		return false
@@ -1397,19 +1910,19 @@ func (e ListMonitorsParamsStatus) Valid() bool {
 
 // Defines values for ListMonitorsParamsType.
 const (
-	Domain ListMonitorsParamsType = "domain"
-	Http   ListMonitorsParamsType = "http"
-	Ssl    ListMonitorsParamsType = "ssl"
+	ListMonitorsParamsTypeDomain ListMonitorsParamsType = "domain"
+	ListMonitorsParamsTypeHttp   ListMonitorsParamsType = "http"
+	ListMonitorsParamsTypeSsl    ListMonitorsParamsType = "ssl"
 )
 
 // Valid indicates whether the value is a known member of the ListMonitorsParamsType enum.
 func (e ListMonitorsParamsType) Valid() bool {
 	switch e {
-	case Domain:
+	case ListMonitorsParamsTypeDomain:
 		return true
-	case Http:
+	case ListMonitorsParamsTypeHttp:
 		return true
-	case Ssl:
+	case ListMonitorsParamsTypeSsl:
 		return true
 	default:
 		return false
@@ -1434,6 +1947,24 @@ func (e GetMonitorStatsParamsRange) Valid() bool {
 	case N7d:
 		return true
 	case N90d:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ListStatusPageIncidentsParamsStatus.
+const (
+	Open     ListStatusPageIncidentsParamsStatus = "open"
+	Resolved ListStatusPageIncidentsParamsStatus = "resolved"
+)
+
+// Valid indicates whether the value is a known member of the ListStatusPageIncidentsParamsStatus enum.
+func (e ListStatusPageIncidentsParamsStatus) Valid() bool {
+	switch e {
+	case Open:
+		return true
+	case Resolved:
 		return true
 	default:
 		return false
@@ -2360,6 +2891,134 @@ type DtoMonitorUpdate struct {
 	Ssl             *DtoSSLSettingsInput    `json:"ssl,omitempty"`
 }
 
+// DtoPublicStatusAffected defines model for dto.PublicStatusAffected.
+type DtoPublicStatusAffected struct {
+	Id     openapi_types.UUID            `json:"id"`
+	Name   string                        `json:"name"`
+	Status DtoPublicStatusAffectedStatus `json:"status"`
+}
+
+// DtoPublicStatusAffectedStatus defines model for DtoPublicStatusAffected.Status.
+type DtoPublicStatusAffectedStatus string
+
+// DtoPublicStatusComponent defines model for dto.PublicStatusComponent.
+type DtoPublicStatusComponent struct {
+	// AvgResponseMs AvgResponseMs over the page's range, when the page shows response
+	// times.
+	AvgResponseMs *int `json:"avgResponseMs,omitempty"`
+
+	// Days Days are the bar, oldest first, when the page shows bars and the
+	// component counts availability.
+	Days        *[]DtoPublicStatusDay          `json:"days,omitempty"`
+	Description string                         `json:"description"`
+	Id          openapi_types.UUID             `json:"id"`
+	Name        string                         `json:"name"`
+	Status      DtoPublicStatusComponentStatus `json:"status"`
+
+	// UptimePercent UptimePercent over the page's range, when the page shows it.
+	UptimePercent *float32 `json:"uptimePercent,omitempty"`
+}
+
+// DtoPublicStatusComponentStatus defines model for DtoPublicStatusComponent.Status.
+type DtoPublicStatusComponentStatus string
+
+// DtoPublicStatusDay defines model for dto.PublicStatusDay.
+type DtoPublicStatusDay struct {
+	// AvgResponseMs AvgResponseMs: when the page shows response times.
+	AvgResponseMs   *int                    `json:"avgResponseMs,omitempty"`
+	Day             string                  `json:"day"`
+	DowntimeMinutes *int                    `json:"downtimeMinutes,omitempty"`
+	Grade           DtoPublicStatusDayGrade `json:"grade"`
+	UptimePercent   *float32                `json:"uptimePercent,omitempty"`
+}
+
+// DtoPublicStatusDayGrade defines model for DtoPublicStatusDay.Grade.
+type DtoPublicStatusDayGrade string
+
+// DtoPublicStatusGroup defines model for dto.PublicStatusGroup.
+type DtoPublicStatusGroup struct {
+	Collapsed   bool                       `json:"collapsed"`
+	Components  []DtoPublicStatusComponent `json:"components"`
+	Description string                     `json:"description"`
+	Id          openapi_types.UUID         `json:"id"`
+	Name        string                     `json:"name"`
+	Status      DtoPublicStatusGroupStatus `json:"status"`
+}
+
+// DtoPublicStatusGroupStatus defines model for DtoPublicStatusGroup.Status.
+type DtoPublicStatusGroupStatus string
+
+// DtoPublicStatusHistory defines model for dto.PublicStatusHistory.
+type DtoPublicStatusHistory struct {
+	Incidents     []DtoPublicStatusIncident `json:"incidents"`
+	SchemaVersion int                       `json:"schemaVersion"`
+}
+
+// DtoPublicStatusIncident defines model for dto.PublicStatusIncident.
+type DtoPublicStatusIncident struct {
+	Components []DtoPublicStatusAffected     `json:"components"`
+	Id         openapi_types.UUID            `json:"id"`
+	Impact     DtoPublicStatusIncidentImpact `json:"impact"`
+	ResolvedAt *string                       `json:"resolvedAt,omitempty"`
+	StartedAt  string                        `json:"startedAt"`
+	Status     DtoPublicStatusIncidentStatus `json:"status"`
+	Title      string                        `json:"title"`
+	Updates    []DtoPublicStatusUpdate       `json:"updates"`
+}
+
+// DtoPublicStatusIncidentImpact defines model for DtoPublicStatusIncident.Impact.
+type DtoPublicStatusIncidentImpact string
+
+// DtoPublicStatusIncidentStatus defines model for DtoPublicStatusIncident.Status.
+type DtoPublicStatusIncidentStatus string
+
+// DtoPublicStatusPage defines model for dto.PublicStatusPage.
+type DtoPublicStatusPage struct {
+	// Active Active are the open posts, newest first.
+	Active []DtoPublicStatusIncident `json:"active"`
+
+	// AsOf AsOf is when the content last changed.
+	AsOf        *string                    `json:"asOf,omitempty"`
+	Components  []DtoPublicStatusComponent `json:"components"`
+	Description string                     `json:"description"`
+	Groups      []DtoPublicStatusGroup     `json:"groups"`
+	Id          openapi_types.UUID         `json:"id"`
+
+	// Indicator Indicator is the page's one-word verdict.
+	Indicator DtoPublicStatusPageIndicator `json:"indicator"`
+	Name      string                       `json:"name"`
+
+	// Published Published false: only preview links show it.
+	Published      bool   `json:"published"`
+	SchemaVersion  int    `json:"schemaVersion"`
+	SearchIndexing bool   `json:"searchIndexing"`
+	Slug           string `json:"slug"`
+	TimeZone       string `json:"timeZone"`
+
+	// UptimeDays UptimeDays is how many days the bars cover.
+	UptimeDays int `json:"uptimeDays"`
+}
+
+// DtoPublicStatusPageIndicator Indicator is the page's one-word verdict.
+type DtoPublicStatusPageIndicator string
+
+// DtoPublicStatusPreview defines model for dto.PublicStatusPreview.
+type DtoPublicStatusPreview struct {
+	History DtoPublicStatusHistory `json:"history"`
+	Page    DtoPublicStatusPage    `json:"page"`
+}
+
+// DtoPublicStatusUpdate defines model for dto.PublicStatusUpdate.
+type DtoPublicStatusUpdate struct {
+	Body      string                      `json:"body"`
+	CreatedAt string                      `json:"createdAt"`
+	Id        openapi_types.UUID          `json:"id"`
+	Status    DtoPublicStatusUpdateStatus `json:"status"`
+}
+
+// DtoPublicStatusUpdateStatus defines model for DtoPublicStatusUpdate.Status.
+type DtoPublicStatusUpdateStatus string
+
 // DtoRenewedCertificate defines model for dto.RenewedCertificate.
 type DtoRenewedCertificate struct {
 	FingerprintSha256 *string `json:"fingerprintSha256,omitempty"`
@@ -2436,6 +3095,214 @@ type DtoStatusChangeFrom string
 
 // DtoStatusChangeTo defines model for DtoStatusChange.To.
 type DtoStatusChangeTo string
+
+// DtoStatusPage defines model for dto.StatusPage.
+type DtoStatusPage struct {
+	CreatedAt   string             `json:"createdAt"`
+	Description string             `json:"description"`
+	Id          openapi_types.UUID `json:"id"`
+	Name        string             `json:"name"`
+
+	// Published Published pages are public; others answer 404.
+	Published   bool                  `json:"published"`
+	PublishedAt *string               `json:"publishedAt,omitempty"`
+	Settings    DtoStatusPageSettings `json:"settings"`
+	Slug        string                `json:"slug"`
+	UpdatedAt   string                `json:"updatedAt"`
+
+	// Url URL is the page's public address.
+	Url string `json:"url"`
+}
+
+// DtoStatusPageAffected defines model for dto.StatusPageAffected.
+type DtoStatusPageAffected struct {
+	ComponentId openapi_types.UUID          `json:"componentId"`
+	Status      DtoStatusPageAffectedStatus `json:"status"`
+}
+
+// DtoStatusPageAffectedStatus defines model for DtoStatusPageAffected.Status.
+type DtoStatusPageAffectedStatus string
+
+// DtoStatusPageComponent defines model for dto.StatusPageComponent.
+type DtoStatusPageComponent struct {
+	// Aspects Aspects: what counts towards a monitor component's status.
+	Aspects     *[]DtoStatusPageComponentAspects `json:"aspects,omitempty"`
+	Description *string                          `json:"description,omitempty"`
+	Id          *openapi_types.UUID              `json:"id,omitempty"`
+	Kind        DtoStatusPageComponentKind       `json:"kind"`
+
+	// ManualStatus ManualStatus: a manual component's status.
+	ManualStatus *DtoStatusPageComponentManualStatus `json:"manualStatus,omitempty"`
+
+	// MonitorId MonitorID: a monitor component's monitor. The public never sees it.
+	MonitorId *openapi_types.UUID `json:"monitorId,omitempty"`
+
+	// Name Name is what the public sees; the monitor's name and target never are.
+	Name string `json:"name"`
+}
+
+// DtoStatusPageComponentAspects defines model for DtoStatusPageComponent.Aspects.
+type DtoStatusPageComponentAspects string
+
+// DtoStatusPageComponentKind defines model for DtoStatusPageComponent.Kind.
+type DtoStatusPageComponentKind string
+
+// DtoStatusPageComponentManualStatus ManualStatus: a manual component's status.
+type DtoStatusPageComponentManualStatus string
+
+// DtoStatusPageCreate defines model for dto.StatusPageCreate.
+type DtoStatusPageCreate struct {
+	Description *string               `json:"description,omitempty"`
+	Name        string                `json:"name"`
+	Settings    DtoStatusPageSettings `json:"settings"`
+
+	// Slug Slug is the page's address: lowercase letters, digits and hyphens.
+	Slug string `json:"slug"`
+}
+
+// DtoStatusPageGroup defines model for dto.StatusPageGroup.
+type DtoStatusPageGroup struct {
+	Collapsed   *bool                    `json:"collapsed,omitempty"`
+	Components  []DtoStatusPageComponent `json:"components"`
+	Description *string                  `json:"description,omitempty"`
+	Id          *openapi_types.UUID      `json:"id,omitempty"`
+	Name        string                   `json:"name"`
+}
+
+// DtoStatusPageIncident defines model for dto.StatusPageIncident.
+type DtoStatusPageIncident struct {
+	Components         []DtoStatusPageAffected      `json:"components"`
+	CreatedAt          string                       `json:"createdAt"`
+	Id                 openapi_types.UUID           `json:"id"`
+	Impact             DtoStatusPageIncidentImpact  `json:"impact"`
+	MonitorIncidentIds []string                     `json:"monitorIncidentIds"`
+	ResolvedAt         *string                      `json:"resolvedAt,omitempty"`
+	StartedAt          string                       `json:"startedAt"`
+	Status             DtoStatusPageIncidentStatus  `json:"status"`
+	StatusPageId       openapi_types.UUID           `json:"statusPageId"`
+	Title              string                       `json:"title"`
+	UpdatedAt          string                       `json:"updatedAt"`
+	Updates            []DtoStatusPageIncidentEntry `json:"updates"`
+}
+
+// DtoStatusPageIncidentImpact defines model for DtoStatusPageIncident.Impact.
+type DtoStatusPageIncidentImpact string
+
+// DtoStatusPageIncidentStatus defines model for DtoStatusPageIncident.Status.
+type DtoStatusPageIncidentStatus string
+
+// DtoStatusPageIncidentCreate defines model for dto.StatusPageIncidentCreate.
+type DtoStatusPageIncidentCreate struct {
+	// Body Body is the first update's text.
+	Body       string                            `json:"body"`
+	Components *[]DtoStatusPageAffected          `json:"components,omitempty"`
+	Impact     DtoStatusPageIncidentCreateImpact `json:"impact"`
+
+	// MonitorIncidentIds MonitorIncidentIDs are the monitor incidents the post is about (for
+	// your navigation, never published).
+	MonitorIncidentIds *[]openapi_types.UUID `json:"monitorIncidentIds,omitempty"`
+
+	// StartedAt StartedAt defaults to now.
+	StartedAt *string                           `json:"startedAt,omitempty"`
+	Status    DtoStatusPageIncidentCreateStatus `json:"status"`
+	Title     string                            `json:"title"`
+}
+
+// DtoStatusPageIncidentCreateImpact defines model for DtoStatusPageIncidentCreate.Impact.
+type DtoStatusPageIncidentCreateImpact string
+
+// DtoStatusPageIncidentCreateStatus defines model for DtoStatusPageIncidentCreate.Status.
+type DtoStatusPageIncidentCreateStatus string
+
+// DtoStatusPageIncidentEntry defines model for dto.StatusPageIncidentEntry.
+type DtoStatusPageIncidentEntry struct {
+	Body      string                           `json:"body"`
+	CreatedAt string                           `json:"createdAt"`
+	Id        openapi_types.UUID               `json:"id"`
+	Status    DtoStatusPageIncidentEntryStatus `json:"status"`
+}
+
+// DtoStatusPageIncidentEntryStatus defines model for DtoStatusPageIncidentEntry.Status.
+type DtoStatusPageIncidentEntryStatus string
+
+// DtoStatusPageIncidentPost defines model for dto.StatusPageIncidentPost.
+type DtoStatusPageIncidentPost struct {
+	Body string `json:"body"`
+
+	// Components Components, when given, replaces the affected components.
+	Components *[]DtoStatusPageAffected        `json:"components,omitempty"`
+	Status     DtoStatusPageIncidentPostStatus `json:"status"`
+}
+
+// DtoStatusPageIncidentPostStatus defines model for DtoStatusPageIncidentPost.Status.
+type DtoStatusPageIncidentPostStatus string
+
+// DtoStatusPageIncidentUpdate defines model for dto.StatusPageIncidentUpdate.
+type DtoStatusPageIncidentUpdate struct {
+	Components         *[]DtoStatusPageAffected           `json:"components,omitempty"`
+	Impact             *DtoStatusPageIncidentUpdateImpact `json:"impact,omitempty"`
+	MonitorIncidentIds *[]openapi_types.UUID              `json:"monitorIncidentIds,omitempty"`
+	StartedAt          *string                            `json:"startedAt,omitempty"`
+	Title              *string                            `json:"title,omitempty"`
+}
+
+// DtoStatusPageIncidentUpdateImpact defines model for DtoStatusPageIncidentUpdate.Impact.
+type DtoStatusPageIncidentUpdateImpact string
+
+// DtoStatusPageLayout defines model for dto.StatusPageLayout.
+type DtoStatusPageLayout struct {
+	Components []DtoStatusPageComponent `json:"components"`
+	Groups     []DtoStatusPageGroup     `json:"groups"`
+}
+
+// DtoStatusPagePreviewLink defines model for dto.StatusPagePreviewLink.
+type DtoStatusPagePreviewLink struct {
+	ExpiresAt string `json:"expiresAt"`
+	Url       string `json:"url"`
+}
+
+// DtoStatusPageSettings defines model for dto.StatusPageSettings.
+type DtoStatusPageSettings struct {
+	// HistoryDays HistoryDays is how far back resolved incidents stay on the page.
+	HistoryDays int `json:"historyDays"`
+
+	// SearchIndexing SearchIndexing false asks search engines to leave the page out.
+	SearchIndexing    bool `json:"searchIndexing"`
+	ShowResponseTime  bool `json:"showResponseTime"`
+	ShowUptimeBars    bool `json:"showUptimeBars"`
+	ShowUptimePercent bool `json:"showUptimePercent"`
+
+	// TimeZone TimeZone is the IANA zone times are shown in.
+	TimeZone string `json:"timeZone"`
+
+	// UptimeDays UptimeDays is how many days the bars cover.
+	UptimeDays DtoStatusPageSettingsUptimeDays `json:"uptimeDays"`
+}
+
+// DtoStatusPageSettingsUptimeDays UptimeDays is how many days the bars cover.
+type DtoStatusPageSettingsUptimeDays int
+
+// DtoStatusPageSettingsUpdate defines model for dto.StatusPageSettingsUpdate.
+type DtoStatusPageSettingsUpdate struct {
+	HistoryDays       *int                                   `json:"historyDays,omitempty"`
+	SearchIndexing    *bool                                  `json:"searchIndexing,omitempty"`
+	ShowResponseTime  *bool                                  `json:"showResponseTime,omitempty"`
+	ShowUptimeBars    *bool                                  `json:"showUptimeBars,omitempty"`
+	ShowUptimePercent *bool                                  `json:"showUptimePercent,omitempty"`
+	TimeZone          *string                                `json:"timeZone,omitempty"`
+	UptimeDays        *DtoStatusPageSettingsUpdateUptimeDays `json:"uptimeDays,omitempty"`
+}
+
+// DtoStatusPageSettingsUpdateUptimeDays defines model for DtoStatusPageSettingsUpdate.UptimeDays.
+type DtoStatusPageSettingsUpdateUptimeDays int
+
+// DtoStatusPageUpdate defines model for dto.StatusPageUpdate.
+type DtoStatusPageUpdate struct {
+	Description *string                      `json:"description,omitempty"`
+	Name        *string                      `json:"name,omitempty"`
+	Settings    *DtoStatusPageSettingsUpdate `json:"settings,omitempty"`
+	Slug        *string                      `json:"slug,omitempty"`
+}
 
 // DtoThresholdAlert defines model for dto.ThresholdAlert.
 type DtoThresholdAlert struct {
@@ -2668,6 +3535,28 @@ type ListMonitorStatusChangesParams struct {
 	Limit  *int    `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
+// ListStatusPagesParams defines parameters for ListStatusPages.
+type ListStatusPagesParams struct {
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Limit  *int    `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// MonitorId MonitorID lists the pages that show this monitor instead (at most 50,
+	// not paginated).
+	MonitorId *openapi_types.UUID `form:"monitorId,omitempty" json:"monitorId,omitempty"`
+}
+
+// ListStatusPageIncidentsParams defines parameters for ListStatusPageIncidents.
+type ListStatusPageIncidentsParams struct {
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Limit  *int    `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Status Status filters on open or resolved.
+	Status *ListStatusPageIncidentsParamsStatus `form:"status,omitempty" json:"status,omitempty"`
+}
+
+// ListStatusPageIncidentsParamsStatus defines parameters for ListStatusPageIncidents.
+type ListStatusPageIncidentsParamsStatus string
+
 // CreateAlertChannelJSONRequestBody defines body for CreateAlertChannel for application/json ContentType.
 type CreateAlertChannelJSONRequestBody = DtoAlertChannelCreate
 
@@ -2688,6 +3577,24 @@ type UpdateMonitorJSONRequestBody = DtoMonitorUpdate
 
 // SetMonitorAlertsJSONRequestBody defines body for SetMonitorAlerts for application/json ContentType.
 type SetMonitorAlertsJSONRequestBody = DtoMonitorAlertsUpdate
+
+// CreateStatusPageJSONRequestBody defines body for CreateStatusPage for application/json ContentType.
+type CreateStatusPageJSONRequestBody = DtoStatusPageCreate
+
+// UpdateStatusPageJSONRequestBody defines body for UpdateStatusPage for application/json ContentType.
+type UpdateStatusPageJSONRequestBody = DtoStatusPageUpdate
+
+// CreateStatusPageIncidentJSONRequestBody defines body for CreateStatusPageIncident for application/json ContentType.
+type CreateStatusPageIncidentJSONRequestBody = DtoStatusPageIncidentCreate
+
+// UpdateStatusPageIncidentJSONRequestBody defines body for UpdateStatusPageIncident for application/json ContentType.
+type UpdateStatusPageIncidentJSONRequestBody = DtoStatusPageIncidentUpdate
+
+// CreateStatusPageIncidentUpdateJSONRequestBody defines body for CreateStatusPageIncidentUpdate for application/json ContentType.
+type CreateStatusPageIncidentUpdateJSONRequestBody = DtoStatusPageIncidentPost
+
+// SetStatusPageLayoutJSONRequestBody defines body for SetStatusPageLayout for application/json ContentType.
+type SetStatusPageLayoutJSONRequestBody = DtoStatusPageLayout
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -2862,6 +3769,66 @@ type ClientInterface interface {
 
 	// ListMonitorStatusChanges request
 	ListMonitorStatusChanges(ctx context.Context, id openapi_types.UUID, params *ListMonitorStatusChangesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListStatusPages request
+	ListStatusPages(ctx context.Context, params *ListStatusPagesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateStatusPageWithBody request with any body
+	CreateStatusPageWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateStatusPage(ctx context.Context, body CreateStatusPageJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteStatusPage request
+	DeleteStatusPage(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetStatusPage request
+	GetStatusPage(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateStatusPageWithBody request with any body
+	UpdateStatusPageWithBody(ctx context.Context, id openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateStatusPage(ctx context.Context, id openapi_types.UUID, body UpdateStatusPageJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListStatusPageIncidents request
+	ListStatusPageIncidents(ctx context.Context, id openapi_types.UUID, params *ListStatusPageIncidentsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateStatusPageIncidentWithBody request with any body
+	CreateStatusPageIncidentWithBody(ctx context.Context, id openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateStatusPageIncident(ctx context.Context, id openapi_types.UUID, body CreateStatusPageIncidentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetStatusPageIncident request
+	GetStatusPageIncident(ctx context.Context, id openapi_types.UUID, incidentId openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateStatusPageIncidentWithBody request with any body
+	UpdateStatusPageIncidentWithBody(ctx context.Context, id openapi_types.UUID, incidentId openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateStatusPageIncident(ctx context.Context, id openapi_types.UUID, incidentId openapi_types.UUID, body UpdateStatusPageIncidentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateStatusPageIncidentUpdateWithBody request with any body
+	CreateStatusPageIncidentUpdateWithBody(ctx context.Context, id openapi_types.UUID, incidentId openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateStatusPageIncidentUpdate(ctx context.Context, id openapi_types.UUID, incidentId openapi_types.UUID, body CreateStatusPageIncidentUpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetStatusPageLayout request
+	GetStatusPageLayout(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetStatusPageLayoutWithBody request with any body
+	SetStatusPageLayoutWithBody(ctx context.Context, id openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetStatusPageLayout(ctx context.Context, id openapi_types.UUID, body SetStatusPageLayoutJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PreviewStatusPage request
+	PreviewStatusPage(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateStatusPagePreviewLink request
+	CreateStatusPagePreviewLink(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PublishStatusPage request
+	PublishStatusPage(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UnpublishStatusPage request
+	UnpublishStatusPage(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) ListAlertChannels(ctx context.Context, params *ListAlertChannelsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -3286,6 +4253,270 @@ func (c *Client) GetMonitorStats(ctx context.Context, id openapi_types.UUID, par
 
 func (c *Client) ListMonitorStatusChanges(ctx context.Context, id openapi_types.UUID, params *ListMonitorStatusChangesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListMonitorStatusChangesRequest(c.Server, id, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListStatusPages(ctx context.Context, params *ListStatusPagesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListStatusPagesRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateStatusPageWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateStatusPageRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateStatusPage(ctx context.Context, body CreateStatusPageJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateStatusPageRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteStatusPage(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteStatusPageRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetStatusPage(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetStatusPageRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateStatusPageWithBody(ctx context.Context, id openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateStatusPageRequestWithBody(c.Server, id, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateStatusPage(ctx context.Context, id openapi_types.UUID, body UpdateStatusPageJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateStatusPageRequest(c.Server, id, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListStatusPageIncidents(ctx context.Context, id openapi_types.UUID, params *ListStatusPageIncidentsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListStatusPageIncidentsRequest(c.Server, id, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateStatusPageIncidentWithBody(ctx context.Context, id openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateStatusPageIncidentRequestWithBody(c.Server, id, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateStatusPageIncident(ctx context.Context, id openapi_types.UUID, body CreateStatusPageIncidentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateStatusPageIncidentRequest(c.Server, id, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetStatusPageIncident(ctx context.Context, id openapi_types.UUID, incidentId openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetStatusPageIncidentRequest(c.Server, id, incidentId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateStatusPageIncidentWithBody(ctx context.Context, id openapi_types.UUID, incidentId openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateStatusPageIncidentRequestWithBody(c.Server, id, incidentId, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateStatusPageIncident(ctx context.Context, id openapi_types.UUID, incidentId openapi_types.UUID, body UpdateStatusPageIncidentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateStatusPageIncidentRequest(c.Server, id, incidentId, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateStatusPageIncidentUpdateWithBody(ctx context.Context, id openapi_types.UUID, incidentId openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateStatusPageIncidentUpdateRequestWithBody(c.Server, id, incidentId, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateStatusPageIncidentUpdate(ctx context.Context, id openapi_types.UUID, incidentId openapi_types.UUID, body CreateStatusPageIncidentUpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateStatusPageIncidentUpdateRequest(c.Server, id, incidentId, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetStatusPageLayout(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetStatusPageLayoutRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetStatusPageLayoutWithBody(ctx context.Context, id openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetStatusPageLayoutRequestWithBody(c.Server, id, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetStatusPageLayout(ctx context.Context, id openapi_types.UUID, body SetStatusPageLayoutJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetStatusPageLayoutRequest(c.Server, id, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PreviewStatusPage(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPreviewStatusPageRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateStatusPagePreviewLink(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateStatusPagePreviewLinkRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PublishStatusPage(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPublishStatusPageRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UnpublishStatusPage(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUnpublishStatusPageRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
@@ -4800,6 +6031,737 @@ func NewListMonitorStatusChangesRequest(server string, id openapi_types.UUID, pa
 	return req, nil
 }
 
+// NewListStatusPagesRequest generates requests for ListStatusPages
+func NewListStatusPagesRequest(server string, params *ListStatusPagesParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/status-pages")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
+		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
+
+		if params.Cursor != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "cursor", *params.Cursor, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Limit != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "limit", *params.Limit, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.MonitorId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "monitorId", *params.MonitorId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: "uuid"}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewCreateStatusPageRequest calls the generic CreateStatusPage builder with application/json body
+func NewCreateStatusPageRequest(server string, body CreateStatusPageJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateStatusPageRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewCreateStatusPageRequestWithBody generates requests for CreateStatusPage with any type of body
+func NewCreateStatusPageRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/status-pages")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteStatusPageRequest generates requests for DeleteStatusPage
+func NewDeleteStatusPageRequest(server string, id openapi_types.UUID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: "uuid"})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/status-pages/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodDelete, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetStatusPageRequest generates requests for GetStatusPage
+func NewGetStatusPageRequest(server string, id openapi_types.UUID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: "uuid"})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/status-pages/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUpdateStatusPageRequest calls the generic UpdateStatusPage builder with application/json body
+func NewUpdateStatusPageRequest(server string, id openapi_types.UUID, body UpdateStatusPageJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateStatusPageRequestWithBody(server, id, "application/json", bodyReader)
+}
+
+// NewUpdateStatusPageRequestWithBody generates requests for UpdateStatusPage with any type of body
+func NewUpdateStatusPageRequestWithBody(server string, id openapi_types.UUID, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: "uuid"})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/status-pages/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPatch, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewListStatusPageIncidentsRequest generates requests for ListStatusPageIncidents
+func NewListStatusPageIncidentsRequest(server string, id openapi_types.UUID, params *ListStatusPageIncidentsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: "uuid"})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/status-pages/%s/incidents", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
+		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
+
+		if params.Cursor != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "cursor", *params.Cursor, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Limit != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "limit", *params.Limit, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Status != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "status", *params.Status, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewCreateStatusPageIncidentRequest calls the generic CreateStatusPageIncident builder with application/json body
+func NewCreateStatusPageIncidentRequest(server string, id openapi_types.UUID, body CreateStatusPageIncidentJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateStatusPageIncidentRequestWithBody(server, id, "application/json", bodyReader)
+}
+
+// NewCreateStatusPageIncidentRequestWithBody generates requests for CreateStatusPageIncident with any type of body
+func NewCreateStatusPageIncidentRequestWithBody(server string, id openapi_types.UUID, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: "uuid"})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/status-pages/%s/incidents", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetStatusPageIncidentRequest generates requests for GetStatusPageIncident
+func NewGetStatusPageIncidentRequest(server string, id openapi_types.UUID, incidentId openapi_types.UUID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: "uuid"})
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithOptions("simple", false, "incidentId", incidentId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: "uuid"})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/status-pages/%s/incidents/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUpdateStatusPageIncidentRequest calls the generic UpdateStatusPageIncident builder with application/json body
+func NewUpdateStatusPageIncidentRequest(server string, id openapi_types.UUID, incidentId openapi_types.UUID, body UpdateStatusPageIncidentJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateStatusPageIncidentRequestWithBody(server, id, incidentId, "application/json", bodyReader)
+}
+
+// NewUpdateStatusPageIncidentRequestWithBody generates requests for UpdateStatusPageIncident with any type of body
+func NewUpdateStatusPageIncidentRequestWithBody(server string, id openapi_types.UUID, incidentId openapi_types.UUID, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: "uuid"})
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithOptions("simple", false, "incidentId", incidentId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: "uuid"})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/status-pages/%s/incidents/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPatch, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewCreateStatusPageIncidentUpdateRequest calls the generic CreateStatusPageIncidentUpdate builder with application/json body
+func NewCreateStatusPageIncidentUpdateRequest(server string, id openapi_types.UUID, incidentId openapi_types.UUID, body CreateStatusPageIncidentUpdateJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateStatusPageIncidentUpdateRequestWithBody(server, id, incidentId, "application/json", bodyReader)
+}
+
+// NewCreateStatusPageIncidentUpdateRequestWithBody generates requests for CreateStatusPageIncidentUpdate with any type of body
+func NewCreateStatusPageIncidentUpdateRequestWithBody(server string, id openapi_types.UUID, incidentId openapi_types.UUID, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: "uuid"})
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithOptions("simple", false, "incidentId", incidentId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: "uuid"})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/status-pages/%s/incidents/%s/updates", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetStatusPageLayoutRequest generates requests for GetStatusPageLayout
+func NewGetStatusPageLayoutRequest(server string, id openapi_types.UUID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: "uuid"})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/status-pages/%s/layout", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewSetStatusPageLayoutRequest calls the generic SetStatusPageLayout builder with application/json body
+func NewSetStatusPageLayoutRequest(server string, id openapi_types.UUID, body SetStatusPageLayoutJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetStatusPageLayoutRequestWithBody(server, id, "application/json", bodyReader)
+}
+
+// NewSetStatusPageLayoutRequestWithBody generates requests for SetStatusPageLayout with any type of body
+func NewSetStatusPageLayoutRequestWithBody(server string, id openapi_types.UUID, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: "uuid"})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/status-pages/%s/layout", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPut, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewPreviewStatusPageRequest generates requests for PreviewStatusPage
+func NewPreviewStatusPageRequest(server string, id openapi_types.UUID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: "uuid"})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/status-pages/%s/preview", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewCreateStatusPagePreviewLinkRequest generates requests for CreateStatusPagePreviewLink
+func NewCreateStatusPagePreviewLinkRequest(server string, id openapi_types.UUID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: "uuid"})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/status-pages/%s/preview-link", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewPublishStatusPageRequest generates requests for PublishStatusPage
+func NewPublishStatusPageRequest(server string, id openapi_types.UUID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: "uuid"})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/status-pages/%s/publish", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUnpublishStatusPageRequest generates requests for UnpublishStatusPage
+func NewUnpublishStatusPageRequest(server string, id openapi_types.UUID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: "uuid"})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/status-pages/%s/unpublish", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -4943,6 +6905,66 @@ type ClientWithResponsesInterface interface {
 
 	// ListMonitorStatusChangesWithResponse request
 	ListMonitorStatusChangesWithResponse(ctx context.Context, id openapi_types.UUID, params *ListMonitorStatusChangesParams, reqEditors ...RequestEditorFn) (*ListMonitorStatusChangesResponse, error)
+
+	// ListStatusPagesWithResponse request
+	ListStatusPagesWithResponse(ctx context.Context, params *ListStatusPagesParams, reqEditors ...RequestEditorFn) (*ListStatusPagesResponse, error)
+
+	// CreateStatusPageWithBodyWithResponse request with any body
+	CreateStatusPageWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateStatusPageResponse, error)
+
+	CreateStatusPageWithResponse(ctx context.Context, body CreateStatusPageJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateStatusPageResponse, error)
+
+	// DeleteStatusPageWithResponse request
+	DeleteStatusPageWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*DeleteStatusPageResponse, error)
+
+	// GetStatusPageWithResponse request
+	GetStatusPageWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*GetStatusPageResponse, error)
+
+	// UpdateStatusPageWithBodyWithResponse request with any body
+	UpdateStatusPageWithBodyWithResponse(ctx context.Context, id openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateStatusPageResponse, error)
+
+	UpdateStatusPageWithResponse(ctx context.Context, id openapi_types.UUID, body UpdateStatusPageJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateStatusPageResponse, error)
+
+	// ListStatusPageIncidentsWithResponse request
+	ListStatusPageIncidentsWithResponse(ctx context.Context, id openapi_types.UUID, params *ListStatusPageIncidentsParams, reqEditors ...RequestEditorFn) (*ListStatusPageIncidentsResponse, error)
+
+	// CreateStatusPageIncidentWithBodyWithResponse request with any body
+	CreateStatusPageIncidentWithBodyWithResponse(ctx context.Context, id openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateStatusPageIncidentResponse, error)
+
+	CreateStatusPageIncidentWithResponse(ctx context.Context, id openapi_types.UUID, body CreateStatusPageIncidentJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateStatusPageIncidentResponse, error)
+
+	// GetStatusPageIncidentWithResponse request
+	GetStatusPageIncidentWithResponse(ctx context.Context, id openapi_types.UUID, incidentId openapi_types.UUID, reqEditors ...RequestEditorFn) (*GetStatusPageIncidentResponse, error)
+
+	// UpdateStatusPageIncidentWithBodyWithResponse request with any body
+	UpdateStatusPageIncidentWithBodyWithResponse(ctx context.Context, id openapi_types.UUID, incidentId openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateStatusPageIncidentResponse, error)
+
+	UpdateStatusPageIncidentWithResponse(ctx context.Context, id openapi_types.UUID, incidentId openapi_types.UUID, body UpdateStatusPageIncidentJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateStatusPageIncidentResponse, error)
+
+	// CreateStatusPageIncidentUpdateWithBodyWithResponse request with any body
+	CreateStatusPageIncidentUpdateWithBodyWithResponse(ctx context.Context, id openapi_types.UUID, incidentId openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateStatusPageIncidentUpdateResponse, error)
+
+	CreateStatusPageIncidentUpdateWithResponse(ctx context.Context, id openapi_types.UUID, incidentId openapi_types.UUID, body CreateStatusPageIncidentUpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateStatusPageIncidentUpdateResponse, error)
+
+	// GetStatusPageLayoutWithResponse request
+	GetStatusPageLayoutWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*GetStatusPageLayoutResponse, error)
+
+	// SetStatusPageLayoutWithBodyWithResponse request with any body
+	SetStatusPageLayoutWithBodyWithResponse(ctx context.Context, id openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetStatusPageLayoutResponse, error)
+
+	SetStatusPageLayoutWithResponse(ctx context.Context, id openapi_types.UUID, body SetStatusPageLayoutJSONRequestBody, reqEditors ...RequestEditorFn) (*SetStatusPageLayoutResponse, error)
+
+	// PreviewStatusPageWithResponse request
+	PreviewStatusPageWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*PreviewStatusPageResponse, error)
+
+	// CreateStatusPagePreviewLinkWithResponse request
+	CreateStatusPagePreviewLinkWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*CreateStatusPagePreviewLinkResponse, error)
+
+	// PublishStatusPageWithResponse request
+	PublishStatusPageWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*PublishStatusPageResponse, error)
+
+	// UnpublishStatusPageWithResponse request
+	UnpublishStatusPageWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*UnpublishStatusPageResponse, error)
 }
 
 type ListAlertChannelsResponse struct {
@@ -5946,6 +7968,553 @@ func (r ListMonitorStatusChangesResponse) ContentType() string {
 	return ""
 }
 
+type ListStatusPagesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Cursors ResponseAPIResponsePaginationCursors `json:"cursors"`
+		List    []DtoStatusPage                      `json:"list"`
+		Meta    ResponseAPIResponsePaginationMeta    `json:"meta"`
+	}
+	JSON400 *ResponseProblem
+	JSON401 *ResponseProblem
+	JSON403 *ResponseProblem
+}
+
+// Status returns HTTPResponse.Status
+func (r ListStatusPagesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListStatusPagesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r ListStatusPagesResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type CreateStatusPageResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *DtoStatusPage
+	JSON400      *ResponseProblem
+	JSON401      *ResponseProblem
+	JSON402      *ResponseProblem
+	JSON403      *ResponseProblem
+	JSON409      *ResponseProblem
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateStatusPageResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateStatusPageResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r CreateStatusPageResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type DeleteStatusPageResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON401      *ResponseProblem
+	JSON403      *ResponseProblem
+	JSON404      *ResponseProblem
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteStatusPageResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteStatusPageResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r DeleteStatusPageResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type GetStatusPageResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DtoStatusPage
+	JSON401      *ResponseProblem
+	JSON403      *ResponseProblem
+	JSON404      *ResponseProblem
+}
+
+// Status returns HTTPResponse.Status
+func (r GetStatusPageResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetStatusPageResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetStatusPageResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type UpdateStatusPageResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DtoStatusPage
+	JSON400      *ResponseProblem
+	JSON401      *ResponseProblem
+	JSON403      *ResponseProblem
+	JSON404      *ResponseProblem
+	JSON409      *ResponseProblem
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateStatusPageResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateStatusPageResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r UpdateStatusPageResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type ListStatusPageIncidentsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Cursors ResponseAPIResponsePaginationCursors `json:"cursors"`
+		List    []DtoStatusPageIncident              `json:"list"`
+		Meta    ResponseAPIResponsePaginationMeta    `json:"meta"`
+	}
+	JSON400 *ResponseProblem
+	JSON401 *ResponseProblem
+	JSON403 *ResponseProblem
+	JSON404 *ResponseProblem
+}
+
+// Status returns HTTPResponse.Status
+func (r ListStatusPageIncidentsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListStatusPageIncidentsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r ListStatusPageIncidentsResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type CreateStatusPageIncidentResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *DtoStatusPageIncident
+	JSON400      *ResponseProblem
+	JSON401      *ResponseProblem
+	JSON403      *ResponseProblem
+	JSON404      *ResponseProblem
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateStatusPageIncidentResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateStatusPageIncidentResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r CreateStatusPageIncidentResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type GetStatusPageIncidentResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DtoStatusPageIncident
+	JSON401      *ResponseProblem
+	JSON403      *ResponseProblem
+	JSON404      *ResponseProblem
+}
+
+// Status returns HTTPResponse.Status
+func (r GetStatusPageIncidentResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetStatusPageIncidentResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetStatusPageIncidentResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type UpdateStatusPageIncidentResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DtoStatusPageIncident
+	JSON400      *ResponseProblem
+	JSON401      *ResponseProblem
+	JSON403      *ResponseProblem
+	JSON404      *ResponseProblem
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateStatusPageIncidentResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateStatusPageIncidentResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r UpdateStatusPageIncidentResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type CreateStatusPageIncidentUpdateResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *DtoStatusPageIncident
+	JSON400      *ResponseProblem
+	JSON401      *ResponseProblem
+	JSON403      *ResponseProblem
+	JSON404      *ResponseProblem
+	JSON409      *ResponseProblem
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateStatusPageIncidentUpdateResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateStatusPageIncidentUpdateResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r CreateStatusPageIncidentUpdateResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type GetStatusPageLayoutResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DtoStatusPageLayout
+	JSON401      *ResponseProblem
+	JSON403      *ResponseProblem
+	JSON404      *ResponseProblem
+}
+
+// Status returns HTTPResponse.Status
+func (r GetStatusPageLayoutResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetStatusPageLayoutResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetStatusPageLayoutResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type SetStatusPageLayoutResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DtoStatusPageLayout
+	JSON400      *ResponseProblem
+	JSON401      *ResponseProblem
+	JSON403      *ResponseProblem
+	JSON404      *ResponseProblem
+}
+
+// Status returns HTTPResponse.Status
+func (r SetStatusPageLayoutResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetStatusPageLayoutResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r SetStatusPageLayoutResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type PreviewStatusPageResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DtoPublicStatusPreview
+	JSON401      *ResponseProblem
+	JSON403      *ResponseProblem
+	JSON404      *ResponseProblem
+}
+
+// Status returns HTTPResponse.Status
+func (r PreviewStatusPageResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PreviewStatusPageResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r PreviewStatusPageResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type CreateStatusPagePreviewLinkResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DtoStatusPagePreviewLink
+	JSON401      *ResponseProblem
+	JSON403      *ResponseProblem
+	JSON404      *ResponseProblem
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateStatusPagePreviewLinkResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateStatusPagePreviewLinkResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r CreateStatusPagePreviewLinkResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type PublishStatusPageResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DtoStatusPage
+	JSON401      *ResponseProblem
+	JSON402      *ResponseProblem
+	JSON403      *ResponseProblem
+	JSON404      *ResponseProblem
+	JSON409      *ResponseProblem
+}
+
+// Status returns HTTPResponse.Status
+func (r PublishStatusPageResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PublishStatusPageResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r PublishStatusPageResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type UnpublishStatusPageResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DtoStatusPage
+	JSON401      *ResponseProblem
+	JSON403      *ResponseProblem
+	JSON404      *ResponseProblem
+}
+
+// Status returns HTTPResponse.Status
+func (r UnpublishStatusPageResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UnpublishStatusPageResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r UnpublishStatusPageResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 // ListAlertChannelsWithResponse request returning *ListAlertChannelsResponse
 func (c *ClientWithResponses) ListAlertChannelsWithResponse(ctx context.Context, params *ListAlertChannelsParams, reqEditors ...RequestEditorFn) (*ListAlertChannelsResponse, error) {
 	rsp, err := c.ListAlertChannels(ctx, params, reqEditors...)
@@ -6261,6 +8830,198 @@ func (c *ClientWithResponses) ListMonitorStatusChangesWithResponse(ctx context.C
 		return nil, err
 	}
 	return ParseListMonitorStatusChangesResponse(rsp)
+}
+
+// ListStatusPagesWithResponse request returning *ListStatusPagesResponse
+func (c *ClientWithResponses) ListStatusPagesWithResponse(ctx context.Context, params *ListStatusPagesParams, reqEditors ...RequestEditorFn) (*ListStatusPagesResponse, error) {
+	rsp, err := c.ListStatusPages(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListStatusPagesResponse(rsp)
+}
+
+// CreateStatusPageWithBodyWithResponse request with arbitrary body returning *CreateStatusPageResponse
+func (c *ClientWithResponses) CreateStatusPageWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateStatusPageResponse, error) {
+	rsp, err := c.CreateStatusPageWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateStatusPageResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateStatusPageWithResponse(ctx context.Context, body CreateStatusPageJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateStatusPageResponse, error) {
+	rsp, err := c.CreateStatusPage(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateStatusPageResponse(rsp)
+}
+
+// DeleteStatusPageWithResponse request returning *DeleteStatusPageResponse
+func (c *ClientWithResponses) DeleteStatusPageWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*DeleteStatusPageResponse, error) {
+	rsp, err := c.DeleteStatusPage(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteStatusPageResponse(rsp)
+}
+
+// GetStatusPageWithResponse request returning *GetStatusPageResponse
+func (c *ClientWithResponses) GetStatusPageWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*GetStatusPageResponse, error) {
+	rsp, err := c.GetStatusPage(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetStatusPageResponse(rsp)
+}
+
+// UpdateStatusPageWithBodyWithResponse request with arbitrary body returning *UpdateStatusPageResponse
+func (c *ClientWithResponses) UpdateStatusPageWithBodyWithResponse(ctx context.Context, id openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateStatusPageResponse, error) {
+	rsp, err := c.UpdateStatusPageWithBody(ctx, id, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateStatusPageResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateStatusPageWithResponse(ctx context.Context, id openapi_types.UUID, body UpdateStatusPageJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateStatusPageResponse, error) {
+	rsp, err := c.UpdateStatusPage(ctx, id, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateStatusPageResponse(rsp)
+}
+
+// ListStatusPageIncidentsWithResponse request returning *ListStatusPageIncidentsResponse
+func (c *ClientWithResponses) ListStatusPageIncidentsWithResponse(ctx context.Context, id openapi_types.UUID, params *ListStatusPageIncidentsParams, reqEditors ...RequestEditorFn) (*ListStatusPageIncidentsResponse, error) {
+	rsp, err := c.ListStatusPageIncidents(ctx, id, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListStatusPageIncidentsResponse(rsp)
+}
+
+// CreateStatusPageIncidentWithBodyWithResponse request with arbitrary body returning *CreateStatusPageIncidentResponse
+func (c *ClientWithResponses) CreateStatusPageIncidentWithBodyWithResponse(ctx context.Context, id openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateStatusPageIncidentResponse, error) {
+	rsp, err := c.CreateStatusPageIncidentWithBody(ctx, id, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateStatusPageIncidentResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateStatusPageIncidentWithResponse(ctx context.Context, id openapi_types.UUID, body CreateStatusPageIncidentJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateStatusPageIncidentResponse, error) {
+	rsp, err := c.CreateStatusPageIncident(ctx, id, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateStatusPageIncidentResponse(rsp)
+}
+
+// GetStatusPageIncidentWithResponse request returning *GetStatusPageIncidentResponse
+func (c *ClientWithResponses) GetStatusPageIncidentWithResponse(ctx context.Context, id openapi_types.UUID, incidentId openapi_types.UUID, reqEditors ...RequestEditorFn) (*GetStatusPageIncidentResponse, error) {
+	rsp, err := c.GetStatusPageIncident(ctx, id, incidentId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetStatusPageIncidentResponse(rsp)
+}
+
+// UpdateStatusPageIncidentWithBodyWithResponse request with arbitrary body returning *UpdateStatusPageIncidentResponse
+func (c *ClientWithResponses) UpdateStatusPageIncidentWithBodyWithResponse(ctx context.Context, id openapi_types.UUID, incidentId openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateStatusPageIncidentResponse, error) {
+	rsp, err := c.UpdateStatusPageIncidentWithBody(ctx, id, incidentId, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateStatusPageIncidentResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateStatusPageIncidentWithResponse(ctx context.Context, id openapi_types.UUID, incidentId openapi_types.UUID, body UpdateStatusPageIncidentJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateStatusPageIncidentResponse, error) {
+	rsp, err := c.UpdateStatusPageIncident(ctx, id, incidentId, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateStatusPageIncidentResponse(rsp)
+}
+
+// CreateStatusPageIncidentUpdateWithBodyWithResponse request with arbitrary body returning *CreateStatusPageIncidentUpdateResponse
+func (c *ClientWithResponses) CreateStatusPageIncidentUpdateWithBodyWithResponse(ctx context.Context, id openapi_types.UUID, incidentId openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateStatusPageIncidentUpdateResponse, error) {
+	rsp, err := c.CreateStatusPageIncidentUpdateWithBody(ctx, id, incidentId, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateStatusPageIncidentUpdateResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateStatusPageIncidentUpdateWithResponse(ctx context.Context, id openapi_types.UUID, incidentId openapi_types.UUID, body CreateStatusPageIncidentUpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateStatusPageIncidentUpdateResponse, error) {
+	rsp, err := c.CreateStatusPageIncidentUpdate(ctx, id, incidentId, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateStatusPageIncidentUpdateResponse(rsp)
+}
+
+// GetStatusPageLayoutWithResponse request returning *GetStatusPageLayoutResponse
+func (c *ClientWithResponses) GetStatusPageLayoutWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*GetStatusPageLayoutResponse, error) {
+	rsp, err := c.GetStatusPageLayout(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetStatusPageLayoutResponse(rsp)
+}
+
+// SetStatusPageLayoutWithBodyWithResponse request with arbitrary body returning *SetStatusPageLayoutResponse
+func (c *ClientWithResponses) SetStatusPageLayoutWithBodyWithResponse(ctx context.Context, id openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetStatusPageLayoutResponse, error) {
+	rsp, err := c.SetStatusPageLayoutWithBody(ctx, id, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetStatusPageLayoutResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetStatusPageLayoutWithResponse(ctx context.Context, id openapi_types.UUID, body SetStatusPageLayoutJSONRequestBody, reqEditors ...RequestEditorFn) (*SetStatusPageLayoutResponse, error) {
+	rsp, err := c.SetStatusPageLayout(ctx, id, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetStatusPageLayoutResponse(rsp)
+}
+
+// PreviewStatusPageWithResponse request returning *PreviewStatusPageResponse
+func (c *ClientWithResponses) PreviewStatusPageWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*PreviewStatusPageResponse, error) {
+	rsp, err := c.PreviewStatusPage(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePreviewStatusPageResponse(rsp)
+}
+
+// CreateStatusPagePreviewLinkWithResponse request returning *CreateStatusPagePreviewLinkResponse
+func (c *ClientWithResponses) CreateStatusPagePreviewLinkWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*CreateStatusPagePreviewLinkResponse, error) {
+	rsp, err := c.CreateStatusPagePreviewLink(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateStatusPagePreviewLinkResponse(rsp)
+}
+
+// PublishStatusPageWithResponse request returning *PublishStatusPageResponse
+func (c *ClientWithResponses) PublishStatusPageWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*PublishStatusPageResponse, error) {
+	rsp, err := c.PublishStatusPage(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePublishStatusPageResponse(rsp)
+}
+
+// UnpublishStatusPageWithResponse request returning *UnpublishStatusPageResponse
+func (c *ClientWithResponses) UnpublishStatusPageWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*UnpublishStatusPageResponse, error) {
+	rsp, err := c.UnpublishStatusPage(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUnpublishStatusPageResponse(rsp)
 }
 
 // ParseListAlertChannelsResponse parses an HTTP response from a ListAlertChannelsWithResponse call
@@ -7763,6 +10524,843 @@ func ParseListMonitorStatusChangesResponse(rsp *http.Response) (*ListMonitorStat
 			return nil, err
 		}
 		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListStatusPagesResponse parses an HTTP response from a ListStatusPagesWithResponse call
+func ParseListStatusPagesResponse(rsp *http.Response) (*ListStatusPagesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListStatusPagesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Cursors ResponseAPIResponsePaginationCursors `json:"cursors"`
+			List    []DtoStatusPage                      `json:"list"`
+			Meta    ResponseAPIResponsePaginationMeta    `json:"meta"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCreateStatusPageResponse parses an HTTP response from a CreateStatusPageWithResponse call
+func ParseCreateStatusPageResponse(rsp *http.Response) (*CreateStatusPageResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateStatusPageResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest DtoStatusPage
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 402:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON402 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDeleteStatusPageResponse parses an HTTP response from a DeleteStatusPageWithResponse call
+func ParseDeleteStatusPageResponse(rsp *http.Response) (*DeleteStatusPageResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteStatusPageResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetStatusPageResponse parses an HTTP response from a GetStatusPageWithResponse call
+func ParseGetStatusPageResponse(rsp *http.Response) (*GetStatusPageResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetStatusPageResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DtoStatusPage
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUpdateStatusPageResponse parses an HTTP response from a UpdateStatusPageWithResponse call
+func ParseUpdateStatusPageResponse(rsp *http.Response) (*UpdateStatusPageResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateStatusPageResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DtoStatusPage
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListStatusPageIncidentsResponse parses an HTTP response from a ListStatusPageIncidentsWithResponse call
+func ParseListStatusPageIncidentsResponse(rsp *http.Response) (*ListStatusPageIncidentsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListStatusPageIncidentsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Cursors ResponseAPIResponsePaginationCursors `json:"cursors"`
+			List    []DtoStatusPageIncident              `json:"list"`
+			Meta    ResponseAPIResponsePaginationMeta    `json:"meta"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCreateStatusPageIncidentResponse parses an HTTP response from a CreateStatusPageIncidentWithResponse call
+func ParseCreateStatusPageIncidentResponse(rsp *http.Response) (*CreateStatusPageIncidentResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateStatusPageIncidentResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest DtoStatusPageIncident
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetStatusPageIncidentResponse parses an HTTP response from a GetStatusPageIncidentWithResponse call
+func ParseGetStatusPageIncidentResponse(rsp *http.Response) (*GetStatusPageIncidentResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetStatusPageIncidentResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DtoStatusPageIncident
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUpdateStatusPageIncidentResponse parses an HTTP response from a UpdateStatusPageIncidentWithResponse call
+func ParseUpdateStatusPageIncidentResponse(rsp *http.Response) (*UpdateStatusPageIncidentResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateStatusPageIncidentResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DtoStatusPageIncident
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCreateStatusPageIncidentUpdateResponse parses an HTTP response from a CreateStatusPageIncidentUpdateWithResponse call
+func ParseCreateStatusPageIncidentUpdateResponse(rsp *http.Response) (*CreateStatusPageIncidentUpdateResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateStatusPageIncidentUpdateResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest DtoStatusPageIncident
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetStatusPageLayoutResponse parses an HTTP response from a GetStatusPageLayoutWithResponse call
+func ParseGetStatusPageLayoutResponse(rsp *http.Response) (*GetStatusPageLayoutResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetStatusPageLayoutResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DtoStatusPageLayout
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSetStatusPageLayoutResponse parses an HTTP response from a SetStatusPageLayoutWithResponse call
+func ParseSetStatusPageLayoutResponse(rsp *http.Response) (*SetStatusPageLayoutResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetStatusPageLayoutResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DtoStatusPageLayout
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePreviewStatusPageResponse parses an HTTP response from a PreviewStatusPageWithResponse call
+func ParsePreviewStatusPageResponse(rsp *http.Response) (*PreviewStatusPageResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PreviewStatusPageResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DtoPublicStatusPreview
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCreateStatusPagePreviewLinkResponse parses an HTTP response from a CreateStatusPagePreviewLinkWithResponse call
+func ParseCreateStatusPagePreviewLinkResponse(rsp *http.Response) (*CreateStatusPagePreviewLinkResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateStatusPagePreviewLinkResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DtoStatusPagePreviewLink
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePublishStatusPageResponse parses an HTTP response from a PublishStatusPageWithResponse call
+func ParsePublishStatusPageResponse(rsp *http.Response) (*PublishStatusPageResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PublishStatusPageResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DtoStatusPage
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 402:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON402 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUnpublishStatusPageResponse parses an HTTP response from a UnpublishStatusPageWithResponse call
+func ParseUnpublishStatusPageResponse(rsp *http.Response) (*UnpublishStatusPageResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UnpublishStatusPageResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DtoStatusPage
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
 		var dest ResponseProblem
