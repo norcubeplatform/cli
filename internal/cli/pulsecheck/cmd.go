@@ -65,9 +65,11 @@ schedule and when you run one now.
 
 In CI, "pulsecheck status --fail-on critical" fails the job while a
 critical incident is open, and "pulsecheck monitors run <monitor> --wait"
-fails it when the check finds the monitor down. CI tokens need the
-pulsecheck.read, pulsecheck.check or pulsecheck.write scope; alert
-channels can only be changed by a signed-in person.`,
+fails it when the check finds the monitor down. CI tokens need a
+PulseCheck scope: pulsecheck.read (everything that reads),
+pulsecheck.check (run checks), pulsecheck.write (manage monitors and
+incidents) or pulsecheck.channels (manage alert channels, which
+pulsecheck.write doesn't include).`,
 	}
 	cmd.AddCommand(
 		newStatusCmd(d),

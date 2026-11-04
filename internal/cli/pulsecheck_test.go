@@ -604,6 +604,13 @@ func TestPulseCheckProblems(t *testing.T) {
 	if e := Describe(err); e.Code != clierr.CodeInsufficientScope || e.ExitCode() != clierr.ExitAccess || !strings.Contains(e.Message, "pulsecheck.write") {
 		t.Errorf("scope: %+v", e)
 	}
+	// A token without pulsecheck.channels (pulsecheck.write doesn't include it).
+	goldenHandlers(t, map[string]http.HandlerFunc{"POST /alert-channels": rec.handler(403,
+		`{"title":"Forbidden","status":403,"detail":"This token can't change alert channels or send test alerts: it needs the pulsecheck.channels scope.","code":"FORBIDDEN","reason":"INSUFFICIENT_SCOPE"}`)})
+	_, _, err = run(t, "pulsecheck", "channels", "create", "Ops", "--kind", "email", "--address", "ops@example.com")
+	if e := Describe(err); e.Code != clierr.CodeInsufficientScope || e.ExitCode() != clierr.ExitAccess || !strings.Contains(e.Message, "pulsecheck.channels") {
+		t.Errorf("channels scope: %+v", e)
+	}
 	_, _, err = run(t, "pulsecheck", "monitors", "create", "x", "--type", "http", "--url", "https://10.0.0.1/")
 	e := Describe(err)
 	var ce *clierr.Error

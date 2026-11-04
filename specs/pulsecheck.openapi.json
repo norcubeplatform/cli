@@ -2892,7 +2892,8 @@
         "x-norcube-scopes": [
           "pulsecheck.read",
           "pulsecheck.check",
-          "pulsecheck.write"
+          "pulsecheck.write",
+          "pulsecheck.channels"
         ]
       },
       "post": {
@@ -2956,7 +2957,9 @@
         "tags": [
           "Alert channels"
         ],
-        "x-norcube-scopes": []
+        "x-norcube-scopes": [
+          "pulsecheck.channels"
+        ]
       }
     },
     "/alert-channels/{id}": {
@@ -3014,7 +3017,9 @@
         "tags": [
           "Alert channels"
         ],
-        "x-norcube-scopes": []
+        "x-norcube-scopes": [
+          "pulsecheck.channels"
+        ]
       },
       "get": {
         "description": "One alert channel: kind, name, whether it is a default channel, enabled and verified, and its settings without credentials (a Slack or Discord URL as a hint, a webhook's signing secret never).",
@@ -3080,7 +3085,8 @@
         "x-norcube-scopes": [
           "pulsecheck.read",
           "pulsecheck.check",
-          "pulsecheck.write"
+          "pulsecheck.write",
+          "pulsecheck.channels"
         ]
       },
       "patch": {
@@ -3166,7 +3172,9 @@
         "tags": [
           "Alert channels"
         ],
-        "x-norcube-scopes": []
+        "x-norcube-scopes": [
+          "pulsecheck.channels"
+        ]
       }
     },
     "/alert-channels/{id}/deliveries": {
@@ -3287,7 +3295,8 @@
         "x-norcube-scopes": [
           "pulsecheck.read",
           "pulsecheck.check",
-          "pulsecheck.write"
+          "pulsecheck.write",
+          "pulsecheck.channels"
         ]
       }
     },
@@ -3393,7 +3402,9 @@
         "tags": [
           "Alert channels"
         ],
-        "x-norcube-scopes": []
+        "x-norcube-scopes": [
+          "pulsecheck.channels"
+        ]
       }
     },
     "/alert-channels/{id}/verify": {
@@ -3471,7 +3482,9 @@
         "tags": [
           "Alert channels"
         ],
-        "x-norcube-scopes": []
+        "x-norcube-scopes": [
+          "pulsecheck.channels"
+        ]
       }
     },
     "/alert-channels/{id}/verify/confirm": {
@@ -3568,7 +3581,9 @@
         "tags": [
           "Alert channels"
         ],
-        "x-norcube-scopes": []
+        "x-norcube-scopes": [
+          "pulsecheck.channels"
+        ]
       }
     },
     "/incidents": {
@@ -3739,7 +3754,8 @@
         "x-norcube-scopes": [
           "pulsecheck.read",
           "pulsecheck.check",
-          "pulsecheck.write"
+          "pulsecheck.write",
+          "pulsecheck.channels"
         ]
       }
     },
@@ -3786,7 +3802,8 @@
         "x-norcube-scopes": [
           "pulsecheck.read",
           "pulsecheck.check",
-          "pulsecheck.write"
+          "pulsecheck.write",
+          "pulsecheck.channels"
         ]
       }
     },
@@ -3855,7 +3872,8 @@
         "x-norcube-scopes": [
           "pulsecheck.read",
           "pulsecheck.check",
-          "pulsecheck.write"
+          "pulsecheck.write",
+          "pulsecheck.channels"
         ]
       }
     },
@@ -4072,7 +4090,8 @@
         "x-norcube-scopes": [
           "pulsecheck.read",
           "pulsecheck.check",
-          "pulsecheck.write"
+          "pulsecheck.write",
+          "pulsecheck.channels"
         ]
       },
       "post": {
@@ -4381,7 +4400,8 @@
         "x-norcube-scopes": [
           "pulsecheck.read",
           "pulsecheck.check",
-          "pulsecheck.write"
+          "pulsecheck.write",
+          "pulsecheck.channels"
         ]
       },
       "patch": {
@@ -4547,7 +4567,8 @@
         "x-norcube-scopes": [
           "pulsecheck.read",
           "pulsecheck.check",
-          "pulsecheck.write"
+          "pulsecheck.write",
+          "pulsecheck.channels"
         ]
       },
       "put": {
@@ -4723,7 +4744,8 @@
         "x-norcube-scopes": [
           "pulsecheck.read",
           "pulsecheck.check",
-          "pulsecheck.write"
+          "pulsecheck.write",
+          "pulsecheck.channels"
         ]
       }
     },
@@ -4792,7 +4814,8 @@
         "x-norcube-scopes": [
           "pulsecheck.read",
           "pulsecheck.check",
-          "pulsecheck.write"
+          "pulsecheck.write",
+          "pulsecheck.channels"
         ]
       }
     },
@@ -5073,7 +5096,8 @@
         "x-norcube-scopes": [
           "pulsecheck.read",
           "pulsecheck.check",
-          "pulsecheck.write"
+          "pulsecheck.write",
+          "pulsecheck.channels"
         ]
       }
     },
@@ -5233,7 +5257,8 @@
         "x-norcube-scopes": [
           "pulsecheck.read",
           "pulsecheck.check",
-          "pulsecheck.write"
+          "pulsecheck.write",
+          "pulsecheck.channels"
         ]
       }
     },
@@ -5343,7 +5368,8 @@
         "x-norcube-scopes": [
           "pulsecheck.read",
           "pulsecheck.check",
-          "pulsecheck.write"
+          "pulsecheck.write",
+          "pulsecheck.channels"
         ]
       }
     }

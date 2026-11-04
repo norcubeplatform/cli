@@ -46,7 +46,9 @@ this file collects what users and scripts need to know.
     reads it with `--code-file`.
   - Completion for monitor, channel and incident ids; `nrc api pulsecheck`
     and `auth token --audience pulsecheck`; CI tokens with the
-    `pulsecheck.*` scopes.
+    `pulsecheck.read`, `pulsecheck.check`, `pulsecheck.write` and
+    `pulsecheck.channels` scopes (alert channels need the last one;
+    `pulsecheck.write` doesn't include it).
 - Errors of services that answer RFC 9457 problems (PulseCheck) show the
   problem's detail and invalid fields, and `-o json` errors carry its
   `reason`, field `errors` and `data` in `details`.

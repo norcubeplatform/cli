@@ -39,7 +39,8 @@ Credentials stay secret: Slack and Discord URLs are read from a file or
 standard input and shown only as a hint, and a webhook's signing secret is
 written to a file you name, never printed. Email-address and SMS channels
 get no alerts until their contact confirms a code ("channels verify").
-Changing channels needs a signed-in person; CI tokens can only read them.`,
+A CI token changes channels only with the pulsecheck.channels scope
+(pulsecheck.write doesn't include it); any PulseCheck scope reads them.`,
 	}
 	cmd.AddCommand(
 		newChannelListCmd(d), newChannelGetCmd(d), newChannelCreateCmd(d), newChannelUpdateCmd(d),
