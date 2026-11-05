@@ -85,12 +85,16 @@ const (
 	ErrorReasonCodeRecentlySent       ConstantsErrorReason = "CODE_RECENTLY_SENT"
 	ErrorReasonContactUnverified      ConstantsErrorReason = "CONTACT_UNVERIFIED"
 	ErrorReasonDeliveryRejected       ConstantsErrorReason = "DELIVERY_REJECTED"
+	ErrorReasonDomainNotSet           ConstantsErrorReason = "DOMAIN_NOT_SET"
+	ErrorReasonDomainTaken            ConstantsErrorReason = "DOMAIN_TAKEN"
+	ErrorReasonDomainsDisabled        ConstantsErrorReason = "DOMAINS_DISABLED"
 	ErrorReasonIncidentResolved       ConstantsErrorReason = "INCIDENT_RESOLVED"
 	ErrorReasonInsufficientScope      ConstantsErrorReason = "INSUFFICIENT_SCOPE"
 	ErrorReasonMissingOrganizationID  ConstantsErrorReason = "MISSING_ORGANIZATION_ID"
 	ErrorReasonMonitorLimit           ConstantsErrorReason = "MONITOR_LIMIT"
 	ErrorReasonNothingToVerify        ConstantsErrorReason = "NOTHING_TO_VERIFY"
 	ErrorReasonSlugTaken              ConstantsErrorReason = "SLUG_TAKEN"
+	ErrorReasonStatusPageDomainLimit  ConstantsErrorReason = "STATUS_PAGE_DOMAIN_LIMIT"
 	ErrorReasonStatusPageLimit        ConstantsErrorReason = "STATUS_PAGE_LIMIT"
 	ErrorReasonTooManyAttempts        ConstantsErrorReason = "TOO_MANY_ATTEMPTS"
 	ErrorReasonUnverifiedChannelLimit ConstantsErrorReason = "UNVERIFIED_CHANNEL_LIMIT"
@@ -115,6 +119,12 @@ func (e ConstantsErrorReason) Valid() bool {
 		return true
 	case ErrorReasonDeliveryRejected:
 		return true
+	case ErrorReasonDomainNotSet:
+		return true
+	case ErrorReasonDomainTaken:
+		return true
+	case ErrorReasonDomainsDisabled:
+		return true
 	case ErrorReasonIncidentResolved:
 		return true
 	case ErrorReasonInsufficientScope:
@@ -126,6 +136,8 @@ func (e ConstantsErrorReason) Valid() bool {
 	case ErrorReasonNothingToVerify:
 		return true
 	case ErrorReasonSlugTaken:
+		return true
+	case ErrorReasonStatusPageDomainLimit:
 		return true
 	case ErrorReasonStatusPageLimit:
 		return true
@@ -1434,6 +1446,66 @@ func (e DtoStatusPageComponentManualStatus) Valid() bool {
 	case Operational:
 		return true
 	case PartialOutage:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DtoStatusPageDomainErrorCode.
+const (
+	DOMAINTAKEN DtoStatusPageDomainErrorCode = "DOMAIN_TAKEN"
+)
+
+// Valid indicates whether the value is a known member of the DtoStatusPageDomainErrorCode enum.
+func (e DtoStatusPageDomainErrorCode) Valid() bool {
+	switch e {
+	case DOMAINTAKEN:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DtoStatusPageDomainStatus.
+const (
+	Active             DtoStatusPageDomainStatus = "active"
+	Failed             DtoStatusPageDomainStatus = "failed"
+	PendingCertificate DtoStatusPageDomainStatus = "pending_certificate"
+	PendingDns         DtoStatusPageDomainStatus = "pending_dns"
+	PendingOwnership   DtoStatusPageDomainStatus = "pending_ownership"
+)
+
+// Valid indicates whether the value is a known member of the DtoStatusPageDomainStatus enum.
+func (e DtoStatusPageDomainStatus) Valid() bool {
+	switch e {
+	case Active:
+		return true
+	case Failed:
+		return true
+	case PendingCertificate:
+		return true
+	case PendingDns:
+		return true
+	case PendingOwnership:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DtoStatusPageDomainRecordType.
+const (
+	CNAME DtoStatusPageDomainRecordType = "CNAME"
+	TXT   DtoStatusPageDomainRecordType = "TXT"
+)
+
+// Valid indicates whether the value is a known member of the DtoStatusPageDomainRecordType enum.
+func (e DtoStatusPageDomainRecordType) Valid() bool {
+	switch e {
+	case CNAME:
+		return true
+	case TXT:
 		return true
 	default:
 		return false
@@ -2978,15 +3050,30 @@ type DtoPublicStatusPage struct {
 	Active []DtoPublicStatusIncident `json:"active"`
 
 	// AsOf AsOf is when the content last changed.
-	AsOf        *string                    `json:"asOf,omitempty"`
-	Components  []DtoPublicStatusComponent `json:"components"`
-	Description string                     `json:"description"`
-	Groups      []DtoPublicStatusGroup     `json:"groups"`
-	Id          openapi_types.UUID         `json:"id"`
+	AsOf *string `json:"asOf,omitempty"`
+
+	// CanonicalUrl CanonicalURL is the page's address on its active custom domain, where
+	// search engines should credit it.
+	CanonicalUrl *string                    `json:"canonicalUrl,omitempty"`
+	Components   []DtoPublicStatusComponent `json:"components"`
+	Description  string                     `json:"description"`
+	Groups       []DtoPublicStatusGroup     `json:"groups"`
+	Id           openapi_types.UUID         `json:"id"`
 
 	// Indicator Indicator is the page's one-word verdict.
 	Indicator DtoPublicStatusPageIndicator `json:"indicator"`
-	Name      string                       `json:"name"`
+
+	// Logo Logo and LogoDark hold the images as data URIs where there is no public
+	// file: a draft's snapshot, and the dashboard's preview.
+	Logo         *string `json:"logo,omitempty"`
+	LogoDark     *string `json:"logoDark,omitempty"`
+	LogoDarkFile *string `json:"logoDarkFile,omitempty"`
+
+	// LogoFile LogoFile and LogoDarkFile name a published page's logo images, each a file
+	// the renderer serves at <page>/logo/<name>: a hash of the content and an
+	// extension. Left out when it has none; LogoDarkFile is for dark mode.
+	LogoFile *string `json:"logoFile,omitempty"`
+	Name     string  `json:"name"`
 
 	// Published Published false: only preview links show it.
 	Published      bool   `json:"published"`
@@ -3098,10 +3185,14 @@ type DtoStatusChangeTo string
 
 // DtoStatusPage defines model for dto.StatusPage.
 type DtoStatusPage struct {
-	CreatedAt   string             `json:"createdAt"`
-	Description string             `json:"description"`
-	Id          openapi_types.UUID `json:"id"`
-	Name        string             `json:"name"`
+	CreatedAt string `json:"createdAt"`
+
+	// CustomDomain CustomDomain is the page's custom domain once active. URL keeps working
+	// beside it; GET /status-pages/{id}/domain tells about one still pending.
+	CustomDomain *string            `json:"customDomain,omitempty"`
+	Description  string             `json:"description"`
+	Id           openapi_types.UUID `json:"id"`
+	Name         string             `json:"name"`
 
 	// Published Published pages are public; others answer 404.
 	Published   bool                  `json:"published"`
@@ -3158,6 +3249,62 @@ type DtoStatusPageCreate struct {
 
 	// Slug Slug is the page's address: lowercase letters, digits and hyphens.
 	Slug string `json:"slug"`
+}
+
+// DtoStatusPageDomain defines model for dto.StatusPageDomain.
+type DtoStatusPageDomain struct {
+	CreatedAt string `json:"createdAt"`
+
+	// Error Error is what is wrong, while there is something.
+	Error *string `json:"error,omitempty"`
+
+	// ErrorCode ErrorCode: DOMAIN_TAKEN when another status page proved this hostname first.
+	// The claim stays pending, in case they let it go.
+	ErrorCode     *DtoStatusPageDomainErrorCode `json:"errorCode,omitempty"`
+	Hostname      string                        `json:"hostname"`
+	LastCheckedAt *string                       `json:"lastCheckedAt,omitempty"`
+
+	// Records Records are what the customer adds to their DNS.
+	Records []DtoStatusPageDomainRecord `json:"records"`
+
+	// Status Status: pending_ownership until the TXT record proves the organization owns
+	// the hostname; pending_dns until Cloudflare sees the CNAME;
+	// pending_certificate until the certificate is live; then active. failed
+	// means given up: set the domain again to start over.
+	Status    DtoStatusPageDomainStatus `json:"status"`
+	UpdatedAt string                    `json:"updatedAt"`
+}
+
+// DtoStatusPageDomainErrorCode ErrorCode: DOMAIN_TAKEN when another status page proved this hostname first.
+// The claim stays pending, in case they let it go.
+type DtoStatusPageDomainErrorCode string
+
+// DtoStatusPageDomainStatus Status: pending_ownership until the TXT record proves the organization owns
+// the hostname; pending_dns until Cloudflare sees the CNAME;
+// pending_certificate until the certificate is live; then active. failed
+// means given up: set the domain again to start over.
+type DtoStatusPageDomainStatus string
+
+// DtoStatusPageDomainRecord defines model for dto.StatusPageDomainRecord.
+type DtoStatusPageDomainRecord struct {
+	Name string `json:"name"`
+
+	// Required Required false: not needed now. The ownership TXT record stops being
+	// required once the domain is active (it is needed again if the domain ever
+	// falls back to pending), and Cloudflare's own TXT record only helps verify the
+	// hostname before moving the CNAME.
+	Required bool                          `json:"required"`
+	Type     DtoStatusPageDomainRecordType `json:"type"`
+	Value    string                        `json:"value"`
+}
+
+// DtoStatusPageDomainRecordType defines model for DtoStatusPageDomainRecord.Type.
+type DtoStatusPageDomainRecordType string
+
+// DtoStatusPageDomainSet defines model for dto.StatusPageDomainSet.
+type DtoStatusPageDomainSet struct {
+	// Hostname Hostname is a subdomain the customer controls, not an apex.
+	Hostname string `json:"hostname"`
 }
 
 // DtoStatusPageGroup defines model for dto.StatusPageGroup.
@@ -3253,6 +3400,21 @@ type DtoStatusPageIncidentUpdateImpact string
 type DtoStatusPageLayout struct {
 	Components []DtoStatusPageComponent `json:"components"`
 	Groups     []DtoStatusPageGroup     `json:"groups"`
+}
+
+// DtoStatusPageLogo defines model for dto.StatusPageLogo.
+type DtoStatusPageLogo struct {
+	Dark  *string `json:"dark,omitempty"`
+	Light *string `json:"light,omitempty"`
+}
+
+// DtoStatusPageLogoSet defines model for dto.StatusPageLogoSet.
+type DtoStatusPageLogoSet struct {
+	// Dark Dark is the image for dark mode, in the same form.
+	Dark *string `json:"dark,omitempty"`
+
+	// Light Light is the image, base64 encoded: PNG, JPEG, WebP or SVG, at most 48 KB.
+	Light string `json:"light"`
 }
 
 // DtoStatusPagePreviewLink defines model for dto.StatusPagePreviewLink.
@@ -3584,6 +3746,9 @@ type CreateStatusPageJSONRequestBody = DtoStatusPageCreate
 // UpdateStatusPageJSONRequestBody defines body for UpdateStatusPage for application/json ContentType.
 type UpdateStatusPageJSONRequestBody = DtoStatusPageUpdate
 
+// SetStatusPageDomainJSONRequestBody defines body for SetStatusPageDomain for application/json ContentType.
+type SetStatusPageDomainJSONRequestBody = DtoStatusPageDomainSet
+
 // CreateStatusPageIncidentJSONRequestBody defines body for CreateStatusPageIncident for application/json ContentType.
 type CreateStatusPageIncidentJSONRequestBody = DtoStatusPageIncidentCreate
 
@@ -3595,6 +3760,9 @@ type CreateStatusPageIncidentUpdateJSONRequestBody = DtoStatusPageIncidentPost
 
 // SetStatusPageLayoutJSONRequestBody defines body for SetStatusPageLayout for application/json ContentType.
 type SetStatusPageLayoutJSONRequestBody = DtoStatusPageLayout
+
+// SetStatusPageLogoJSONRequestBody defines body for SetStatusPageLogo for application/json ContentType.
+type SetStatusPageLogoJSONRequestBody = DtoStatusPageLogoSet
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -3789,6 +3957,17 @@ type ClientInterface interface {
 
 	UpdateStatusPage(ctx context.Context, id openapi_types.UUID, body UpdateStatusPageJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// DeleteStatusPageDomain request
+	DeleteStatusPageDomain(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetStatusPageDomain request
+	GetStatusPageDomain(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetStatusPageDomainWithBody request with any body
+	SetStatusPageDomainWithBody(ctx context.Context, id openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetStatusPageDomain(ctx context.Context, id openapi_types.UUID, body SetStatusPageDomainJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListStatusPageIncidents request
 	ListStatusPageIncidents(ctx context.Context, id openapi_types.UUID, params *ListStatusPageIncidentsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -3817,6 +3996,17 @@ type ClientInterface interface {
 	SetStatusPageLayoutWithBody(ctx context.Context, id openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	SetStatusPageLayout(ctx context.Context, id openapi_types.UUID, body SetStatusPageLayoutJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteStatusPageLogo request
+	DeleteStatusPageLogo(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetStatusPageLogo request
+	GetStatusPageLogo(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetStatusPageLogoWithBody request with any body
+	SetStatusPageLogoWithBody(ctx context.Context, id openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetStatusPageLogo(ctx context.Context, id openapi_types.UUID, body SetStatusPageLogoJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// PreviewStatusPage request
 	PreviewStatusPage(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -4347,6 +4537,54 @@ func (c *Client) UpdateStatusPage(ctx context.Context, id openapi_types.UUID, bo
 	return c.Client.Do(req)
 }
 
+func (c *Client) DeleteStatusPageDomain(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteStatusPageDomainRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetStatusPageDomain(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetStatusPageDomainRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetStatusPageDomainWithBody(ctx context.Context, id openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetStatusPageDomainRequestWithBody(c.Server, id, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetStatusPageDomain(ctx context.Context, id openapi_types.UUID, body SetStatusPageDomainJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetStatusPageDomainRequest(c.Server, id, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ListStatusPageIncidents(ctx context.Context, id openapi_types.UUID, params *ListStatusPageIncidentsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListStatusPageIncidentsRequest(c.Server, id, params)
 	if err != nil {
@@ -4469,6 +4707,54 @@ func (c *Client) SetStatusPageLayoutWithBody(ctx context.Context, id openapi_typ
 
 func (c *Client) SetStatusPageLayout(ctx context.Context, id openapi_types.UUID, body SetStatusPageLayoutJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSetStatusPageLayoutRequest(c.Server, id, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteStatusPageLogo(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteStatusPageLogoRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetStatusPageLogo(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetStatusPageLogoRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetStatusPageLogoWithBody(ctx context.Context, id openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetStatusPageLogoRequestWithBody(c.Server, id, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetStatusPageLogo(ctx context.Context, id openapi_types.UUID, body SetStatusPageLogoJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetStatusPageLogoRequest(c.Server, id, body)
 	if err != nil {
 		return nil, err
 	}
@@ -6264,6 +6550,121 @@ func NewUpdateStatusPageRequestWithBody(server string, id openapi_types.UUID, co
 	return req, nil
 }
 
+// NewDeleteStatusPageDomainRequest generates requests for DeleteStatusPageDomain
+func NewDeleteStatusPageDomainRequest(server string, id openapi_types.UUID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: "uuid"})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/status-pages/%s/domain", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodDelete, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetStatusPageDomainRequest generates requests for GetStatusPageDomain
+func NewGetStatusPageDomainRequest(server string, id openapi_types.UUID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: "uuid"})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/status-pages/%s/domain", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewSetStatusPageDomainRequest calls the generic SetStatusPageDomain builder with application/json body
+func NewSetStatusPageDomainRequest(server string, id openapi_types.UUID, body SetStatusPageDomainJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetStatusPageDomainRequestWithBody(server, id, "application/json", bodyReader)
+}
+
+// NewSetStatusPageDomainRequestWithBody generates requests for SetStatusPageDomain with any type of body
+func NewSetStatusPageDomainRequestWithBody(server string, id openapi_types.UUID, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: "uuid"})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/status-pages/%s/domain", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPut, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewListStatusPageIncidentsRequest generates requests for ListStatusPageIncidents
 func NewListStatusPageIncidentsRequest(server string, id openapi_types.UUID, params *ListStatusPageIncidentsParams) (*http.Request, error) {
 	var err error
@@ -6626,6 +7027,121 @@ func NewSetStatusPageLayoutRequestWithBody(server string, id openapi_types.UUID,
 	return req, nil
 }
 
+// NewDeleteStatusPageLogoRequest generates requests for DeleteStatusPageLogo
+func NewDeleteStatusPageLogoRequest(server string, id openapi_types.UUID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: "uuid"})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/status-pages/%s/logo", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodDelete, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetStatusPageLogoRequest generates requests for GetStatusPageLogo
+func NewGetStatusPageLogoRequest(server string, id openapi_types.UUID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: "uuid"})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/status-pages/%s/logo", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewSetStatusPageLogoRequest calls the generic SetStatusPageLogo builder with application/json body
+func NewSetStatusPageLogoRequest(server string, id openapi_types.UUID, body SetStatusPageLogoJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetStatusPageLogoRequestWithBody(server, id, "application/json", bodyReader)
+}
+
+// NewSetStatusPageLogoRequestWithBody generates requests for SetStatusPageLogo with any type of body
+func NewSetStatusPageLogoRequestWithBody(server string, id openapi_types.UUID, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: "uuid"})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/status-pages/%s/logo", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPut, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewPreviewStatusPageRequest generates requests for PreviewStatusPage
 func NewPreviewStatusPageRequest(server string, id openapi_types.UUID) (*http.Request, error) {
 	var err error
@@ -6925,6 +7441,17 @@ type ClientWithResponsesInterface interface {
 
 	UpdateStatusPageWithResponse(ctx context.Context, id openapi_types.UUID, body UpdateStatusPageJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateStatusPageResponse, error)
 
+	// DeleteStatusPageDomainWithResponse request
+	DeleteStatusPageDomainWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*DeleteStatusPageDomainResponse, error)
+
+	// GetStatusPageDomainWithResponse request
+	GetStatusPageDomainWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*GetStatusPageDomainResponse, error)
+
+	// SetStatusPageDomainWithBodyWithResponse request with any body
+	SetStatusPageDomainWithBodyWithResponse(ctx context.Context, id openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetStatusPageDomainResponse, error)
+
+	SetStatusPageDomainWithResponse(ctx context.Context, id openapi_types.UUID, body SetStatusPageDomainJSONRequestBody, reqEditors ...RequestEditorFn) (*SetStatusPageDomainResponse, error)
+
 	// ListStatusPageIncidentsWithResponse request
 	ListStatusPageIncidentsWithResponse(ctx context.Context, id openapi_types.UUID, params *ListStatusPageIncidentsParams, reqEditors ...RequestEditorFn) (*ListStatusPageIncidentsResponse, error)
 
@@ -6953,6 +7480,17 @@ type ClientWithResponsesInterface interface {
 	SetStatusPageLayoutWithBodyWithResponse(ctx context.Context, id openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetStatusPageLayoutResponse, error)
 
 	SetStatusPageLayoutWithResponse(ctx context.Context, id openapi_types.UUID, body SetStatusPageLayoutJSONRequestBody, reqEditors ...RequestEditorFn) (*SetStatusPageLayoutResponse, error)
+
+	// DeleteStatusPageLogoWithResponse request
+	DeleteStatusPageLogoWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*DeleteStatusPageLogoResponse, error)
+
+	// GetStatusPageLogoWithResponse request
+	GetStatusPageLogoWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*GetStatusPageLogoResponse, error)
+
+	// SetStatusPageLogoWithBodyWithResponse request with any body
+	SetStatusPageLogoWithBodyWithResponse(ctx context.Context, id openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetStatusPageLogoResponse, error)
+
+	SetStatusPageLogoWithResponse(ctx context.Context, id openapi_types.UUID, body SetStatusPageLogoJSONRequestBody, reqEditors ...RequestEditorFn) (*SetStatusPageLogoResponse, error)
 
 	// PreviewStatusPageWithResponse request
 	PreviewStatusPageWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*PreviewStatusPageResponse, error)
@@ -8140,6 +8678,108 @@ func (r UpdateStatusPageResponse) ContentType() string {
 	return ""
 }
 
+type DeleteStatusPageDomainResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON401      *ResponseProblem
+	JSON403      *ResponseProblem
+	JSON404      *ResponseProblem
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteStatusPageDomainResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteStatusPageDomainResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r DeleteStatusPageDomainResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type GetStatusPageDomainResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DtoStatusPageDomain
+	JSON401      *ResponseProblem
+	JSON403      *ResponseProblem
+	JSON404      *ResponseProblem
+}
+
+// Status returns HTTPResponse.Status
+func (r GetStatusPageDomainResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetStatusPageDomainResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetStatusPageDomainResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type SetStatusPageDomainResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DtoStatusPageDomain
+	JSON400      *ResponseProblem
+	JSON401      *ResponseProblem
+	JSON402      *ResponseProblem
+	JSON403      *ResponseProblem
+	JSON404      *ResponseProblem
+	JSON409      *ResponseProblem
+	JSON503      *ResponseProblem
+}
+
+// Status returns HTTPResponse.Status
+func (r SetStatusPageDomainResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetStatusPageDomainResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r SetStatusPageDomainResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type ListStatusPageIncidentsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -8375,6 +9015,105 @@ func (r SetStatusPageLayoutResponse) StatusCode() int {
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
 func (r SetStatusPageLayoutResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type DeleteStatusPageLogoResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON401      *ResponseProblem
+	JSON403      *ResponseProblem
+	JSON404      *ResponseProblem
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteStatusPageLogoResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteStatusPageLogoResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r DeleteStatusPageLogoResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type GetStatusPageLogoResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DtoStatusPageLogo
+	JSON401      *ResponseProblem
+	JSON403      *ResponseProblem
+	JSON404      *ResponseProblem
+}
+
+// Status returns HTTPResponse.Status
+func (r GetStatusPageLogoResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetStatusPageLogoResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetStatusPageLogoResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type SetStatusPageLogoResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DtoStatusPageLogo
+	JSON400      *ResponseProblem
+	JSON401      *ResponseProblem
+	JSON403      *ResponseProblem
+	JSON404      *ResponseProblem
+}
+
+// Status returns HTTPResponse.Status
+func (r SetStatusPageLogoResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetStatusPageLogoResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r SetStatusPageLogoResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
@@ -8893,6 +9632,41 @@ func (c *ClientWithResponses) UpdateStatusPageWithResponse(ctx context.Context, 
 	return ParseUpdateStatusPageResponse(rsp)
 }
 
+// DeleteStatusPageDomainWithResponse request returning *DeleteStatusPageDomainResponse
+func (c *ClientWithResponses) DeleteStatusPageDomainWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*DeleteStatusPageDomainResponse, error) {
+	rsp, err := c.DeleteStatusPageDomain(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteStatusPageDomainResponse(rsp)
+}
+
+// GetStatusPageDomainWithResponse request returning *GetStatusPageDomainResponse
+func (c *ClientWithResponses) GetStatusPageDomainWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*GetStatusPageDomainResponse, error) {
+	rsp, err := c.GetStatusPageDomain(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetStatusPageDomainResponse(rsp)
+}
+
+// SetStatusPageDomainWithBodyWithResponse request with arbitrary body returning *SetStatusPageDomainResponse
+func (c *ClientWithResponses) SetStatusPageDomainWithBodyWithResponse(ctx context.Context, id openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetStatusPageDomainResponse, error) {
+	rsp, err := c.SetStatusPageDomainWithBody(ctx, id, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetStatusPageDomainResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetStatusPageDomainWithResponse(ctx context.Context, id openapi_types.UUID, body SetStatusPageDomainJSONRequestBody, reqEditors ...RequestEditorFn) (*SetStatusPageDomainResponse, error) {
+	rsp, err := c.SetStatusPageDomain(ctx, id, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetStatusPageDomainResponse(rsp)
+}
+
 // ListStatusPageIncidentsWithResponse request returning *ListStatusPageIncidentsResponse
 func (c *ClientWithResponses) ListStatusPageIncidentsWithResponse(ctx context.Context, id openapi_types.UUID, params *ListStatusPageIncidentsParams, reqEditors ...RequestEditorFn) (*ListStatusPageIncidentsResponse, error) {
 	rsp, err := c.ListStatusPageIncidents(ctx, id, params, reqEditors...)
@@ -8986,6 +9760,41 @@ func (c *ClientWithResponses) SetStatusPageLayoutWithResponse(ctx context.Contex
 		return nil, err
 	}
 	return ParseSetStatusPageLayoutResponse(rsp)
+}
+
+// DeleteStatusPageLogoWithResponse request returning *DeleteStatusPageLogoResponse
+func (c *ClientWithResponses) DeleteStatusPageLogoWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*DeleteStatusPageLogoResponse, error) {
+	rsp, err := c.DeleteStatusPageLogo(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteStatusPageLogoResponse(rsp)
+}
+
+// GetStatusPageLogoWithResponse request returning *GetStatusPageLogoResponse
+func (c *ClientWithResponses) GetStatusPageLogoWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*GetStatusPageLogoResponse, error) {
+	rsp, err := c.GetStatusPageLogo(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetStatusPageLogoResponse(rsp)
+}
+
+// SetStatusPageLogoWithBodyWithResponse request with arbitrary body returning *SetStatusPageLogoResponse
+func (c *ClientWithResponses) SetStatusPageLogoWithBodyWithResponse(ctx context.Context, id openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetStatusPageLogoResponse, error) {
+	rsp, err := c.SetStatusPageLogoWithBody(ctx, id, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetStatusPageLogoResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetStatusPageLogoWithResponse(ctx context.Context, id openapi_types.UUID, body SetStatusPageLogoJSONRequestBody, reqEditors ...RequestEditorFn) (*SetStatusPageLogoResponse, error) {
+	rsp, err := c.SetStatusPageLogo(ctx, id, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetStatusPageLogoResponse(rsp)
 }
 
 // PreviewStatusPageWithResponse request returning *PreviewStatusPageResponse
@@ -10811,6 +11620,168 @@ func ParseUpdateStatusPageResponse(rsp *http.Response) (*UpdateStatusPageRespons
 	return response, nil
 }
 
+// ParseDeleteStatusPageDomainResponse parses an HTTP response from a DeleteStatusPageDomainWithResponse call
+func ParseDeleteStatusPageDomainResponse(rsp *http.Response) (*DeleteStatusPageDomainResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteStatusPageDomainResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetStatusPageDomainResponse parses an HTTP response from a GetStatusPageDomainWithResponse call
+func ParseGetStatusPageDomainResponse(rsp *http.Response) (*GetStatusPageDomainResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetStatusPageDomainResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DtoStatusPageDomain
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSetStatusPageDomainResponse parses an HTTP response from a SetStatusPageDomainWithResponse call
+func ParseSetStatusPageDomainResponse(rsp *http.Response) (*SetStatusPageDomainResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetStatusPageDomainResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DtoStatusPageDomain
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 402:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON402 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON503 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseListStatusPageIncidentsResponse parses an HTTP response from a ListStatusPageIncidentsWithResponse call
 func ParseListStatusPageIncidentsResponse(rsp *http.Response) (*ListStatusPageIncidentsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -11148,6 +12119,147 @@ func ParseSetStatusPageLayoutResponse(rsp *http.Response) (*SetStatusPageLayoutR
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest DtoStatusPageLayout
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDeleteStatusPageLogoResponse parses an HTTP response from a DeleteStatusPageLogoWithResponse call
+func ParseDeleteStatusPageLogoResponse(rsp *http.Response) (*DeleteStatusPageLogoResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteStatusPageLogoResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetStatusPageLogoResponse parses an HTTP response from a GetStatusPageLogoWithResponse call
+func ParseGetStatusPageLogoResponse(rsp *http.Response) (*GetStatusPageLogoResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetStatusPageLogoResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DtoStatusPageLogo
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSetStatusPageLogoResponse parses an HTTP response from a SetStatusPageLogoWithResponse call
+func ParseSetStatusPageLogoResponse(rsp *http.Response) (*SetStatusPageLogoResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetStatusPageLogoResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DtoStatusPageLogo
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

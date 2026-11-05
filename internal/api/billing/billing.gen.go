@@ -40,12 +40,18 @@ func (e ConstantsBillingType) Valid() bool {
 // Defines values for ConstantsInvoiceStatus.
 const (
 	InvoiceStatusDraft ConstantsInvoiceStatus = "draft"
+	InvoiceStatusOpen  ConstantsInvoiceStatus = "open"
+	InvoiceStatusPaid  ConstantsInvoiceStatus = "paid"
 )
 
 // Valid indicates whether the value is a known member of the ConstantsInvoiceStatus enum.
 func (e ConstantsInvoiceStatus) Valid() bool {
 	switch e {
 	case InvoiceStatusDraft:
+		return true
+	case InvoiceStatusOpen:
+		return true
+	case InvoiceStatusPaid:
 		return true
 	default:
 		return false
@@ -188,12 +194,14 @@ const (
 	ErrEmailRequired              ResponseType = "EMAIL_REQUIRED"
 	ErrInnovationAgencyIDRequired ResponseType = "INNOVATION_AGENCY_ID_REQUIRED"
 	ErrInsufficientPermissions    ResponseType = "INSUFFICIENT_PERMISSIONS"
+	ErrInsufficientScope          ResponseType = "INSUFFICIENT_SCOPE"
 	ErrInternalServer             ResponseType = "INTERNAL_SERVER_ERROR"
 	ErrInvalidCredentials         ResponseType = "INVALID_CREDENTIALS"
 	ErrInvalidOldPassword         ResponseType = "INVALID_OLD_PASSWORD"
 	ErrInvalidRequest             ResponseType = "INVALID_REQUEST"
 	ErrInvalidRole                ResponseType = "INVALID_ROLE"
 	ErrInvalidToken               ResponseType = "INVALID_TOKEN"
+	ErrInvoiceAlreadyPaid         ResponseType = "INVOICE_ALREADY_PAID"
 	ErrLoginIntentToken           ResponseType = "LOGIN_INTENT_TOKEN"
 	ErrMissingBackupCode          ResponseType = "MISSING_BACKUP_CODE"
 	ErrMissingNewPassword         ResponseType = "MISSING_NEW_PASSWORD"
@@ -205,10 +213,13 @@ const (
 	ErrNameTooShort               ResponseType = "NAME_TOO_SHORT"
 	ErrNewPasswordRequired        ResponseType = "NEW_PASSWORD_REQUIRED"
 	ErrNotFound                   ResponseType = "NOT_FOUND"
+	ErrNothingToPay               ResponseType = "NOTHING_TO_PAY"
 	ErrOTPInvalid                 ResponseType = "OTP_INVALID"
 	ErrOldPasswordRequired        ResponseType = "OLD_PASSWORD_REQUIRED"
 	ErrPasswordRequired           ResponseType = "PASSWORD_REQUIRED"
 	ErrPayloadInvalid             ResponseType = "INVALID_PAYLOAD"
+	ErrPaymentInProgress          ResponseType = "PAYMENT_IN_PROGRESS"
+	ErrPaymentMethodRequired      ResponseType = "PAYMENT_METHOD_REQUIRED"
 	ErrSecretExpired              ResponseType = "SECRET_EXPIRED"
 	ErrSecretNotFound             ResponseType = "SECRET_NOT_FOUND"
 	ErrServiceNotSubscribable     ResponseType = "SERVICE_NOT_SUBSCRIBABLE"
@@ -232,6 +243,8 @@ func (e ResponseType) Valid() bool {
 		return true
 	case ErrInsufficientPermissions:
 		return true
+	case ErrInsufficientScope:
+		return true
 	case ErrInternalServer:
 		return true
 	case ErrInvalidCredentials:
@@ -243,6 +256,8 @@ func (e ResponseType) Valid() bool {
 	case ErrInvalidRole:
 		return true
 	case ErrInvalidToken:
+		return true
+	case ErrInvoiceAlreadyPaid:
 		return true
 	case ErrLoginIntentToken:
 		return true
@@ -266,6 +281,8 @@ func (e ResponseType) Valid() bool {
 		return true
 	case ErrNotFound:
 		return true
+	case ErrNothingToPay:
+		return true
 	case ErrOTPInvalid:
 		return true
 	case ErrOldPasswordRequired:
@@ -273,6 +290,10 @@ func (e ResponseType) Valid() bool {
 	case ErrPasswordRequired:
 		return true
 	case ErrPayloadInvalid:
+		return true
+	case ErrPaymentInProgress:
+		return true
+	case ErrPaymentMethodRequired:
 		return true
 	case ErrSecretExpired:
 		return true
@@ -329,8 +350,14 @@ type DtoBillingPlan struct {
 	Description  *string `json:"description,omitempty"`
 	DisplayOrder *int    `json:"displayOrder,omitempty"`
 
-	// Entitlements Entitlements maps entitlement keys to values ("Up to N datasources").
+	// Entitlements Entitlements maps entitlement keys to values. Clients that show a plan
+	// should use Features, which is already worded.
 	Entitlements *map[string]int `json:"entitlements,omitempty"`
+
+	// Features Features lists what the entitlements grant, resolved and ready to show,
+	// so a client needs no knowledge of entitlement keys. Only entitlements the
+	// platform enforces for this plan's service appear here.
+	Features *[]DtoBillingPlanFeature `json:"features,omitempty"`
 
 	// Highlighted Highlighted renders the "Most popular" treatment.
 	Highlighted       *bool   `json:"highlighted,omitempty"`
@@ -339,6 +366,21 @@ type DtoBillingPlan struct {
 
 	// Quotas Quotas are the included allowances ("100 GB included, then $X/GB").
 	Quotas *[]DtoBillingPlanQuota `json:"quotas,omitempty"`
+}
+
+// DtoBillingPlanFeature defines model for dto.BillingPlanFeature.
+type DtoBillingPlanFeature struct {
+	Key *string `json:"key,omitempty"`
+
+	// Label Label names the setting, for comparing two plans side by side.
+	Label *string `json:"label,omitempty"`
+
+	// Line Line is the sentence for the plan card.
+	Line *string `json:"line,omitempty"`
+
+	// Unit Unit names what the value counts, in the plural.
+	Unit  *string `json:"unit,omitempty"`
+	Value *int    `json:"value,omitempty"`
 }
 
 // DtoBillingPlanQuota defines model for dto.BillingPlanQuota.
@@ -2329,6 +2371,7 @@ type CreateSCAReauthPaymentIntentResponse struct {
 	JSON200      *HandlerCreateSCAReauthPaymentIntentResponse
 	JSON400      *ResponseAPIError
 	JSON404      *ResponseAPIError
+	JSON409      *ResponseAPIError
 	JSON500      *ResponseAPIError
 }
 
@@ -2492,6 +2535,7 @@ type UpdateSubscriptionResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *DtoSubscription
 	JSON400      *ResponseAPIError
+	JSON402      *ResponseAPIError
 	JSON404      *ResponseAPIError
 	JSON409      *ResponseAPIError
 	JSON500      *ResponseAPIError
@@ -3297,6 +3341,13 @@ func ParseCreateSCAReauthPaymentIntentResponse(rsp *http.Response) (*CreateSCARe
 		}
 		response.JSON404 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest ResponseAPIError
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -3517,6 +3568,13 @@ func ParseUpdateSubscriptionResponse(rsp *http.Response) (*UpdateSubscriptionRes
 			return nil, err
 		}
 		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 402:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON402 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
 		var dest ResponseAPIError

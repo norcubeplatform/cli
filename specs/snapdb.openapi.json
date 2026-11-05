@@ -2170,7 +2170,7 @@
       "name": "Jan Švábík"
     },
     "description": "This documents the backend service used by the frontend platform.",
-    "title": "JDS Backup App Backend",
+    "title": "Norcube Backup API",
     "version": ""
   },
   "openapi": "3.0.3",
