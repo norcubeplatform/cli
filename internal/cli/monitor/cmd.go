@@ -70,8 +70,8 @@ fails it when the check finds the monitor down. CI tokens need a
 Norcube Monitor scope: monitor.read (everything that reads),
 monitor.check (run checks), monitor.write (manage monitors and
 incidents), monitor.channels (manage alert channels) or
-monitor.statuspages (manage status pages and post on them). monitor.write
-includes neither of the last two.`,
+monitor.statuspages (manage status pages, post on them and manage their
+subscribers). monitor.write includes neither of the last two.`,
 	}
 	cmd.AddCommand(
 		newStatusCmd(d),

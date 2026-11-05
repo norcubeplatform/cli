@@ -27,7 +27,7 @@ func newStatusPagesCmd(d deps) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "status-pages",
 		Aliases: []string{"status-page"},
-		Short:   "Manage public status pages, their layout and the incidents posted on them",
+		Short:   "Manage public status pages, their layout, posted incidents and subscribers",
 		Long: `A status page is a public page that shows chosen monitors and manual rows
 as components, under names you pick; a monitor's own name and target are
 never shown. A page starts unpublished: set its layout, check it with a
@@ -35,14 +35,15 @@ preview link, then publish it. Changes to a published page, and incidents
 posted on it, are public within a minute.
 
 Pages are named by their id or exact slug. Any Norcube Monitor scope reads
-them; a CI token changes them or posts on them only with the
-monitor.statuspages scope, which no other scope includes, because
-everything it changes is public.`,
+them; a CI token changes them, posts on them or reaches their subscribers
+only with the monitor.statuspages scope, which no other scope includes,
+because what it changes is public and subscribers' addresses are personal
+data.`,
 	}
 	cmd.AddCommand(
 		newStatusPageListCmd(d), newStatusPageGetCmd(d), newStatusPageCreateCmd(d), newStatusPageUpdateCmd(d),
 		newStatusPageDeleteCmd(d), newStatusPagePublishCmd(d), newStatusPageUnpublishCmd(d), newStatusPagePreviewLinkCmd(d),
-		newStatusPageLayoutCmd(d), newStatusPageIncidentsCmd(d),
+		newStatusPageLayoutCmd(d), newStatusPageIncidentsCmd(d), newStatusPageSubscribersCmd(d),
 	)
 	return cmd
 }

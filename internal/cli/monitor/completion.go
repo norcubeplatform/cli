@@ -44,6 +44,10 @@ func registerCompletions(root *cobra.Command, d deps) {
 			c.ValidArgsFunction = completion.Func(completePages, 1, pageCandidates(d))
 		case "<page> <incident>":
 			c.ValidArgsFunction = postArgCompletion(d)
+		case "<page> <subscriber>":
+			// Only the page: completion candidates are cached on disk, and
+			// subscribers' addresses have no place there.
+			c.ValidArgsFunction = completion.Func(completePages, 1, pageCandidates(d))
 		}
 		for _, sub := range c.Commands() {
 			walk(sub)

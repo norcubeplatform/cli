@@ -129,7 +129,7 @@
       ],
       "name": "monitor",
       "short": "Monitor uptime, SSL certificates and domain expiry, and manage incidents and alerts",
-      "long": "Norcube Monitor checks your sites, certificates and domains on a schedule\nfrom Norcube's servers. A monitor is an HTTP check (optionally with a\nkeyword), an SSL certificate check or a domain expiry check. Problems\nconfirmed by consecutive checks open incidents, which alert through your\nalert channels (email, webhook, Slack, Discord, SMS). Status pages show\nchosen monitors to the public.\n\nMonitors and channels are named by their id or, where a command says so,\nby their exact name. Checks count towards your Norcube Monitor usage, on a\nschedule and when you run one now.\n\nIn CI, \"monitor status --fail-on critical\" fails the job while a\ncritical incident is open, and \"monitor monitors run \u003cmonitor\u003e --wait\"\nfails it when the check finds the monitor down. CI tokens need a\nNorcube Monitor scope: monitor.read (everything that reads),\nmonitor.check (run checks), monitor.write (manage monitors and\nincidents), monitor.channels (manage alert channels) or\nmonitor.statuspages (manage status pages and post on them). monitor.write\nincludes neither of the last two.",
+      "long": "Norcube Monitor checks your sites, certificates and domains on a schedule\nfrom Norcube's servers. A monitor is an HTTP check (optionally with a\nkeyword), an SSL certificate check or a domain expiry check. Problems\nconfirmed by consecutive checks open incidents, which alert through your\nalert channels (email, webhook, Slack, Discord, SMS). Status pages show\nchosen monitors to the public.\n\nMonitors and channels are named by their id or, where a command says so,\nby their exact name. Checks count towards your Norcube Monitor usage, on a\nschedule and when you run one now.\n\nIn CI, \"monitor status --fail-on critical\" fails the job while a\ncritical incident is open, and \"monitor monitors run \u003cmonitor\u003e --wait\"\nfails it when the check finds the monitor down. CI tokens need a\nNorcube Monitor scope: monitor.read (everything that reads),\nmonitor.check (run checks), monitor.write (manage monitors and\nincidents), monitor.channels (manage alert channels) or\nmonitor.statuspages (manage status pages, post on them and manage their\nsubscribers). monitor.write includes neither of the last two.",
       "usage": "norcube monitor \u003ccommand\u003e",
       "group": true,
       "service": {
@@ -2705,8 +2705,8 @@
       "aliases": [
         "status-page"
       ],
-      "short": "Manage public status pages, their layout and the incidents posted on them",
-      "long": "A status page is a public page that shows chosen monitors and manual rows\nas components, under names you pick; a monitor's own name and target are\nnever shown. A page starts unpublished: set its layout, check it with a\npreview link, then publish it. Changes to a published page, and incidents\nposted on it, are public within a minute.\n\nPages are named by their id or exact slug. Any Norcube Monitor scope reads\nthem; a CI token changes them or posts on them only with the\nmonitor.statuspages scope, which no other scope includes, because\neverything it changes is public.",
+      "short": "Manage public status pages, their layout, posted incidents and subscribers",
+      "long": "A status page is a public page that shows chosen monitors and manual rows\nas components, under names you pick; a monitor's own name and target are\nnever shown. A page starts unpublished: set its layout, check it with a\npreview link, then publish it. Changes to a published page, and incidents\nposted on it, are public within a minute.\n\nPages are named by their id or exact slug. Any Norcube Monitor scope reads\nthem; a CI token changes them, posts on them or reaches their subscribers\nonly with the monitor.statuspages scope, which no other scope includes,\nbecause what it changes is public and subscribers' addresses are personal\ndata.",
       "usage": "norcube monitor status-pages \u003ccommand\u003e",
       "group": true,
       "service": {
@@ -3555,6 +3555,144 @@
         "text"
       ],
       "flags": []
+    },
+    {
+      "command": "norcube monitor status-pages subscribers",
+      "path": [
+        "monitor",
+        "status-pages",
+        "subscribers"
+      ],
+      "name": "subscribers",
+      "aliases": [
+        "subscriber"
+      ],
+      "short": "See and delete the people who get a status page's email updates",
+      "long": "Subscribers are people who asked for email updates through the form on a\nstatus page. An address stays pending until it confirms from the mail it\ngets, and is removed if it hasn't after 7 days; only a confirmed address\ngets updates. Every mail sent counts as an email notification in your\nNorcube Monitor usage.\n\nUpdates reach subscribers when you post with --notify (\"incidents create\",\n\"incidents updates create\") and when the page's --auto-post posts for you.\n\nAddresses are personal data. Listing or deleting them takes the\nmonitor:ManageStatusPageSubscribers permission and, on a CI token, the\nmonitor.statuspages scope: no other scope reaches them, not even one that\nreads the page itself.",
+      "usage": "norcube monitor status-pages subscribers \u003ccommand\u003e",
+      "group": true,
+      "service": {
+        "key": "monitor",
+        "name": "Monitor",
+        "audience": "monitor"
+      },
+      "confirm": false,
+      "wait": false,
+      "paginated": false,
+      "flags": []
+    },
+    {
+      "command": "norcube monitor status-pages subscribers delete",
+      "path": [
+        "monitor",
+        "status-pages",
+        "subscribers",
+        "delete"
+      ],
+      "name": "delete",
+      "short": "Delete a subscriber and any mail queued for them",
+      "long": "Deletes the subscriber by id (\"subscribers list\" shows it) and any mail\nqueued for them. Their address isn't kept, so they can subscribe again.",
+      "usage": "norcube monitor status-pages subscribers delete \u003cpage\u003e \u003csubscriber\u003e [flags]",
+      "args": "\u003cpage\u003e \u003csubscriber\u003e",
+      "example": "norcube monitor status-pages subscribers delete acme 3f2a1b0c-9d8e-4f7a-b6c5-d4e3f2a1b0c9\nnorcube monitor status-pages subscribers delete acme 3f2a1b0c-9d8e-4f7a-b6c5-d4e3f2a1b0c9 --yes",
+      "group": false,
+      "service": {
+        "key": "monitor",
+        "name": "Monitor",
+        "audience": "monitor"
+      },
+      "effect": "write",
+      "confirm": true,
+      "wait": false,
+      "paginated": false,
+      "outputFormats": [
+        "table",
+        "json",
+        "yaml",
+        "text"
+      ],
+      "flags": [
+        {
+          "name": "yes",
+          "type": "bool",
+          "default": "false",
+          "description": "Don't ask for confirmation",
+          "required": false,
+          "repeatable": false
+        }
+      ]
+    },
+    {
+      "command": "norcube monitor status-pages subscribers list",
+      "path": [
+        "monitor",
+        "status-pages",
+        "subscribers",
+        "list"
+      ],
+      "name": "list",
+      "short": "List a status page's subscribers, newest first",
+      "long": "Lists confirmed and pending subscribers. COMPONENTS is \"all\", or how many\nof the page's components the subscriber follows; -o json has their ids.\n\nThe output holds personal data, so keep it out of build logs and other places\nmany people can read.",
+      "usage": "norcube monitor status-pages subscribers list \u003cpage\u003e [flags]",
+      "args": "\u003cpage\u003e",
+      "example": "norcube monitor status-pages subscribers list acme\nnorcube monitor status-pages subscribers list acme --all-pages -o json --query \"[?status=='confirmed'].email\"",
+      "group": false,
+      "service": {
+        "key": "monitor",
+        "name": "Monitor",
+        "audience": "monitor"
+      },
+      "effect": "read",
+      "confirm": false,
+      "wait": false,
+      "paginated": true,
+      "outputFormats": [
+        "table",
+        "json",
+        "yaml",
+        "text"
+      ],
+      "flags": [
+        {
+          "name": "all-pages",
+          "type": "bool",
+          "default": "false",
+          "description": "Follow cursors until every page is fetched (capped by --max-items)",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "cursor",
+          "type": "string",
+          "description": "Continue from the cursor a previous page printed",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "limit",
+          "type": "int",
+          "default": "0",
+          "description": "Same as --page-size",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "max-items",
+          "type": "int",
+          "default": "0",
+          "description": "Cap for --all-pages (0 = 10000)",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "page-size",
+          "type": "int",
+          "default": "0",
+          "description": "Items per request (0 = 50)",
+          "required": false,
+          "repeatable": false
+        }
+      ]
     },
     {
       "command": "norcube monitor status-pages unpublish",

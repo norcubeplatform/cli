@@ -35,6 +35,7 @@ const (
 	spDesk    = "b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6f"
 	spGroup   = "c3d4e5f6-a7b8-4c9d-8e1f-2a3b4c5d6e70"
 	spPost    = "8c7d6e5f-4a3b-4c2d-9e1f-0a1b2c3d4e5f"
+	spSub     = "3f2a1b0c-9d8e-4f7a-b6c5-d4e3f2a1b0c9"
 	spPostURL = "https://acme.norcubestatus.com/incidents/" + spPost
 )
 
@@ -88,6 +89,8 @@ var (
 		"components":[{"componentId":"` + spSite + `","status":"partial_outage"}],"monitorIncidentIds":["` + monInc + `"],
 		"updates":[{"id":"d4e5f6a7-b8c9-4d0e-8f1a-2b3c4d5e6f70","status":"investigating","body":"We are looking into it.","createdAt":"2026-11-03T08:05:00Z"}],
 		"createdAt":"2026-11-03T08:05:00Z","updatedAt":"2026-11-03T08:05:00Z"}`
+	spSubConfirmedJSON = `{"id":"` + spSub + `","email":"jan@example.com","locale":"cs","status":"confirmed","componentIds":[],"createdAt":"2026-11-03T09:00:00Z","confirmedAt":"2026-11-03T09:05:00Z"}`
+	spSubPendingJSON   = `{"id":"e5f6a7b8-c9d0-4e1f-8a2b-3c4d5e6f7a81","email":"eva@example.com","locale":"en","status":"pending","componentIds":["` + spSite + `","` + spDesk + `"],"createdAt":"2026-11-04T09:00:00Z"}`
 )
 
 func monList(items ...string) string {
@@ -132,6 +135,7 @@ func init() {
 		"GET /status-pages/" + spAcme + "/layout":              spLayoutJSON,
 		"GET /status-pages/" + spAcme + "/incidents":           monList(spPostJSON),
 		"GET /status-pages/" + spAcme + "/incidents/" + spPost: spPostJSON,
+		"GET /status-pages/" + spAcme + "/subscribers":         monList(spSubConfirmedJSON, spSubPendingJSON),
 	} {
 		goldenData[k] = v
 	}
@@ -163,6 +167,7 @@ func TestGoldenMonitor(t *testing.T) {
 		{"monitor-status-pages-layout-get", []string{"monitor", "status-pages", "layout", "get", spAcme}},
 		{"monitor-status-pages-incidents-list", []string{"monitor", "status-pages", "incidents", "list", spAcme}},
 		{"monitor-status-pages-incidents-get", []string{"monitor", "status-pages", "incidents", "get", spAcme, spPost}},
+		{"monitor-status-pages-subscribers-list", []string{"monitor", "status-pages", "subscribers", "list", "acme"}},
 	}
 	for _, c := range commands {
 		for format, ext := range goldenFormats {
@@ -676,6 +681,10 @@ func TestMonitorCompletion(t *testing.T) {
 		{[]string{"monitor", "status-pages", "incidents", "get", "acme", "8c"}, spPost},
 		{[]string{"monitor", "status-pages", "incidents", "updates", "create", "acme", "8c"}, spPost},
 		{[]string{"monitor", "status-pages", "create", "x", "--uptime-days", ""}, "30,60,90"},
+		{[]string{"monitor", "status-pages", "subscribers", "list", "ac"}, "acme"},
+		{[]string{"monitor", "status-pages", "subscribers", "delete", "ac"}, "acme"},
+		// Addresses stay out of the on-disk completion cache.
+		{[]string{"monitor", "status-pages", "subscribers", "delete", "acme", ""}, ""},
 	}
 	for _, c := range cases {
 		got, _ := complete(t, c.args...)
@@ -1083,6 +1092,113 @@ func TestMonitorStatusPageHelpSaysWhatGoesPublic(t *testing.T) {
 		}
 		if !strings.Contains(strings.ReplaceAll(out, "\n", " "), "public within a minute") {
 			t.Errorf("%v help doesn't say it goes public: %s", path, out)
+		}
+	}
+}
+
+// --all-pages follows the API's cursor, and a page is named by slug or id.
+func TestMonitorStatusPageSubscriberList(t *testing.T) {
+	goldenEnv(t)
+	var (
+		mu      sync.Mutex
+		queries []string
+	)
+	goldenHandlers(t, map[string]http.HandlerFunc{"GET /status-pages/" + spAcme + "/subscribers": func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		queries = append(queries, r.URL.RawQuery)
+		mu.Unlock()
+		if r.URL.Query().Get("cursor") == "" {
+			fmt.Fprint(w, `{"list":[`+spSubConfirmedJSON+`],"cursors":{"next":"abc"},"meta":{}}`)
+			return
+		}
+		fmt.Fprint(w, monList(spSubPendingJSON))
+	}})
+	for _, page := range []string{"acme", spAcme} {
+		mu.Lock()
+		queries = nil
+		mu.Unlock()
+		out, stderr, err := run(t, "monitor", "status-pages", "subscribers", "list", page, "--all-pages", "-o", "json", "--query", "[].email")
+		if err != nil {
+			t.Fatalf("%v\n%s", err, stderr)
+		}
+		if !strings.Contains(out, "jan@example.com") || !strings.Contains(out, "eva@example.com") {
+			t.Errorf("%s, stdout: %s", page, out)
+		}
+		mu.Lock()
+		if len(queries) != 2 || !strings.Contains(queries[1], "cursor=abc") {
+			t.Errorf("%s, queries: %v", page, queries)
+		}
+		mu.Unlock()
+	}
+}
+
+func TestMonitorStatusPageSubscriberDelete(t *testing.T) {
+	goldenEnv(t)
+	var rec recorder
+	route := "DELETE /status-pages/" + spAcme + "/subscribers/" + spSub
+	goldenHandlers(t, map[string]http.HandlerFunc{route: rec.handler(204, "")})
+	base := []string{"monitor", "status-pages", "subscribers", "delete", "acme"}
+
+	// Without a terminal it asks for --yes and sends nothing; so do mistakes.
+	_, _, err := run(t, append(append([]string{}, base...), spSub)...)
+	if err == nil || exitOf(err) != clierr.ExitUsage || !strings.Contains(err.Error(), "--yes") {
+		t.Errorf("without --yes: %v", err)
+	}
+	_, _, err = run(t, append(append([]string{}, base...), "jan@example.com", "--yes")...)
+	if err == nil || exitOf(err) != clierr.ExitUsage || !strings.Contains(err.Error(), "subscriber id") {
+		t.Errorf("not an id: %v", err)
+	}
+	if rec.count() != 0 {
+		t.Fatalf("%d requests were sent", rec.count())
+	}
+
+	out, stderr, err := run(t, append(append([]string{}, base...), spSub, "--yes", "-o", "json")...)
+	if err != nil {
+		t.Fatalf("%v\n%s", err, stderr)
+	}
+	if !strings.Contains(out, `"deleted": true`) || !strings.Contains(out, spSub) {
+		t.Errorf("stdout: %s", out)
+	}
+	if rec.count() != 1 {
+		t.Errorf("%d requests", rec.count())
+	}
+
+	// A subscriber that isn't there exits 3.
+	goldenHandlers(t, map[string]http.HandlerFunc{route: (&recorder{}).handler(404,
+		`{"title":"Not Found","status":404,"detail":"Subscriber not found.","code":"NOT_FOUND"}`)})
+	_, _, err = run(t, append(append([]string{}, base...), spSub, "--yes")...)
+	if e := Describe(err); e.Code != clierr.CodeNotFound || e.ExitCode() != clierr.ExitNotFound {
+		t.Errorf("not found: %+v", e)
+	}
+}
+
+// Addresses are personal data: a token without monitor.statuspages exits 5 and
+// is told what was refused and why, on the read as on the delete, and a person
+// without the permission is told which one it takes.
+func TestMonitorStatusPageSubscriberRefusals(t *testing.T) {
+	goldenEnv(t)
+	listRoute := "GET /status-pages/" + spAcme + "/subscribers"
+	deleteRoute := "DELETE /status-pages/" + spAcme + "/subscribers/" + spSub
+	scope := `{"title":"Forbidden","status":403,"detail":"This token can't change status pages or post on them: it needs the monitor.statuspages scope.","code":"FORBIDDEN","reason":"INSUFFICIENT_SCOPE"}`
+	iam := `{"title":"Forbidden","status":403,"detail":"You don't have access to this in Norcube Monitor.","code":"FORBIDDEN"}`
+	commands := map[string][]string{
+		"list":   {"monitor", "status-pages", "subscribers", "list", "acme"},
+		"delete": {"monitor", "status-pages", "subscribers", "delete", "acme", spSub, "--yes"},
+	}
+	for name, args := range commands {
+		goldenHandlers(t, map[string]http.HandlerFunc{listRoute: (&recorder{}).handler(403, scope), deleteRoute: (&recorder{}).handler(403, scope)})
+		_, _, err := run(t, args...)
+		e := Describe(err)
+		if e.Code != clierr.CodeInsufficientScope || e.ExitCode() != clierr.ExitAccess ||
+			!strings.Contains(e.Message, "monitor.statuspages") || !strings.Contains(e.Message, "personal data") || strings.Contains(e.Message, "post on them") {
+			t.Errorf("%s, scope: %+v", name, e)
+		}
+
+		goldenHandlers(t, map[string]http.HandlerFunc{listRoute: (&recorder{}).handler(403, iam), deleteRoute: (&recorder{}).handler(403, iam)})
+		_, _, err = run(t, args...)
+		e = Describe(err)
+		if e.Code != clierr.CodePermissionDenied || e.ExitCode() != clierr.ExitAccess || !strings.Contains(e.Hint, "monitor:ManageStatusPageSubscribers") {
+			t.Errorf("%s, permission: %+v", name, e)
 		}
 	}
 }

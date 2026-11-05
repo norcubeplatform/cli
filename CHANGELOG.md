@@ -5,6 +5,14 @@ this file collects what users and scripts need to know.
 
 ## Unreleased
 
+### New
+
+- Norcube Monitor status page subscribers: `monitor status-pages subscribers
+  list | delete`, with pages named by id or exact slug. Addresses are personal
+  data, so these commands need the `monitor.statuspages` scope on a CI token,
+  even to list. A token without it exits 5 and says so. The API's subscriber
+  count and CSV export have no commands yet; `nrc api` reaches them.
+
 ### Changes
 
 - Refreshed the generated API clients and specs. No command, flag, JSON field or

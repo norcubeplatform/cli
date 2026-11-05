@@ -559,6 +559,30 @@ func statusPageLayoutObject(l monitor.DtoStatusPageLayout) output.Object {
 	return output.Object{Value: l, Fields: fields, Text: []string{strconv.Itoa(count), strconv.Itoa(len(l.Groups))}}
 }
 
+// ---------- subscribers ----------
+
+// subscriberComponents says what a subscriber follows: an empty list means
+// every component of the page.
+func subscriberComponents(s monitor.DtoStatusPageSubscriber) string {
+	if len(s.ComponentIds) == 0 {
+		return "all"
+	}
+	return strconv.Itoa(len(s.ComponentIds))
+}
+
+func subscriberTable(items []monitor.DtoStatusPageSubscriber) output.Table[monitor.DtoStatusPageSubscriber] {
+	return output.Table[monitor.DtoStatusPageSubscriber]{
+		Headers: []string{"ID", "EMAIL", "STATUS", "LOCALE", "COMPONENTS", "CREATED", "CONFIRMED"},
+		Rows: func(s monitor.DtoStatusPageSubscriber) []string {
+			return []string{
+				s.Id.String(), s.Email, string(s.Status), string(s.Locale), subscriberComponents(s),
+				output.WhenString(s.CreatedAt), output.WhenString(cmdutil.Deref(s.ConfirmedAt)),
+			}
+		},
+		Items: items,
+	}
+}
+
 // ---------- posted incidents ----------
 
 func postRow(i monitor.DtoStatusPageIncident) []string {
