@@ -3,7 +3,7 @@
 Notable changes, newest first. Release notes on GitHub list every commit;
 this file collects what users and scripts need to know.
 
-## Unreleased
+## 0.23.0 (2026-11-05)
 
 ### New
 
