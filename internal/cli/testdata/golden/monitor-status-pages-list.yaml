@@ -5,6 +5,7 @@
   published: true
   publishedAt: "2026-11-02T09:00:00Z"
   settings:
+    autoPost: false
     historyDays: 90
     searchIndexing: true
     showResponseTime: false
@@ -21,6 +22,7 @@
   name: Draft
   published: false
   settings:
+    autoPost: false
     historyDays: 90
     searchIndexing: true
     showResponseTime: false

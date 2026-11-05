@@ -12,6 +12,13 @@ this file collects what users and scripts need to know.
   data, so these commands need the `monitor.statuspages` scope on a CI token,
   even to list. A token without it exits 5 and says so. The API's subscriber
   count and CSV export have no commands yet; `nrc api` reaches them.
+- `--notify` on `monitor status-pages incidents create` and `incidents updates
+  create` emails the update to the page's subscribers.
+- `--auto-post` on `monitor status-pages create` and `update` lets a page post
+  confirmed critical monitor incidents by itself. It is optional on `create`
+  and off unless you ask for it.
+- `monitor status-pages get` shows whether a page posts automatically, and
+  `incidents get` shows when a post was written by the system.
 
 ### Changes
 
@@ -26,6 +33,7 @@ this file collects what users and scripts need to know.
 
 - `monitor status-pages incidents` JSON and YAML: posted incidents gain
   `autoPosted` and `autoManaged`, and their updates `notifySubscribers`.
+- `monitor status-pages` page JSON and YAML: `settings` gains `autoPost`.
 
 ## 0.23.0 (2026-11-05)
 

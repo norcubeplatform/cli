@@ -2728,7 +2728,7 @@
       ],
       "name": "create",
       "short": "Create a status page, unpublished",
-      "long": "Creates a page that nobody can see yet: set what it shows with \"layout\nset\", check it with \"preview-link\", then \"publish\" it. Every setting is\nrequired: the page's public face is your choice, so nothing is filled in\nfor you. A boolean takes =false to turn it off.\n\nYour organization's limit sets how many pages it can have, published or not.",
+      "long": "Creates a page that nobody can see yet: set what it shows with \"layout\nset\", check it with \"preview-link\", then \"publish\" it. Every setting is\nrequired: the page's public face is your choice, so nothing is filled in\nfor you. A boolean takes =false to turn it off. The one exception is\n--auto-post, which is off unless you ask for it.\n\n--auto-post lets the page post by itself: a monitor incident that stays\ncritical for 3 minutes is posted in fixed wording and emailed to subscribers,\nand the post resolves when the incident does. A warning is never posted.\n\nYour organization's limit sets how many pages it can have, published or not.",
       "usage": "norcube monitor status-pages create \u003cname\u003e [flags]",
       "args": "\u003cname\u003e",
       "example": "norcube monitor status-pages create \"Acme status\" --slug acme --time-zone Europe/Prague --uptime-days 90 --history-days 90 --show-uptime-bars --show-uptime-percent --show-response-time=false --search-indexing",
@@ -2749,6 +2749,14 @@
         "text"
       ],
       "flags": [
+        {
+          "name": "auto-post",
+          "type": "bool",
+          "default": "false",
+          "description": "Post confirmed critical monitor incidents on the page by itself and email subscribers (--auto-post=false turns it off)",
+          "required": false,
+          "repeatable": false
+        },
         {
           "name": "description",
           "type": "string",
@@ -2907,7 +2915,7 @@
         "incident"
       ],
       "short": "Post incidents on a status page and keep them updated",
-      "long": "A posted incident is what you tell the public: a title, an impact and a\nseries of updates. It is separate from a monitor's own incidents, which stay\ninternal; a post may link to them for your navigation, but those links are\nnever published.\n\nWhile a post is open, the status it gives an affected component wins over\nwhat the component's monitor says. A post with status resolved moves to the\npage's history. On a published page everything here is public within a\nminute.",
+      "long": "A posted incident is what you tell the public: a title, an impact and a\nseries of updates. It is separate from a monitor's own incidents, which stay\ninternal; a post may link to them for your navigation, but those links are\nnever published.\n\nWhile a post is open, the status it gives an affected component wins over\nwhat the component's monitor says. A post with status resolved moves to the\npage's history. On a published page everything here is public within a\nminute.\n\nA page with --auto-post also posts by itself. A person's correction or update\non such a post takes it over for good: the system leaves it alone from then\non, and it ends when you end it.",
       "usage": "norcube monitor status-pages incidents \u003ccommand\u003e",
       "group": true,
       "service": {
@@ -2930,10 +2938,10 @@
       ],
       "name": "create",
       "short": "Post an incident on a status page; public within a minute on a published page",
-      "long": "Posts an incident with its first update. On a published page it is public\nwithin a minute: write it for your customers. It counts toward the page's\noverall status while it is open, and --component sets what the page shows\nfor the components it affects.\n\n--monitor-incident links the monitor incidents the post is about, for your\nown navigation; the links are never published.",
+      "long": "Posts an incident with its first update. On a published page it is public\nwithin a minute: write it for your customers. It counts toward the page's\noverall status while it is open, and --component sets what the page shows\nfor the components it affects.\n\n--monitor-incident links the monitor incidents the post is about, for your\nown navigation; the links are never published. --notify also emails the first\nupdate to the page's subscribers.",
       "usage": "norcube monitor status-pages incidents create \u003cpage\u003e [flags]",
       "args": "\u003cpage\u003e",
-      "example": "norcube monitor status-pages incidents create acme --title \"Elevated API errors\" --status investigating --impact minor --message \"We are looking into it.\"\nnorcube monitor status-pages incidents create acme --title \"Checkout is down\" --status identified --impact major --message-file update.txt --component \"Checkout=major_outage\" --started-at 20m",
+      "example": "norcube monitor status-pages incidents create acme --title \"Elevated API errors\" --status investigating --impact minor --message \"We are looking into it.\"\nnorcube monitor status-pages incidents create acme --title \"Checkout is down\" --status identified --impact major --message-file update.txt --component \"Checkout=major_outage\" --started-at 20m --notify",
       "group": false,
       "service": {
         "key": "monitor",
@@ -2991,6 +2999,14 @@
           "description": "Id of a monitor incident this post is about (repeat or comma-separate); never published",
           "required": false,
           "repeatable": true
+        },
+        {
+          "name": "notify",
+          "type": "bool",
+          "default": "false",
+          "description": "Email this update to the page's subscribers; a page that isn't published emails nobody",
+          "required": false,
+          "repeatable": false
         },
         {
           "name": "started-at",
@@ -3258,10 +3274,10 @@
       ],
       "name": "create",
       "short": "Post an update on an incident; public within a minute on a published page",
-      "long": "Adds an update to an open post. Its status becomes the post's; resolved ends\nthe post and moves it to the page's history, after which it takes no more\nupdates (post a new incident instead). On a published page the update is\npublic within a minute. --component replaces the affected components.",
+      "long": "Adds an update to an open post. Its status becomes the post's; resolved ends\nthe post and moves it to the page's history, after which it takes no more\nupdates (post a new incident instead). On a published page the update is\npublic within a minute. --component replaces the affected components, and\n--notify also emails the update to the page's subscribers.",
       "usage": "norcube monitor status-pages incidents updates create \u003cpage\u003e \u003cincident\u003e [flags]",
       "args": "\u003cpage\u003e \u003cincident\u003e",
-      "example": "norcube monitor status-pages incidents updates create acme 8c7d6e5f-4a3b-4c2d-9e1f-0a1b2c3d4e5f --status monitoring --message \"A fix is rolling out.\"\nnorcube monitor status-pages incidents updates create acme 8c7d6e5f-4a3b-4c2d-9e1f-0a1b2c3d4e5f --status resolved --message \"All clear.\"",
+      "example": "norcube monitor status-pages incidents updates create acme 8c7d6e5f-4a3b-4c2d-9e1f-0a1b2c3d4e5f --status monitoring --message \"A fix is rolling out.\"\nnorcube monitor status-pages incidents updates create acme 8c7d6e5f-4a3b-4c2d-9e1f-0a1b2c3d4e5f --status resolved --message \"All clear.\" --notify",
       "group": false,
       "service": {
         "key": "monitor",
@@ -3305,6 +3321,14 @@
           "type": "bool",
           "default": "false",
           "description": "Remove every affected component",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "notify",
+          "type": "bool",
+          "default": "false",
+          "description": "Email this update to the page's subscribers; a page that isn't published emails nobody",
           "required": false,
           "repeatable": false
         },
@@ -3743,10 +3767,10 @@
       ],
       "name": "update",
       "short": "Change a status page's address, texts or settings",
-      "long": "Changes only what you pass. On a published page the change is public within\na minute.\n\n--slug moves the page to a new address. The old address of a published\npage redirects to the new one for 30 days, and no other organization can\ntake it meanwhile; unpublishing or deleting the page gives it up.",
+      "long": "Changes only what you pass. On a published page the change is public within\na minute.\n\n--slug moves the page to a new address. The old address of a published\npage redirects to the new one for 30 days, and no other organization can\ntake it meanwhile; unpublishing or deleting the page gives it up.\n\n--auto-post=false stops new automatic posts; one already open still ends by\nitself when its monitors recover.",
       "usage": "norcube monitor status-pages update \u003cpage\u003e [flags]",
       "args": "\u003cpage\u003e",
-      "example": "norcube monitor status-pages update acme --name \"Acme Inc. status\"\nnorcube monitor status-pages update acme --slug acme-inc\nnorcube monitor status-pages update acme --uptime-days 30 --show-response-time",
+      "example": "norcube monitor status-pages update acme --name \"Acme Inc. status\"\nnorcube monitor status-pages update acme --slug acme-inc\nnorcube monitor status-pages update acme --uptime-days 30 --show-response-time\nnorcube monitor status-pages update acme --auto-post",
       "group": false,
       "service": {
         "key": "monitor",
@@ -3764,6 +3788,14 @@
         "text"
       ],
       "flags": [
+        {
+          "name": "auto-post",
+          "type": "bool",
+          "default": "false",
+          "description": "Post confirmed critical monitor incidents on the page by itself and email subscribers (--auto-post=false turns it off)",
+          "required": false,
+          "repeatable": false
+        },
         {
           "name": "description",
           "type": "string",

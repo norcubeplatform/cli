@@ -78,7 +78,7 @@ var (
 )
 
 var (
-	spSettingsJSON = `"settings":{"timeZone":"Europe/Prague","uptimeDays":90,"showUptimeBars":true,"showUptimePercent":true,"showResponseTime":false,"historyDays":90,"searchIndexing":true}`
+	spSettingsJSON = `"settings":{"timeZone":"Europe/Prague","uptimeDays":90,"showUptimeBars":true,"showUptimePercent":true,"showResponseTime":false,"historyDays":90,"searchIndexing":true,"autoPost":false}`
 	spAcmeJSON     = `{"id":"` + spAcme + `","slug":"acme","name":"Acme status","description":"Our services","url":"https://acme.norcubestatus.com","published":true,"publishedAt":"2026-11-02T09:00:00Z",` +
 		spSettingsJSON + `,"createdAt":"2026-11-01T09:00:00Z","updatedAt":"2026-11-02T09:00:00Z"}`
 	spDraftJSON = `{"id":"` + spDraft + `","slug":"draft-page","name":"Draft","description":"","url":"https://draft-page.norcubestatus.com","published":false,` +
@@ -771,6 +771,15 @@ func TestMonitorStatusPageCreate(t *testing.T) {
 		t.Errorf("body %s, want %s", got, want)
 	}
 
+	// --auto-post is the one setting create doesn't require, and goes only when given.
+	rec = recorder{}
+	if _, stderr, err := run(t, append([]string{"monitor", "status-pages", "create", "Draft", "--auto-post"}, settings...)...); err != nil {
+		t.Fatalf("%v\n%s", err, stderr)
+	}
+	if got := fmt.Sprint(rec.only(t).body["settings"]); !strings.Contains(got, "autoPost:true") {
+		t.Errorf("settings %s", got)
+	}
+
 	rec = recorder{}
 	cases := []struct {
 		name string
@@ -825,6 +834,8 @@ func TestMonitorStatusPageWrites(t *testing.T) {
 	}{
 		{"update slug and setting", []string{"update", "acme", "--slug", "acme-inc", "--show-uptime-bars=false", "--history-days", "7"},
 			"PATCH /status-pages/" + spAcme, 200, spAcmeJSON, "", "map[settings:map[historyDays:7 showUptimeBars:false] slug:acme-inc]", "Public within a minute at https://acme.norcubestatus.com."},
+		{"auto-post on", []string{"update", "acme", "--auto-post"}, "PATCH /status-pages/" + spAcme, 200, spAcmeJSON, "", "map[settings:map[autoPost:true]]", "Updated status page acme"},
+		{"auto-post off", []string{"update", "acme", "--auto-post=false"}, "PATCH /status-pages/" + spAcme, 200, spAcmeJSON, "", "map[settings:map[autoPost:false]]", "Updated status page acme"},
 		{"update name only", []string{"update", spDraft, "--name", " New "},
 			"PATCH /status-pages/" + spDraft, 200, spDraftJSON, "", "map[name:New]", "Updated status page draft-page"},
 		{"publish", []string{"publish", "acme"}, "POST /status-pages/" + spAcme + "/publish", 200, spAcmeJSON, "", "", "public within a minute at https://acme.norcubestatus.com"},
@@ -984,6 +995,34 @@ func TestMonitorStatusPageIncidentCreate(t *testing.T) {
 		t.Errorf("%v %q", err, out)
 	}
 
+	// --notify is sent only when given, and the line says who hears of it.
+	var notified recorder
+	goldenHandlers(t, map[string]http.HandlerFunc{
+		"POST /status-pages/" + spAcme + "/incidents":  notified.handler(201, spPostJSON),
+		"POST /status-pages/" + spDraft + "/incidents": notified.handler(201, spPostJSON),
+	})
+	out, _, err = run(t, "monitor", "status-pages", "incidents", "create", "acme", "--title", "T", "--status", "resolved", "--impact", "none", "--message", "m", "--notify")
+	if err != nil || !strings.Contains(out, "Subscribers get it by email") {
+		t.Errorf("%v %q", err, out)
+	}
+	if got := notified.only(t).body["notify"]; got != true {
+		t.Errorf("notify %v", got)
+	}
+	notified = recorder{}
+	out, _, err = run(t, "monitor", "status-pages", "incidents", "create", spDraft, "--title", "T", "--status", "resolved", "--impact", "none", "--message", "m", "--notify")
+	if err != nil || !strings.Contains(out, "No email goes out") {
+		t.Errorf("%v %q", err, out)
+	}
+	notified = recorder{}
+	out, _, err = run(t, "monitor", "status-pages", "incidents", "create", "acme", "--title", "T", "--status", "resolved", "--impact", "none", "--message", "m")
+	if err != nil || strings.Contains(out, "email") {
+		t.Errorf("%v %q", err, out)
+	}
+	if _, sent := notified.only(t).body["notify"]; sent {
+		t.Error("notify sent without --notify")
+	}
+	goldenHandlers(t, map[string]http.HandlerFunc{"POST /status-pages/" + spAcme + "/incidents": rec.handler(201, spPostJSON)})
+
 	// Mistakes never reach the API.
 	rec = recorder{}
 	base := []string{"monitor", "status-pages", "incidents", "create", "acme"}
@@ -1032,6 +1071,8 @@ func TestMonitorStatusPageIncidentUpdates(t *testing.T) {
 			"PATCH " + route, 200, "map[components:[] monitorIncidentIds:[]]"},
 		{"post an update", []string{"updates", "create", "acme", spPost, "--status", "monitoring", "--message", "A fix is rolling out."},
 			"POST " + route + "/updates", 201, "map[body:A fix is rolling out. status:monitoring]"},
+		{"post an update and email it", []string{"updates", "create", "acme", spPost, "--status", "monitoring", "--message", "m", "--notify"},
+			"POST " + route + "/updates", 201, "map[body:m notify:true status:monitoring]"},
 		{"resolve, clearing components", []string{"updates", "create", "acme", spPost, "--status", "resolved", "--message", "All clear.", "--no-components"},
 			"POST " + route + "/updates", 201, "map[body:All clear. components:[] status:resolved]"},
 	}
@@ -1054,6 +1095,10 @@ func TestMonitorStatusPageIncidentUpdates(t *testing.T) {
 
 	if _, _, err := run(t, "monitor", "status-pages", "incidents", "update", "acme", spPost); err == nil || exitOf(err) != clierr.ExitUsage {
 		t.Errorf("nothing to change: %v", err)
+	}
+	// Corrections take no --notify: the API has no such field on them.
+	if _, _, err := run(t, "monitor", "status-pages", "incidents", "update", "acme", spPost, "--title", "T", "--notify"); err == nil || exitOf(err) != clierr.ExitUsage {
+		t.Errorf("update --notify: %v", err)
 	}
 	if _, _, err := run(t, "monitor", "status-pages", "incidents", "get", "acme", "nope"); err == nil || exitOf(err) != clierr.ExitUsage {
 		t.Errorf("an incident is named by id: %v", err)
@@ -1200,5 +1245,31 @@ func TestMonitorStatusPageSubscriberRefusals(t *testing.T) {
 		if e.Code != clierr.CodePermissionDenied || e.ExitCode() != clierr.ExitAccess || !strings.Contains(e.Hint, "monitor:ManageStatusPageSubscribers") {
 			t.Errorf("%s, permission: %+v", name, e)
 		}
+	}
+}
+
+// A post the system wrote says so, and whether it still runs it; a person's
+// post shows no such line.
+func TestMonitorStatusPageAutoPostShown(t *testing.T) {
+	goldenEnv(t)
+	route := "GET /status-pages/" + spAcme + "/incidents/" + spPost
+	auto := func(managed string) string {
+		return strings.Replace(spPostJSON, `"statusPageId"`, `"autoPosted":true,"autoManaged":`+managed+`,"statusPageId"`, 1)
+	}
+	args := []string{"monitor", "status-pages", "incidents", "get", "acme", spPost, "-o", "table"}
+	for managed, want := range map[string]string{"true": "the system still runs it", "false": "a person has taken it over"} {
+		goldenHandlers(t, map[string]http.HandlerFunc{route: (&recorder{}).handler(200, auto(managed))})
+		out, stderr, err := run(t, args...)
+		if err != nil {
+			t.Fatalf("%v\n%s", err, stderr)
+		}
+		if !strings.Contains(out, "Posted automatically") || !strings.Contains(out, want) {
+			t.Errorf("autoManaged %s: %s", managed, out)
+		}
+	}
+	goldenHandlers(t, map[string]http.HandlerFunc{route: (&recorder{}).handler(200, spPostJSON)})
+	out, _, err := run(t, args...)
+	if err != nil || strings.Contains(out, "Posted automatically") {
+		t.Errorf("%v %q", err, out)
 	}
 }

@@ -129,7 +129,7 @@ type statusPageFlags struct {
 	slug, description, timeZone string
 	uptimeDays, historyDays     int
 	bars, percent, response     bool
-	indexing                    bool
+	indexing, autoPost          bool
 }
 
 func addStatusPageFlags(cmd *cobra.Command, f *statusPageFlags) {
@@ -143,6 +143,7 @@ func addStatusPageFlags(cmd *cobra.Command, f *statusPageFlags) {
 	fl.BoolVar(&f.percent, "show-uptime-percent", false, "Show each component's uptime percentage (--show-uptime-percent=false hides it)")
 	fl.BoolVar(&f.response, "show-response-time", false, "Show each component's average response time (--show-response-time=false hides it)")
 	fl.BoolVar(&f.indexing, "search-indexing", false, "Let search engines index the page (--search-indexing=false asks them to leave it out)")
+	fl.BoolVar(&f.autoPost, "auto-post", false, "Post confirmed critical monitor incidents on the page by itself and email subscribers (--auto-post=false turns it off)")
 	cmdutil.FlagEnum(cmd, "uptime-days", statusPageUptimeDays...)
 }
 
@@ -168,7 +169,12 @@ func newStatusPageCreateCmd(d deps) *cobra.Command {
 		Long: `Creates a page that nobody can see yet: set what it shows with "layout
 set", check it with "preview-link", then "publish" it. Every setting is
 required: the page's public face is your choice, so nothing is filled in
-for you. A boolean takes =false to turn it off.
+for you. A boolean takes =false to turn it off. The one exception is
+--auto-post, which is off unless you ask for it.
+
+--auto-post lets the page post by itself: a monitor incident that stays
+critical for 3 minutes is posted in fixed wording and emailed to subscribers,
+and the post resolves when the incident does. A warning is never posted.
 
 Your organization's limit sets how many pages it can have, published or not.`,
 		Example: `  norcube monitor status-pages create "Acme status" --slug acme --time-zone Europe/Prague --uptime-days 90 --history-days 90 --show-uptime-bars --show-uptime-percent --show-response-time=false --search-indexing`,
@@ -189,6 +195,9 @@ Your organization's limit sets how many pages it can have, published or not.`,
 					ShowResponseTime:  f.response,
 					SearchIndexing:    f.indexing,
 				},
+			}
+			if cmd.Flags().Changed("auto-post") {
+				body.Settings.AutoPost = &f.autoPost
 			}
 			if f.description != "" {
 				body.Description = &f.description
@@ -233,10 +242,14 @@ a minute.
 
 --slug moves the page to a new address. The old address of a published
 page redirects to the new one for 30 days, and no other organization can
-take it meanwhile; unpublishing or deleting the page gives it up.`,
+take it meanwhile; unpublishing or deleting the page gives it up.
+
+--auto-post=false stops new automatic posts; one already open still ends by
+itself when its monitors recover.`,
 		Example: `  norcube monitor status-pages update acme --name "Acme Inc. status"
   norcube monitor status-pages update acme --slug acme-inc
-  norcube monitor status-pages update acme --uptime-days 30 --show-response-time`,
+  norcube monitor status-pages update acme --uptime-days 30 --show-response-time
+  norcube monitor status-pages update acme --auto-post`,
 		Args: cobra.ExactArgs(1),
 		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
 			if err := checkStatusPageFlags(cmd, f); err != nil {
@@ -313,6 +326,9 @@ func statusPageUpdateBody(cmd *cobra.Command, f statusPageFlags, name string) (m
 	}
 	if set("search-indexing") {
 		s.SearchIndexing, settings = &f.indexing, true
+	}
+	if set("auto-post") {
+		s.AutoPost, settings = &f.autoPost, true
 	}
 	if settings {
 		body.Settings, changed = &s, true

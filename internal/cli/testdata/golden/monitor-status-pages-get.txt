@@ -12,5 +12,6 @@ Uptime bars:      yes
 Uptime percent:   yes
 Response time:    no
 Search indexing:  yes
+Automatic posts:  no
 Created:          2026-11-01 11:00
 Updated:          2026-11-02 11:00
