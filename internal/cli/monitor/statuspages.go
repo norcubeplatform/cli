@@ -27,7 +27,7 @@ func newStatusPagesCmd(d deps) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "status-pages",
 		Aliases: []string{"status-page"},
-		Short:   "Manage public status pages, their layout and the incidents posted on them",
+		Short:   "Manage public status pages, their layout, posted incidents and subscribers",
 		Long: `A status page is a public page that shows chosen monitors and manual rows
 as components, under names you pick; a monitor's own name and target are
 never shown. A page starts unpublished: set its layout, check it with a
@@ -35,14 +35,15 @@ preview link, then publish it. Changes to a published page, and incidents
 posted on it, are public within a minute.
 
 Pages are named by their id or exact slug. Any Norcube Monitor scope reads
-them; a CI token changes them or posts on them only with the
-monitor.statuspages scope, which no other scope includes, because
-everything it changes is public.`,
+them; a CI token changes them, posts on them or reaches their subscribers
+only with the monitor.statuspages scope, which no other scope includes,
+because what it changes is public and subscribers' addresses are personal
+data.`,
 	}
 	cmd.AddCommand(
 		newStatusPageListCmd(d), newStatusPageGetCmd(d), newStatusPageCreateCmd(d), newStatusPageUpdateCmd(d),
 		newStatusPageDeleteCmd(d), newStatusPagePublishCmd(d), newStatusPageUnpublishCmd(d), newStatusPagePreviewLinkCmd(d),
-		newStatusPageLayoutCmd(d), newStatusPageIncidentsCmd(d),
+		newStatusPageLayoutCmd(d), newStatusPageIncidentsCmd(d), newStatusPageSubscribersCmd(d),
 	)
 	return cmd
 }
@@ -128,7 +129,7 @@ type statusPageFlags struct {
 	slug, description, timeZone string
 	uptimeDays, historyDays     int
 	bars, percent, response     bool
-	indexing                    bool
+	indexing, autoPost          bool
 }
 
 func addStatusPageFlags(cmd *cobra.Command, f *statusPageFlags) {
@@ -142,6 +143,7 @@ func addStatusPageFlags(cmd *cobra.Command, f *statusPageFlags) {
 	fl.BoolVar(&f.percent, "show-uptime-percent", false, "Show each component's uptime percentage (--show-uptime-percent=false hides it)")
 	fl.BoolVar(&f.response, "show-response-time", false, "Show each component's average response time (--show-response-time=false hides it)")
 	fl.BoolVar(&f.indexing, "search-indexing", false, "Let search engines index the page (--search-indexing=false asks them to leave it out)")
+	fl.BoolVar(&f.autoPost, "auto-post", false, "Post confirmed critical monitor incidents on the page by itself and email subscribers (--auto-post=false turns it off)")
 	cmdutil.FlagEnum(cmd, "uptime-days", statusPageUptimeDays...)
 }
 
@@ -167,7 +169,12 @@ func newStatusPageCreateCmd(d deps) *cobra.Command {
 		Long: `Creates a page that nobody can see yet: set what it shows with "layout
 set", check it with "preview-link", then "publish" it. Every setting is
 required: the page's public face is your choice, so nothing is filled in
-for you. A boolean takes =false to turn it off.
+for you. A boolean takes =false to turn it off. The one exception is
+--auto-post, which is off unless you ask for it.
+
+--auto-post lets the page post by itself: a monitor incident that stays
+critical for 3 minutes is posted in fixed wording and emailed to subscribers,
+and the post resolves when the incident does. A warning is never posted.
 
 Your organization's limit sets how many pages it can have, published or not.`,
 		Example: `  norcube monitor status-pages create "Acme status" --slug acme --time-zone Europe/Prague --uptime-days 90 --history-days 90 --show-uptime-bars --show-uptime-percent --show-response-time=false --search-indexing`,
@@ -188,6 +195,9 @@ Your organization's limit sets how many pages it can have, published or not.`,
 					ShowResponseTime:  f.response,
 					SearchIndexing:    f.indexing,
 				},
+			}
+			if cmd.Flags().Changed("auto-post") {
+				body.Settings.AutoPost = &f.autoPost
 			}
 			if f.description != "" {
 				body.Description = &f.description
@@ -232,10 +242,14 @@ a minute.
 
 --slug moves the page to a new address. The old address of a published
 page redirects to the new one for 30 days, and no other organization can
-take it meanwhile; unpublishing or deleting the page gives it up.`,
+take it meanwhile; unpublishing or deleting the page gives it up.
+
+--auto-post=false stops new automatic posts; one already open still ends by
+itself when its monitors recover.`,
 		Example: `  norcube monitor status-pages update acme --name "Acme Inc. status"
   norcube monitor status-pages update acme --slug acme-inc
-  norcube monitor status-pages update acme --uptime-days 30 --show-response-time`,
+  norcube monitor status-pages update acme --uptime-days 30 --show-response-time
+  norcube monitor status-pages update acme --auto-post`,
 		Args: cobra.ExactArgs(1),
 		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
 			if err := checkStatusPageFlags(cmd, f); err != nil {
@@ -312,6 +326,9 @@ func statusPageUpdateBody(cmd *cobra.Command, f statusPageFlags, name string) (m
 	}
 	if set("search-indexing") {
 		s.SearchIndexing, settings = &f.indexing, true
+	}
+	if set("auto-post") {
+		s.AutoPost, settings = &f.autoPost, true
 	}
 	if settings {
 		body.Settings, changed = &s, true

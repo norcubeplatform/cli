@@ -1,0 +1,3 @@
+ID                                    EMAIL            STATUS     LOCALE  COMPONENTS  CREATED           CONFIRMED
+3f2a1b0c-9d8e-4f7a-b6c5-d4e3f2a1b0c9  jan@example.com  confirmed  cs      all         2026-11-03 11:00  2026-11-03 11:05
+e5f6a7b8-c9d0-4e1f-8a2b-3c4d5e6f7a81  eva@example.com  pending    en      2           2026-11-04 11:00  —

@@ -1224,6 +1224,21 @@ func (e DtoPublicStatusGroupStatus) Valid() bool {
 	}
 }
 
+// Defines values for DtoPublicStatusIncidentFixedTitle.
+const (
+	AutoTitle DtoPublicStatusIncidentFixedTitle = "auto_title"
+)
+
+// Valid indicates whether the value is a known member of the DtoPublicStatusIncidentFixedTitle enum.
+func (e DtoPublicStatusIncidentFixedTitle) Valid() bool {
+	switch e {
+	case AutoTitle:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for DtoPublicStatusIncidentImpact.
 const (
 	DtoPublicStatusIncidentImpactCritical DtoPublicStatusIncidentImpact = "critical"
@@ -1290,6 +1305,27 @@ func (e DtoPublicStatusPageIndicator) Valid() bool {
 	case DtoPublicStatusPageIndicatorMinor:
 		return true
 	case DtoPublicStatusPageIndicatorNone:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DtoPublicStatusUpdateFixedText.
+const (
+	AutoOpened     DtoPublicStatusUpdateFixedText = "auto_opened"
+	AutoResolved   DtoPublicStatusUpdateFixedText = "auto_resolved"
+	AutoSuperseded DtoPublicStatusUpdateFixedText = "auto_superseded"
+)
+
+// Valid indicates whether the value is a known member of the DtoPublicStatusUpdateFixedText enum.
+func (e DtoPublicStatusUpdateFixedText) Valid() bool {
+	switch e {
+	case AutoOpened:
+		return true
+	case AutoResolved:
+		return true
+	case AutoSuperseded:
 		return true
 	default:
 		return false
@@ -1722,6 +1758,60 @@ func (e DtoStatusPageSettingsUpdateUptimeDays) Valid() bool {
 	}
 }
 
+// Defines values for DtoStatusPageSubscriberLocale.
+const (
+	Cs   DtoStatusPageSubscriberLocale = "cs"
+	De   DtoStatusPageSubscriberLocale = "de"
+	En   DtoStatusPageSubscriberLocale = "en"
+	Es   DtoStatusPageSubscriberLocale = "es"
+	Fr   DtoStatusPageSubscriberLocale = "fr"
+	It   DtoStatusPageSubscriberLocale = "it"
+	Pl   DtoStatusPageSubscriberLocale = "pl"
+	ZhCN DtoStatusPageSubscriberLocale = "zh-CN"
+)
+
+// Valid indicates whether the value is a known member of the DtoStatusPageSubscriberLocale enum.
+func (e DtoStatusPageSubscriberLocale) Valid() bool {
+	switch e {
+	case Cs:
+		return true
+	case De:
+		return true
+	case En:
+		return true
+	case Es:
+		return true
+	case Fr:
+		return true
+	case It:
+		return true
+	case Pl:
+		return true
+	case ZhCN:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DtoStatusPageSubscriberStatus.
+const (
+	DtoStatusPageSubscriberStatusConfirmed DtoStatusPageSubscriberStatus = "confirmed"
+	DtoStatusPageSubscriberStatusPending   DtoStatusPageSubscriberStatus = "pending"
+)
+
+// Valid indicates whether the value is a known member of the DtoStatusPageSubscriberStatus enum.
+func (e DtoStatusPageSubscriberStatus) Valid() bool {
+	switch e {
+	case DtoStatusPageSubscriberStatusConfirmed:
+		return true
+	case DtoStatusPageSubscriberStatusPending:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ValidationRule.
 const (
 	RuleDependsOn   ValidationRule = "dependsOn"
@@ -1955,25 +2045,25 @@ func (e ListMonitorsParamsSort) Valid() bool {
 
 // Defines values for ListMonitorsParamsStatus.
 const (
-	ListMonitorsParamsStatusCritical ListMonitorsParamsStatus = "critical"
-	ListMonitorsParamsStatusOk       ListMonitorsParamsStatus = "ok"
-	ListMonitorsParamsStatusPaused   ListMonitorsParamsStatus = "paused"
-	ListMonitorsParamsStatusPending  ListMonitorsParamsStatus = "pending"
-	ListMonitorsParamsStatusWarning  ListMonitorsParamsStatus = "warning"
+	Critical ListMonitorsParamsStatus = "critical"
+	Ok       ListMonitorsParamsStatus = "ok"
+	Paused   ListMonitorsParamsStatus = "paused"
+	Pending  ListMonitorsParamsStatus = "pending"
+	Warning  ListMonitorsParamsStatus = "warning"
 )
 
 // Valid indicates whether the value is a known member of the ListMonitorsParamsStatus enum.
 func (e ListMonitorsParamsStatus) Valid() bool {
 	switch e {
-	case ListMonitorsParamsStatusCritical:
+	case Critical:
 		return true
-	case ListMonitorsParamsStatusOk:
+	case Ok:
 		return true
-	case ListMonitorsParamsStatusPaused:
+	case Paused:
 		return true
-	case ListMonitorsParamsStatusPending:
+	case Pending:
 		return true
-	case ListMonitorsParamsStatusWarning:
+	case Warning:
 		return true
 	default:
 		return false
@@ -3028,15 +3118,23 @@ type DtoPublicStatusHistory struct {
 
 // DtoPublicStatusIncident defines model for dto.PublicStatusIncident.
 type DtoPublicStatusIncident struct {
-	Components []DtoPublicStatusAffected     `json:"components"`
-	Id         openapi_types.UUID            `json:"id"`
-	Impact     DtoPublicStatusIncidentImpact `json:"impact"`
-	ResolvedAt *string                       `json:"resolvedAt,omitempty"`
-	StartedAt  string                        `json:"startedAt"`
-	Status     DtoPublicStatusIncidentStatus `json:"status"`
-	Title      string                        `json:"title"`
-	Updates    []DtoPublicStatusUpdate       `json:"updates"`
+	Components []DtoPublicStatusAffected `json:"components"`
+
+	// FixedTitle FixedTitle is the code of a fixed wording the renderer translates; Title holds
+	// its English. Absent on anything a person wrote.
+	FixedTitle *DtoPublicStatusIncidentFixedTitle `json:"fixedTitle,omitempty"`
+	Id         openapi_types.UUID                 `json:"id"`
+	Impact     DtoPublicStatusIncidentImpact      `json:"impact"`
+	ResolvedAt *string                            `json:"resolvedAt,omitempty"`
+	StartedAt  string                             `json:"startedAt"`
+	Status     DtoPublicStatusIncidentStatus      `json:"status"`
+	Title      string                             `json:"title"`
+	Updates    []DtoPublicStatusUpdate            `json:"updates"`
 }
+
+// DtoPublicStatusIncidentFixedTitle FixedTitle is the code of a fixed wording the renderer translates; Title holds
+// its English. Absent on anything a person wrote.
+type DtoPublicStatusIncidentFixedTitle string
 
 // DtoPublicStatusIncidentImpact defines model for DtoPublicStatusIncident.Impact.
 type DtoPublicStatusIncidentImpact string
@@ -3097,11 +3195,19 @@ type DtoPublicStatusPreview struct {
 
 // DtoPublicStatusUpdate defines model for dto.PublicStatusUpdate.
 type DtoPublicStatusUpdate struct {
-	Body      string                      `json:"body"`
-	CreatedAt string                      `json:"createdAt"`
-	Id        openapi_types.UUID          `json:"id"`
-	Status    DtoPublicStatusUpdateStatus `json:"status"`
+	Body      string `json:"body"`
+	CreatedAt string `json:"createdAt"`
+
+	// FixedText FixedText is the code of a fixed wording the renderer translates; Body holds
+	// its English. Absent on anything a person wrote.
+	FixedText *DtoPublicStatusUpdateFixedText `json:"fixedText,omitempty"`
+	Id        openapi_types.UUID              `json:"id"`
+	Status    DtoPublicStatusUpdateStatus     `json:"status"`
 }
+
+// DtoPublicStatusUpdateFixedText FixedText is the code of a fixed wording the renderer translates; Body holds
+// its English. Absent on anything a person wrote.
+type DtoPublicStatusUpdateFixedText string
 
 // DtoPublicStatusUpdateStatus defines model for DtoPublicStatusUpdate.Status.
 type DtoPublicStatusUpdateStatus string
@@ -3318,6 +3424,12 @@ type DtoStatusPageGroup struct {
 
 // DtoStatusPageIncident defines model for dto.StatusPageIncident.
 type DtoStatusPageIncident struct {
+	// AutoManaged AutoManaged: the system still runs it and resolves it by itself. A person's
+	// update or edit ends that for good.
+	AutoManaged bool `json:"autoManaged"`
+
+	// AutoPosted AutoPosted: the system wrote this post, in fixed wording.
+	AutoPosted         bool                         `json:"autoPosted"`
 	Components         []DtoStatusPageAffected      `json:"components"`
 	CreatedAt          string                       `json:"createdAt"`
 	Id                 openapi_types.UUID           `json:"id"`
@@ -3349,6 +3461,9 @@ type DtoStatusPageIncidentCreate struct {
 	// your navigation, never published).
 	MonitorIncidentIds *[]openapi_types.UUID `json:"monitorIncidentIds,omitempty"`
 
+	// Notify Notify mails this update to the page's subscribers. A draft page tells nobody.
+	Notify *bool `json:"notify,omitempty"`
+
 	// StartedAt StartedAt defaults to now.
 	StartedAt *string                           `json:"startedAt,omitempty"`
 	Status    DtoStatusPageIncidentCreateStatus `json:"status"`
@@ -3363,10 +3478,14 @@ type DtoStatusPageIncidentCreateStatus string
 
 // DtoStatusPageIncidentEntry defines model for dto.StatusPageIncidentEntry.
 type DtoStatusPageIncidentEntry struct {
-	Body      string                           `json:"body"`
-	CreatedAt string                           `json:"createdAt"`
-	Id        openapi_types.UUID               `json:"id"`
-	Status    DtoStatusPageIncidentEntryStatus `json:"status"`
+	Body      string             `json:"body"`
+	CreatedAt string             `json:"createdAt"`
+	Id        openapi_types.UUID `json:"id"`
+
+	// NotifySubscribers NotifySubscribers: whoever posted this update asked to mail it to the page's
+	// subscribers. A draft page tells nobody, whatever this says.
+	NotifySubscribers bool                             `json:"notifySubscribers"`
+	Status            DtoStatusPageIncidentEntryStatus `json:"status"`
 }
 
 // DtoStatusPageIncidentEntryStatus defines model for DtoStatusPageIncidentEntry.Status.
@@ -3377,8 +3496,11 @@ type DtoStatusPageIncidentPost struct {
 	Body string `json:"body"`
 
 	// Components Components, when given, replaces the affected components.
-	Components *[]DtoStatusPageAffected        `json:"components,omitempty"`
-	Status     DtoStatusPageIncidentPostStatus `json:"status"`
+	Components *[]DtoStatusPageAffected `json:"components,omitempty"`
+
+	// Notify Notify mails this update to the page's subscribers. A draft page tells nobody.
+	Notify *bool                           `json:"notify,omitempty"`
+	Status DtoStatusPageIncidentPostStatus `json:"status"`
 }
 
 // DtoStatusPageIncidentPostStatus defines model for DtoStatusPageIncidentPost.Status.
@@ -3425,6 +3547,10 @@ type DtoStatusPagePreviewLink struct {
 
 // DtoStatusPageSettings defines model for dto.StatusPageSettings.
 type DtoStatusPageSettings struct {
+	// AutoPost AutoPost posts a confirmed critical monitor incident on the page by itself, in
+	// fixed wording, and resolves it when the incident ends. Off unless asked for.
+	AutoPost *bool `json:"autoPost,omitempty"`
+
 	// HistoryDays HistoryDays is how far back resolved incidents stay on the page.
 	HistoryDays int `json:"historyDays"`
 
@@ -3446,6 +3572,7 @@ type DtoStatusPageSettingsUptimeDays int
 
 // DtoStatusPageSettingsUpdate defines model for dto.StatusPageSettingsUpdate.
 type DtoStatusPageSettingsUpdate struct {
+	AutoPost          *bool                                  `json:"autoPost,omitempty"`
 	HistoryDays       *int                                   `json:"historyDays,omitempty"`
 	SearchIndexing    *bool                                  `json:"searchIndexing,omitempty"`
 	ShowResponseTime  *bool                                  `json:"showResponseTime,omitempty"`
@@ -3457,6 +3584,34 @@ type DtoStatusPageSettingsUpdate struct {
 
 // DtoStatusPageSettingsUpdateUptimeDays defines model for DtoStatusPageSettingsUpdate.UptimeDays.
 type DtoStatusPageSettingsUpdateUptimeDays int
+
+// DtoStatusPageSubscriber defines model for dto.StatusPageSubscriber.
+type DtoStatusPageSubscriber struct {
+	// ComponentIds ComponentIDs are the components it wants to hear about. Empty: all of them.
+	ComponentIds []string           `json:"componentIds"`
+	ConfirmedAt  *string            `json:"confirmedAt,omitempty"`
+	CreatedAt    string             `json:"createdAt"`
+	Email        string             `json:"email"`
+	Id           openapi_types.UUID `json:"id"`
+
+	// Locale Locale is the language its mail comes in.
+	Locale DtoStatusPageSubscriberLocale `json:"locale"`
+
+	// Status Status: pending until the address confirms. A pending one is removed after 7 days.
+	Status DtoStatusPageSubscriberStatus `json:"status"`
+}
+
+// DtoStatusPageSubscriberLocale Locale is the language its mail comes in.
+type DtoStatusPageSubscriberLocale string
+
+// DtoStatusPageSubscriberStatus Status: pending until the address confirms. A pending one is removed after 7 days.
+type DtoStatusPageSubscriberStatus string
+
+// DtoStatusPageSubscriberCount defines model for dto.StatusPageSubscriberCount.
+type DtoStatusPageSubscriberCount struct {
+	Confirmed int `json:"confirmed"`
+	Pending   int `json:"pending"`
+}
 
 // DtoStatusPageUpdate defines model for dto.StatusPageUpdate.
 type DtoStatusPageUpdate struct {
@@ -3718,6 +3873,12 @@ type ListStatusPageIncidentsParams struct {
 
 // ListStatusPageIncidentsParamsStatus defines parameters for ListStatusPageIncidents.
 type ListStatusPageIncidentsParamsStatus string
+
+// ListStatusPageSubscribersParams defines parameters for ListStatusPageSubscribers.
+type ListStatusPageSubscribersParams struct {
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Limit  *int    `form:"limit,omitempty" json:"limit,omitempty"`
+}
 
 // CreateAlertChannelJSONRequestBody defines body for CreateAlertChannel for application/json ContentType.
 type CreateAlertChannelJSONRequestBody = DtoAlertChannelCreate
@@ -4016,6 +4177,18 @@ type ClientInterface interface {
 
 	// PublishStatusPage request
 	PublishStatusPage(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListStatusPageSubscribers request
+	ListStatusPageSubscribers(ctx context.Context, id openapi_types.UUID, params *ListStatusPageSubscribersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CountStatusPageSubscribers request
+	CountStatusPageSubscribers(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ExportStatusPageSubscribers request
+	ExportStatusPageSubscribers(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteStatusPageSubscriber request
+	DeleteStatusPageSubscriber(ctx context.Context, id openapi_types.UUID, subscriberId openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UnpublishStatusPage request
 	UnpublishStatusPage(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -4791,6 +4964,54 @@ func (c *Client) CreateStatusPagePreviewLink(ctx context.Context, id openapi_typ
 
 func (c *Client) PublishStatusPage(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewPublishStatusPageRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListStatusPageSubscribers(ctx context.Context, id openapi_types.UUID, params *ListStatusPageSubscribersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListStatusPageSubscribersRequest(c.Server, id, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CountStatusPageSubscribers(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCountStatusPageSubscribersRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ExportStatusPageSubscribers(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewExportStatusPageSubscribersRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteStatusPageSubscriber(ctx context.Context, id openapi_types.UUID, subscriberId openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteStatusPageSubscriberRequest(c.Server, id, subscriberId)
 	if err != nil {
 		return nil, err
 	}
@@ -7244,6 +7465,188 @@ func NewPublishStatusPageRequest(server string, id openapi_types.UUID) (*http.Re
 	return req, nil
 }
 
+// NewListStatusPageSubscribersRequest generates requests for ListStatusPageSubscribers
+func NewListStatusPageSubscribersRequest(server string, id openapi_types.UUID, params *ListStatusPageSubscribersParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: "uuid"})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/status-pages/%s/subscribers", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
+		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
+
+		if params.Cursor != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "cursor", *params.Cursor, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Limit != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "limit", *params.Limit, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewCountStatusPageSubscribersRequest generates requests for CountStatusPageSubscribers
+func NewCountStatusPageSubscribersRequest(server string, id openapi_types.UUID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: "uuid"})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/status-pages/%s/subscribers/count", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewExportStatusPageSubscribersRequest generates requests for ExportStatusPageSubscribers
+func NewExportStatusPageSubscribersRequest(server string, id openapi_types.UUID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: "uuid"})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/status-pages/%s/subscribers/export", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewDeleteStatusPageSubscriberRequest generates requests for DeleteStatusPageSubscriber
+func NewDeleteStatusPageSubscriberRequest(server string, id openapi_types.UUID, subscriberId openapi_types.UUID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: "uuid"})
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithOptions("simple", false, "subscriberId", subscriberId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: "uuid"})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/status-pages/%s/subscribers/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodDelete, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewUnpublishStatusPageRequest generates requests for UnpublishStatusPage
 func NewUnpublishStatusPageRequest(server string, id openapi_types.UUID) (*http.Request, error) {
 	var err error
@@ -7500,6 +7903,18 @@ type ClientWithResponsesInterface interface {
 
 	// PublishStatusPageWithResponse request
 	PublishStatusPageWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*PublishStatusPageResponse, error)
+
+	// ListStatusPageSubscribersWithResponse request
+	ListStatusPageSubscribersWithResponse(ctx context.Context, id openapi_types.UUID, params *ListStatusPageSubscribersParams, reqEditors ...RequestEditorFn) (*ListStatusPageSubscribersResponse, error)
+
+	// CountStatusPageSubscribersWithResponse request
+	CountStatusPageSubscribersWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*CountStatusPageSubscribersResponse, error)
+
+	// ExportStatusPageSubscribersWithResponse request
+	ExportStatusPageSubscribersWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*ExportStatusPageSubscribersResponse, error)
+
+	// DeleteStatusPageSubscriberWithResponse request
+	DeleteStatusPageSubscriberWithResponse(ctx context.Context, id openapi_types.UUID, subscriberId openapi_types.UUID, reqEditors ...RequestEditorFn) (*DeleteStatusPageSubscriberResponse, error)
 
 	// UnpublishStatusPageWithResponse request
 	UnpublishStatusPageWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*UnpublishStatusPageResponse, error)
@@ -9221,6 +9636,137 @@ func (r PublishStatusPageResponse) ContentType() string {
 	return ""
 }
 
+type ListStatusPageSubscribersResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Cursors ResponseAPIResponsePaginationCursors `json:"cursors"`
+		List    []DtoStatusPageSubscriber            `json:"list"`
+		Meta    ResponseAPIResponsePaginationMeta    `json:"meta"`
+	}
+	JSON401 *ResponseProblem
+	JSON403 *ResponseProblem
+	JSON404 *ResponseProblem
+}
+
+// Status returns HTTPResponse.Status
+func (r ListStatusPageSubscribersResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListStatusPageSubscribersResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r ListStatusPageSubscribersResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type CountStatusPageSubscribersResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DtoStatusPageSubscriberCount
+	JSON401      *ResponseProblem
+	JSON403      *ResponseProblem
+	JSON404      *ResponseProblem
+}
+
+// Status returns HTTPResponse.Status
+func (r CountStatusPageSubscribersResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CountStatusPageSubscribersResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r CountStatusPageSubscribersResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type ExportStatusPageSubscribersResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ExportStatusPageSubscribersResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ExportStatusPageSubscribersResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r ExportStatusPageSubscribersResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type DeleteStatusPageSubscriberResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON401      *ResponseProblem
+	JSON403      *ResponseProblem
+	JSON404      *ResponseProblem
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteStatusPageSubscriberResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteStatusPageSubscriberResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r DeleteStatusPageSubscriberResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type UnpublishStatusPageResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -9822,6 +10368,42 @@ func (c *ClientWithResponses) PublishStatusPageWithResponse(ctx context.Context,
 		return nil, err
 	}
 	return ParsePublishStatusPageResponse(rsp)
+}
+
+// ListStatusPageSubscribersWithResponse request returning *ListStatusPageSubscribersResponse
+func (c *ClientWithResponses) ListStatusPageSubscribersWithResponse(ctx context.Context, id openapi_types.UUID, params *ListStatusPageSubscribersParams, reqEditors ...RequestEditorFn) (*ListStatusPageSubscribersResponse, error) {
+	rsp, err := c.ListStatusPageSubscribers(ctx, id, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListStatusPageSubscribersResponse(rsp)
+}
+
+// CountStatusPageSubscribersWithResponse request returning *CountStatusPageSubscribersResponse
+func (c *ClientWithResponses) CountStatusPageSubscribersWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*CountStatusPageSubscribersResponse, error) {
+	rsp, err := c.CountStatusPageSubscribers(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCountStatusPageSubscribersResponse(rsp)
+}
+
+// ExportStatusPageSubscribersWithResponse request returning *ExportStatusPageSubscribersResponse
+func (c *ClientWithResponses) ExportStatusPageSubscribersWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*ExportStatusPageSubscribersResponse, error) {
+	rsp, err := c.ExportStatusPageSubscribers(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseExportStatusPageSubscribersResponse(rsp)
+}
+
+// DeleteStatusPageSubscriberWithResponse request returning *DeleteStatusPageSubscriberResponse
+func (c *ClientWithResponses) DeleteStatusPageSubscriberWithResponse(ctx context.Context, id openapi_types.UUID, subscriberId openapi_types.UUID, reqEditors ...RequestEditorFn) (*DeleteStatusPageSubscriberResponse, error) {
+	rsp, err := c.DeleteStatusPageSubscriber(ctx, id, subscriberId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteStatusPageSubscriberResponse(rsp)
 }
 
 // UnpublishStatusPageWithResponse request returning *UnpublishStatusPageResponse
@@ -12447,6 +13029,160 @@ func ParsePublishStatusPageResponse(rsp *http.Response) (*PublishStatusPageRespo
 			return nil, err
 		}
 		response.JSON409 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListStatusPageSubscribersResponse parses an HTTP response from a ListStatusPageSubscribersWithResponse call
+func ParseListStatusPageSubscribersResponse(rsp *http.Response) (*ListStatusPageSubscribersResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListStatusPageSubscribersResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Cursors ResponseAPIResponsePaginationCursors `json:"cursors"`
+			List    []DtoStatusPageSubscriber            `json:"list"`
+			Meta    ResponseAPIResponsePaginationMeta    `json:"meta"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCountStatusPageSubscribersResponse parses an HTTP response from a CountStatusPageSubscribersWithResponse call
+func ParseCountStatusPageSubscribersResponse(rsp *http.Response) (*CountStatusPageSubscribersResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CountStatusPageSubscribersResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DtoStatusPageSubscriberCount
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseExportStatusPageSubscribersResponse parses an HTTP response from a ExportStatusPageSubscribersWithResponse call
+func ParseExportStatusPageSubscribersResponse(rsp *http.Response) (*ExportStatusPageSubscribersResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ExportStatusPageSubscribersResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDeleteStatusPageSubscriberResponse parses an HTTP response from a DeleteStatusPageSubscriberWithResponse call
+func ParseDeleteStatusPageSubscriberResponse(rsp *http.Response) (*DeleteStatusPageSubscriberResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteStatusPageSubscriberResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
 
 	}
 

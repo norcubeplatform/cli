@@ -516,6 +516,7 @@ func statusPageObject(p monitor.DtoStatusPage) output.Object {
 		{Name: "Uptime percent", Value: yesNo(s.ShowUptimePercent)},
 		{Name: "Response time", Value: yesNo(s.ShowResponseTime)},
 		{Name: "Search indexing", Value: yesNo(s.SearchIndexing)},
+		{Name: "Automatic posts", Value: yesNo(cmdutil.Deref(s.AutoPost))},
 		{Name: "Created", Value: output.WhenString(p.CreatedAt)},
 		{Name: "Updated", Value: output.WhenString(p.UpdatedAt)},
 	}}
@@ -559,6 +560,30 @@ func statusPageLayoutObject(l monitor.DtoStatusPageLayout) output.Object {
 	return output.Object{Value: l, Fields: fields, Text: []string{strconv.Itoa(count), strconv.Itoa(len(l.Groups))}}
 }
 
+// ---------- subscribers ----------
+
+// subscriberComponents says what a subscriber follows: an empty list means
+// every component of the page.
+func subscriberComponents(s monitor.DtoStatusPageSubscriber) string {
+	if len(s.ComponentIds) == 0 {
+		return "all"
+	}
+	return strconv.Itoa(len(s.ComponentIds))
+}
+
+func subscriberTable(items []monitor.DtoStatusPageSubscriber) output.Table[monitor.DtoStatusPageSubscriber] {
+	return output.Table[monitor.DtoStatusPageSubscriber]{
+		Headers: []string{"ID", "EMAIL", "STATUS", "LOCALE", "COMPONENTS", "CREATED", "CONFIRMED"},
+		Rows: func(s monitor.DtoStatusPageSubscriber) []string {
+			return []string{
+				s.Id.String(), s.Email, string(s.Status), string(s.Locale), subscriberComponents(s),
+				output.WhenString(s.CreatedAt), output.WhenString(cmdutil.Deref(s.ConfirmedAt)),
+			}
+		},
+		Items: items,
+	}
+}
+
 // ---------- posted incidents ----------
 
 func postRow(i monitor.DtoStatusPageIncident) []string {
@@ -590,7 +615,7 @@ func postObject(p monitor.DtoStatusPage, i monitor.DtoStatusPageIncident) output
 	for _, u := range i.Updates {
 		updates = append(updates, stamp(u.CreatedAt)+"  "+string(u.Status)+": "+u.Body)
 	}
-	return output.Object{Value: i, Text: postRow(i), Fields: []output.Field{
+	fields := []output.Field{
 		{Name: "ID", Value: i.Id.String()},
 		{Name: "Title", Value: i.Title},
 		{Name: "Status", Value: string(i.Status)},
@@ -601,5 +626,13 @@ func postObject(p monitor.DtoStatusPage, i monitor.DtoStatusPageIncident) output
 		{Name: "Components", Value: orNone(components)},
 		{Name: "Monitor incidents", Value: orNone(i.MonitorIncidentIds)},
 		{Name: "Updates", Value: orNone(updates)},
-	}}
+	}
+	if i.AutoPosted {
+		who := "yes, a person has taken it over"
+		if i.AutoManaged {
+			who = "yes, and the system still runs it"
+		}
+		fields = append(fields, output.Field{Name: "Posted automatically", Value: who})
+	}
+	return output.Object{Value: i, Text: postRow(i), Fields: fields}
 }

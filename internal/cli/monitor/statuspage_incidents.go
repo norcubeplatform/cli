@@ -22,6 +22,8 @@ var (
 	affectedStatuses = []string{"operational", "degraded_performance", "partial_outage", "major_outage"}
 )
 
+const notifyFlagHelp = "Email this update to the page's subscribers; a page that isn't published emails nobody"
+
 const componentFlagHelp = `An affected component and the status the page shows it in while the incident is open, as "<id or name>=<status>" (repeatable): operational, degraded_performance, partial_outage or major_outage`
 
 func newStatusPageIncidentsCmd(d deps) *cobra.Command {
@@ -37,7 +39,11 @@ never published.
 While a post is open, the status it gives an affected component wins over
 what the component's monitor says. A post with status resolved moves to the
 page's history. On a published page everything here is public within a
-minute.`,
+minute.
+
+A page with --auto-post also posts by itself. A person's correction or update
+on such a post takes it over for good: the system leaves it alone from then
+on, and it ends when you end it.`,
 	}
 	cmd.AddCommand(newPostListCmd(d), newPostGetCmd(d), newPostCreateCmd(d), newPostUpdateCmd(d), newPostUpdatesCmd(d))
 	return cmd
@@ -160,6 +166,7 @@ func newPostCreateCmd(d deps) *cobra.Command {
 		startedAt        string
 		components       []string
 		monitorIncidents []string
+		notify           bool
 	)
 	cmd := &cobra.Command{
 		Use:         "create <page>",
@@ -171,9 +178,10 @@ overall status while it is open, and --component sets what the page shows
 for the components it affects.
 
 --monitor-incident links the monitor incidents the post is about, for your
-own navigation; the links are never published.`,
+own navigation; the links are never published. --notify also emails the first
+update to the page's subscribers.`,
 		Example: `  norcube monitor status-pages incidents create acme --title "Elevated API errors" --status investigating --impact minor --message "We are looking into it."
-  norcube monitor status-pages incidents create acme --title "Checkout is down" --status identified --impact major --message-file update.txt --component "Checkout=major_outage" --started-at 20m`,
+  norcube monitor status-pages incidents create acme --title "Checkout is down" --status identified --impact major --message-file update.txt --component "Checkout=major_outage" --started-at 20m --notify`,
 		Args: cobra.ExactArgs(1),
 		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
 			if err := oneOf("--status", status, postStatuses); err != nil {
@@ -209,6 +217,9 @@ own navigation; the links are never published.`,
 			if len(links) > 0 {
 				body.MonitorIncidentIds = &links
 			}
+			if cmd.Flags().Changed("notify") {
+				body.Notify = &notify
+			}
 			c, err := d.client(cmd)
 			if err != nil {
 				return nil, err
@@ -231,7 +242,7 @@ own navigation; the links are never published.`,
 			if res.JSON201 == nil {
 				return nil, apiError(res.HTTPResponse, res.Body)
 			}
-			return postDone(p, *res.JSON201, "Posted incident"), nil
+			return postDone(p, *res.JSON201, "Posted incident", notify), nil
 		}),
 	}
 	cmd.Flags().StringVar(&title, "title", "", "The incident's public title")
@@ -241,6 +252,7 @@ own navigation; the links are never published.`,
 	cmd.Flags().StringVar(&startedAt, "started-at", "", "When it began, if not now: an RFC 3339 timestamp, a date or an age (20m, 2h)")
 	cmd.Flags().StringArrayVar(&components, "component", nil, componentFlagHelp)
 	cmd.Flags().StringSliceVar(&monitorIncidents, "monitor-incident", nil, "Id of a monitor incident this post is about (repeat or comma-separate); never published")
+	cmd.Flags().BoolVar(&notify, "notify", false, notifyFlagHelp)
 	cmdutil.FlagEnum(cmd, "status", postStatuses...)
 	cmdutil.FlagEnum(cmd, "impact", postImpacts...)
 	for _, name := range []string{"title", "status", "impact"} {
@@ -337,7 +349,7 @@ correction is public within a minute.`,
 			if res.JSON200 == nil {
 				return nil, apiError(res.HTTPResponse, res.Body)
 			}
-			return postDone(p, *res.JSON200, "Corrected incident"), nil
+			return postDone(p, *res.JSON200, "Corrected incident", false), nil
 		}),
 	}
 	cmd.Flags().StringVar(&title, "title", "", "New public title")
@@ -370,6 +382,7 @@ func newPostUpdateCreateCmd(d deps) *cobra.Command {
 		status       string
 		components   []string
 		noComponents bool
+		notify       bool
 	)
 	cmd := &cobra.Command{
 		Use:         "create <page> <incident>",
@@ -378,9 +391,10 @@ func newPostUpdateCreateCmd(d deps) *cobra.Command {
 		Long: `Adds an update to an open post. Its status becomes the post's; resolved ends
 the post and moves it to the page's history, after which it takes no more
 updates (post a new incident instead). On a published page the update is
-public within a minute. --component replaces the affected components.`,
+public within a minute. --component replaces the affected components, and
+--notify also emails the update to the page's subscribers.`,
 		Example: `  norcube monitor status-pages incidents updates create acme 8c7d6e5f-4a3b-4c2d-9e1f-0a1b2c3d4e5f --status monitoring --message "A fix is rolling out."
-  norcube monitor status-pages incidents updates create acme 8c7d6e5f-4a3b-4c2d-9e1f-0a1b2c3d4e5f --status resolved --message "All clear."`,
+  norcube monitor status-pages incidents updates create acme 8c7d6e5f-4a3b-4c2d-9e1f-0a1b2c3d4e5f --status resolved --message "All clear." --notify`,
 		Args: cobra.ExactArgs(2),
 		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {
 			incidentID, err := idArg("posted incident", args[1])
@@ -401,6 +415,9 @@ public within a minute. --component replaces the affected components.`,
 			body := monitor.DtoStatusPageIncidentPost{Status: monitor.DtoStatusPageIncidentPostStatus(status), Body: text}
 			if noComponents {
 				body.Components = &[]monitor.DtoStatusPageAffected{}
+			}
+			if cmd.Flags().Changed("notify") {
+				body.Notify = &notify
 			}
 			c, err := d.client(cmd)
 			if err != nil {
@@ -424,13 +441,14 @@ public within a minute. --component replaces the affected components.`,
 			if res.JSON201 == nil {
 				return nil, apiError(res.HTTPResponse, res.Body)
 			}
-			return postDone(p, *res.JSON201, "Posted an update on incident"), nil
+			return postDone(p, *res.JSON201, "Posted an update on incident", notify), nil
 		}),
 	}
 	cmd.Flags().StringVar(&status, "status", "", "Where it stands now: investigating, identified, monitoring or resolved")
 	addMessageFlags(cmd, &msg, "The update's text")
 	cmd.Flags().StringArrayVar(&components, "component", nil, componentFlagHelp)
 	cmd.Flags().BoolVar(&noComponents, "no-components", false, "Remove every affected component")
+	cmd.Flags().BoolVar(&notify, "notify", false, notifyFlagHelp)
 	cmd.MarkFlagsMutuallyExclusive("component", "no-components")
 	cmdutil.FlagEnum(cmd, "status", postStatuses...)
 	_ = cmd.MarkFlagRequired("status")
@@ -438,13 +456,19 @@ public within a minute. --component replaces the affected components.`,
 }
 
 // postDone is the result of a write on a post: the API's resource, and a
-// line saying who can see it now.
-func postDone(p monitor.DtoStatusPage, inc monitor.DtoStatusPageIncident, verb string) output.Done {
+// line saying who can see it now and whether subscribers hear of it.
+func postDone(p monitor.DtoStatusPage, inc monitor.DtoStatusPageIncident, verb string, notify bool) output.Done {
 	msg := fmt.Sprintf("%s %q on %s. ", verb, inc.Title, p.Slug)
 	if p.Published {
 		msg += "Public within a minute at " + postURL(p, inc.Id) + "."
 	} else {
 		msg += "The page isn't published, so only preview links show it."
+	}
+	switch {
+	case notify && p.Published:
+		msg += " Subscribers get it by email."
+	case notify:
+		msg += " No email goes out from a page that isn't published."
 	}
 	return output.Done{Message: msg, Value: inc, Fields: []output.Field{{Value: inc.Id.String()}, {Value: string(inc.Status)}}}
 }
