@@ -3482,7 +3482,8 @@ type DtoStatusPageIncidentEntry struct {
 	CreatedAt string             `json:"createdAt"`
 	Id        openapi_types.UUID `json:"id"`
 
-	// NotifySubscribers NotifySubscribers: this update was mailed to the page's subscribers.
+	// NotifySubscribers NotifySubscribers: whoever posted this update asked to mail it to the page's
+	// subscribers. A draft page tells nobody, whatever this says.
 	NotifySubscribers bool                             `json:"notifySubscribers"`
 	Status            DtoStatusPageIncidentEntryStatus `json:"status"`
 }
