@@ -11,6 +11,13 @@ this file collects what users and scripts need to know.
   `-o text` column changes. Norcube Monitor's status page domain and logo
   endpoints, DomainRadar's expiry alert settings and Billing's plan features are
   in the clients but have no commands yet; `nrc api` reaches them.
+- Refreshed the Norcube Monitor client and spec for status page subscribers and
+  automatic posts.
+
+### Changes for scripts
+
+- `monitor status-pages incidents` JSON and YAML: posted incidents gain
+  `autoPosted` and `autoManaged`, and their updates `notifySubscribers`.
 
 ## 0.23.0 (2026-11-05)
 

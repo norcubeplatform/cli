@@ -2460,6 +2460,13 @@
             },
             "type": "array"
           },
+          "fixedTitle": {
+            "description": "FixedTitle is the code of a fixed wording the renderer translates; Title holds\nits English. Absent on anything a person wrote.",
+            "enum": [
+              "auto_title"
+            ],
+            "type": "string"
+          },
           "id": {
             "format": "uuid",
             "type": "string"
@@ -2639,6 +2646,15 @@
             "type": "string"
           },
           "createdAt": {
+            "type": "string"
+          },
+          "fixedText": {
+            "description": "FixedText is the code of a fixed wording the renderer translates; Body holds\nits English. Absent on anything a person wrote.",
+            "enum": [
+              "auto_opened",
+              "auto_resolved",
+              "auto_superseded"
+            ],
             "type": "string"
           },
           "id": {
@@ -3172,6 +3188,14 @@
       },
       "dto.StatusPageIncident": {
         "properties": {
+          "autoManaged": {
+            "description": "AutoManaged: the system still runs it and resolves it by itself. A person's\nupdate or edit ends that for good.",
+            "type": "boolean"
+          },
+          "autoPosted": {
+            "description": "AutoPosted: the system wrote this post, in fixed wording.",
+            "type": "boolean"
+          },
           "components": {
             "items": {
               "$ref": "#/components/schemas/dto.StatusPageAffected"
@@ -3233,6 +3257,8 @@
           }
         },
         "required": [
+          "autoManaged",
+          "autoPosted",
           "components",
           "createdAt",
           "id",
@@ -3279,6 +3305,10 @@
             },
             "type": "array"
           },
+          "notify": {
+            "description": "Notify mails this update to the page's subscribers. A draft page tells nobody.",
+            "type": "boolean"
+          },
           "startedAt": {
             "description": "StartedAt defaults to now.",
             "type": "string"
@@ -3319,6 +3349,10 @@
             "format": "uuid",
             "type": "string"
           },
+          "notifySubscribers": {
+            "description": "NotifySubscribers: this update was mailed to the page's subscribers.",
+            "type": "boolean"
+          },
           "status": {
             "enum": [
               "investigating",
@@ -3333,6 +3367,7 @@
           "body",
           "createdAt",
           "id",
+          "notifySubscribers",
           "status"
         ],
         "type": "object"
@@ -3350,6 +3385,10 @@
               "$ref": "#/components/schemas/dto.StatusPageAffected"
             },
             "type": "array"
+          },
+          "notify": {
+            "description": "Notify mails this update to the page's subscribers. A draft page tells nobody.",
+            "type": "boolean"
           },
           "status": {
             "enum": [
@@ -3468,6 +3507,10 @@
       },
       "dto.StatusPageSettings": {
         "properties": {
+          "autoPost": {
+            "description": "AutoPost posts a confirmed critical monitor incident on the page by itself, in\nfixed wording, and resolves it when the incident ends. Off unless asked for.",
+            "type": "boolean"
+          },
           "historyDays": {
             "description": "HistoryDays is how far back resolved incidents stay on the page.",
             "example": 90,
@@ -3517,6 +3560,9 @@
       },
       "dto.StatusPageSettingsUpdate": {
         "properties": {
+          "autoPost": {
+            "type": "boolean"
+          },
           "historyDays": {
             "maximum": 365,
             "minimum": 7,
@@ -3547,6 +3593,80 @@
             "type": "integer"
           }
         },
+        "type": "object"
+      },
+      "dto.StatusPageSubscriber": {
+        "properties": {
+          "componentIds": {
+            "description": "ComponentIDs are the components it wants to hear about. Empty: all of them.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "confirmedAt": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "email": {
+            "example": "jan@example.com",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "locale": {
+            "description": "Locale is the language its mail comes in.",
+            "enum": [
+              "en",
+              "de",
+              "fr",
+              "it",
+              "es",
+              "pl",
+              "cs",
+              "zh-CN"
+            ],
+            "example": "en",
+            "type": "string"
+          },
+          "status": {
+            "description": "Status: pending until the address confirms. A pending one is removed after 7 days.",
+            "enum": [
+              "pending",
+              "confirmed"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "componentIds",
+          "createdAt",
+          "email",
+          "id",
+          "locale",
+          "status"
+        ],
+        "type": "object"
+      },
+      "dto.StatusPageSubscriberCount": {
+        "properties": {
+          "confirmed": {
+            "example": 120,
+            "type": "integer"
+          },
+          "pending": {
+            "example": 3,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "confirmed",
+          "pending"
+        ],
         "type": "object"
       },
       "dto.StatusPageUpdate": {
@@ -7258,7 +7378,7 @@
         ]
       },
       "post": {
-        "description": "Posts an incident with its first update. Public as soon as it is posted (within a minute) when the page is published. While it is open, the components it names show the status it gives them.",
+        "description": "Posts an incident with its first update. Public as soon as it is posted (within a minute) when the page is published. While it is open, the components it names show the status it gives them. With notify, the update is mailed to the page's subscribers; a draft page tells nobody.",
         "operationId": "createStatusPageIncident",
         "parameters": [
           {
@@ -8223,6 +8343,312 @@
           }
         },
         "summary": "Publish a status page",
+        "tags": [
+          "Status pages"
+        ],
+        "x-norcube-scopes": [
+          "monitor.statuspages"
+        ]
+      }
+    },
+    "/status-pages/{id}/subscribers": {
+      "get": {
+        "description": "The page's email subscribers, newest first, confirmed and pending. Addresses are personal data, so this needs its own permission and the monitor.statuspages scope.",
+        "operationId": "listStatusPageSubscribers",
+        "parameters": [
+          {
+            "description": "Status page ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/response.APIResponseWithPagination"
+                    },
+                    {
+                      "properties": {
+                        "list": {
+                          "items": {
+                            "$ref": "#/components/schemas/dto.StatusPageSubscriber"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "List a status page's subscribers",
+        "tags": [
+          "Status pages"
+        ],
+        "x-norcube-scopes": [
+          "monitor.statuspages"
+        ]
+      }
+    },
+    "/status-pages/{id}/subscribers/count": {
+      "get": {
+        "description": "How many subscribers the page has. Holds no addresses, so any Monitor scope may read it.",
+        "operationId": "countStatusPageSubscribers",
+        "parameters": [
+          {
+            "description": "Status page ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.StatusPageSubscriberCount"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Count a status page's subscribers",
+        "tags": [
+          "Status pages"
+        ],
+        "x-norcube-scopes": [
+          "monitor.read",
+          "monitor.check",
+          "monitor.write",
+          "monitor.channels",
+          "monitor.statuspages"
+        ]
+      }
+    },
+    "/status-pages/{id}/subscribers/export": {
+      "get": {
+        "description": "All the page's subscribers as CSV: email, status, locale, components, createdAt, confirmedAt. Recorded in the audit log.",
+        "operationId": "exportStatusPageSubscribers",
+        "parameters": [
+          {
+            "description": "Status page ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "CSV"
+          },
+          "401": {
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Export a status page's subscribers",
+        "tags": [
+          "Status pages"
+        ],
+        "x-norcube-scopes": [
+          "monitor.statuspages"
+        ]
+      }
+    },
+    "/status-pages/{id}/subscribers/{subscriberId}": {
+      "delete": {
+        "description": "Deletes the subscriber and any mail queued for it. Their address isn't kept, so they can subscribe again.",
+        "operationId": "deleteStatusPageSubscriber",
+        "parameters": [
+          {
+            "description": "Status page ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Subscriber ID",
+            "in": "path",
+            "name": "subscriberId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Remove a status page's subscriber",
         "tags": [
           "Status pages"
         ],

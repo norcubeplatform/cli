@@ -1,3 +1,5 @@
+autoManaged: false
+autoPosted: false
 components:
     - componentId: a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5e
       status: partial_outage
@@ -15,4 +17,5 @@ updates:
     - body: We are looking into it.
       createdAt: "2026-11-03T08:05:00Z"
       id: d4e5f6a7-b8c9-4d0e-8f1a-2b3c4d5e6f70
+      notifySubscribers: false
       status: investigating
