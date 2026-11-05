@@ -169,7 +169,7 @@ func TestCIExchangerErrors(t *testing.T) {
 		inMsg    string
 	}{
 		{"revoked token", true, map[string]string{AudienceSnapDB: "backup.read"}, 0, clierr.CodeLoginRequired, clierr.ExitAuth, "invalid, expired or revoked"},
-		{"no scope for the service", false, map[string]string{}, 0, clierr.CodeInsufficientScope, clierr.ExitAccess, "no scope for Norcube Backup"},
+		{"no scope for the service", false, map[string]string{}, 0, clierr.CodeInsufficientScope, clierr.ExitAccess, "no scope for Backup"},
 		{"rate limited", false, nil, http.StatusTooManyRequests, clierr.CodeRateLimited, clierr.ExitRateLimited, "rate limited"},
 	}
 	for _, tt := range tests {

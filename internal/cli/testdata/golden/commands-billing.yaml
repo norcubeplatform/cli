@@ -19,7 +19,7 @@ commands:
       service:
         audience: billing
         key: billing
-        name: Norcube Billing
+        name: Billing
       short: 'See the organization''s billing: status, subscriptions, usage, invoices, spending caps'
       usage: norcube billing <command>
       wait: false
@@ -42,7 +42,7 @@ commands:
       service:
         audience: billing
         key: billing
-        name: Norcube Billing
+        name: Billing
       short: Show and set the organization's monthly spending caps
       usage: norcube billing budget <command>
       wait: false
@@ -68,7 +68,7 @@ commands:
       service:
         audience: billing
         key: billing
-        name: Norcube Billing
+        name: Billing
       short: Show the monthly spending caps and alert thresholds
       usage: norcube billing budget get
       wait: false
@@ -125,7 +125,7 @@ commands:
       service:
         audience: billing
         key: billing
-        name: Norcube Billing
+        name: Billing
       short: Set the monthly spending caps or alert thresholds
       usage: norcube billing budget set [flags]
       wait: false
@@ -143,7 +143,7 @@ commands:
       service:
         audience: billing
         key: billing
-        name: Norcube Billing
+        name: Billing
       short: List invoices and download them as PDF
       usage: norcube billing invoices <command>
       wait: false
@@ -179,7 +179,7 @@ commands:
       service:
         audience: billing
         key: billing
-        name: Norcube Billing
+        name: Billing
       short: Download an invoice as PDF
       usage: norcube billing invoices download <invoice-id> [flags]
       wait: false
@@ -208,7 +208,7 @@ commands:
       service:
         audience: billing
         key: billing
-        name: Norcube Billing
+        name: Billing
       short: List the organization's invoices
       usage: norcube billing invoices list
       wait: false
@@ -238,7 +238,7 @@ commands:
       service:
         audience: billing
         key: billing
-        name: Norcube Billing
+        name: Billing
       short: Show whether the organization's account is in good standing
       usage: norcube billing status
       wait: false
@@ -256,7 +256,7 @@ commands:
       service:
         audience: billing
         key: billing
-        name: Norcube Billing
+        name: Billing
       short: Show the organization's subscriptions
       usage: norcube billing subscriptions <command>
       wait: false
@@ -286,7 +286,7 @@ commands:
       service:
         audience: billing
         key: billing
-        name: Norcube Billing
+        name: Billing
       short: List each service's billing and the plan the organization is on
       usage: norcube billing subscriptions list
       wait: false
@@ -302,7 +302,7 @@ commands:
       service:
         audience: billing
         key: billing
-        name: Norcube Billing
+        name: Billing
       short: See this month's usage and what it will cost
       usage: norcube billing usage <command>
       wait: false
@@ -332,7 +332,7 @@ commands:
       service:
         audience: billing
         key: billing
-        name: Norcube Billing
+        name: Billing
       short: Show this month's charges so far and the estimate for the whole month
       usage: norcube billing usage estimate
       wait: false
@@ -362,7 +362,7 @@ commands:
       service:
         audience: billing
         key: billing
-        name: Norcube Billing
+        name: Billing
       short: Show usage per metric against its free tier
       usage: norcube billing usage metrics
       wait: false

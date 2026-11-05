@@ -17,13 +17,13 @@ func init() {
 	for k, v := range map[string]string{
 		"GET /billing/status": `{"status":"grace","graceStartedAt":"2026-10-20T08:00:00Z","graceExpiresAt":"2026-11-03T08:00:00Z"}`,
 		"GET /billing/services": `[
-			{"code":"snapdb","name":"Norcube Backup","billingMode":"plans","subscription":{"id":"sub-1","planCode":"backup-team","planName":"Team","status":"active","currentPeriodStart":"2026-10-01T00:00:00Z","currentPeriodEnd":"2026-11-01T00:00:00Z"}},
+			{"code":"snapdb","name":"Backup","billingMode":"plans","subscription":{"id":"sub-1","planCode":"backup-team","planName":"Team","status":"active","currentPeriodStart":"2026-10-01T00:00:00Z","currentPeriodEnd":"2026-11-01T00:00:00Z"}},
 			{"code":"domainradar","name":"DomainRadar","billingMode":"metered"}
 		]`,
 		"GET /billing/estimate": `{"currentUsage":12.3,"estimatedTotal":31.5,"linearEstimate":29.1,"historicalAverage":27.75,"daysElapsed":12,"daysInMonth":31,"periodStart":"2026-10-01","periodEnd":"2026-10-31"}`,
 		"GET /billing/free-tier": `{"metrics":[
 			{"serviceCode":"domainradar","serviceName":"DomainRadar","metricCode":"domainradar.check.rdap","metricName":"RDAP checks","metricType":"usage","unit":"checks","freeTierUnits":1000,"currentUnits":640,"projectedEndOfMonthUnits":1653.33,"previousMonthUnits":900,"overflowProjected":true},
-			{"serviceCode":"snapdb","serviceName":"Norcube Backup","metricCode":"snapdb.storage","metricName":"Backup storage","metricType":"storage","unit":"GB","freeTierUnits":0,"freeTierUnlimited":false,"currentUnits":2.5,"projectedEndOfMonthUnits":2.5,"previousMonthUnits":2}
+			{"serviceCode":"snapdb","serviceName":"Backup","metricCode":"snapdb.storage","metricName":"Backup storage","metricType":"storage","unit":"GB","freeTierUnits":0,"freeTierUnlimited":false,"currentUnits":2.5,"projectedEndOfMonthUnits":2.5,"previousMonthUnits":2}
 		]}`,
 		"GET /billing/invoices": `{"list":[
 			{"id":"1042","organizationId":"org-1","periodStart":"2026-09-01T00:00:00Z","periodEnd":"2026-09-30T23:59:59Z","status":"draft","currency":"usd","subtotal":25,"tax":5.25,"total":30.25,"billingName":"Acme Inc","billingCity":"Prague","billingCountryCode":"CZ","billingPostalCode":"11000","billingState":"","billingStreet":"Main 1","billingType":"company"}

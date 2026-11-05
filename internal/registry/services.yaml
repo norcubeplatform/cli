@@ -13,16 +13,16 @@
 # commands with service.New (see docs/ARCHITECTURE.md).
 services:
   - key: auth
-    name: Norcube Auth
+    name: Auth
     audience: auth
     endpoint: https://auth.api.norcube.com
 
   - key: web_app
-    name: Norcube dashboard
+    name: Dashboard
     endpoint: https://app.norcube.com
 
   - key: snapdb
-    name: Norcube Backup
+    name: Backup
     command: backup
     aliases: [snapdb]
     audience: snapdb-api
@@ -53,7 +53,7 @@ services:
     package: domainradar
 
   - key: billing
-    name: Norcube Billing
+    name: Billing
     command: billing
     audience: billing
     endpoint: https://billing.api.norcube.com/app/v1
@@ -63,7 +63,7 @@ services:
     package: billing
 
   - key: monitor
-    name: Norcube Monitor
+    name: Monitor
     command: monitor
     audience: monitor
     endpoint: https://monitor.api.norcube.com/app/v1

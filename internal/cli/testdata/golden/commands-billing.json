@@ -134,7 +134,7 @@
       "group": true,
       "service": {
         "key": "billing",
-        "name": "Norcube Billing",
+        "name": "Billing",
         "audience": "billing"
       },
       "confirm": false,
@@ -155,7 +155,7 @@
       "group": true,
       "service": {
         "key": "billing",
-        "name": "Norcube Billing",
+        "name": "Billing",
         "audience": "billing"
       },
       "confirm": false,
@@ -177,7 +177,7 @@
       "group": false,
       "service": {
         "key": "billing",
-        "name": "Norcube Billing",
+        "name": "Billing",
         "audience": "billing"
       },
       "effect": "read",
@@ -207,7 +207,7 @@
       "group": false,
       "service": {
         "key": "billing",
-        "name": "Norcube Billing",
+        "name": "Billing",
         "audience": "billing"
       },
       "effect": "write",
@@ -267,7 +267,7 @@
       "group": true,
       "service": {
         "key": "billing",
-        "name": "Norcube Billing",
+        "name": "Billing",
         "audience": "billing"
       },
       "confirm": false,
@@ -291,7 +291,7 @@
       "group": false,
       "service": {
         "key": "billing",
-        "name": "Norcube Billing",
+        "name": "Billing",
         "audience": "billing"
       },
       "effect": "read",
@@ -329,7 +329,7 @@
       "group": false,
       "service": {
         "key": "billing",
-        "name": "Norcube Billing",
+        "name": "Billing",
         "audience": "billing"
       },
       "effect": "read",
@@ -358,7 +358,7 @@
       "group": false,
       "service": {
         "key": "billing",
-        "name": "Norcube Billing",
+        "name": "Billing",
         "audience": "billing"
       },
       "effect": "read",
@@ -388,7 +388,7 @@
       "group": true,
       "service": {
         "key": "billing",
-        "name": "Norcube Billing",
+        "name": "Billing",
         "audience": "billing"
       },
       "confirm": false,
@@ -411,7 +411,7 @@
       "group": false,
       "service": {
         "key": "billing",
-        "name": "Norcube Billing",
+        "name": "Billing",
         "audience": "billing"
       },
       "effect": "read",
@@ -438,7 +438,7 @@
       "group": true,
       "service": {
         "key": "billing",
-        "name": "Norcube Billing",
+        "name": "Billing",
         "audience": "billing"
       },
       "confirm": false,
@@ -461,7 +461,7 @@
       "group": false,
       "service": {
         "key": "billing",
-        "name": "Norcube Billing",
+        "name": "Billing",
         "audience": "billing"
       },
       "effect": "read",
@@ -491,7 +491,7 @@
       "group": false,
       "service": {
         "key": "billing",
-        "name": "Norcube Billing",
+        "name": "Billing",
         "audience": "billing"
       },
       "effect": "read",
