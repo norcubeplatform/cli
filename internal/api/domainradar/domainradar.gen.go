@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/oapi-codegen/runtime"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 // Defines values for ConstantsAIRisk.
@@ -163,6 +164,33 @@ func (e ConstantsSortDir) Valid() bool {
 	}
 }
 
+// Defines values for DtoExpiryAlertsStatus.
+const (
+	Degraded DtoExpiryAlertsStatus = "degraded"
+	Down     DtoExpiryAlertsStatus = "down"
+	Paused   DtoExpiryAlertsStatus = "paused"
+	Pending  DtoExpiryAlertsStatus = "pending"
+	Up       DtoExpiryAlertsStatus = "up"
+)
+
+// Valid indicates whether the value is a known member of the DtoExpiryAlertsStatus enum.
+func (e DtoExpiryAlertsStatus) Valid() bool {
+	switch e {
+	case Degraded:
+		return true
+	case Down:
+		return true
+	case Paused:
+		return true
+	case Pending:
+		return true
+	case Up:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ResponseType.
 const (
 	ErrConflict              ResponseType = "CONFLICT"
@@ -170,12 +198,15 @@ const (
 	ErrInsufficientScope     ResponseType = "INSUFFICIENT_SCOPE"
 	ErrInternal              ResponseType = "INTERNAL_ERROR"
 	ErrInvalidPayload        ResponseType = "INVALID_PAYLOAD"
+	ErrLimitReached          ResponseType = "LIMIT_REACHED"
 	ErrMissingOrganizationID ResponseType = "MISSING_ORGANIZATION_ID"
 	ErrMissingUserID         ResponseType = "MISSING_USER_ID"
+	ErrMonitorAccessDenied   ResponseType = "MONITOR_ACCESS_DENIED"
 	ErrNotFound              ResponseType = "NOT_FOUND"
 	ErrOrgBlocked            ResponseType = "ORG_BLOCKED"
 	ErrTooManyRequests       ResponseType = "TOO_MANY_REQUESTS"
 	ErrUnauthorized          ResponseType = "UNAUTHORIZED"
+	ErrUnavailable           ResponseType = "UNAVAILABLE"
 	ErrValidationFailed      ResponseType = "VALIDATION_FAILED"
 )
 
@@ -192,9 +223,13 @@ func (e ResponseType) Valid() bool {
 		return true
 	case ErrInvalidPayload:
 		return true
+	case ErrLimitReached:
+		return true
 	case ErrMissingOrganizationID:
 		return true
 	case ErrMissingUserID:
+		return true
+	case ErrMonitorAccessDenied:
 		return true
 	case ErrNotFound:
 		return true
@@ -203,6 +238,8 @@ func (e ResponseType) Valid() bool {
 	case ErrTooManyRequests:
 		return true
 	case ErrUnauthorized:
+		return true
+	case ErrUnavailable:
 		return true
 	case ErrValidationFailed:
 		return true
@@ -389,6 +426,33 @@ type DtoDomainCheck struct {
 	Status            *string              `json:"status,omitempty"`
 	UpdatedDate       *string              `json:"updatedDate,omitempty"`
 	WhoisSourceServer *string              `json:"whoisSourceServer,omitempty"`
+}
+
+// DtoExpiryAlerts defines model for dto.ExpiryAlerts.
+type DtoExpiryAlerts struct {
+	Enabled              bool    `json:"enabled"`
+	ExpiryThresholdsDays *[]int  `json:"expiryThresholdsDays,omitempty"`
+	LastCheckedAt        *string `json:"lastCheckedAt,omitempty"`
+
+	// LastErrorKind LastErrorKind explains a non-up status, e.g. domain_expiring,
+	// domain_expiry_unknown, domain_lookup_failed.
+	LastErrorKind *string `json:"lastErrorKind,omitempty"`
+
+	// MonitorId The fields below are present when enabled.
+	MonitorId *openapi_types.UUID    `json:"monitorId,omitempty"`
+	Status    *DtoExpiryAlertsStatus `json:"status,omitempty"`
+}
+
+// DtoExpiryAlertsStatus defines model for DtoExpiryAlerts.Status.
+type DtoExpiryAlertsStatus string
+
+// DtoExpiryAlertsUpdate defines model for dto.ExpiryAlertsUpdate.
+type DtoExpiryAlertsUpdate struct {
+	Enabled bool `json:"enabled"`
+
+	// ExpiryThresholdsDays Days before expiry to warn at; required when enabling ([] warns only
+	// once the domain has expired). Norcube Monitor allows up to 5, each 1-365.
+	ExpiryThresholdsDays *[]int `json:"expiryThresholdsDays,omitempty"`
 }
 
 // DtoGeneratedName defines model for dto.GeneratedName.
@@ -622,6 +686,9 @@ type CreateBulkCheckJSONRequestBody = CheckhandlerBulkCheckRequest
 // SaveDomainJSONRequestBody defines body for SaveDomain for application/json ContentType.
 type SaveDomainJSONRequestBody = SaveddomainhandlerSaveRequest
 
+// SetSavedDomainExpiryAlertsJSONRequestBody defines body for SetSavedDomainExpiryAlerts for application/json ContentType.
+type SetSavedDomainExpiryAlertsJSONRequestBody = DtoExpiryAlertsUpdate
+
 // CreateNameJobJSONRequestBody defines body for CreateNameJob for application/json ContentType.
 type CreateNameJobJSONRequestBody = NamegenhandlerCreateJobRequest
 
@@ -773,6 +840,14 @@ type ClientInterface interface {
 
 	// RemoveSavedDomain request
 	RemoveSavedDomain(ctx context.Context, domain string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetSavedDomainExpiryAlerts request
+	GetSavedDomainExpiryAlerts(ctx context.Context, domain string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetSavedDomainExpiryAlertsWithBody request with any body
+	SetSavedDomainExpiryAlertsWithBody(ctx context.Context, domain string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetSavedDomainExpiryAlerts(ctx context.Context, domain string, body SetSavedDomainExpiryAlertsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListNameJobs request
 	ListNameJobs(ctx context.Context, params *ListNameJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -1099,6 +1174,42 @@ func (c *Client) SaveDomain(ctx context.Context, body SaveDomainJSONRequestBody,
 
 func (c *Client) RemoveSavedDomain(ctx context.Context, domain string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRemoveSavedDomainRequest(c.Server, domain)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetSavedDomainExpiryAlerts(ctx context.Context, domain string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetSavedDomainExpiryAlertsRequest(c.Server, domain)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetSavedDomainExpiryAlertsWithBody(ctx context.Context, domain string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetSavedDomainExpiryAlertsRequestWithBody(c.Server, domain, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetSavedDomainExpiryAlerts(ctx context.Context, domain string, body SetSavedDomainExpiryAlertsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetSavedDomainExpiryAlertsRequest(c.Server, domain, body)
 	if err != nil {
 		return nil, err
 	}
@@ -2426,6 +2537,87 @@ func NewRemoveSavedDomainRequest(server string, domain string) (*http.Request, e
 	return req, nil
 }
 
+// NewGetSavedDomainExpiryAlertsRequest generates requests for GetSavedDomainExpiryAlerts
+func NewGetSavedDomainExpiryAlertsRequest(server string, domain string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "domain", domain, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/domains/saved/%s/expiry-alerts", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewSetSavedDomainExpiryAlertsRequest calls the generic SetSavedDomainExpiryAlerts builder with application/json body
+func NewSetSavedDomainExpiryAlertsRequest(server string, domain string, body SetSavedDomainExpiryAlertsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetSavedDomainExpiryAlertsRequestWithBody(server, domain, "application/json", bodyReader)
+}
+
+// NewSetSavedDomainExpiryAlertsRequestWithBody generates requests for SetSavedDomainExpiryAlerts with any type of body
+func NewSetSavedDomainExpiryAlertsRequestWithBody(server string, domain string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "domain", domain, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/domains/saved/%s/expiry-alerts", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPut, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewListNameJobsRequest generates requests for ListNameJobs
 func NewListNameJobsRequest(server string, params *ListNameJobsParams) (*http.Request, error) {
 	var err error
@@ -2895,6 +3087,14 @@ type ClientWithResponsesInterface interface {
 
 	// RemoveSavedDomainWithResponse request
 	RemoveSavedDomainWithResponse(ctx context.Context, domain string, reqEditors ...RequestEditorFn) (*RemoveSavedDomainResponse, error)
+
+	// GetSavedDomainExpiryAlertsWithResponse request
+	GetSavedDomainExpiryAlertsWithResponse(ctx context.Context, domain string, reqEditors ...RequestEditorFn) (*GetSavedDomainExpiryAlertsResponse, error)
+
+	// SetSavedDomainExpiryAlertsWithBodyWithResponse request with any body
+	SetSavedDomainExpiryAlertsWithBodyWithResponse(ctx context.Context, domain string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetSavedDomainExpiryAlertsResponse, error)
+
+	SetSavedDomainExpiryAlertsWithResponse(ctx context.Context, domain string, body SetSavedDomainExpiryAlertsJSONRequestBody, reqEditors ...RequestEditorFn) (*SetSavedDomainExpiryAlertsResponse, error)
 
 	// ListNameJobsWithResponse request
 	ListNameJobsWithResponse(ctx context.Context, params *ListNameJobsParams, reqEditors ...RequestEditorFn) (*ListNameJobsResponse, error)
@@ -3595,6 +3795,74 @@ func (r RemoveSavedDomainResponse) ContentType() string {
 	return ""
 }
 
+type GetSavedDomainExpiryAlertsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DtoExpiryAlerts
+	JSON403      *ResponseAPIError
+	JSON404      *ResponseAPIError
+	JSON503      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r GetSavedDomainExpiryAlertsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetSavedDomainExpiryAlertsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetSavedDomainExpiryAlertsResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type SetSavedDomainExpiryAlertsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DtoExpiryAlerts
+	JSON400      *ResponseAPIError
+	JSON402      *ResponseAPIError
+	JSON403      *ResponseAPIError
+	JSON404      *ResponseAPIError
+	JSON503      *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r SetSavedDomainExpiryAlertsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetSavedDomainExpiryAlertsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r SetSavedDomainExpiryAlertsResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type ListNameJobsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -4021,6 +4289,32 @@ func (c *ClientWithResponses) RemoveSavedDomainWithResponse(ctx context.Context,
 		return nil, err
 	}
 	return ParseRemoveSavedDomainResponse(rsp)
+}
+
+// GetSavedDomainExpiryAlertsWithResponse request returning *GetSavedDomainExpiryAlertsResponse
+func (c *ClientWithResponses) GetSavedDomainExpiryAlertsWithResponse(ctx context.Context, domain string, reqEditors ...RequestEditorFn) (*GetSavedDomainExpiryAlertsResponse, error) {
+	rsp, err := c.GetSavedDomainExpiryAlerts(ctx, domain, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetSavedDomainExpiryAlertsResponse(rsp)
+}
+
+// SetSavedDomainExpiryAlertsWithBodyWithResponse request with arbitrary body returning *SetSavedDomainExpiryAlertsResponse
+func (c *ClientWithResponses) SetSavedDomainExpiryAlertsWithBodyWithResponse(ctx context.Context, domain string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetSavedDomainExpiryAlertsResponse, error) {
+	rsp, err := c.SetSavedDomainExpiryAlertsWithBody(ctx, domain, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetSavedDomainExpiryAlertsResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetSavedDomainExpiryAlertsWithResponse(ctx context.Context, domain string, body SetSavedDomainExpiryAlertsJSONRequestBody, reqEditors ...RequestEditorFn) (*SetSavedDomainExpiryAlertsResponse, error) {
+	rsp, err := c.SetSavedDomainExpiryAlerts(ctx, domain, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetSavedDomainExpiryAlertsResponse(rsp)
 }
 
 // ListNameJobsWithResponse request returning *ListNameJobsResponse
@@ -4877,6 +5171,114 @@ func ParseRemoveSavedDomainResponse(rsp *http.Response) (*RemoveSavedDomainRespo
 			return nil, err
 		}
 		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetSavedDomainExpiryAlertsResponse parses an HTTP response from a GetSavedDomainExpiryAlertsWithResponse call
+func ParseGetSavedDomainExpiryAlertsResponse(rsp *http.Response) (*GetSavedDomainExpiryAlertsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetSavedDomainExpiryAlertsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DtoExpiryAlerts
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON503 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSetSavedDomainExpiryAlertsResponse parses an HTTP response from a SetSavedDomainExpiryAlertsWithResponse call
+func ParseSetSavedDomainExpiryAlertsResponse(rsp *http.Response) (*SetSavedDomainExpiryAlertsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetSavedDomainExpiryAlertsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DtoExpiryAlerts
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 402:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON402 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON503 = &dest
 
 	}
 

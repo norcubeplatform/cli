@@ -3,6 +3,15 @@
 Notable changes, newest first. Release notes on GitHub list every commit;
 this file collects what users and scripts need to know.
 
+## Unreleased
+
+### Changes
+
+- Refreshed the generated API clients and specs. No command, flag, JSON field or
+  `-o text` column changes. Norcube Monitor's status page domain and logo
+  endpoints, DomainRadar's expiry alert settings and Billing's plan features are
+  in the clients but have no commands yet; `nrc api` reaches them.
+
 ## 0.23.0 (2026-11-05)
 
 ### New

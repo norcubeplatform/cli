@@ -1681,7 +1681,7 @@
       "name": "Jan Švábík"
     },
     "description": "This is the API for JDS LangSync service.",
-    "title": "JDS LangSync API",
+    "title": "Norcube LangSync API",
     "version": ""
   },
   "openapi": "3.0.3",
@@ -5059,7 +5059,7 @@
     },
     "/translations/custom-prompts": {
       "get": {
-        "description": "Retrieves a list of custom prompts for the organization.",
+        "description": "Retrieves the organization's shared custom prompts and the caller's own private ones.",
         "operationId": "listCustomPrompts",
         "responses": {
           "200": {

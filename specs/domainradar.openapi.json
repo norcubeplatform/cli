@@ -367,6 +367,75 @@
         },
         "type": "object"
       },
+      "dto.ExpiryAlerts": {
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "expiryThresholdsDays": {
+            "example": [
+              30,
+              14,
+              7
+            ],
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "lastCheckedAt": {
+            "type": "string"
+          },
+          "lastErrorKind": {
+            "description": "LastErrorKind explains a non-up status, e.g. domain_expiring,\ndomain_expiry_unknown, domain_lookup_failed.",
+            "example": "domain_expiring",
+            "type": "string"
+          },
+          "monitorId": {
+            "description": "The fields below are present when enabled.",
+            "format": "uuid",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "up",
+              "degraded",
+              "down",
+              "paused"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "enabled"
+        ],
+        "type": "object"
+      },
+      "dto.ExpiryAlertsUpdate": {
+        "properties": {
+          "enabled": {
+            "example": true,
+            "type": "boolean"
+          },
+          "expiryThresholdsDays": {
+            "description": "Days before expiry to warn at; required when enabling ([] warns only\nonce the domain has expired). Norcube Monitor allows up to 5, each 1-365.",
+            "example": [
+              30,
+              14,
+              7
+            ],
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "enabled"
+        ],
+        "type": "object"
+      },
       "dto.GeneratedName": {
         "properties": {
           "length": {
@@ -694,7 +763,10 @@
           "MISSING_USER_ID",
           "ORG_BLOCKED",
           "TOO_MANY_REQUESTS",
-          "INSUFFICIENT_SCOPE"
+          "INSUFFICIENT_SCOPE",
+          "LIMIT_REACHED",
+          "MONITOR_ACCESS_DENIED",
+          "UNAVAILABLE"
         ],
         "type": "string",
         "x-enum-varnames": [
@@ -709,7 +781,10 @@
           "ErrMissingUserID",
           "ErrOrgBlocked",
           "ErrTooManyRequests",
-          "ErrInsufficientScope"
+          "ErrInsufficientScope",
+          "ErrLimitReached",
+          "ErrMonitorAccessDenied",
+          "ErrUnavailable"
         ]
       },
       "saveddomainhandler.saveRequest": {
@@ -2156,6 +2231,162 @@
           }
         },
         "summary": "Remove a saved domain",
+        "tags": [
+          "Saved Domains"
+        ]
+      }
+    },
+    "/domains/saved/{domain}/expiry-alerts": {
+      "get": {
+        "description": "Whether Norcube Monitor watches this saved domain's expiry, and the monitor's current status. Needs Norcube Monitor read access (monitor:GetMonitor) as well.",
+        "operationId": "getSavedDomainExpiryAlerts",
+        "parameters": [
+          {
+            "description": "Domain name",
+            "in": "path",
+            "name": "domain",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.ExpiryAlerts"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "No Norcube Monitor access (MONITOR_ACCESS_DENIED)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Domain isn't saved"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Norcube Monitor unavailable"
+          }
+        },
+        "summary": "Get a saved domain's expiry alerts",
+        "tags": [
+          "Saved Domains"
+        ]
+      },
+      "put": {
+        "description": "Turning alerts on creates (or updates) a Norcube Monitor domain monitor for this saved domain; it counts toward the org's Norcube Monitor monitors and is billed as Norcube Monitor domain checks. Turning them off, or removing the saved domain, deletes it. Needs Norcube Monitor access (monitor:CreateMonitor / UpdateMonitor) as well. Idempotent.",
+        "operationId": "setSavedDomainExpiryAlerts",
+        "parameters": [
+          {
+            "description": "Domain name",
+            "in": "path",
+            "name": "domain",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/dto.ExpiryAlertsUpdate"
+              }
+            }
+          },
+          "description": "Alert settings",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.ExpiryAlerts"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Organization blocked for unpaid invoices"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "No Norcube Monitor access (MONITOR_ACCESS_DENIED) or monitor limit reached (LIMIT_REACHED)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Domain isn't saved"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Norcube Monitor unavailable"
+          }
+        },
+        "summary": "Turn a saved domain's expiry alerts on or off",
         "tags": [
           "Saved Domains"
         ]

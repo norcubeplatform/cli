@@ -16,11 +16,15 @@
       },
       "constants.InvoiceStatus": {
         "enum": [
-          "draft"
+          "draft",
+          "open",
+          "paid"
         ],
         "type": "string",
         "x-enum-varnames": [
-          "InvoiceStatusDraft"
+          "InvoiceStatusDraft",
+          "InvoiceStatusOpen",
+          "InvoiceStatusPaid"
         ]
       },
       "dto.BillingPlan": {
@@ -45,8 +49,15 @@
             "additionalProperties": {
               "type": "integer"
             },
-            "description": "Entitlements maps entitlement keys to values (\"Up to N datasources\").",
+            "description": "Entitlements maps entitlement keys to values. Clients that show a plan\nshould use Features, which is already worded.",
             "type": "object"
+          },
+          "features": {
+            "description": "Features lists what the entitlements grant, resolved and ready to show,\nso a client needs no knowledge of entitlement keys. Only entitlements the\nplatform enforces for this plan's service appear here.",
+            "items": {
+              "$ref": "#/components/schemas/dto.BillingPlanFeature"
+            },
+            "type": "array"
           },
           "highlighted": {
             "description": "Highlighted renders the \"Most popular\" treatment.",
@@ -67,6 +78,34 @@
               "$ref": "#/components/schemas/dto.BillingPlanQuota"
             },
             "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "dto.BillingPlanFeature": {
+        "properties": {
+          "key": {
+            "example": "max_monitors",
+            "type": "string"
+          },
+          "label": {
+            "description": "Label names the setting, for comparing two plans side by side.",
+            "example": "Max monitors",
+            "type": "string"
+          },
+          "line": {
+            "description": "Line is the sentence for the plan card.",
+            "example": "Up to 10 monitors",
+            "type": "string"
+          },
+          "unit": {
+            "description": "Unit names what the value counts, in the plural.",
+            "example": "monitors",
+            "type": "string"
+          },
+          "value": {
+            "example": 10,
+            "type": "integer"
           }
         },
         "type": "object"
@@ -808,6 +847,7 @@
           "UNAUTHORIZED",
           "INVALID_CREDENTIALS",
           "INSUFFICIENT_PERMISSIONS",
+          "INSUFFICIENT_SCOPE",
           "INVALID_PAYLOAD",
           "EMAIL_REQUIRED",
           "MISSING_NEW_PASSWORD",
@@ -832,7 +872,11 @@
           "NAME_TOO_LONG",
           "SLUG_TOO_LONG",
           "SERVICE_NOT_SUBSCRIBABLE",
-          "SUBSCRIPTION_CANCEL_NOT_ALLOWED"
+          "SUBSCRIPTION_CANCEL_NOT_ALLOWED",
+          "PAYMENT_IN_PROGRESS",
+          "NOTHING_TO_PAY",
+          "INVOICE_ALREADY_PAID",
+          "PAYMENT_METHOD_REQUIRED"
         ],
         "type": "string",
         "x-enum-varnames": [
@@ -845,6 +889,7 @@
           "ErrUnauthorized",
           "ErrInvalidCredentials",
           "ErrInsufficientPermissions",
+          "ErrInsufficientScope",
           "ErrPayloadInvalid",
           "ErrEmailRequired",
           "ErrMissingNewPassword",
@@ -869,7 +914,11 @@
           "ErrNameTooLong",
           "ErrSlugTooLong",
           "ErrServiceNotSubscribable",
-          "ErrCancelNotAllowed"
+          "ErrCancelNotAllowed",
+          "ErrPaymentInProgress",
+          "ErrNothingToPay",
+          "ErrInvoiceAlreadyPaid",
+          "ErrPaymentMethodRequired"
         ]
       },
       "service.AccountStatusOutput": {
@@ -1640,7 +1689,7 @@
     },
     "/billing/sca-reauth/{invoiceId}": {
       "post": {
-        "description": "Creates a fresh on-session PaymentIntent against the org's default payment method for the given invoice. The frontend confirms it with Stripe Elements (`stripe.confirmCardPayment(clientSecret)`), which triggers the 3DS challenge inline. On success the webhook updates the charge_attempts row and marks the invoice paid. Used by the dunning email link for SCA-failed off-session charges.",
+        "description": "Returns the PaymentIntent the customer confirms to pay the invoice on-session, against the org's default payment method. The frontend confirms it with Stripe Elements (`stripe.confirmCardPayment(clientSecret)`), which triggers the 3DS challenge inline. On success the webhook updates the charge_attempts row and marks the invoice paid. An invoice has one confirmable PaymentIntent at a time: repeated calls return the same one (a new one only after a card change or cancellation). 409 PAYMENT_IN_PROGRESS while a payment is being created or processed (retry shortly), 409 INVOICE_ALREADY_PAID once it is paid, 409 NOTHING_TO_PAY when nothing is due. Used by the dunning email link for SCA-failed off-session charges.",
         "operationId": "createSCAReauthPaymentIntent",
         "parameters": [
           {
@@ -1683,6 +1732,16 @@
               }
             },
             "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Conflict"
           },
           "500": {
             "content": {
@@ -1920,7 +1979,7 @@
         ]
       },
       "put": {
-        "description": "Subscribes the organization to the given plan code. The target service is the PLAN's service: if the organization already has a subscription there, its plan is changed (upgrade/downgrade) mid-period; otherwise a new subscription is created. Only public plans of plans/choice-mode services are selectable (409 SERVICE_NOT_SUBSCRIBABLE for metered services, 404 for hidden plans). Entitlements sync to the limits service asynchronously.",
+        "description": "Subscribes the organization to the given plan code. The target service is the PLAN's service: if the organization already has a subscription there, its plan is changed (upgrade/downgrade) mid-period; otherwise a new subscription is created. Only public plans of plans/choice-mode services are selectable (409 SERVICE_NOT_SUBSCRIBABLE for metered services, 404 for hidden plans). A plan priced above zero needs a card on file or bank-transfer billing (402 PAYMENT_METHOD_REQUIRED). Entitlements sync to the limits service asynchronously.",
         "operationId": "updateSubscription",
         "requestBody": {
           "content": {
@@ -1954,6 +2013,16 @@
               }
             },
             "description": "Bad Request"
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Payment Required"
           },
           "404": {
             "content": {

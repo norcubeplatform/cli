@@ -44,7 +44,11 @@
           "ALERT_CHANNEL_LIMIT",
           "UNVERIFIED_CHANNEL_LIMIT",
           "STATUS_PAGE_LIMIT",
+          "STATUS_PAGE_DOMAIN_LIMIT",
           "SLUG_TAKEN",
+          "DOMAIN_TAKEN",
+          "DOMAINS_DISABLED",
+          "DOMAIN_NOT_SET",
           "INCIDENT_RESOLVED",
           "MISSING_ORGANIZATION_ID",
           "INSUFFICIENT_SCOPE",
@@ -64,7 +68,11 @@
           "ErrorReasonAlertChannelLimit",
           "ErrorReasonUnverifiedChannelLimit",
           "ErrorReasonStatusPageLimit",
+          "ErrorReasonStatusPageDomainLimit",
           "ErrorReasonSlugTaken",
+          "ErrorReasonDomainTaken",
+          "ErrorReasonDomainsDisabled",
+          "ErrorReasonDomainNotSet",
           "ErrorReasonIncidentResolved",
           "ErrorReasonMissingOrganizationID",
           "ErrorReasonInsufficientScope",
@@ -2514,6 +2522,11 @@
             "description": "AsOf is when the content last changed.",
             "type": "string"
           },
+          "canonicalUrl": {
+            "description": "CanonicalURL is the page's address on its active custom domain, where\nsearch engines should credit it.",
+            "example": "https://status.acme.com",
+            "type": "string"
+          },
           "components": {
             "items": {
               "$ref": "#/components/schemas/dto.PublicStatusComponent"
@@ -2541,6 +2554,22 @@
               "major",
               "critical"
             ],
+            "type": "string"
+          },
+          "logo": {
+            "description": "Logo and LogoDark hold the images as data URIs where there is no public\nfile: a draft's snapshot, and the dashboard's preview.",
+            "type": "string"
+          },
+          "logoDark": {
+            "type": "string"
+          },
+          "logoDarkFile": {
+            "example": "fedcba9876543210fedcba9876543210.svg",
+            "type": "string"
+          },
+          "logoFile": {
+            "description": "LogoFile and LogoDarkFile name a published page's logo images, each a file\nthe renderer serves at \u003cpage\u003e/logo/\u003cname\u003e: a hash of the content and an\nextension. Left out when it has none; LogoDarkFile is for dark mode.",
+            "example": "0123456789abcdef0123456789abcdef.png",
             "type": "string"
           },
           "name": {
@@ -2850,6 +2879,11 @@
           "createdAt": {
             "type": "string"
           },
+          "customDomain": {
+            "description": "CustomDomain is the page's custom domain once active. URL keeps working\nbeside it; GET /status-pages/{id}/domain tells about one still pending.",
+            "example": "status.acme.com",
+            "type": "string"
+          },
           "description": {
             "type": "string"
           },
@@ -3003,6 +3037,105 @@
           "name",
           "settings",
           "slug"
+        ],
+        "type": "object"
+      },
+      "dto.StatusPageDomain": {
+        "properties": {
+          "createdAt": {
+            "type": "string"
+          },
+          "error": {
+            "description": "Error is what is wrong, while there is something.",
+            "type": "string"
+          },
+          "errorCode": {
+            "description": "ErrorCode: DOMAIN_TAKEN when another status page proved this hostname first.\nThe claim stays pending, in case they let it go.",
+            "enum": [
+              "DOMAIN_TAKEN"
+            ],
+            "type": "string"
+          },
+          "hostname": {
+            "example": "status.acme.com",
+            "type": "string"
+          },
+          "lastCheckedAt": {
+            "type": "string"
+          },
+          "records": {
+            "description": "Records are what the customer adds to their DNS.",
+            "items": {
+              "$ref": "#/components/schemas/dto.StatusPageDomainRecord"
+            },
+            "type": "array"
+          },
+          "status": {
+            "description": "Status: pending_ownership until the TXT record proves the organization owns\nthe hostname; pending_dns until Cloudflare sees the CNAME;\npending_certificate until the certificate is live; then active. failed\nmeans given up: set the domain again to start over.",
+            "enum": [
+              "pending_ownership",
+              "pending_dns",
+              "pending_certificate",
+              "active",
+              "failed"
+            ],
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "createdAt",
+          "hostname",
+          "records",
+          "status",
+          "updatedAt"
+        ],
+        "type": "object"
+      },
+      "dto.StatusPageDomainRecord": {
+        "properties": {
+          "name": {
+            "example": "status.acme.com",
+            "type": "string"
+          },
+          "required": {
+            "description": "Required false: not needed now. The ownership TXT record stops being\nrequired once the domain is active (it is needed again if the domain ever\nfalls back to pending), and Cloudflare's own TXT record only helps verify the\nhostname before moving the CNAME.",
+            "type": "boolean"
+          },
+          "type": {
+            "enum": [
+              "CNAME",
+              "TXT"
+            ],
+            "example": "CNAME",
+            "type": "string"
+          },
+          "value": {
+            "example": "custom.norcubestatus.com",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "required",
+          "type",
+          "value"
+        ],
+        "type": "object"
+      },
+      "dto.StatusPageDomainSet": {
+        "properties": {
+          "hostname": {
+            "description": "Hostname is a subdomain the customer controls, not an apex.",
+            "example": "status.acme.com",
+            "maxLength": 253,
+            "type": "string"
+          }
+        },
+        "required": [
+          "hostname"
         ],
         "type": "object"
       },
@@ -3287,6 +3420,34 @@
         "required": [
           "components",
           "groups"
+        ],
+        "type": "object"
+      },
+      "dto.StatusPageLogo": {
+        "properties": {
+          "dark": {
+            "type": "string"
+          },
+          "light": {
+            "example": "data:image/svg+xml;base64,PHN2Zy8+",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "dto.StatusPageLogoSet": {
+        "properties": {
+          "dark": {
+            "description": "Dark is the image for dark mode, in the same form.",
+            "type": "string"
+          },
+          "light": {
+            "description": "Light is the image, base64 encoded: PNG, JPEG, WebP or SVG, at most 48 KB.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "light"
         ],
         "type": "object"
       },
@@ -6416,7 +6577,7 @@
         ]
       },
       "post": {
-        "description": "Creates a page, unpublished: add components with PUT layout, check it with a preview link, then publish it. The slug is its public address and must be free: 409 with reason SLUG_TAKEN. Past the plan's limit: 403 with reason STATUS_PAGE_LIMIT. An organization with unpaid invoices: 402.",
+        "description": "Creates a page, unpublished: add components with PUT layout, check it with a preview link, then publish it. The slug is its public address and must be free: 409 with reason SLUG_TAKEN. Past the organization's limit: 403 with reason STATUS_PAGE_LIMIT. An organization with unpaid invoices: 402.",
         "operationId": "createStatusPage",
         "requestBody": {
           "content": {
@@ -6719,6 +6880,252 @@
           }
         },
         "summary": "Update a status page",
+        "tags": [
+          "Status pages"
+        ],
+        "x-norcube-scopes": [
+          "monitor.statuspages"
+        ]
+      }
+    },
+    "/status-pages/{id}/domain": {
+      "delete": {
+        "description": "The page stops serving on the hostname within about a minute; its default address keeps working.",
+        "operationId": "deleteStatusPageDomain",
+        "parameters": [
+          {
+            "description": "Status page ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Remove a status page's custom domain",
+        "tags": [
+          "Status pages"
+        ],
+        "x-norcube-scopes": [
+          "monitor.statuspages"
+        ]
+      },
+      "get": {
+        "description": "The page's custom domain, the DNS records it needs, where it stands (status pending_ownership, pending_dns, pending_certificate, active or failed) and what is wrong. errorCode DOMAIN_TAKEN means another status page proved this hostname first; the claim waits in case they let it go. 404 with reason DOMAIN_NOT_SET when the page has none.",
+        "operationId": "getStatusPageDomain",
+        "parameters": [
+          {
+            "description": "Status page ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.StatusPageDomain"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Get a status page's custom domain",
+        "tags": [
+          "Status pages"
+        ],
+        "x-norcube-scopes": [
+          "monitor.read",
+          "monitor.check",
+          "monitor.write",
+          "monitor.channels",
+          "monitor.statuspages"
+        ]
+      },
+      "put": {
+        "description": "Claims a subdomain as this page's custom domain, replacing the one it had, and answers the DNS records to add. The TXT record proves the organization owns the hostname; only then does anything happen at Cloudflare. The page starts serving there once Cloudflare has also verified the CNAME and issued the certificate; its default address keeps working. Setting the same hostname again changes nothing, unless it failed: that starts it over with the same token. An unproven claim blocks nobody and fails after 14 days. An active custom domain is billed per month, by its share of the month. 403 LIMIT_REACHED with reason STATUS_PAGE_DOMAIN_LIMIT at the organization's limit of custom domains (10 unless raised), 409 with reason DOMAIN_TAKEN when another status page has proved the hostname, DOMAINS_DISABLED where custom domains aren't set up.",
+        "operationId": "setStatusPageDomain",
+        "parameters": [
+          {
+            "description": "Status page ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/dto.StatusPageDomainSet"
+              }
+            }
+          },
+          "description": "The hostname",
+          "required": true,
+          "x-originalParamName": "body"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.StatusPageDomain"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Payment Required"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), the token's scopes don't allow this (reason INSUFFICIENT_SCOPE), or the organization's limit of custom domains (LIMIT_REACHED)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Couldn't check the organization's limits"
+          }
+        },
+        "summary": "Set a status page's custom domain",
         "tags": [
           "Status pages"
         ],
@@ -7375,6 +7782,222 @@
           }
         },
         "summary": "Replace a status page's layout",
+        "tags": [
+          "Status pages"
+        ],
+        "x-norcube-scopes": [
+          "monitor.statuspages"
+        ]
+      }
+    },
+    "/status-pages/{id}/logo": {
+      "delete": {
+        "description": "The page shows its name again within a minute.",
+        "operationId": "deleteStatusPageLogo",
+        "parameters": [
+          {
+            "description": "Status page ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Remove a status page's logo",
+        "tags": [
+          "Status pages"
+        ],
+        "x-norcube-scopes": [
+          "monitor.statuspages"
+        ]
+      },
+      "get": {
+        "description": "The page's logo as data URIs; empty when it has none.",
+        "operationId": "getStatusPageLogo",
+        "parameters": [
+          {
+            "description": "Status page ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.StatusPageLogo"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Get a status page's logo",
+        "tags": [
+          "Status pages"
+        ],
+        "x-norcube-scopes": [
+          "monitor.read",
+          "monitor.check",
+          "monitor.write",
+          "monitor.channels",
+          "monitor.statuspages"
+        ]
+      },
+      "put": {
+        "description": "Replaces the page's logo, shown in place of its name. Images are base64 encoded PNG, JPEG, WebP or SVG, at most 48 KB each; the type comes from the bytes. A dark image left out removes the one the page had. The public page shows it within a minute.",
+        "operationId": "setStatusPageLogo",
+        "parameters": [
+          {
+            "description": "Status page ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/dto.StatusPageLogoSet"
+              }
+            }
+          },
+          "description": "The logo",
+          "required": true,
+          "x-originalParamName": "body"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.StatusPageLogo"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Set a status page's logo",
         "tags": [
           "Status pages"
         ],
