@@ -2,7 +2,7 @@
   {
     "billingMode": "plans",
     "code": "snapdb",
-    "name": "Norcube Backup",
+    "name": "Backup",
     "subscription": {
       "currentPeriodEnd": "2026-11-01T00:00:00Z",
       "currentPeriodStart": "2026-10-01T00:00:00Z",

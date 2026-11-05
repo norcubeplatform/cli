@@ -169,7 +169,7 @@ set", check it with "preview-link", then "publish" it. Every setting is
 required: the page's public face is your choice, so nothing is filled in
 for you. A boolean takes =false to turn it off.
 
-Your plan limits how many pages an organization has, published or not.`,
+Your organization's limit sets how many pages it can have, published or not.`,
 		Example: `  norcube monitor status-pages create "Acme status" --slug acme --time-zone Europe/Prague --uptime-days 90 --history-days 90 --show-uptime-bars --show-uptime-percent --show-response-time=false --search-indexing`,
 		Args:    cobra.ExactArgs(1),
 		RunE: cmdutil.Run(func(cmd *cobra.Command, args []string) (any, error) {

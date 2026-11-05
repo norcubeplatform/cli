@@ -18,5 +18,5 @@
   previousMonthUnits: 2
   projectedEndOfMonthUnits: 2.5
   serviceCode: snapdb
-  serviceName: Norcube Backup
+  serviceName: Backup
   unit: GB

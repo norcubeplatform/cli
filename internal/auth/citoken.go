@@ -275,7 +275,7 @@ func audienceLabel(audience string) string {
 		}
 	}
 	if audience == AudienceCMS { // CI tokens can hold CMS scopes; the CLI has no CMS commands yet
-		return "Norcube CMS"
+		return "CMS"
 	}
 	return audience
 }

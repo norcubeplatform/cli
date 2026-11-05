@@ -77,7 +77,7 @@ func addMonitorFlags(cmd *cobra.Command, f *monitorFlags, update bool) {
 		fl.StringVar(&f.name, "name", "", "New name")
 	}
 	fl.StringVar(&f.description, "description", "", "A note on what the monitor is for")
-	fl.DurationVar(&f.interval, "interval", 0, "How often to check, e.g. 30s, 5m, 1h (default 1m for HTTP, 1h for SSL, 12h for domains; your plan sets the minimum)")
+	fl.DurationVar(&f.interval, "interval", 0, "How often to check, e.g. 30s, 5m, 1h (default 1m for HTTP, 1h for SSL, 12h for domains; your organization's limit sets the minimum)")
 	fl.StringVar(&f.fromFile, "from-file", "", "Read the request body as JSON from this file (- for standard input), in the API's shape; no other setting flags then")
 
 	fl.StringVar(&f.url, "url", "", "HTTP: the URL to request")

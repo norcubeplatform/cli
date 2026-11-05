@@ -12,7 +12,7 @@ What it's best at: proving you're never locked in to Norcube Backup. `norcube ba
 
 <sub>Scripted demo with sanitized names: whoami, Backup health, scripting with `-o json --query`, any endpoint with `norcube api`, and your CLI sessions. The tape and stub live in [`demo/`](demo/).</sub>
 
-> **Status**: pre-1.0. Norcube Backup (data sources, backups on demand and downloads, restores, restore tests and their settings, health, policies), LangSync (namespaces, terms, translations, languages, prompts, glossary, API keys, CSV import, audit log, project sync), DomainRadar (domain checks, bulk checks, saved domains, brand monitoring, name generation), Norcube Monitor (uptime, SSL and domain expiry monitors, check history, incidents, alert channels, a CI status gate), Billing (status, subscriptions, usage, invoices, spending caps), organizations, profiles, and `norcube api` for everything else. See the [changelog](CHANGELOG.md).
+> **Status**: pre-1.0. Backup (data sources, backups on demand and downloads, restores, restore tests and their settings, health, policies), LangSync (namespaces, terms, translations, languages, prompts, glossary, API keys, CSV import, audit log, project sync), DomainRadar (domain checks, bulk checks, saved domains, brand monitoring, name generation), Monitor (uptime, SSL and domain expiry monitors, check history, incidents, alert channels, a CI status gate), Billing (status, subscriptions, usage, invoices, spending caps), organizations, profiles, and `norcube api` for everything else. See the [changelog](CHANGELOG.md).
 
 ## Install
 

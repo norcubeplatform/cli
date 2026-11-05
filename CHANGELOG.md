@@ -3,7 +3,7 @@
 Notable changes, newest first. Release notes on GitHub list every commit;
 this file collects what users and scripts need to know.
 
-## Unreleased
+## 0.23.0 (2026-11-05)
 
 ### New
 
@@ -23,6 +23,20 @@ this file collects what users and scripts need to know.
   - CI tokens change status pages only with the new `monitor.statuspages`
     scope, which no other scope includes. Any Norcube Monitor scope reads
     them.
+
+### Fixes
+
+- Norcube Monitor's help no longer mentions a plan: Monitor is metered, so
+  `monitors create | update --interval` and `status-pages create` now refer
+  to your organization's limit.
+
+### Changes for scripts
+
+- `nrc commands -o json`: `service.name` now holds the short product name
+  (`Backup`, `Billing`, `Monitor`, `Auth`) instead of `Norcube Backup`,
+  `Norcube Billing`, `Norcube Monitor` and `Norcube Auth`. Match on
+  `service.key`, which doesn't change. Error messages name products the same
+  way.
 
 ## 0.22.0 (2026-11-04)
 
