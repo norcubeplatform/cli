@@ -185,7 +185,12 @@ func joinInts(v []int) string {
 
 // ---------- monitors ----------
 
-var monitorHeaders = []string{"ID", "NAME", "TYPE", "STATUS", "TARGET", "UPTIME 24H", "LAST CHECK"}
+// heldBy says which window holds a monitor and until when.
+func heldBy(h monitor.DtoMonitorMaintenance) string {
+	return fmt.Sprintf("%q until %s (%s)", h.Title, stamp(h.EndsAt), h.WindowId)
+}
+
+var monitorHeaders = []string{"ID", "NAME", "TYPE", "STATUS", "TARGET", "UPTIME 24H", "LAST CHECK", "MAINTENANCE UNTIL"}
 
 func monitorWord(m monitor.DtoMonitor) string {
 	cond := ""
@@ -203,13 +208,17 @@ func monitorRow(m monitor.DtoMonitor) []string {
 	if m.LastCheck != nil {
 		last = output.WhenString(m.LastCheck.At)
 	}
-	return []string{m.Id.String(), m.Name, string(m.Variant), monitorWord(m), m.Target, uptime, last}
+	until := "—"
+	if m.Maintenance != nil {
+		until = output.WhenString(m.Maintenance.EndsAt)
+	}
+	return []string{m.Id.String(), m.Name, string(m.Variant), monitorWord(m), m.Target, uptime, last, until}
 }
 
 func monitorTable(items []monitor.DtoMonitor) output.Table[monitor.DtoMonitor] {
 	return output.Table[monitor.DtoMonitor]{
 		Headers:   monitorHeaders,
-		MaxWidths: []int{0, 32, 0, 0, 48, 0, 0},
+		MaxWidths: []int{0, 32, 0, 0, 48, 0, 0, 0},
 		Style:     output.Style{StatusColumn: 3},
 		Rows:      monitorRow,
 		Items:     items,
@@ -224,6 +233,9 @@ func monitorObject(m monitor.DtoMonitor) output.Object {
 		{Name: "Target", Value: m.Target},
 		{Name: "Status", Value: monitorWord(m)},
 		{Name: "Since", Value: output.WhenString(m.StatusSince)},
+	}
+	if h := m.Maintenance; h != nil {
+		f = append(f, output.Field{Name: "In maintenance", Value: heldBy(*h)})
 	}
 	if m.Condition != nil && m.Condition.Message != nil {
 		f = append(f, output.Field{Name: "Reason", Value: *m.Condition.Message})

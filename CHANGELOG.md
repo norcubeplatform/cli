@@ -3,6 +3,64 @@
 Notable changes, newest first. Release notes on GitHub list every commit;
 this file collects what users and scripts need to know.
 
+## 0.25.0 (2026-11-06)
+
+### New
+
+- Norcube Monitor maintenance windows: `monitor maintenance list | get | create |
+  update | cancel | finish`. A window pauses alerts for its monitors, stays out
+  of their uptime, shows on every published status page displaying a target and
+  mails subscribers when it is scheduled, starts and finishes, unless you pass
+  `--notify-scheduled=false` and so on, or `--no-notify` for all three.
+  - `--start` and `--end` take an RFC 3339 timestamp, `now` or a span from now
+    (`+2h`, `+7d`). A bare `2h` is refused, because `--since` reads that as two
+    hours ago. `--duration` takes `15m`, `2h` or `7d`.
+  - Wrap a deploy: `id=$(nrc monitor maintenance create --monitor api --title
+    "Deploy" --duration 15m -o id)`, deploy, `nrc monitor maintenance finish
+    "$id"`. A window ends by itself if the deploy dies first.
+  - `cancel` takes a scheduled window and confirms (`--yes`); `finish` takes one
+    in progress and doesn't ask. Each one's refusal exits 8 and names the other.
+  - CI tokens change windows with the new `monitor.maintenance` scope, which no
+    other scope includes, and need `monitor.statuspages` too when a window shows
+    on a published page; a refusal names the page. `cancel` and `finish` need
+    only `monitor.maintenance`. Any Norcube Monitor scope reads them.
+  - The API's delete has no command: it takes only cancelled windows, and `nrc
+    api` reaches it, as it does the list of what a window could target.
+- `-o id` prints only a result's id, one per line for a list, for capturing it in
+  a script. A result without an id is a usage error.
+
+### Changes
+
+- `monitor status` shows monitors whose problem a maintenance window holds under
+  "In maintenance" instead of "Problems", and doesn't count their incidents
+  towards the verdict or `--fail-on`. A certificate or domain running out isn't
+  held and stays a problem.
+- `monitors run` says when a maintenance window holds the monitor. `--wait` still
+  fails on a critical result: it is there to tell whether the deploy worked.
+- `monitors list` and `get` show until when a window holds a monitor, and
+  `incidents summary` how many open incidents are held.
+- Refreshed the Norcube Monitor client and spec for maintenance windows and the
+  summary of each status page in the page list. The summary has no command yet;
+  `monitor status-pages list -o json` shows it.
+
+### Changes for scripts
+
+- The `-o` values and `nrc commands` `outputFormats` gain `id`.
+- `monitor status` JSON and YAML: new `maintenance` list; a monitor whose problem
+  a window holds moves there from `problems`. `incidents.open` gains
+  `inMaintenance`, and the API leaves held incidents out of its other counts.
+- `monitor status` `-o text`: two new columns at the end, the number of held
+  incidents and the monitors in maintenance.
+- `monitors list` and `get` `-o text`: a new column at the end, the end of the
+  window holding the monitor. JSON and YAML: `maintenance` while one does.
+- `monitors run` JSON, YAML and `job_failed` details: new `inMaintenance`.
+  `-o text`: a new column at the end, `yes` or `no`.
+- `incidents summary` `-o text`: a new column at the end, the held incidents.
+- From the API, additively: `monitors stats get`, `monitors availability get` and
+  results gain `maintenance` counts and `maintenanceMinutes`, incidents
+  `maintenanceHeld`, status changes `maintenanceWindowId`, and incident timelines
+  the event type `maintenance_hold`.
+
 ## 0.24.0 (2026-11-05)
 
 ### New

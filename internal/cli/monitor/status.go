@@ -3,7 +3,7 @@ package monitor
 import (
 	"context"
 	"fmt"
-	"strings"
+	"strconv"
 
 	"github.com/spf13/cobra"
 
@@ -24,8 +24,39 @@ type statusReport struct {
 	Incidents monitor.DtoIncidentSummary `json:"incidents" yaml:"incidents"`
 	Monitors  monitorCounts              `json:"monitors" yaml:"monitors"`
 	// Problems are the monitors whose overall status is critical or
-	// warning, worst first.
+	// warning, worst first, unless a maintenance window holds the problem.
 	Problems []problemMonitor `json:"problems" yaml:"problems"`
+	// Maintenance are the monitors whose problem a maintenance window holds,
+	// so it opens no incident, sends no alert and fails no --fail-on.
+	Maintenance []heldMonitor `json:"maintenance" yaml:"maintenance"`
+}
+
+// heldMonitor is a monitor with a held problem and the window holding it.
+type heldMonitor struct {
+	problemMonitor
+	Maintenance monitor.DtoMonitorMaintenance `json:"maintenance" yaml:"maintenance"`
+}
+
+// calendarConditions are the problems of a monitor's own check that follow
+// from the calendar: true whatever work is going on, so a maintenance window
+// leaves them live. HTTP monitors have none: there, a certificate that makes
+// the request fail is about what the work interrupts, and the watch on the
+// certificate is an aspect.
+var calendarConditions = map[string]bool{"cert_expiring": true, "cert_expired": true}
+
+// heldProblem reports whether a maintenance window holds all of a monitor's
+// problem. Watched aspects only ever have calendar problems, so one of those
+// keeps the monitor among the problems, whatever its own check says.
+func heldProblem(m monitor.DtoMonitor) bool {
+	if m.Maintenance == nil {
+		return false
+	}
+	for _, a := range m.Aspects {
+		if a.Status == "critical" || a.Status == "warning" {
+			return false
+		}
+	}
+	return m.Type == "http" || m.Condition == nil || !calendarConditions[m.Condition.Code]
 }
 
 // monitorCounts counts monitors by overall status.
@@ -68,7 +99,11 @@ ok.
 the command exits 1 (code unhealthy, the report in the error's details)
 while a critical incident is open, with --fail-on warning while any
 incident is open. The report is printed either way. The default, none,
-always exits 0.`,
+always exits 0.
+
+An incident a maintenance window holds doesn't count towards the verdict or
+--fail-on, and its monitor moves from "problems" to "maintenance". A certificate
+or domain running out isn't held: it stays in "problems" and still counts.`,
 		Example: `  norcube monitor status
   # Gate a deploy on Norcube Monitor
   norcube monitor status --fail-on critical
@@ -113,7 +148,7 @@ func buildStatus(ctx context.Context, c *monitorContext) (statusReport, error) {
 	if err != nil {
 		return statusReport{}, err
 	}
-	r := statusReport{Status: "ok", Incidents: summary, Problems: []problemMonitor{}}
+	r := statusReport{Status: "ok", Incidents: summary, Problems: []problemMonitor{}, Maintenance: []heldMonitor{}}
 	switch {
 	case summary.Open.Critical > 0:
 		r.Status = "critical"
@@ -151,7 +186,11 @@ func buildStatus(ctx context.Context, c *monitorContext) (statusReport, error) {
 				if m.Condition != nil {
 					pm.Condition, pm.Message = m.Condition.Code, cmdutil.Deref(m.Condition.Message)
 				}
-				r.Problems = append(r.Problems, pm)
+				if heldProblem(m) {
+					r.Maintenance = append(r.Maintenance, heldMonitor{pm, *m.Maintenance})
+				} else {
+					r.Problems = append(r.Problems, pm)
+				}
 			}
 		}
 		next := nextCursor(res.JSON200.Cursors)
@@ -172,22 +211,28 @@ func statusObject(r statusReport) output.Object {
 	// fixed columns.
 	lines := make([]string, 0, len(r.Problems))
 	for _, p := range r.Problems {
-		word := statusWord(p.Type, p.Status, p.Condition)
-		if p.Status != p.OverallStatus {
-			// The monitor itself is fine; a certificate or domain it
-			// watches isn't.
-			word = capitalize(p.OverallStatus)
-		}
-		line := word + ": " + p.Name + " (" + p.Target + ")"
-		if p.Message != "" {
-			line += ", " + p.Message
-		}
-		lines = append(lines, line)
+		lines = append(lines, p.line())
 	}
-	problems := "none"
-	if len(lines) > 0 {
-		problems = strings.Join(lines, "\n")
+	held := make([]string, 0, len(r.Maintenance))
+	for _, h := range r.Maintenance {
+		held = append(held, h.line()+", "+heldBy(h.Maintenance))
 	}
-	f = append(f, output.Field{Name: "Problems", Value: problems})
+	f = append(f, output.Field{Name: "Problems", Value: orNone(lines)},
+		output.Field{Name: "Incidents in maintenance", Value: strconv.Itoa(r.Incidents.Open.InMaintenance)},
+		output.Field{Name: "In maintenance", Value: orNone(held)})
 	return output.Object{Value: r, Fields: f}
+}
+
+func (p problemMonitor) line() string {
+	word := statusWord(p.Type, p.Status, p.Condition)
+	if p.Status != p.OverallStatus {
+		// The monitor itself is fine; a certificate or domain it
+		// watches isn't.
+		word = capitalize(p.OverallStatus)
+	}
+	line := word + ": " + p.Name + " (" + p.Target + ")"
+	if p.Message != "" {
+		line += ", " + p.Message
+	}
+	return line
 }

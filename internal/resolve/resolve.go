@@ -206,9 +206,9 @@ func Resolve(in Input) (*Result, error) {
 		r.Output = Value{"table", "default"}
 	}
 	switch r.Output.Value {
-	case "table", "json", "yaml", "text":
+	case "table", "json", "yaml", "text", "id":
 	default:
-		return nil, clierr.Usage(fmt.Errorf("output format %q (from %s): want table, json, yaml or text", r.Output.Value, r.Output.Source))
+		return nil, clierr.Usage(fmt.Errorf("output format %q (from %s): want table, json, yaml, text or id", r.Output.Value, r.Output.Source))
 	}
 	return r, nil
 }

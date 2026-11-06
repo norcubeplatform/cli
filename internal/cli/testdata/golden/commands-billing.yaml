@@ -60,6 +60,7 @@ commands:
         - json
         - yaml
         - text
+        - id
       paginated: false
       path:
         - billing
@@ -117,6 +118,7 @@ commands:
         - json
         - yaml
         - text
+        - id
       paginated: false
       path:
         - billing
@@ -171,6 +173,7 @@ commands:
         - json
         - yaml
         - text
+        - id
       paginated: false
       path:
         - billing
@@ -200,6 +203,7 @@ commands:
         - json
         - yaml
         - text
+        - id
       paginated: false
       path:
         - billing
@@ -231,6 +235,7 @@ commands:
         - json
         - yaml
         - text
+        - id
       paginated: false
       path:
         - billing
@@ -278,6 +283,7 @@ commands:
         - json
         - yaml
         - text
+        - id
       paginated: false
       path:
         - billing
@@ -324,6 +330,7 @@ commands:
         - json
         - yaml
         - text
+        - id
       paginated: false
       path:
         - billing
@@ -354,6 +361,7 @@ commands:
         - json
         - yaml
         - text
+        - id
       paginated: false
       path:
         - billing
@@ -419,12 +427,13 @@ globalFlags:
       required: false
       type: string
     - default: table
-      description: 'Output format: table | json | yaml | text (env: NORCUBE_OUTPUT)'
+      description: 'Output format: table | json | yaml | text | id (env: NORCUBE_OUTPUT)'
       enum:
         - table
         - json
         - yaml
         - text
+        - id
       name: output
       repeatable: false
       required: false
@@ -455,4 +464,5 @@ outputFormats:
     - json
     - yaml
     - text
+    - id
 schemaVersion: 1

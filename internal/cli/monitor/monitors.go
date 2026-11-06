@@ -324,7 +324,11 @@ exits 1 with code job_failed (the result in "details") when the check
 found the monitor critical or couldn't reach a verdict (inconclusive), or
 with --fail-on warning also when it found a warning, and prints nothing
 on stdout then; it exits 7 when no result arrives within --wait-timeout. Without --wait the command exits 0
-whatever the check found.`,
+whatever the check found.
+
+A maintenance window doesn't change any of that: --wait still fails on a
+critical result, because it is there to tell whether the deploy worked. The
+result says inMaintenance when one held the monitor.`,
 		Example: `  norcube monitor monitors run "Shop API"
   # Fail a deploy when the site is down after it
   norcube monitor monitors run "Shop API" --wait
@@ -364,19 +368,38 @@ whatever the check found.`,
 				return nil, apiError(res.HTTPResponse, res.Body)
 			}
 			r := *res.JSON200
+			result := runResult{DtoCheckResult: r, InMaintenance: m.Maintenance != nil}
 			if wf.Wait && checkFailed(string(r.Severity), failOn) {
 				// Like every failed --wait: nothing on stdout, the result
 				// in the error's details.
-				return nil, cmdutil.JobFailed(fmt.Sprintf("the check of %s found it %s (%s)", m.Name,
-					resultWord(string(m.Type), string(r.Severity), r.Condition), r.Condition), r)
+				msg := fmt.Sprintf("the check of %s found it %s (%s)", m.Name,
+					resultWord(string(m.Type), string(r.Severity), r.Condition), r.Condition)
+				if result.InMaintenance {
+					msg += ", in a maintenance window"
+				}
+				return nil, cmdutil.JobFailed(msg, result)
 			}
-			return resultObject(string(m.Type), r), nil
+			view := resultObject(string(m.Type), r)
+			view.Value = result
+			view.Text = append(view.Text, yesNo(result.InMaintenance))
+			if h := m.Maintenance; h != nil {
+				view.Fields = append(view.Fields, output.Field{Name: "In maintenance", Value: heldBy(*h)})
+			}
+			return view, nil
 		}),
 	}
 	cmdutil.AddWaitFlags(cmd, &wf, "check", runWaitTimeout)
 	cmd.Flags().StringVar(&failOn, "fail-on", "", "With --wait, the severity that fails the command: critical (default) or warning (inconclusive always fails)")
 	cmdutil.FlagEnum(cmd, "fail-on", failOnValues...)
 	return cmd
+}
+
+// runResult is what `monitors run` prints: the check's result, and whether a
+// maintenance window holds the monitor. The API's result doesn't say, so it
+// comes from the monitor as read just before the check.
+type runResult struct {
+	monitor.DtoCheckResult
+	InMaintenance bool `json:"inMaintenance" yaml:"inMaintenance"`
 }
 
 // checkFailed reports whether a check result's severity fails a --wait:

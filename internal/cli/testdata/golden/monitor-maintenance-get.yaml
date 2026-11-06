@@ -1,0 +1,24 @@
+createdAt: "2026-11-03T08:00:00Z"
+createdBy: 11111111-2222-4333-8444-555555555555
+createdByName: Dev Owner
+description: Short interruptions are expected.
+endsAt: "2026-11-03T08:15:00Z"
+finishedEarly: false
+id: 4d3c2b1a-0f9e-4d8c-b7a6-5f4e3d2c1b0a
+notifyFinished: true
+notifyScheduled: true
+notifyStarted: true
+startsAt: "2026-11-03T08:00:00Z"
+state: in_progress
+statusPages:
+    - componentIds:
+        - a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5e
+      id: 6e0f4b1a-2c3d-4e5f-8a9b-0c1d2e3f4a5b
+      name: Acme status
+      published: true
+targets:
+    componentIds: []
+    monitorIds:
+        - 7d1c2f7e-6a1f-4f5e-9b8a-1f7c2b3d4e5f
+title: Deploy
+updatedAt: "2026-11-03T08:00:00Z"

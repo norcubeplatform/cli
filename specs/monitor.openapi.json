@@ -6,6 +6,7 @@
           "INTERNAL_ERROR",
           "VALIDATION_FAILED",
           "INVALID_PAYLOAD",
+          "UNPROCESSABLE",
           "UNAUTHORIZED",
           "FORBIDDEN",
           "NOT_FOUND",
@@ -24,6 +25,7 @@
           "ErrorCodeInternal",
           "ErrorCodeValidationFailed",
           "ErrorCodeInvalidPayload",
+          "ErrorCodeUnprocessable",
           "ErrorCodeUnauthorized",
           "ErrorCodeForbidden",
           "ErrorCodeNotFound",
@@ -45,10 +47,13 @@
           "UNVERIFIED_CHANNEL_LIMIT",
           "STATUS_PAGE_LIMIT",
           "STATUS_PAGE_DOMAIN_LIMIT",
+          "MAINTENANCE_WINDOW_LIMIT",
           "SLUG_TAKEN",
           "DOMAIN_TAKEN",
           "DOMAINS_DISABLED",
           "DOMAIN_NOT_SET",
+          "MAINTENANCE_WINDOW_STATE",
+          "MAINTENANCE_PUBLISH_DENIED",
           "INCIDENT_RESOLVED",
           "MISSING_ORGANIZATION_ID",
           "INSUFFICIENT_SCOPE",
@@ -69,10 +74,13 @@
           "ErrorReasonUnverifiedChannelLimit",
           "ErrorReasonStatusPageLimit",
           "ErrorReasonStatusPageDomainLimit",
+          "ErrorReasonMaintenanceWindowLimit",
           "ErrorReasonSlugTaken",
           "ErrorReasonDomainTaken",
           "ErrorReasonDomainsDisabled",
           "ErrorReasonDomainNotSet",
+          "ErrorReasonMaintenanceWindowState",
+          "ErrorReasonMaintenancePublishDenied",
           "ErrorReasonIncidentResolved",
           "ErrorReasonMissingOrganizationID",
           "ErrorReasonInsufficientScope",
@@ -342,6 +350,14 @@
           "inconclusive": {
             "type": "integer"
           },
+          "maintenance": {
+            "description": "Maintenance counts the checks inside a maintenance window, whatever they\nfound. They are billed; the other counts cover only what ran outside.",
+            "type": "integer"
+          },
+          "maintenanceMinutes": {
+            "description": "MaintenanceMinutes is how long maintenance windows held the monitor in\nthese days, not counted as downtime.",
+            "type": "integer"
+          },
           "ok": {
             "type": "integer"
           },
@@ -364,6 +380,8 @@
           "downtimeMinutes",
           "from",
           "inconclusive",
+          "maintenance",
+          "maintenanceMinutes",
           "ok",
           "to",
           "warning"
@@ -701,14 +719,22 @@
             "type": "string"
           },
           "downtimeMinutes": {
-            "description": "DowntimeMinutes estimates the time spent down: the share of\ncritical checks among the conclusive ones times the minutes the\nday's checks cover. A warning is not downtime.",
+            "description": "DowntimeMinutes estimates the time spent down: the share of\ncritical checks among the conclusive ones times the minutes the\nday's checks cover outside maintenance. A warning is not downtime.",
             "type": "integer"
           },
           "inconclusive": {
             "type": "integer"
           },
+          "maintenance": {
+            "description": "Maintenance counts the checks inside a maintenance window, whatever they\nfound. They are billed; the other counts cover only what ran outside.",
+            "type": "integer"
+          },
+          "maintenanceMinutes": {
+            "description": "MaintenanceMinutes is how much of the day maintenance windows covered.",
+            "type": "integer"
+          },
           "noData": {
-            "description": "NoData: no checks that day (draw it gray, never as up).",
+            "description": "NoData: no checks that day, inside or outside maintenance (draw it\ngray, never as up).",
             "type": "boolean"
           },
           "ok": {
@@ -728,6 +754,8 @@
           "date",
           "downtimeMinutes",
           "inconclusive",
+          "maintenance",
+          "maintenanceMinutes",
           "noData",
           "ok",
           "warning"
@@ -1126,6 +1154,10 @@
             "example": "unexpected_status",
             "type": "string"
           },
+          "maintenance": {
+            "description": "Maintenance says a window held this check when it ran: it is out of uptime and\ncouldn't alert.",
+            "type": "boolean"
+          },
           "responseTimeMs": {
             "type": "integer"
           },
@@ -1149,6 +1181,7 @@
         "required": [
           "checkedAt",
           "condition",
+          "maintenance",
           "responseTimeMs",
           "resultId",
           "severity"
@@ -1188,6 +1221,10 @@
           "id": {
             "format": "uuid",
             "type": "string"
+          },
+          "maintenanceHeld": {
+            "description": "MaintenanceHeld says a maintenance window held it open at some point, so its alerts\nwere paused for that time; a resolved one doesn't count towards time to recover.",
+            "type": "boolean"
           },
           "monitorId": {
             "format": "uuid",
@@ -1261,6 +1298,7 @@
           "durationSeconds",
           "facts",
           "id",
+          "maintenanceHeld",
           "monitorId",
           "monitorName",
           "monitorTarget",
@@ -1383,6 +1421,10 @@
             "format": "uuid",
             "type": "string"
           },
+          "maintenanceHeld": {
+            "description": "MaintenanceHeld says a maintenance window held it open at some point, so its alerts\nwere paused for that time; a resolved one doesn't count towards time to recover.",
+            "type": "boolean"
+          },
           "monitorId": {
             "format": "uuid",
             "type": "string"
@@ -1462,6 +1504,7 @@
           "durationSeconds",
           "facts",
           "id",
+          "maintenanceHeld",
           "monitorId",
           "monitorName",
           "monitorTarget",
@@ -1495,7 +1538,8 @@
               "reminder",
               "acknowledged",
               "resolved",
-              "delivery_failed"
+              "delivery_failed",
+              "maintenance_hold"
             ],
             "type": "string"
           }
@@ -1509,6 +1553,10 @@
       "dto.IncidentOpenCounts": {
         "properties": {
           "critical": {
+            "example": 1,
+            "type": "integer"
+          },
+          "inMaintenance": {
             "example": 1,
             "type": "integer"
           },
@@ -1527,6 +1575,7 @@
         },
         "required": [
           "critical",
+          "inMaintenance",
           "total",
           "unacknowledged",
           "warning"
@@ -1536,7 +1585,7 @@
       "dto.IncidentSummary": {
         "properties": {
           "mttrLast30dSeconds": {
-            "description": "MttrLast30dSeconds is the mean time to resolve of those incidents;\nabsent when none was resolved.",
+            "description": "MttrLast30dSeconds is the mean time to resolve of those incidents, leaving\nout any a maintenance window held open at some point, whose duration is\nmostly the planned work; absent when none is left.",
             "example": 1260,
             "type": "integer"
           },
@@ -1544,7 +1593,7 @@
             "$ref": "#/components/schemas/dto.IncidentOpenCounts"
           },
           "resolvedLast30d": {
-            "description": "ResolvedLast30d counts incidents resolved in the last 30 days, the\nones mttrLast30dSeconds averages.",
+            "description": "ResolvedLast30d counts every incident resolved in the last 30 days.",
             "example": 12,
             "type": "integer"
           },
@@ -1588,6 +1637,400 @@
           "condition",
           "severity"
         ],
+        "type": "object"
+      },
+      "dto.MaintenanceTargetComponent": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "statusPageId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "statusPageId"
+        ],
+        "type": "object"
+      },
+      "dto.MaintenanceTargetMonitor": {
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "http",
+              "ssl"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "enabled",
+          "id",
+          "name",
+          "target",
+          "type"
+        ],
+        "type": "object"
+      },
+      "dto.MaintenanceTargetStatusPage": {
+        "properties": {
+          "canPublish": {
+            "description": "CanPublish says you may show a window here. On a published page it decides\nwhether a window showing here can be saved.",
+            "type": "boolean"
+          },
+          "componentIds": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "monitorIds": {
+            "description": "MonitorIDs are the monitors that make a window show on this page; a monitor the\npage shows only for its certificate or domain isn't among them. ComponentIDs are\nits manual components.",
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "name": {
+            "type": "string"
+          },
+          "published": {
+            "type": "boolean"
+          },
+          "subscribers": {
+            "description": "Subscribers are its confirmed subscribers; absent when you can't read the page.",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "canPublish",
+          "componentIds",
+          "id",
+          "monitorIds",
+          "name",
+          "published"
+        ],
+        "type": "object"
+      },
+      "dto.MaintenanceTargets": {
+        "properties": {
+          "components": {
+            "items": {
+              "$ref": "#/components/schemas/dto.MaintenanceTargetComponent"
+            },
+            "type": "array"
+          },
+          "monitors": {
+            "items": {
+              "$ref": "#/components/schemas/dto.MaintenanceTargetMonitor"
+            },
+            "type": "array"
+          },
+          "statusPages": {
+            "items": {
+              "$ref": "#/components/schemas/dto.MaintenanceTargetStatusPage"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "components",
+          "monitors",
+          "statusPages"
+        ],
+        "type": "object"
+      },
+      "dto.MaintenanceWindow": {
+        "properties": {
+          "cancelledAt": {
+            "description": "CancelledAt is set once cancelled; cancelledBy stays absent when the system did it,\nevery target having gone before the start.",
+            "type": "string"
+          },
+          "cancelledBy": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "cancelledByName": {
+            "description": "CancelledByName names who cancelled it (their name, else their email); only when\nreading one window, and absent when Norcube Auth can't say. So do the other names.",
+            "example": "Dev Owner",
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "createdBy": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "createdByName": {
+            "example": "Dev Owner",
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "endsAt": {
+            "description": "EndsAt is when it ended, if someone finished it early (finishedEarly).",
+            "type": "string"
+          },
+          "finishedBy": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "finishedByName": {
+            "example": "Dev Owner",
+            "type": "string"
+          },
+          "finishedEarly": {
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "notifyFinished": {
+            "type": "boolean"
+          },
+          "notifyScheduled": {
+            "type": "boolean"
+          },
+          "notifyStarted": {
+            "type": "boolean"
+          },
+          "startsAt": {
+            "type": "string"
+          },
+          "state": {
+            "description": "State follows from the times: scheduled before the start, in_progress until the\nend, then completed; cancelled once called off.",
+            "enum": [
+              "scheduled",
+              "in_progress",
+              "completed",
+              "cancelled"
+            ],
+            "type": "string"
+          },
+          "statusPages": {
+            "description": "StatusPages are the pages it shows on, published or not: every page showing a\ntarget, which nobody chooses. Published ones show it publicly.",
+            "items": {
+              "$ref": "#/components/schemas/dto.MaintenanceWindowStatusPage"
+            },
+            "type": "array"
+          },
+          "targets": {
+            "$ref": "#/components/schemas/dto.MaintenanceWindowResponseTargets"
+          },
+          "title": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "createdAt",
+          "description",
+          "endsAt",
+          "finishedEarly",
+          "id",
+          "notifyFinished",
+          "notifyScheduled",
+          "notifyStarted",
+          "startsAt",
+          "state",
+          "statusPages",
+          "targets",
+          "title",
+          "updatedAt"
+        ],
+        "type": "object"
+      },
+      "dto.MaintenanceWindowCreate": {
+        "properties": {
+          "description": {
+            "description": "Description is public: it shows on status pages and in mails.",
+            "example": "Short interruptions are expected.",
+            "maxLength": 2000,
+            "type": "string"
+          },
+          "endsAt": {
+            "description": "EndsAt is at most 30 days after the start.",
+            "type": "string"
+          },
+          "notifyFinished": {
+            "type": "boolean"
+          },
+          "notifyScheduled": {
+            "description": "NotifyScheduled, NotifyStarted and NotifyFinished say which mails go to the\nsubscribers of the status pages it shows on. A cancellation always tells whoever\nwas told.",
+            "type": "boolean"
+          },
+          "notifyStarted": {
+            "type": "boolean"
+          },
+          "startsAt": {
+            "description": "StartsAt may be up to a year ahead; up to five minutes in the past reads as now.",
+            "type": "string"
+          },
+          "targets": {
+            "$ref": "#/components/schemas/dto.MaintenanceWindowTargets"
+          },
+          "title": {
+            "example": "Database upgrade",
+            "maxLength": 200,
+            "type": "string"
+          }
+        },
+        "required": [
+          "endsAt",
+          "notifyFinished",
+          "notifyScheduled",
+          "notifyStarted",
+          "startsAt",
+          "targets",
+          "title"
+        ],
+        "type": "object"
+      },
+      "dto.MaintenanceWindowResponseTargets": {
+        "properties": {
+          "componentIds": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "monitorIds": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "componentIds",
+          "monitorIds"
+        ],
+        "type": "object"
+      },
+      "dto.MaintenanceWindowStatusPage": {
+        "properties": {
+          "componentIds": {
+            "description": "ComponentIDs are the page's components it affects.",
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "published": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "componentIds",
+          "id",
+          "name",
+          "published"
+        ],
+        "type": "object"
+      },
+      "dto.MaintenanceWindowTargets": {
+        "properties": {
+          "componentIds": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "monitorIds": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "statusPageIds": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "dto.MaintenanceWindowUpdate": {
+        "properties": {
+          "description": {
+            "maxLength": 2000,
+            "type": "string"
+          },
+          "endsAt": {
+            "description": "EndsAt: until it ends, and to a time still to come. To end it now, use finish.",
+            "type": "string"
+          },
+          "notifyFinished": {
+            "type": "boolean"
+          },
+          "notifyScheduled": {
+            "type": "boolean"
+          },
+          "notifyStarted": {
+            "type": "boolean"
+          },
+          "startsAt": {
+            "description": "StartsAt: only before it starts, and to a time still to come.",
+            "type": "string"
+          },
+          "targets": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/dto.MaintenanceWindowTargets"
+              }
+            ],
+            "description": "Targets replaces them as a whole, only before it starts."
+          },
+          "title": {
+            "maxLength": 200,
+            "type": "string"
+          }
+        },
         "type": "object"
       },
       "dto.Monitor": {
@@ -1647,6 +2090,14 @@
           },
           "lastCheck": {
             "$ref": "#/components/schemas/dto.LastCheck"
+          },
+          "maintenance": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/dto.MonitorMaintenance"
+              }
+            ],
+            "description": "Maintenance is the window holding the monitor right now (list and detail): alerts\nare paused and the time is out of uptime. Status stays what was measured."
           },
           "name": {
             "type": "string"
@@ -2198,6 +2649,30 @@
         ],
         "type": "object"
       },
+      "dto.MonitorMaintenance": {
+        "properties": {
+          "endsAt": {
+            "type": "string"
+          },
+          "startsAt": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "windowId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "endsAt",
+          "startsAt",
+          "title",
+          "windowId"
+        ],
+        "type": "object"
+      },
       "dto.MonitorStats": {
         "properties": {
           "avgMs": {
@@ -2220,6 +2695,10 @@
             "type": "string"
           },
           "inconclusive": {
+            "type": "integer"
+          },
+          "maintenance": {
+            "description": "Maintenance counts the checks inside a maintenance window, whatever they\nfound. They are billed; the other counts cover only what ran outside.",
             "type": "integer"
           },
           "maxMs": {
@@ -2252,6 +2731,7 @@
           "from",
           "granularity",
           "inconclusive",
+          "maintenance",
           "ok",
           "series",
           "to",
@@ -2339,7 +2819,8 @@
               "degraded_performance",
               "partial_outage",
               "major_outage",
-              "unknown"
+              "unknown",
+              "under_maintenance"
             ],
             "type": "string"
           },
@@ -2377,9 +2858,14 @@
               "warning",
               "minor",
               "partial",
-              "major"
+              "major",
+              "maintenance"
             ],
             "type": "string"
+          },
+          "maintenanceMinutes": {
+            "description": "MaintenanceMinutes is how much of the day a window covered. Those minutes\ndon't count towards the day's uptime.",
+            "type": "integer"
           },
           "uptimePercent": {
             "type": "number"
@@ -2418,7 +2904,8 @@
               "degraded_performance",
               "partial_outage",
               "major_outage",
-              "unknown"
+              "unknown",
+              "under_maintenance"
             ],
             "type": "string"
           }
@@ -2438,6 +2925,13 @@
           "incidents": {
             "items": {
               "$ref": "#/components/schemas/dto.PublicStatusIncident"
+            },
+            "type": "array"
+          },
+          "maintenance": {
+            "description": "Maintenance are the past windows, newest first, including announced ones\nthat were cancelled, so links in mail and feeds keep working. Left out\nwhen there are none.",
+            "items": {
+              "$ref": "#/components/schemas/dto.PublicStatusMaintenance"
             },
             "type": "array"
           },
@@ -2516,6 +3010,78 @@
         ],
         "type": "object"
       },
+      "dto.PublicStatusMaintenance": {
+        "properties": {
+          "components": {
+            "items": {
+              "$ref": "#/components/schemas/dto.PublicStatusMaintenanceComponent"
+            },
+            "type": "array"
+          },
+          "description": {
+            "type": "string"
+          },
+          "endsAt": {
+            "type": "string"
+          },
+          "finishedEarly": {
+            "description": "FinishedEarly: someone ended it before it was due to end; EndsAt is when.",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "startsAt": {
+            "type": "string"
+          },
+          "status": {
+            "description": "Status is decided when the snapshot is pushed, because a window that was\nfinished early can't be told from its times alone.",
+            "enum": [
+              "scheduled",
+              "in_progress",
+              "completed",
+              "cancelled"
+            ],
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "description": "UpdatedAt is when the window last changed, or the moment it started or\nended if that came later. Never in the future, so feeds can use it.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "components",
+          "description",
+          "endsAt",
+          "finishedEarly",
+          "id",
+          "startsAt",
+          "status",
+          "title",
+          "updatedAt"
+        ],
+        "type": "object"
+      },
+      "dto.PublicStatusMaintenanceComponent": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object"
+      },
       "dto.PublicStatusPage": {
         "properties": {
           "active": {
@@ -2559,7 +3125,8 @@
               "none",
               "minor",
               "major",
-              "critical"
+              "critical",
+              "maintenance"
             ],
             "type": "string"
           },
@@ -2578,6 +3145,13 @@
             "description": "LogoFile and LogoDarkFile name a published page's logo images, each a file\nthe renderer serves at \u003cpage\u003e/logo/\u003cname\u003e: a hash of the content and an\nextension. Left out when it has none; LogoDarkFile is for dark mode.",
             "example": "0123456789abcdef0123456789abcdef.png",
             "type": "string"
+          },
+          "maintenance": {
+            "description": "Maintenance are the windows in progress and the soonest scheduled ones.\nLeft out when there are none, and absent from snapshots pushed before\nwindows existed.",
+            "items": {
+              "$ref": "#/components/schemas/dto.PublicStatusMaintenance"
+            },
+            "type": "array"
           },
           "name": {
             "example": "Acme status",
@@ -2783,6 +3357,10 @@
           "inconclusive": {
             "type": "integer"
           },
+          "maintenance": {
+            "description": "Maintenance counts the checks inside a maintenance window, whatever they\nfound. They are billed; the other counts cover only what ran outside.",
+            "type": "integer"
+          },
           "maxMs": {
             "type": "integer"
           },
@@ -2810,6 +3388,7 @@
           "checks",
           "critical",
           "inconclusive",
+          "maintenance",
           "maxMs",
           "ok",
           "p50Ms",
@@ -2861,6 +3440,11 @@
           "id": {
             "type": "integer"
           },
+          "maintenanceWindowId": {
+            "description": "MaintenanceWindowID is the window the change happened in, absent outside one.",
+            "format": "uuid",
+            "type": "string"
+          },
           "message": {
             "example": "status 503 is not accepted (2xx)",
             "type": "string"
@@ -2902,6 +3486,14 @@
           },
           "description": {
             "type": "string"
+          },
+          "glance": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/dto.StatusPageGlance"
+              }
+            ],
+            "description": "Glance is how the page is doing, on the list of pages only."
           },
           "id": {
             "format": "uuid",
@@ -3152,6 +3744,198 @@
         },
         "required": [
           "hostname"
+        ],
+        "type": "object"
+      },
+      "dto.StatusPageGlance": {
+        "properties": {
+          "components": {
+            "description": "Components are all of the page's components in layout order, groups flattened.",
+            "items": {
+              "$ref": "#/components/schemas/dto.StatusPageGlanceComponent"
+            },
+            "type": "array"
+          },
+          "domain": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/dto.StatusPageGlanceDomain"
+              }
+            ],
+            "description": "Domain is the custom domain in whatever state; left out without one."
+          },
+          "incidents": {
+            "description": "Incidents are the open posts, newest first.",
+            "items": {
+              "$ref": "#/components/schemas/dto.StatusPageGlanceIncident"
+            },
+            "type": "array"
+          },
+          "indicator": {
+            "description": "Indicator is the page's one-word verdict.",
+            "enum": [
+              "none",
+              "minor",
+              "major",
+              "critical",
+              "maintenance"
+            ],
+            "type": "string"
+          },
+          "maintenance": {
+            "description": "Maintenance are the windows in progress and the soonest scheduled ones.",
+            "items": {
+              "$ref": "#/components/schemas/dto.StatusPageGlanceMaintenance"
+            },
+            "type": "array"
+          },
+          "subscribers": {
+            "description": "Subscribers counts confirmed addresses.",
+            "example": 120,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "components",
+          "incidents",
+          "indicator",
+          "maintenance",
+          "subscribers"
+        ],
+        "type": "object"
+      },
+      "dto.StatusPageGlanceComponent": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "operational",
+              "degraded_performance",
+              "partial_outage",
+              "major_outage",
+              "unknown",
+              "under_maintenance"
+            ],
+            "type": "string"
+          },
+          "uptimePercent": {
+            "description": "UptimePercent over the page's range, when the page shows it and the\ncomponent counts availability.",
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "status"
+        ],
+        "type": "object"
+      },
+      "dto.StatusPageGlanceDomain": {
+        "properties": {
+          "errorCode": {
+            "description": "ErrorCode: DOMAIN_TAKEN when another status page proved this hostname first.",
+            "enum": [
+              "DOMAIN_TAKEN"
+            ],
+            "type": "string"
+          },
+          "hostname": {
+            "example": "status.acme.com",
+            "type": "string"
+          },
+          "status": {
+            "description": "Status: the same words as GET /status-pages/{id}/domain.",
+            "enum": [
+              "pending_ownership",
+              "pending_dns",
+              "pending_certificate",
+              "active",
+              "failed"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "hostname",
+          "status"
+        ],
+        "type": "object"
+      },
+      "dto.StatusPageGlanceIncident": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "impact": {
+            "enum": [
+              "none",
+              "minor",
+              "major",
+              "critical"
+            ],
+            "type": "string"
+          },
+          "startedAt": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "investigating",
+              "identified",
+              "monitoring",
+              "resolved"
+            ],
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "impact",
+          "startedAt",
+          "status",
+          "title"
+        ],
+        "type": "object"
+      },
+      "dto.StatusPageGlanceMaintenance": {
+        "properties": {
+          "endsAt": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "startsAt": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "scheduled",
+              "in_progress"
+            ],
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "endsAt",
+          "id",
+          "startsAt",
+          "status",
+          "title"
         ],
         "type": "object"
       },
@@ -3724,6 +4508,10 @@
           "inconclusive": {
             "type": "integer"
           },
+          "maintenance": {
+            "description": "Maintenance counts the checks inside a maintenance window, whatever they\nfound. They are billed; the other counts cover only what ran outside.",
+            "type": "integer"
+          },
           "ok": {
             "type": "integer"
           },
@@ -3754,6 +4542,7 @@
           "critical",
           "from",
           "inconclusive",
+          "maintenance",
           "ok",
           "warning"
         ],
@@ -4103,7 +4892,8 @@
           "monitor.check",
           "monitor.write",
           "monitor.channels",
-          "monitor.statuspages"
+          "monitor.statuspages",
+          "monitor.maintenance"
         ]
       },
       "post": {
@@ -4297,7 +5087,8 @@
           "monitor.check",
           "monitor.write",
           "monitor.channels",
-          "monitor.statuspages"
+          "monitor.statuspages",
+          "monitor.maintenance"
         ]
       },
       "patch": {
@@ -4508,7 +5299,8 @@
           "monitor.check",
           "monitor.write",
           "monitor.channels",
-          "monitor.statuspages"
+          "monitor.statuspages",
+          "monitor.maintenance"
         ]
       }
     },
@@ -4968,7 +5760,8 @@
           "monitor.check",
           "monitor.write",
           "monitor.channels",
-          "monitor.statuspages"
+          "monitor.statuspages",
+          "monitor.maintenance"
         ]
       }
     },
@@ -5017,7 +5810,8 @@
           "monitor.check",
           "monitor.write",
           "monitor.channels",
-          "monitor.statuspages"
+          "monitor.statuspages",
+          "monitor.maintenance"
         ]
       }
     },
@@ -5088,7 +5882,8 @@
           "monitor.check",
           "monitor.write",
           "monitor.channels",
-          "monitor.statuspages"
+          "monitor.statuspages",
+          "monitor.maintenance"
         ]
       }
     },
@@ -5159,9 +5954,690 @@
         ]
       }
     },
+    "/maintenance-windows": {
+      "get": {
+        "description": "The organization's windows, latest start first; with `status=scheduled`, soonest first. `state` follows from the times. `statusPageId` keeps the windows showing on a page, `monitorId` those holding a monitor.",
+        "operationId": "listMaintenanceWindows",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "MonitorID keeps the windows holding that monitor.",
+            "in": "query",
+            "name": "monitorId",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Status keeps the windows standing there; scheduled ones come soonest first, the\nothers latest start first.",
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "enum": [
+                "scheduled",
+                "in_progress",
+                "completed",
+                "cancelled"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "StatusPageID keeps the windows showing on that page.",
+            "in": "query",
+            "name": "statusPageId",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/response.APIResponseWithPagination"
+                    },
+                    {
+                      "properties": {
+                        "list": {
+                          "items": {
+                            "$ref": "#/components/schemas/dto.MaintenanceWindow"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          }
+        },
+        "summary": "List maintenance windows",
+        "tags": [
+          "Maintenance windows"
+        ],
+        "x-norcube-scopes": [
+          "monitor.read",
+          "monitor.check",
+          "monitor.write",
+          "monitor.channels",
+          "monitor.statuspages",
+          "monitor.maintenance"
+        ]
+      },
+      "post": {
+        "description": "Schedules a window, or starts one now. It pauses alerts for its monitors and leaves the time out of their uptime; checks keep running and are metered. It shows on every published status page displaying a target, by itself: there is no opt-out per page. Needs UpdateMonitor on each monitor (403 FORBIDDEN, `data.monitorIds`). Where it shows on a published page it needs PublishMaintenanceWindow there, and a scoped token also the monitor.statuspages scope (403 MAINTENANCE_PUBLISH_DENIED, naming the page, `data.statusPageIds`). A domain monitor is refused with 422 UNPROCESSABLE: a domain's registration isn't affected by maintenance; other invalid fields answer 400 VALIDATION_FAILED. At most 100 windows scheduled or in progress, 500 targets each, 30 days long, starting within a year (403 LIMIT_REACHED, reason MAINTENANCE_WINDOW_LIMIT).",
+        "operationId": "createMaintenanceWindow",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/dto.MaintenanceWindowCreate"
+              }
+            }
+          },
+          "description": "The window",
+          "required": true,
+          "x-originalParamName": "body"
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.MaintenanceWindow"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission (FORBIDDEN), the token's scopes don't allow this (reason INSUFFICIENT_SCOPE), it would show on a page you can't publish on (reason MAINTENANCE_PUBLISH_DENIED), or a safety cap (LIMIT_REACHED)"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Permissions couldn't be checked (UNAVAILABLE)"
+          }
+        },
+        "summary": "Schedule a maintenance window",
+        "tags": [
+          "Maintenance windows"
+        ],
+        "x-norcube-scopes": [
+          "monitor.maintenance"
+        ]
+      }
+    },
+    "/maintenance-windows/targets": {
+      "get": {
+        "description": "Everything a window in the organization could target, in one request: monitors (domain monitors can't be held), manual components, and status pages with whether each is published, which monitors make a window show there, whether you may show it there (`canPublish`) and, where you can read the page, its confirmed subscribers. Enough to say what a window will do before it is saved.",
+        "operationId": "getMaintenanceTargets",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.MaintenanceTargets"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Permissions couldn't be checked (UNAVAILABLE)"
+          }
+        },
+        "summary": "What a maintenance window can target",
+        "tags": [
+          "Maintenance windows"
+        ],
+        "x-norcube-scopes": [
+          "monitor.read",
+          "monitor.check",
+          "monitor.write",
+          "monitor.channels",
+          "monitor.statuspages",
+          "monitor.maintenance"
+        ]
+      }
+    },
+    "/maintenance-windows/{id}": {
+      "delete": {
+        "description": "Only a cancelled window, once its cancellation has been announced (409, reason MAINTENANCE_WINDOW_STATE; within a minute of cancelling). A completed one explains a gap in uptime, and goes by itself two years after it ended.",
+        "operationId": "deleteMaintenanceWindow",
+        "parameters": [
+          {
+            "description": "Window ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "summary": "Delete a cancelled maintenance window",
+        "tags": [
+          "Maintenance windows"
+        ],
+        "x-norcube-scopes": [
+          "monitor.maintenance"
+        ]
+      },
+      "get": {
+        "description": "One window with where it stands, its targets and the pages it shows on.",
+        "operationId": "getMaintenanceWindow",
+        "parameters": [
+          {
+            "description": "Window ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.MaintenanceWindow"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Get a maintenance window",
+        "tags": [
+          "Maintenance windows"
+        ],
+        "x-norcube-scopes": [
+          "monitor.read",
+          "monitor.check",
+          "monitor.write",
+          "monitor.channels",
+          "monitor.statuspages",
+          "monitor.maintenance"
+        ]
+      },
+      "patch": {
+        "description": "Changes the given fields, as far as where the window stands allows (409, reason MAINTENANCE_WINDOW_STATE, `data.state`). Before it starts everything can change; moving a time by 5 minutes or more tells subscribers who were told. Once started: text, mail switches and the end, silently, with targets frozen. Once over: text only. A cancelled window: nothing. A change to the times or targets needs UpdateMonitor on each monitor; any change to a window showing on a published page, before or after, needs the publish permission as on create.",
+        "operationId": "updateMaintenanceWindow",
+        "parameters": [
+          {
+            "description": "Window ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/dto.MaintenanceWindowUpdate"
+              }
+            }
+          },
+          "description": "Changes",
+          "required": true,
+          "x-originalParamName": "body"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.MaintenanceWindow"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission (FORBIDDEN), the token's scopes don't allow this (reason INSUFFICIENT_SCOPE), it shows on a page you can't publish on (reason MAINTENANCE_PUBLISH_DENIED), or a safety cap (LIMIT_REACHED)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Permissions couldn't be checked (UNAVAILABLE)"
+          }
+        },
+        "summary": "Change a maintenance window",
+        "tags": [
+          "Maintenance windows"
+        ],
+        "x-norcube-scopes": [
+          "monitor.maintenance"
+        ]
+      }
+    },
+    "/maintenance-windows/{id}/cancel": {
+      "post": {
+        "description": "Calls off a window that hasn't started; subscribers who were told hear of it. One that has started gets 409 with reason MAINTENANCE_WINDOW_STATE: use finish. Needs only permission to update the window, not to publish.",
+        "operationId": "cancelMaintenanceWindow",
+        "parameters": [
+          {
+            "description": "Window ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.MaintenanceWindow"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "summary": "Cancel a scheduled maintenance window",
+        "tags": [
+          "Maintenance windows"
+        ],
+        "x-norcube-scopes": [
+          "monitor.maintenance"
+        ]
+      }
+    },
+    "/maintenance-windows/{id}/finish": {
+      "post": {
+        "description": "Ends a window in progress now: the very next check counts and alerts as usual, and subscribers hear it finished early. Monitors with an open incident it held are checked again within a minute. Needs only permission to update the window, so whoever can edit it can always end its silence. One that isn't in progress gets 409 with reason MAINTENANCE_WINDOW_STATE.",
+        "operationId": "finishMaintenanceWindow",
+        "parameters": [
+          {
+            "description": "Window ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.MaintenanceWindow"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Missing, invalid or expired token (UNAUTHORIZED)"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "No permission for this (FORBIDDEN), or the token's scopes don't allow this (reason INSUFFICIENT_SCOPE)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "summary": "Finish a maintenance window early",
+        "tags": [
+          "Maintenance windows"
+        ],
+        "x-norcube-scopes": [
+          "monitor.maintenance"
+        ]
+      }
+    },
     "/monitors": {
       "get": {
-        "description": "The organization's monitors with their current status, by default ordered by status severity (critical, warning, pending, ok, paused) then name; `sort` picks another order, and a cursor only continues the sort it came from. `status` is the severity of the last conclusive check (an inconclusive one, such as a failed registry lookup, never moves it) and `condition` its reason with facts (days left for SSL and domain monitors). Rows of HTTP monitors have `last24h` (checks by severity, uptime and warning share, approximate p50/p95 over the last 24 full hours plus the current one; no data is absent, not 100%). `include=history` adds each row's newest 60 results (`history`, newest first) for a heartbeat strip. Rows carry no settings; `variant` names what each monitor does (`keyword` for an HTTP monitor that looks for a keyword).",
+        "description": "The organization's monitors with their current status, by default ordered by status severity (critical, warning, pending, ok, paused) then name; `sort` picks another order, and a cursor only continues the sort it came from. `status` is the severity of the last conclusive check (an inconclusive one, such as a failed registry lookup, never moves it) and `condition` its reason with facts (days left for SSL and domain monitors). Rows of HTTP monitors have `last24h` (checks by severity, uptime and warning share, approximate p50/p95 over the last 24 full hours plus the current one; no data is absent, not 100%). `include=history` adds each row's newest 60 results (`history`, newest first) for a heartbeat strip. Rows carry no settings; `variant` names what each monitor does (`keyword` for an HTTP monitor that looks for a keyword). `maintenance` names the window holding a monitor right now, and such a monitor sorts with the healthy ones, whatever `status` says: status stays what was measured, and the `status` filter reads it as it is.",
         "operationId": "listMonitors",
         "parameters": [
           {
@@ -5307,7 +6783,8 @@
           "monitor.check",
           "monitor.write",
           "monitor.channels",
-          "monitor.statuspages"
+          "monitor.statuspages",
+          "monitor.maintenance"
         ]
       },
       "post": {
@@ -5618,7 +7095,8 @@
           "monitor.check",
           "monitor.write",
           "monitor.channels",
-          "monitor.statuspages"
+          "monitor.statuspages",
+          "monitor.maintenance"
         ]
       },
       "patch": {
@@ -5786,7 +7264,8 @@
           "monitor.check",
           "monitor.write",
           "monitor.channels",
-          "monitor.statuspages"
+          "monitor.statuspages",
+          "monitor.maintenance"
         ]
       },
       "put": {
@@ -5964,7 +7443,8 @@
           "monitor.check",
           "monitor.write",
           "monitor.channels",
-          "monitor.statuspages"
+          "monitor.statuspages",
+          "monitor.maintenance"
         ]
       }
     },
@@ -6035,7 +7515,8 @@
           "monitor.check",
           "monitor.write",
           "monitor.channels",
-          "monitor.statuspages"
+          "monitor.statuspages",
+          "monitor.maintenance"
         ]
       }
     },
@@ -6318,7 +7799,8 @@
           "monitor.check",
           "monitor.write",
           "monitor.channels",
-          "monitor.statuspages"
+          "monitor.statuspages",
+          "monitor.maintenance"
         ]
       }
     },
@@ -6480,7 +7962,8 @@
           "monitor.check",
           "monitor.write",
           "monitor.channels",
-          "monitor.statuspages"
+          "monitor.statuspages",
+          "monitor.maintenance"
         ]
       }
     },
@@ -6592,7 +8075,8 @@
           "monitor.check",
           "monitor.write",
           "monitor.channels",
-          "monitor.statuspages"
+          "monitor.statuspages",
+          "monitor.maintenance"
         ]
       }
     },
@@ -6693,7 +8177,8 @@
           "monitor.check",
           "monitor.write",
           "monitor.channels",
-          "monitor.statuspages"
+          "monitor.statuspages",
+          "monitor.maintenance"
         ]
       },
       "post": {
@@ -6907,7 +8392,8 @@
           "monitor.check",
           "monitor.write",
           "monitor.channels",
-          "monitor.statuspages"
+          "monitor.statuspages",
+          "monitor.maintenance"
         ]
       },
       "patch": {
@@ -7133,7 +8619,8 @@
           "monitor.check",
           "monitor.write",
           "monitor.channels",
-          "monitor.statuspages"
+          "monitor.statuspages",
+          "monitor.maintenance"
         ]
       },
       "put": {
@@ -7374,7 +8861,8 @@
           "monitor.check",
           "monitor.write",
           "monitor.channels",
-          "monitor.statuspages"
+          "monitor.statuspages",
+          "monitor.maintenance"
         ]
       },
       "post": {
@@ -7542,7 +9030,8 @@
           "monitor.check",
           "monitor.write",
           "monitor.channels",
-          "monitor.statuspages"
+          "monitor.statuspages",
+          "monitor.maintenance"
         ]
       },
       "patch": {
@@ -7819,7 +9308,8 @@
           "monitor.check",
           "monitor.write",
           "monitor.channels",
-          "monitor.statuspages"
+          "monitor.statuspages",
+          "monitor.maintenance"
         ]
       },
       "put": {
@@ -8035,7 +9525,8 @@
           "monitor.check",
           "monitor.write",
           "monitor.channels",
-          "monitor.statuspages"
+          "monitor.statuspages",
+          "monitor.maintenance"
         ]
       },
       "put": {
@@ -8193,7 +9684,8 @@
           "monitor.check",
           "monitor.write",
           "monitor.channels",
-          "monitor.statuspages"
+          "monitor.statuspages",
+          "monitor.maintenance"
         ]
       }
     },
@@ -8516,7 +10008,8 @@
           "monitor.check",
           "monitor.write",
           "monitor.channels",
-          "monitor.statuspages"
+          "monitor.statuspages",
+          "monitor.maintenance"
         ]
       }
     },

@@ -34,6 +34,7 @@ const (
 	ErrorCodeTooManyRequests  ConstantsErrorCode = "TOO_MANY_REQUESTS"
 	ErrorCodeUnauthorized     ConstantsErrorCode = "UNAUTHORIZED"
 	ErrorCodeUnavailable      ConstantsErrorCode = "UNAVAILABLE"
+	ErrorCodeUnprocessable    ConstantsErrorCode = "UNPROCESSABLE"
 	ErrorCodeValidationFailed ConstantsErrorCode = "VALIDATION_FAILED"
 )
 
@@ -68,6 +69,8 @@ func (e ConstantsErrorCode) Valid() bool {
 		return true
 	case ErrorCodeUnavailable:
 		return true
+	case ErrorCodeUnprocessable:
+		return true
 	case ErrorCodeValidationFailed:
 		return true
 	default:
@@ -77,27 +80,30 @@ func (e ConstantsErrorCode) Valid() bool {
 
 // Defines values for ConstantsErrorReason.
 const (
-	ErrorReasonAlertChannelLimit      ConstantsErrorReason = "ALERT_CHANNEL_LIMIT"
-	ErrorReasonAlreadyVerified        ConstantsErrorReason = "ALREADY_VERIFIED"
-	ErrorReasonCallerOutsideNamespace ConstantsErrorReason = "CALLER_OUTSIDE_NAMESPACE"
-	ErrorReasonChannelTypeUnavailable ConstantsErrorReason = "CHANNEL_TYPE_UNAVAILABLE"
-	ErrorReasonCodeExpired            ConstantsErrorReason = "CODE_EXPIRED"
-	ErrorReasonCodeRecentlySent       ConstantsErrorReason = "CODE_RECENTLY_SENT"
-	ErrorReasonContactUnverified      ConstantsErrorReason = "CONTACT_UNVERIFIED"
-	ErrorReasonDeliveryRejected       ConstantsErrorReason = "DELIVERY_REJECTED"
-	ErrorReasonDomainNotSet           ConstantsErrorReason = "DOMAIN_NOT_SET"
-	ErrorReasonDomainTaken            ConstantsErrorReason = "DOMAIN_TAKEN"
-	ErrorReasonDomainsDisabled        ConstantsErrorReason = "DOMAINS_DISABLED"
-	ErrorReasonIncidentResolved       ConstantsErrorReason = "INCIDENT_RESOLVED"
-	ErrorReasonInsufficientScope      ConstantsErrorReason = "INSUFFICIENT_SCOPE"
-	ErrorReasonMissingOrganizationID  ConstantsErrorReason = "MISSING_ORGANIZATION_ID"
-	ErrorReasonMonitorLimit           ConstantsErrorReason = "MONITOR_LIMIT"
-	ErrorReasonNothingToVerify        ConstantsErrorReason = "NOTHING_TO_VERIFY"
-	ErrorReasonSlugTaken              ConstantsErrorReason = "SLUG_TAKEN"
-	ErrorReasonStatusPageDomainLimit  ConstantsErrorReason = "STATUS_PAGE_DOMAIN_LIMIT"
-	ErrorReasonStatusPageLimit        ConstantsErrorReason = "STATUS_PAGE_LIMIT"
-	ErrorReasonTooManyAttempts        ConstantsErrorReason = "TOO_MANY_ATTEMPTS"
-	ErrorReasonUnverifiedChannelLimit ConstantsErrorReason = "UNVERIFIED_CHANNEL_LIMIT"
+	ErrorReasonAlertChannelLimit        ConstantsErrorReason = "ALERT_CHANNEL_LIMIT"
+	ErrorReasonAlreadyVerified          ConstantsErrorReason = "ALREADY_VERIFIED"
+	ErrorReasonCallerOutsideNamespace   ConstantsErrorReason = "CALLER_OUTSIDE_NAMESPACE"
+	ErrorReasonChannelTypeUnavailable   ConstantsErrorReason = "CHANNEL_TYPE_UNAVAILABLE"
+	ErrorReasonCodeExpired              ConstantsErrorReason = "CODE_EXPIRED"
+	ErrorReasonCodeRecentlySent         ConstantsErrorReason = "CODE_RECENTLY_SENT"
+	ErrorReasonContactUnverified        ConstantsErrorReason = "CONTACT_UNVERIFIED"
+	ErrorReasonDeliveryRejected         ConstantsErrorReason = "DELIVERY_REJECTED"
+	ErrorReasonDomainNotSet             ConstantsErrorReason = "DOMAIN_NOT_SET"
+	ErrorReasonDomainTaken              ConstantsErrorReason = "DOMAIN_TAKEN"
+	ErrorReasonDomainsDisabled          ConstantsErrorReason = "DOMAINS_DISABLED"
+	ErrorReasonIncidentResolved         ConstantsErrorReason = "INCIDENT_RESOLVED"
+	ErrorReasonInsufficientScope        ConstantsErrorReason = "INSUFFICIENT_SCOPE"
+	ErrorReasonMaintenancePublishDenied ConstantsErrorReason = "MAINTENANCE_PUBLISH_DENIED"
+	ErrorReasonMaintenanceWindowLimit   ConstantsErrorReason = "MAINTENANCE_WINDOW_LIMIT"
+	ErrorReasonMaintenanceWindowState   ConstantsErrorReason = "MAINTENANCE_WINDOW_STATE"
+	ErrorReasonMissingOrganizationID    ConstantsErrorReason = "MISSING_ORGANIZATION_ID"
+	ErrorReasonMonitorLimit             ConstantsErrorReason = "MONITOR_LIMIT"
+	ErrorReasonNothingToVerify          ConstantsErrorReason = "NOTHING_TO_VERIFY"
+	ErrorReasonSlugTaken                ConstantsErrorReason = "SLUG_TAKEN"
+	ErrorReasonStatusPageDomainLimit    ConstantsErrorReason = "STATUS_PAGE_DOMAIN_LIMIT"
+	ErrorReasonStatusPageLimit          ConstantsErrorReason = "STATUS_PAGE_LIMIT"
+	ErrorReasonTooManyAttempts          ConstantsErrorReason = "TOO_MANY_ATTEMPTS"
+	ErrorReasonUnverifiedChannelLimit   ConstantsErrorReason = "UNVERIFIED_CHANNEL_LIMIT"
 )
 
 // Valid indicates whether the value is a known member of the ConstantsErrorReason enum.
@@ -128,6 +134,12 @@ func (e ConstantsErrorReason) Valid() bool {
 	case ErrorReasonIncidentResolved:
 		return true
 	case ErrorReasonInsufficientScope:
+		return true
+	case ErrorReasonMaintenancePublishDenied:
+		return true
+	case ErrorReasonMaintenanceWindowLimit:
+		return true
+	case ErrorReasonMaintenanceWindowState:
 		return true
 	case ErrorReasonMissingOrganizationID:
 		return true
@@ -719,14 +731,15 @@ func (e DtoIncidentDetailStatus) Valid() bool {
 
 // Defines values for DtoIncidentEventType.
 const (
-	DtoIncidentEventTypeAcknowledged   DtoIncidentEventType = "acknowledged"
-	DtoIncidentEventTypeDeescalated    DtoIncidentEventType = "deescalated"
-	DtoIncidentEventTypeDeliveryFailed DtoIncidentEventType = "delivery_failed"
-	DtoIncidentEventTypeEscalated      DtoIncidentEventType = "escalated"
-	DtoIncidentEventTypeOpened         DtoIncidentEventType = "opened"
-	DtoIncidentEventTypeReminder       DtoIncidentEventType = "reminder"
-	DtoIncidentEventTypeResolved       DtoIncidentEventType = "resolved"
-	DtoIncidentEventTypeThreshold      DtoIncidentEventType = "threshold"
+	DtoIncidentEventTypeAcknowledged    DtoIncidentEventType = "acknowledged"
+	DtoIncidentEventTypeDeescalated     DtoIncidentEventType = "deescalated"
+	DtoIncidentEventTypeDeliveryFailed  DtoIncidentEventType = "delivery_failed"
+	DtoIncidentEventTypeEscalated       DtoIncidentEventType = "escalated"
+	DtoIncidentEventTypeMaintenanceHold DtoIncidentEventType = "maintenance_hold"
+	DtoIncidentEventTypeOpened          DtoIncidentEventType = "opened"
+	DtoIncidentEventTypeReminder        DtoIncidentEventType = "reminder"
+	DtoIncidentEventTypeResolved        DtoIncidentEventType = "resolved"
+	DtoIncidentEventTypeThreshold       DtoIncidentEventType = "threshold"
 )
 
 // Valid indicates whether the value is a known member of the DtoIncidentEventType enum.
@@ -739,6 +752,8 @@ func (e DtoIncidentEventType) Valid() bool {
 	case DtoIncidentEventTypeDeliveryFailed:
 		return true
 	case DtoIncidentEventTypeEscalated:
+		return true
+	case DtoIncidentEventTypeMaintenanceHold:
 		return true
 	case DtoIncidentEventTypeOpened:
 		return true
@@ -771,6 +786,48 @@ func (e DtoLastCheckSeverity) Valid() bool {
 	case DtoLastCheckSeverityOk:
 		return true
 	case DtoLastCheckSeverityWarning:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DtoMaintenanceTargetMonitorType.
+const (
+	DtoMaintenanceTargetMonitorTypeHttp DtoMaintenanceTargetMonitorType = "http"
+	DtoMaintenanceTargetMonitorTypeSsl  DtoMaintenanceTargetMonitorType = "ssl"
+)
+
+// Valid indicates whether the value is a known member of the DtoMaintenanceTargetMonitorType enum.
+func (e DtoMaintenanceTargetMonitorType) Valid() bool {
+	switch e {
+	case DtoMaintenanceTargetMonitorTypeHttp:
+		return true
+	case DtoMaintenanceTargetMonitorTypeSsl:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DtoMaintenanceWindowState.
+const (
+	DtoMaintenanceWindowStateCancelled  DtoMaintenanceWindowState = "cancelled"
+	DtoMaintenanceWindowStateCompleted  DtoMaintenanceWindowState = "completed"
+	DtoMaintenanceWindowStateInProgress DtoMaintenanceWindowState = "in_progress"
+	DtoMaintenanceWindowStateScheduled  DtoMaintenanceWindowState = "scheduled"
+)
+
+// Valid indicates whether the value is a known member of the DtoMaintenanceWindowState enum.
+func (e DtoMaintenanceWindowState) Valid() bool {
+	switch e {
+	case DtoMaintenanceWindowStateCancelled:
+		return true
+	case DtoMaintenanceWindowStateCompleted:
+		return true
+	case DtoMaintenanceWindowStateInProgress:
+		return true
+	case DtoMaintenanceWindowStateScheduled:
 		return true
 	default:
 		return false
@@ -1143,6 +1200,7 @@ const (
 	DtoPublicStatusComponentStatusMajorOutage         DtoPublicStatusComponentStatus = "major_outage"
 	DtoPublicStatusComponentStatusOperational         DtoPublicStatusComponentStatus = "operational"
 	DtoPublicStatusComponentStatusPartialOutage       DtoPublicStatusComponentStatus = "partial_outage"
+	DtoPublicStatusComponentStatusUnderMaintenance    DtoPublicStatusComponentStatus = "under_maintenance"
 	DtoPublicStatusComponentStatusUnknown             DtoPublicStatusComponentStatus = "unknown"
 )
 
@@ -1157,6 +1215,8 @@ func (e DtoPublicStatusComponentStatus) Valid() bool {
 		return true
 	case DtoPublicStatusComponentStatusPartialOutage:
 		return true
+	case DtoPublicStatusComponentStatusUnderMaintenance:
+		return true
 	case DtoPublicStatusComponentStatusUnknown:
 		return true
 	default:
@@ -1166,18 +1226,21 @@ func (e DtoPublicStatusComponentStatus) Valid() bool {
 
 // Defines values for DtoPublicStatusDayGrade.
 const (
-	DtoPublicStatusDayGradeMajor   DtoPublicStatusDayGrade = "major"
-	DtoPublicStatusDayGradeMinor   DtoPublicStatusDayGrade = "minor"
-	DtoPublicStatusDayGradeNoData  DtoPublicStatusDayGrade = "no_data"
-	DtoPublicStatusDayGradeOk      DtoPublicStatusDayGrade = "ok"
-	DtoPublicStatusDayGradePartial DtoPublicStatusDayGrade = "partial"
-	DtoPublicStatusDayGradeUnknown DtoPublicStatusDayGrade = "unknown"
-	DtoPublicStatusDayGradeWarning DtoPublicStatusDayGrade = "warning"
+	DtoPublicStatusDayGradeMaintenance DtoPublicStatusDayGrade = "maintenance"
+	DtoPublicStatusDayGradeMajor       DtoPublicStatusDayGrade = "major"
+	DtoPublicStatusDayGradeMinor       DtoPublicStatusDayGrade = "minor"
+	DtoPublicStatusDayGradeNoData      DtoPublicStatusDayGrade = "no_data"
+	DtoPublicStatusDayGradeOk          DtoPublicStatusDayGrade = "ok"
+	DtoPublicStatusDayGradePartial     DtoPublicStatusDayGrade = "partial"
+	DtoPublicStatusDayGradeUnknown     DtoPublicStatusDayGrade = "unknown"
+	DtoPublicStatusDayGradeWarning     DtoPublicStatusDayGrade = "warning"
 )
 
 // Valid indicates whether the value is a known member of the DtoPublicStatusDayGrade enum.
 func (e DtoPublicStatusDayGrade) Valid() bool {
 	switch e {
+	case DtoPublicStatusDayGradeMaintenance:
+		return true
 	case DtoPublicStatusDayGradeMajor:
 		return true
 	case DtoPublicStatusDayGradeMinor:
@@ -1203,6 +1266,7 @@ const (
 	DtoPublicStatusGroupStatusMajorOutage         DtoPublicStatusGroupStatus = "major_outage"
 	DtoPublicStatusGroupStatusOperational         DtoPublicStatusGroupStatus = "operational"
 	DtoPublicStatusGroupStatusPartialOutage       DtoPublicStatusGroupStatus = "partial_outage"
+	DtoPublicStatusGroupStatusUnderMaintenance    DtoPublicStatusGroupStatus = "under_maintenance"
 	DtoPublicStatusGroupStatusUnknown             DtoPublicStatusGroupStatus = "unknown"
 )
 
@@ -1216,6 +1280,8 @@ func (e DtoPublicStatusGroupStatus) Valid() bool {
 	case DtoPublicStatusGroupStatusOperational:
 		return true
 	case DtoPublicStatusGroupStatusPartialOutage:
+		return true
+	case DtoPublicStatusGroupStatusUnderMaintenance:
 		return true
 	case DtoPublicStatusGroupStatusUnknown:
 		return true
@@ -1287,18 +1353,45 @@ func (e DtoPublicStatusIncidentStatus) Valid() bool {
 	}
 }
 
+// Defines values for DtoPublicStatusMaintenanceStatus.
+const (
+	DtoPublicStatusMaintenanceStatusCancelled  DtoPublicStatusMaintenanceStatus = "cancelled"
+	DtoPublicStatusMaintenanceStatusCompleted  DtoPublicStatusMaintenanceStatus = "completed"
+	DtoPublicStatusMaintenanceStatusInProgress DtoPublicStatusMaintenanceStatus = "in_progress"
+	DtoPublicStatusMaintenanceStatusScheduled  DtoPublicStatusMaintenanceStatus = "scheduled"
+)
+
+// Valid indicates whether the value is a known member of the DtoPublicStatusMaintenanceStatus enum.
+func (e DtoPublicStatusMaintenanceStatus) Valid() bool {
+	switch e {
+	case DtoPublicStatusMaintenanceStatusCancelled:
+		return true
+	case DtoPublicStatusMaintenanceStatusCompleted:
+		return true
+	case DtoPublicStatusMaintenanceStatusInProgress:
+		return true
+	case DtoPublicStatusMaintenanceStatusScheduled:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for DtoPublicStatusPageIndicator.
 const (
-	DtoPublicStatusPageIndicatorCritical DtoPublicStatusPageIndicator = "critical"
-	DtoPublicStatusPageIndicatorMajor    DtoPublicStatusPageIndicator = "major"
-	DtoPublicStatusPageIndicatorMinor    DtoPublicStatusPageIndicator = "minor"
-	DtoPublicStatusPageIndicatorNone     DtoPublicStatusPageIndicator = "none"
+	DtoPublicStatusPageIndicatorCritical    DtoPublicStatusPageIndicator = "critical"
+	DtoPublicStatusPageIndicatorMaintenance DtoPublicStatusPageIndicator = "maintenance"
+	DtoPublicStatusPageIndicatorMajor       DtoPublicStatusPageIndicator = "major"
+	DtoPublicStatusPageIndicatorMinor       DtoPublicStatusPageIndicator = "minor"
+	DtoPublicStatusPageIndicatorNone        DtoPublicStatusPageIndicator = "none"
 )
 
 // Valid indicates whether the value is a known member of the DtoPublicStatusPageIndicator enum.
 func (e DtoPublicStatusPageIndicator) Valid() bool {
 	switch e {
 	case DtoPublicStatusPageIndicatorCritical:
+		return true
+	case DtoPublicStatusPageIndicatorMaintenance:
 		return true
 	case DtoPublicStatusPageIndicatorMajor:
 		return true
@@ -1466,22 +1559,22 @@ func (e DtoStatusPageComponentKind) Valid() bool {
 
 // Defines values for DtoStatusPageComponentManualStatus.
 const (
-	DegradedPerformance DtoStatusPageComponentManualStatus = "degraded_performance"
-	MajorOutage         DtoStatusPageComponentManualStatus = "major_outage"
-	Operational         DtoStatusPageComponentManualStatus = "operational"
-	PartialOutage       DtoStatusPageComponentManualStatus = "partial_outage"
+	DtoStatusPageComponentManualStatusDegradedPerformance DtoStatusPageComponentManualStatus = "degraded_performance"
+	DtoStatusPageComponentManualStatusMajorOutage         DtoStatusPageComponentManualStatus = "major_outage"
+	DtoStatusPageComponentManualStatusOperational         DtoStatusPageComponentManualStatus = "operational"
+	DtoStatusPageComponentManualStatusPartialOutage       DtoStatusPageComponentManualStatus = "partial_outage"
 )
 
 // Valid indicates whether the value is a known member of the DtoStatusPageComponentManualStatus enum.
 func (e DtoStatusPageComponentManualStatus) Valid() bool {
 	switch e {
-	case DegradedPerformance:
+	case DtoStatusPageComponentManualStatusDegradedPerformance:
 		return true
-	case MajorOutage:
+	case DtoStatusPageComponentManualStatusMajorOutage:
 		return true
-	case Operational:
+	case DtoStatusPageComponentManualStatusOperational:
 		return true
-	case PartialOutage:
+	case DtoStatusPageComponentManualStatusPartialOutage:
 		return true
 	default:
 		return false
@@ -1490,13 +1583,13 @@ func (e DtoStatusPageComponentManualStatus) Valid() bool {
 
 // Defines values for DtoStatusPageDomainErrorCode.
 const (
-	DOMAINTAKEN DtoStatusPageDomainErrorCode = "DOMAIN_TAKEN"
+	DtoStatusPageDomainErrorCodeDOMAINTAKEN DtoStatusPageDomainErrorCode = "DOMAIN_TAKEN"
 )
 
 // Valid indicates whether the value is a known member of the DtoStatusPageDomainErrorCode enum.
 func (e DtoStatusPageDomainErrorCode) Valid() bool {
 	switch e {
-	case DOMAINTAKEN:
+	case DtoStatusPageDomainErrorCodeDOMAINTAKEN:
 		return true
 	default:
 		return false
@@ -1505,25 +1598,25 @@ func (e DtoStatusPageDomainErrorCode) Valid() bool {
 
 // Defines values for DtoStatusPageDomainStatus.
 const (
-	Active             DtoStatusPageDomainStatus = "active"
-	Failed             DtoStatusPageDomainStatus = "failed"
-	PendingCertificate DtoStatusPageDomainStatus = "pending_certificate"
-	PendingDns         DtoStatusPageDomainStatus = "pending_dns"
-	PendingOwnership   DtoStatusPageDomainStatus = "pending_ownership"
+	DtoStatusPageDomainStatusActive             DtoStatusPageDomainStatus = "active"
+	DtoStatusPageDomainStatusFailed             DtoStatusPageDomainStatus = "failed"
+	DtoStatusPageDomainStatusPendingCertificate DtoStatusPageDomainStatus = "pending_certificate"
+	DtoStatusPageDomainStatusPendingDns         DtoStatusPageDomainStatus = "pending_dns"
+	DtoStatusPageDomainStatusPendingOwnership   DtoStatusPageDomainStatus = "pending_ownership"
 )
 
 // Valid indicates whether the value is a known member of the DtoStatusPageDomainStatus enum.
 func (e DtoStatusPageDomainStatus) Valid() bool {
 	switch e {
-	case Active:
+	case DtoStatusPageDomainStatusActive:
 		return true
-	case Failed:
+	case DtoStatusPageDomainStatusFailed:
 		return true
-	case PendingCertificate:
+	case DtoStatusPageDomainStatusPendingCertificate:
 		return true
-	case PendingDns:
+	case DtoStatusPageDomainStatusPendingDns:
 		return true
-	case PendingOwnership:
+	case DtoStatusPageDomainStatusPendingOwnership:
 		return true
 	default:
 		return false
@@ -1542,6 +1635,171 @@ func (e DtoStatusPageDomainRecordType) Valid() bool {
 	case CNAME:
 		return true
 	case TXT:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DtoStatusPageGlanceIndicator.
+const (
+	DtoStatusPageGlanceIndicatorCritical    DtoStatusPageGlanceIndicator = "critical"
+	DtoStatusPageGlanceIndicatorMaintenance DtoStatusPageGlanceIndicator = "maintenance"
+	DtoStatusPageGlanceIndicatorMajor       DtoStatusPageGlanceIndicator = "major"
+	DtoStatusPageGlanceIndicatorMinor       DtoStatusPageGlanceIndicator = "minor"
+	DtoStatusPageGlanceIndicatorNone        DtoStatusPageGlanceIndicator = "none"
+)
+
+// Valid indicates whether the value is a known member of the DtoStatusPageGlanceIndicator enum.
+func (e DtoStatusPageGlanceIndicator) Valid() bool {
+	switch e {
+	case DtoStatusPageGlanceIndicatorCritical:
+		return true
+	case DtoStatusPageGlanceIndicatorMaintenance:
+		return true
+	case DtoStatusPageGlanceIndicatorMajor:
+		return true
+	case DtoStatusPageGlanceIndicatorMinor:
+		return true
+	case DtoStatusPageGlanceIndicatorNone:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DtoStatusPageGlanceComponentStatus.
+const (
+	DtoStatusPageGlanceComponentStatusDegradedPerformance DtoStatusPageGlanceComponentStatus = "degraded_performance"
+	DtoStatusPageGlanceComponentStatusMajorOutage         DtoStatusPageGlanceComponentStatus = "major_outage"
+	DtoStatusPageGlanceComponentStatusOperational         DtoStatusPageGlanceComponentStatus = "operational"
+	DtoStatusPageGlanceComponentStatusPartialOutage       DtoStatusPageGlanceComponentStatus = "partial_outage"
+	DtoStatusPageGlanceComponentStatusUnderMaintenance    DtoStatusPageGlanceComponentStatus = "under_maintenance"
+	DtoStatusPageGlanceComponentStatusUnknown             DtoStatusPageGlanceComponentStatus = "unknown"
+)
+
+// Valid indicates whether the value is a known member of the DtoStatusPageGlanceComponentStatus enum.
+func (e DtoStatusPageGlanceComponentStatus) Valid() bool {
+	switch e {
+	case DtoStatusPageGlanceComponentStatusDegradedPerformance:
+		return true
+	case DtoStatusPageGlanceComponentStatusMajorOutage:
+		return true
+	case DtoStatusPageGlanceComponentStatusOperational:
+		return true
+	case DtoStatusPageGlanceComponentStatusPartialOutage:
+		return true
+	case DtoStatusPageGlanceComponentStatusUnderMaintenance:
+		return true
+	case DtoStatusPageGlanceComponentStatusUnknown:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DtoStatusPageGlanceDomainErrorCode.
+const (
+	DtoStatusPageGlanceDomainErrorCodeDOMAINTAKEN DtoStatusPageGlanceDomainErrorCode = "DOMAIN_TAKEN"
+)
+
+// Valid indicates whether the value is a known member of the DtoStatusPageGlanceDomainErrorCode enum.
+func (e DtoStatusPageGlanceDomainErrorCode) Valid() bool {
+	switch e {
+	case DtoStatusPageGlanceDomainErrorCodeDOMAINTAKEN:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DtoStatusPageGlanceDomainStatus.
+const (
+	DtoStatusPageGlanceDomainStatusActive             DtoStatusPageGlanceDomainStatus = "active"
+	DtoStatusPageGlanceDomainStatusFailed             DtoStatusPageGlanceDomainStatus = "failed"
+	DtoStatusPageGlanceDomainStatusPendingCertificate DtoStatusPageGlanceDomainStatus = "pending_certificate"
+	DtoStatusPageGlanceDomainStatusPendingDns         DtoStatusPageGlanceDomainStatus = "pending_dns"
+	DtoStatusPageGlanceDomainStatusPendingOwnership   DtoStatusPageGlanceDomainStatus = "pending_ownership"
+)
+
+// Valid indicates whether the value is a known member of the DtoStatusPageGlanceDomainStatus enum.
+func (e DtoStatusPageGlanceDomainStatus) Valid() bool {
+	switch e {
+	case DtoStatusPageGlanceDomainStatusActive:
+		return true
+	case DtoStatusPageGlanceDomainStatusFailed:
+		return true
+	case DtoStatusPageGlanceDomainStatusPendingCertificate:
+		return true
+	case DtoStatusPageGlanceDomainStatusPendingDns:
+		return true
+	case DtoStatusPageGlanceDomainStatusPendingOwnership:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DtoStatusPageGlanceIncidentImpact.
+const (
+	DtoStatusPageGlanceIncidentImpactCritical DtoStatusPageGlanceIncidentImpact = "critical"
+	DtoStatusPageGlanceIncidentImpactMajor    DtoStatusPageGlanceIncidentImpact = "major"
+	DtoStatusPageGlanceIncidentImpactMinor    DtoStatusPageGlanceIncidentImpact = "minor"
+	DtoStatusPageGlanceIncidentImpactNone     DtoStatusPageGlanceIncidentImpact = "none"
+)
+
+// Valid indicates whether the value is a known member of the DtoStatusPageGlanceIncidentImpact enum.
+func (e DtoStatusPageGlanceIncidentImpact) Valid() bool {
+	switch e {
+	case DtoStatusPageGlanceIncidentImpactCritical:
+		return true
+	case DtoStatusPageGlanceIncidentImpactMajor:
+		return true
+	case DtoStatusPageGlanceIncidentImpactMinor:
+		return true
+	case DtoStatusPageGlanceIncidentImpactNone:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DtoStatusPageGlanceIncidentStatus.
+const (
+	DtoStatusPageGlanceIncidentStatusIdentified    DtoStatusPageGlanceIncidentStatus = "identified"
+	DtoStatusPageGlanceIncidentStatusInvestigating DtoStatusPageGlanceIncidentStatus = "investigating"
+	DtoStatusPageGlanceIncidentStatusMonitoring    DtoStatusPageGlanceIncidentStatus = "monitoring"
+	DtoStatusPageGlanceIncidentStatusResolved      DtoStatusPageGlanceIncidentStatus = "resolved"
+)
+
+// Valid indicates whether the value is a known member of the DtoStatusPageGlanceIncidentStatus enum.
+func (e DtoStatusPageGlanceIncidentStatus) Valid() bool {
+	switch e {
+	case DtoStatusPageGlanceIncidentStatusIdentified:
+		return true
+	case DtoStatusPageGlanceIncidentStatusInvestigating:
+		return true
+	case DtoStatusPageGlanceIncidentStatusMonitoring:
+		return true
+	case DtoStatusPageGlanceIncidentStatusResolved:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DtoStatusPageGlanceMaintenanceStatus.
+const (
+	DtoStatusPageGlanceMaintenanceStatusInProgress DtoStatusPageGlanceMaintenanceStatus = "in_progress"
+	DtoStatusPageGlanceMaintenanceStatusScheduled  DtoStatusPageGlanceMaintenanceStatus = "scheduled"
+)
+
+// Valid indicates whether the value is a known member of the DtoStatusPageGlanceMaintenanceStatus enum.
+func (e DtoStatusPageGlanceMaintenanceStatus) Valid() bool {
+	switch e {
+	case DtoStatusPageGlanceMaintenanceStatusInProgress:
+		return true
+	case DtoStatusPageGlanceMaintenanceStatusScheduled:
 		return true
 	default:
 		return false
@@ -2001,6 +2259,30 @@ func (e ListIncidentsParamsStatus) Valid() bool {
 	}
 }
 
+// Defines values for ListMaintenanceWindowsParamsStatus.
+const (
+	ListMaintenanceWindowsParamsStatusCancelled  ListMaintenanceWindowsParamsStatus = "cancelled"
+	ListMaintenanceWindowsParamsStatusCompleted  ListMaintenanceWindowsParamsStatus = "completed"
+	ListMaintenanceWindowsParamsStatusInProgress ListMaintenanceWindowsParamsStatus = "in_progress"
+	ListMaintenanceWindowsParamsStatusScheduled  ListMaintenanceWindowsParamsStatus = "scheduled"
+)
+
+// Valid indicates whether the value is a known member of the ListMaintenanceWindowsParamsStatus enum.
+func (e ListMaintenanceWindowsParamsStatus) Valid() bool {
+	switch e {
+	case ListMaintenanceWindowsParamsStatusCancelled:
+		return true
+	case ListMaintenanceWindowsParamsStatusCompleted:
+		return true
+	case ListMaintenanceWindowsParamsStatusInProgress:
+		return true
+	case ListMaintenanceWindowsParamsStatusScheduled:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ListMonitorsParamsInclude.
 const (
 	History ListMonitorsParamsInclude = "history"
@@ -2072,19 +2354,19 @@ func (e ListMonitorsParamsStatus) Valid() bool {
 
 // Defines values for ListMonitorsParamsType.
 const (
-	ListMonitorsParamsTypeDomain ListMonitorsParamsType = "domain"
-	ListMonitorsParamsTypeHttp   ListMonitorsParamsType = "http"
-	ListMonitorsParamsTypeSsl    ListMonitorsParamsType = "ssl"
+	Domain ListMonitorsParamsType = "domain"
+	Http   ListMonitorsParamsType = "http"
+	Ssl    ListMonitorsParamsType = "ssl"
 )
 
 // Valid indicates whether the value is a known member of the ListMonitorsParamsType enum.
 func (e ListMonitorsParamsType) Valid() bool {
 	switch e {
-	case ListMonitorsParamsTypeDomain:
+	case Domain:
 		return true
-	case ListMonitorsParamsTypeHttp:
+	case Http:
 		return true
-	case ListMonitorsParamsTypeSsl:
+	case Ssl:
 		return true
 	default:
 		return false
@@ -2117,16 +2399,16 @@ func (e GetMonitorStatsParamsRange) Valid() bool {
 
 // Defines values for ListStatusPageIncidentsParamsStatus.
 const (
-	Open     ListStatusPageIncidentsParamsStatus = "open"
-	Resolved ListStatusPageIncidentsParamsStatus = "resolved"
+	ListStatusPageIncidentsParamsStatusOpen     ListStatusPageIncidentsParamsStatus = "open"
+	ListStatusPageIncidentsParamsStatusResolved ListStatusPageIncidentsParamsStatus = "resolved"
 )
 
 // Valid indicates whether the value is a known member of the ListStatusPageIncidentsParamsStatus enum.
 func (e ListStatusPageIncidentsParamsStatus) Valid() bool {
 	switch e {
-	case Open:
+	case ListStatusPageIncidentsParamsStatusOpen:
 		return true
-	case Resolved:
+	case ListStatusPageIncidentsParamsStatusResolved:
 		return true
 	default:
 		return false
@@ -2248,8 +2530,16 @@ type DtoAvailability struct {
 	DowntimeMinutes int                  `json:"downtimeMinutes"`
 	From            string               `json:"from"`
 	Inconclusive    int                  `json:"inconclusive"`
-	Ok              int                  `json:"ok"`
-	To              string               `json:"to"`
+
+	// Maintenance Maintenance counts the checks inside a maintenance window, whatever they
+	// found. They are billed; the other counts cover only what ran outside.
+	Maintenance int `json:"maintenance"`
+
+	// MaintenanceMinutes MaintenanceMinutes is how long maintenance windows held the monitor in
+	// these days, not counted as downtime.
+	MaintenanceMinutes int    `json:"maintenanceMinutes"`
+	Ok                 int    `json:"ok"`
+	To                 string `json:"to"`
 
 	// UptimePercent UptimePercent is (ok + warning) / (ok + warning + critical); absent
 	// without conclusive checks, and for SSL and domain monitors (no
@@ -2391,11 +2681,19 @@ type DtoDayAvailability struct {
 
 	// DowntimeMinutes DowntimeMinutes estimates the time spent down: the share of
 	// critical checks among the conclusive ones times the minutes the
-	// day's checks cover. A warning is not downtime.
+	// day's checks cover outside maintenance. A warning is not downtime.
 	DowntimeMinutes int `json:"downtimeMinutes"`
 	Inconclusive    int `json:"inconclusive"`
 
-	// NoData NoData: no checks that day (draw it gray, never as up).
+	// Maintenance Maintenance counts the checks inside a maintenance window, whatever they
+	// found. They are billed; the other counts cover only what ran outside.
+	Maintenance int `json:"maintenance"`
+
+	// MaintenanceMinutes MaintenanceMinutes is how much of the day maintenance windows covered.
+	MaintenanceMinutes int `json:"maintenanceMinutes"`
+
+	// NoData NoData: no checks that day, inside or outside maintenance (draw it
+	// gray, never as up).
 	NoData        bool     `json:"noData"`
 	Ok            int      `json:"ok"`
 	UptimePercent *float32 `json:"uptimePercent,omitempty"`
@@ -2543,8 +2841,12 @@ type DtoHTTPSettingsInputMethod string
 
 // DtoHistoryBeat defines model for dto.HistoryBeat.
 type DtoHistoryBeat struct {
-	CheckedAt      string                 `json:"checkedAt"`
-	Condition      string                 `json:"condition"`
+	CheckedAt string `json:"checkedAt"`
+	Condition string `json:"condition"`
+
+	// Maintenance Maintenance says a window held this check when it ran: it is out of uptime and
+	// couldn't alert.
+	Maintenance    bool                   `json:"maintenance"`
 	ResponseTimeMs int                    `json:"responseTimeMs"`
 	ResultId       int                    `json:"resultId"`
 	Severity       DtoHistoryBeatSeverity `json:"severity"`
@@ -2567,9 +2869,13 @@ type DtoIncident struct {
 	Condition string `json:"condition"`
 
 	// DurationSeconds DurationSeconds is how long it lasted (or has lasted so far).
-	DurationSeconds int                    `json:"durationSeconds"`
-	Facts           DtoConditionFacts      `json:"facts"`
-	Id              openapi_types.UUID     `json:"id"`
+	DurationSeconds int                `json:"durationSeconds"`
+	Facts           DtoConditionFacts  `json:"facts"`
+	Id              openapi_types.UUID `json:"id"`
+
+	// MaintenanceHeld MaintenanceHeld says a maintenance window held it open at some point, so its alerts
+	// were paused for that time; a resolved one doesn't count towards time to recover.
+	MaintenanceHeld bool                   `json:"maintenanceHeld"`
 	MonitorId       openapi_types.UUID     `json:"monitorId"`
 	MonitorName     string                 `json:"monitorName"`
 	MonitorTarget   string                 `json:"monitorTarget"`
@@ -2659,9 +2965,13 @@ type DtoIncidentDetail struct {
 	Condition string `json:"condition"`
 
 	// DurationSeconds DurationSeconds is how long it lasted (or has lasted so far).
-	DurationSeconds int                          `json:"durationSeconds"`
-	Facts           DtoConditionFacts            `json:"facts"`
-	Id              openapi_types.UUID           `json:"id"`
+	DurationSeconds int                `json:"durationSeconds"`
+	Facts           DtoConditionFacts  `json:"facts"`
+	Id              openapi_types.UUID `json:"id"`
+
+	// MaintenanceHeld MaintenanceHeld says a maintenance window held it open at some point, so its alerts
+	// were paused for that time; a resolved one doesn't count towards time to recover.
+	MaintenanceHeld bool                         `json:"maintenanceHeld"`
 	MonitorId       openapi_types.UUID           `json:"monitorId"`
 	MonitorName     string                       `json:"monitorName"`
 	MonitorTarget   string                       `json:"monitorTarget"`
@@ -2719,6 +3029,7 @@ type DtoIncidentEventType string
 // DtoIncidentOpenCounts defines model for dto.IncidentOpenCounts.
 type DtoIncidentOpenCounts struct {
 	Critical       int `json:"critical"`
+	InMaintenance  int `json:"inMaintenance"`
 	Total          int `json:"total"`
 	Unacknowledged int `json:"unacknowledged"`
 	Warning        int `json:"warning"`
@@ -2726,13 +3037,13 @@ type DtoIncidentOpenCounts struct {
 
 // DtoIncidentSummary defines model for dto.IncidentSummary.
 type DtoIncidentSummary struct {
-	// MttrLast30dSeconds MttrLast30dSeconds is the mean time to resolve of those incidents;
-	// absent when none was resolved.
+	// MttrLast30dSeconds MttrLast30dSeconds is the mean time to resolve of those incidents, leaving
+	// out any a maintenance window held open at some point, whose duration is
+	// mostly the planned work; absent when none is left.
 	MttrLast30dSeconds *int                  `json:"mttrLast30dSeconds,omitempty"`
 	Open               DtoIncidentOpenCounts `json:"open"`
 
-	// ResolvedLast30d ResolvedLast30d counts incidents resolved in the last 30 days, the
-	// ones mttrLast30dSeconds averages.
+	// ResolvedLast30d ResolvedLast30d counts every incident resolved in the last 30 days.
 	ResolvedLast30d int `json:"resolvedLast30d"`
 
 	// ResolvedLast7d ResolvedLast7d counts incidents resolved in the last 7 days.
@@ -2749,6 +3060,154 @@ type DtoLastCheck struct {
 
 // DtoLastCheckSeverity defines model for DtoLastCheck.Severity.
 type DtoLastCheckSeverity string
+
+// DtoMaintenanceTargetComponent defines model for dto.MaintenanceTargetComponent.
+type DtoMaintenanceTargetComponent struct {
+	Id           openapi_types.UUID `json:"id"`
+	Name         string             `json:"name"`
+	StatusPageId openapi_types.UUID `json:"statusPageId"`
+}
+
+// DtoMaintenanceTargetMonitor defines model for dto.MaintenanceTargetMonitor.
+type DtoMaintenanceTargetMonitor struct {
+	Enabled bool                            `json:"enabled"`
+	Id      openapi_types.UUID              `json:"id"`
+	Name    string                          `json:"name"`
+	Target  string                          `json:"target"`
+	Type    DtoMaintenanceTargetMonitorType `json:"type"`
+}
+
+// DtoMaintenanceTargetMonitorType defines model for DtoMaintenanceTargetMonitor.Type.
+type DtoMaintenanceTargetMonitorType string
+
+// DtoMaintenanceTargetStatusPage defines model for dto.MaintenanceTargetStatusPage.
+type DtoMaintenanceTargetStatusPage struct {
+	// CanPublish CanPublish says you may show a window here. On a published page it decides
+	// whether a window showing here can be saved.
+	CanPublish   bool                 `json:"canPublish"`
+	ComponentIds []openapi_types.UUID `json:"componentIds"`
+	Id           openapi_types.UUID   `json:"id"`
+
+	// MonitorIds MonitorIDs are the monitors that make a window show on this page; a monitor the
+	// page shows only for its certificate or domain isn't among them. ComponentIDs are
+	// its manual components.
+	MonitorIds []openapi_types.UUID `json:"monitorIds"`
+	Name       string               `json:"name"`
+	Published  bool                 `json:"published"`
+
+	// Subscribers Subscribers are its confirmed subscribers; absent when you can't read the page.
+	Subscribers *int `json:"subscribers,omitempty"`
+}
+
+// DtoMaintenanceTargets defines model for dto.MaintenanceTargets.
+type DtoMaintenanceTargets struct {
+	Components  []DtoMaintenanceTargetComponent  `json:"components"`
+	Monitors    []DtoMaintenanceTargetMonitor    `json:"monitors"`
+	StatusPages []DtoMaintenanceTargetStatusPage `json:"statusPages"`
+}
+
+// DtoMaintenanceWindow defines model for dto.MaintenanceWindow.
+type DtoMaintenanceWindow struct {
+	// CancelledAt CancelledAt is set once cancelled; cancelledBy stays absent when the system did it,
+	// every target having gone before the start.
+	CancelledAt *string             `json:"cancelledAt,omitempty"`
+	CancelledBy *openapi_types.UUID `json:"cancelledBy,omitempty"`
+
+	// CancelledByName CancelledByName names who cancelled it (their name, else their email); only when
+	// reading one window, and absent when Norcube Auth can't say. So do the other names.
+	CancelledByName *string             `json:"cancelledByName,omitempty"`
+	CreatedAt       string              `json:"createdAt"`
+	CreatedBy       *openapi_types.UUID `json:"createdBy,omitempty"`
+	CreatedByName   *string             `json:"createdByName,omitempty"`
+	Description     string              `json:"description"`
+
+	// EndsAt EndsAt is when it ended, if someone finished it early (finishedEarly).
+	EndsAt          string              `json:"endsAt"`
+	FinishedBy      *openapi_types.UUID `json:"finishedBy,omitempty"`
+	FinishedByName  *string             `json:"finishedByName,omitempty"`
+	FinishedEarly   bool                `json:"finishedEarly"`
+	Id              openapi_types.UUID  `json:"id"`
+	NotifyFinished  bool                `json:"notifyFinished"`
+	NotifyScheduled bool                `json:"notifyScheduled"`
+	NotifyStarted   bool                `json:"notifyStarted"`
+	StartsAt        string              `json:"startsAt"`
+
+	// State State follows from the times: scheduled before the start, in_progress until the
+	// end, then completed; cancelled once called off.
+	State DtoMaintenanceWindowState `json:"state"`
+
+	// StatusPages StatusPages are the pages it shows on, published or not: every page showing a
+	// target, which nobody chooses. Published ones show it publicly.
+	StatusPages []DtoMaintenanceWindowStatusPage    `json:"statusPages"`
+	Targets     DtoMaintenanceWindowResponseTargets `json:"targets"`
+	Title       string                              `json:"title"`
+	UpdatedAt   string                              `json:"updatedAt"`
+}
+
+// DtoMaintenanceWindowState State follows from the times: scheduled before the start, in_progress until the
+// end, then completed; cancelled once called off.
+type DtoMaintenanceWindowState string
+
+// DtoMaintenanceWindowCreate defines model for dto.MaintenanceWindowCreate.
+type DtoMaintenanceWindowCreate struct {
+	// Description Description is public: it shows on status pages and in mails.
+	Description *string `json:"description,omitempty"`
+
+	// EndsAt EndsAt is at most 30 days after the start.
+	EndsAt         string `json:"endsAt"`
+	NotifyFinished bool   `json:"notifyFinished"`
+
+	// NotifyScheduled NotifyScheduled, NotifyStarted and NotifyFinished say which mails go to the
+	// subscribers of the status pages it shows on. A cancellation always tells whoever
+	// was told.
+	NotifyScheduled bool `json:"notifyScheduled"`
+	NotifyStarted   bool `json:"notifyStarted"`
+
+	// StartsAt StartsAt may be up to a year ahead; up to five minutes in the past reads as now.
+	StartsAt string                      `json:"startsAt"`
+	Targets  DtoMaintenanceWindowTargets `json:"targets"`
+	Title    string                      `json:"title"`
+}
+
+// DtoMaintenanceWindowResponseTargets defines model for dto.MaintenanceWindowResponseTargets.
+type DtoMaintenanceWindowResponseTargets struct {
+	ComponentIds []openapi_types.UUID `json:"componentIds"`
+	MonitorIds   []openapi_types.UUID `json:"monitorIds"`
+}
+
+// DtoMaintenanceWindowStatusPage defines model for dto.MaintenanceWindowStatusPage.
+type DtoMaintenanceWindowStatusPage struct {
+	// ComponentIds ComponentIDs are the page's components it affects.
+	ComponentIds []openapi_types.UUID `json:"componentIds"`
+	Id           openapi_types.UUID   `json:"id"`
+	Name         string               `json:"name"`
+	Published    bool                 `json:"published"`
+}
+
+// DtoMaintenanceWindowTargets defines model for dto.MaintenanceWindowTargets.
+type DtoMaintenanceWindowTargets struct {
+	ComponentIds  *[]openapi_types.UUID `json:"componentIds,omitempty"`
+	MonitorIds    *[]openapi_types.UUID `json:"monitorIds,omitempty"`
+	StatusPageIds *[]openapi_types.UUID `json:"statusPageIds,omitempty"`
+}
+
+// DtoMaintenanceWindowUpdate defines model for dto.MaintenanceWindowUpdate.
+type DtoMaintenanceWindowUpdate struct {
+	Description *string `json:"description,omitempty"`
+
+	// EndsAt EndsAt: until it ends, and to a time still to come. To end it now, use finish.
+	EndsAt          *string `json:"endsAt,omitempty"`
+	NotifyFinished  *bool   `json:"notifyFinished,omitempty"`
+	NotifyScheduled *bool   `json:"notifyScheduled,omitempty"`
+	NotifyStarted   *bool   `json:"notifyStarted,omitempty"`
+
+	// StartsAt StartsAt: only before it starts, and to a time still to come.
+	StartsAt *string `json:"startsAt,omitempty"`
+
+	// Targets Targets replaces them as a whole, only before it starts.
+	Targets *DtoMaintenanceWindowTargets `json:"targets,omitempty"`
+	Title   *string                      `json:"title,omitempty"`
+}
 
 // DtoMonitor defines model for dto.Monitor.
 type DtoMonitor struct {
@@ -2774,10 +3233,14 @@ type DtoMonitor struct {
 	// Last24h Last24h is set on list rows of monitors that track uptime (HTTP):
 	// the last 24 full hours plus the current one. SSL and domain monitors
 	// show days left (condition.facts) instead.
-	Last24h     *DtoWindowSummary `json:"last24h,omitempty"`
-	LastCheck   *DtoLastCheck     `json:"lastCheck,omitempty"`
-	Name        string            `json:"name"`
-	NextCheckAt *string           `json:"nextCheckAt,omitempty"`
+	Last24h   *DtoWindowSummary `json:"last24h,omitempty"`
+	LastCheck *DtoLastCheck     `json:"lastCheck,omitempty"`
+
+	// Maintenance Maintenance is the window holding the monitor right now (list and detail): alerts
+	// are paused and the time is out of uptime. Status stays what was measured.
+	Maintenance *DtoMonitorMaintenance `json:"maintenance,omitempty"`
+	Name        string                 `json:"name"`
+	NextCheckAt *string                `json:"nextCheckAt,omitempty"`
 
 	// OverallStatus OverallStatus is the worst of status and the statuses of the
 	// monitor's watched aspects (critical, warning, pending, ok), paused
@@ -3021,6 +3484,14 @@ type DtoMonitorEventAspect string
 // behind on renewals, is not one).
 type DtoMonitorEventType string
 
+// DtoMonitorMaintenance defines model for dto.MonitorMaintenance.
+type DtoMonitorMaintenance struct {
+	EndsAt   string             `json:"endsAt"`
+	StartsAt string             `json:"startsAt"`
+	Title    string             `json:"title"`
+	WindowId openapi_types.UUID `json:"windowId"`
+}
+
 // DtoMonitorStats defines model for dto.MonitorStats.
 type DtoMonitorStats struct {
 	AvgMs        *int                       `json:"avgMs,omitempty"`
@@ -3029,10 +3500,14 @@ type DtoMonitorStats struct {
 	From         string                     `json:"from"`
 	Granularity  DtoMonitorStatsGranularity `json:"granularity"`
 	Inconclusive int                        `json:"inconclusive"`
-	MaxMs        *int                       `json:"maxMs,omitempty"`
-	Ok           int                        `json:"ok"`
-	Series       []DtoStatsBucket           `json:"series"`
-	To           string                     `json:"to"`
+
+	// Maintenance Maintenance counts the checks inside a maintenance window, whatever they
+	// found. They are billed; the other counts cover only what ran outside.
+	Maintenance int              `json:"maintenance"`
+	MaxMs       *int             `json:"maxMs,omitempty"`
+	Ok          int              `json:"ok"`
+	Series      []DtoStatsBucket `json:"series"`
+	To          string           `json:"to"`
 
 	// UptimePercent UptimePercent is (ok + warning) / (ok + warning + critical); absent
 	// without conclusive checks and for SSL and domain monitors.
@@ -3091,7 +3566,11 @@ type DtoPublicStatusDay struct {
 	Day             string                  `json:"day"`
 	DowntimeMinutes *int                    `json:"downtimeMinutes,omitempty"`
 	Grade           DtoPublicStatusDayGrade `json:"grade"`
-	UptimePercent   *float32                `json:"uptimePercent,omitempty"`
+
+	// MaintenanceMinutes MaintenanceMinutes is how much of the day a window covered. Those minutes
+	// don't count towards the day's uptime.
+	MaintenanceMinutes *int     `json:"maintenanceMinutes,omitempty"`
+	UptimePercent      *float32 `json:"uptimePercent,omitempty"`
 }
 
 // DtoPublicStatusDayGrade defines model for DtoPublicStatusDay.Grade.
@@ -3112,8 +3591,13 @@ type DtoPublicStatusGroupStatus string
 
 // DtoPublicStatusHistory defines model for dto.PublicStatusHistory.
 type DtoPublicStatusHistory struct {
-	Incidents     []DtoPublicStatusIncident `json:"incidents"`
-	SchemaVersion int                       `json:"schemaVersion"`
+	Incidents []DtoPublicStatusIncident `json:"incidents"`
+
+	// Maintenance Maintenance are the past windows, newest first, including announced ones
+	// that were cancelled, so links in mail and feeds keep working. Left out
+	// when there are none.
+	Maintenance   *[]DtoPublicStatusMaintenance `json:"maintenance,omitempty"`
+	SchemaVersion int                           `json:"schemaVersion"`
 }
 
 // DtoPublicStatusIncident defines model for dto.PublicStatusIncident.
@@ -3141,6 +3625,37 @@ type DtoPublicStatusIncidentImpact string
 
 // DtoPublicStatusIncidentStatus defines model for DtoPublicStatusIncident.Status.
 type DtoPublicStatusIncidentStatus string
+
+// DtoPublicStatusMaintenance defines model for dto.PublicStatusMaintenance.
+type DtoPublicStatusMaintenance struct {
+	Components  []DtoPublicStatusMaintenanceComponent `json:"components"`
+	Description string                                `json:"description"`
+	EndsAt      string                                `json:"endsAt"`
+
+	// FinishedEarly FinishedEarly: someone ended it before it was due to end; EndsAt is when.
+	FinishedEarly bool               `json:"finishedEarly"`
+	Id            openapi_types.UUID `json:"id"`
+	StartsAt      string             `json:"startsAt"`
+
+	// Status Status is decided when the snapshot is pushed, because a window that was
+	// finished early can't be told from its times alone.
+	Status DtoPublicStatusMaintenanceStatus `json:"status"`
+	Title  string                           `json:"title"`
+
+	// UpdatedAt UpdatedAt is when the window last changed, or the moment it started or
+	// ended if that came later. Never in the future, so feeds can use it.
+	UpdatedAt string `json:"updatedAt"`
+}
+
+// DtoPublicStatusMaintenanceStatus Status is decided when the snapshot is pushed, because a window that was
+// finished early can't be told from its times alone.
+type DtoPublicStatusMaintenanceStatus string
+
+// DtoPublicStatusMaintenanceComponent defines model for dto.PublicStatusMaintenanceComponent.
+type DtoPublicStatusMaintenanceComponent struct {
+	Id   openapi_types.UUID `json:"id"`
+	Name string             `json:"name"`
+}
 
 // DtoPublicStatusPage defines model for dto.PublicStatusPage.
 type DtoPublicStatusPage struct {
@@ -3171,7 +3686,12 @@ type DtoPublicStatusPage struct {
 	// the renderer serves at <page>/logo/<name>: a hash of the content and an
 	// extension. Left out when it has none; LogoDarkFile is for dark mode.
 	LogoFile *string `json:"logoFile,omitempty"`
-	Name     string  `json:"name"`
+
+	// Maintenance Maintenance are the windows in progress and the soonest scheduled ones.
+	// Left out when there are none, and absent from snapshots pushed before
+	// windows existed.
+	Maintenance *[]DtoPublicStatusMaintenance `json:"maintenance,omitempty"`
+	Name        string                        `json:"name"`
 
 	// Published Published false: only preview links show it.
 	Published      bool   `json:"published"`
@@ -3240,17 +3760,21 @@ type DtoSSLSettingsInput struct {
 
 // DtoStatsBucket defines model for dto.StatsBucket.
 type DtoStatsBucket struct {
-	AvgMs        int    `json:"avgMs"`
-	Checks       int    `json:"checks"`
-	Critical     int    `json:"critical"`
-	Inconclusive int    `json:"inconclusive"`
-	MaxMs        int    `json:"maxMs"`
-	Ok           int    `json:"ok"`
-	P50Ms        int    `json:"p50Ms"`
-	P95Ms        int    `json:"p95Ms"`
-	Region       string `json:"region"`
-	Start        string `json:"start"`
-	Warning      int    `json:"warning"`
+	AvgMs        int `json:"avgMs"`
+	Checks       int `json:"checks"`
+	Critical     int `json:"critical"`
+	Inconclusive int `json:"inconclusive"`
+
+	// Maintenance Maintenance counts the checks inside a maintenance window, whatever they
+	// found. They are billed; the other counts cover only what ran outside.
+	Maintenance int    `json:"maintenance"`
+	MaxMs       int    `json:"maxMs"`
+	Ok          int    `json:"ok"`
+	P50Ms       int    `json:"p50Ms"`
+	P95Ms       int    `json:"p95Ms"`
+	Region      string `json:"region"`
+	Start       string `json:"start"`
+	Warning     int    `json:"warning"`
 }
 
 // DtoStatusChange defines model for dto.StatusChange.
@@ -3275,12 +3799,15 @@ type DtoStatusChange struct {
 	// Events Events are what else happened while this status lasted (from
 	// changedAt to endedAt), newest first: certificate renewals. [] when
 	// nothing did.
-	Events     []DtoMonitorEvent   `json:"events"`
-	From       DtoStatusChangeFrom `json:"from"`
-	Id         int                 `json:"id"`
-	Message    *string             `json:"message,omitempty"`
-	StatusCode *int                `json:"statusCode,omitempty"`
-	To         DtoStatusChangeTo   `json:"to"`
+	Events []DtoMonitorEvent   `json:"events"`
+	From   DtoStatusChangeFrom `json:"from"`
+	Id     int                 `json:"id"`
+
+	// MaintenanceWindowId MaintenanceWindowID is the window the change happened in, absent outside one.
+	MaintenanceWindowId *openapi_types.UUID `json:"maintenanceWindowId,omitempty"`
+	Message             *string             `json:"message,omitempty"`
+	StatusCode          *int                `json:"statusCode,omitempty"`
+	To                  DtoStatusChangeTo   `json:"to"`
 }
 
 // DtoStatusChangeFrom defines model for DtoStatusChange.From.
@@ -3295,10 +3822,13 @@ type DtoStatusPage struct {
 
 	// CustomDomain CustomDomain is the page's custom domain once active. URL keeps working
 	// beside it; GET /status-pages/{id}/domain tells about one still pending.
-	CustomDomain *string            `json:"customDomain,omitempty"`
-	Description  string             `json:"description"`
-	Id           openapi_types.UUID `json:"id"`
-	Name         string             `json:"name"`
+	CustomDomain *string `json:"customDomain,omitempty"`
+	Description  string  `json:"description"`
+
+	// Glance Glance is how the page is doing, on the list of pages only.
+	Glance *DtoStatusPageGlance `json:"glance,omitempty"`
+	Id     openapi_types.UUID   `json:"id"`
+	Name   string               `json:"name"`
 
 	// Published Published pages are public; others answer 404.
 	Published   bool                  `json:"published"`
@@ -3412,6 +3942,87 @@ type DtoStatusPageDomainSet struct {
 	// Hostname Hostname is a subdomain the customer controls, not an apex.
 	Hostname string `json:"hostname"`
 }
+
+// DtoStatusPageGlance defines model for dto.StatusPageGlance.
+type DtoStatusPageGlance struct {
+	// Components Components are all of the page's components in layout order, groups flattened.
+	Components []DtoStatusPageGlanceComponent `json:"components"`
+
+	// Domain Domain is the custom domain in whatever state; left out without one.
+	Domain *DtoStatusPageGlanceDomain `json:"domain,omitempty"`
+
+	// Incidents Incidents are the open posts, newest first.
+	Incidents []DtoStatusPageGlanceIncident `json:"incidents"`
+
+	// Indicator Indicator is the page's one-word verdict.
+	Indicator DtoStatusPageGlanceIndicator `json:"indicator"`
+
+	// Maintenance Maintenance are the windows in progress and the soonest scheduled ones.
+	Maintenance []DtoStatusPageGlanceMaintenance `json:"maintenance"`
+
+	// Subscribers Subscribers counts confirmed addresses.
+	Subscribers int `json:"subscribers"`
+}
+
+// DtoStatusPageGlanceIndicator Indicator is the page's one-word verdict.
+type DtoStatusPageGlanceIndicator string
+
+// DtoStatusPageGlanceComponent defines model for dto.StatusPageGlanceComponent.
+type DtoStatusPageGlanceComponent struct {
+	Id     openapi_types.UUID                 `json:"id"`
+	Name   string                             `json:"name"`
+	Status DtoStatusPageGlanceComponentStatus `json:"status"`
+
+	// UptimePercent UptimePercent over the page's range, when the page shows it and the
+	// component counts availability.
+	UptimePercent *float32 `json:"uptimePercent,omitempty"`
+}
+
+// DtoStatusPageGlanceComponentStatus defines model for DtoStatusPageGlanceComponent.Status.
+type DtoStatusPageGlanceComponentStatus string
+
+// DtoStatusPageGlanceDomain defines model for dto.StatusPageGlanceDomain.
+type DtoStatusPageGlanceDomain struct {
+	// ErrorCode ErrorCode: DOMAIN_TAKEN when another status page proved this hostname first.
+	ErrorCode *DtoStatusPageGlanceDomainErrorCode `json:"errorCode,omitempty"`
+	Hostname  string                              `json:"hostname"`
+
+	// Status Status: the same words as GET /status-pages/{id}/domain.
+	Status DtoStatusPageGlanceDomainStatus `json:"status"`
+}
+
+// DtoStatusPageGlanceDomainErrorCode ErrorCode: DOMAIN_TAKEN when another status page proved this hostname first.
+type DtoStatusPageGlanceDomainErrorCode string
+
+// DtoStatusPageGlanceDomainStatus Status: the same words as GET /status-pages/{id}/domain.
+type DtoStatusPageGlanceDomainStatus string
+
+// DtoStatusPageGlanceIncident defines model for dto.StatusPageGlanceIncident.
+type DtoStatusPageGlanceIncident struct {
+	Id        openapi_types.UUID                `json:"id"`
+	Impact    DtoStatusPageGlanceIncidentImpact `json:"impact"`
+	StartedAt string                            `json:"startedAt"`
+	Status    DtoStatusPageGlanceIncidentStatus `json:"status"`
+	Title     string                            `json:"title"`
+}
+
+// DtoStatusPageGlanceIncidentImpact defines model for DtoStatusPageGlanceIncident.Impact.
+type DtoStatusPageGlanceIncidentImpact string
+
+// DtoStatusPageGlanceIncidentStatus defines model for DtoStatusPageGlanceIncident.Status.
+type DtoStatusPageGlanceIncidentStatus string
+
+// DtoStatusPageGlanceMaintenance defines model for dto.StatusPageGlanceMaintenance.
+type DtoStatusPageGlanceMaintenance struct {
+	EndsAt   string                               `json:"endsAt"`
+	Id       openapi_types.UUID                   `json:"id"`
+	StartsAt string                               `json:"startsAt"`
+	Status   DtoStatusPageGlanceMaintenanceStatus `json:"status"`
+	Title    string                               `json:"title"`
+}
+
+// DtoStatusPageGlanceMaintenanceStatus defines model for DtoStatusPageGlanceMaintenance.Status.
+type DtoStatusPageGlanceMaintenanceStatus string
 
 // DtoStatusPageGroup defines model for dto.StatusPageGroup.
 type DtoStatusPageGroup struct {
@@ -3634,7 +4245,11 @@ type DtoWindowSummary struct {
 	Critical     int    `json:"critical"`
 	From         string `json:"from"`
 	Inconclusive int    `json:"inconclusive"`
-	Ok           int    `json:"ok"`
+
+	// Maintenance Maintenance counts the checks inside a maintenance window, whatever they
+	// found. They are billed; the other counts cover only what ran outside.
+	Maintenance int `json:"maintenance"`
+	Ok          int `json:"ok"`
 
 	// P50Ms P50Ms and P95Ms approximate the window's median and 95th percentile
 	// response time (the checks-weighted mean of the hourly percentiles).
@@ -3789,6 +4404,25 @@ type ListIncidentsParamsSeverity string
 // ListIncidentsParamsStatus defines parameters for ListIncidents.
 type ListIncidentsParamsStatus string
 
+// ListMaintenanceWindowsParams defines parameters for ListMaintenanceWindows.
+type ListMaintenanceWindowsParams struct {
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Limit  *int    `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// MonitorId MonitorID keeps the windows holding that monitor.
+	MonitorId *openapi_types.UUID `form:"monitorId,omitempty" json:"monitorId,omitempty"`
+
+	// Status Status keeps the windows standing there; scheduled ones come soonest first, the
+	// others latest start first.
+	Status *ListMaintenanceWindowsParamsStatus `form:"status,omitempty" json:"status,omitempty"`
+
+	// StatusPageId StatusPageID keeps the windows showing on that page.
+	StatusPageId *openapi_types.UUID `form:"statusPageId,omitempty" json:"statusPageId,omitempty"`
+}
+
+// ListMaintenanceWindowsParamsStatus defines parameters for ListMaintenanceWindows.
+type ListMaintenanceWindowsParamsStatus string
+
 // ListMonitorsParams defines parameters for ListMonitors.
 type ListMonitorsParams struct {
 	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
@@ -3888,6 +4522,12 @@ type UpdateAlertChannelJSONRequestBody = DtoAlertChannelUpdate
 
 // ConfirmAlertChannelVerificationJSONRequestBody defines body for ConfirmAlertChannelVerification for application/json ContentType.
 type ConfirmAlertChannelVerificationJSONRequestBody = DtoAlertChannelVerifyConfirm
+
+// CreateMaintenanceWindowJSONRequestBody defines body for CreateMaintenanceWindow for application/json ContentType.
+type CreateMaintenanceWindowJSONRequestBody = DtoMaintenanceWindowCreate
+
+// UpdateMaintenanceWindowJSONRequestBody defines body for UpdateMaintenanceWindow for application/json ContentType.
+type UpdateMaintenanceWindowJSONRequestBody = DtoMaintenanceWindowUpdate
 
 // CreateMonitorJSONRequestBody defines body for CreateMonitor for application/json ContentType.
 type CreateMonitorJSONRequestBody = DtoMonitorCreate
@@ -4042,6 +4682,34 @@ type ClientInterface interface {
 
 	// AcknowledgeIncident request
 	AcknowledgeIncident(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListMaintenanceWindows request
+	ListMaintenanceWindows(ctx context.Context, params *ListMaintenanceWindowsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateMaintenanceWindowWithBody request with any body
+	CreateMaintenanceWindowWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateMaintenanceWindow(ctx context.Context, body CreateMaintenanceWindowJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetMaintenanceTargets request
+	GetMaintenanceTargets(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteMaintenanceWindow request
+	DeleteMaintenanceWindow(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetMaintenanceWindow request
+	GetMaintenanceWindow(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateMaintenanceWindowWithBody request with any body
+	UpdateMaintenanceWindowWithBody(ctx context.Context, id openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateMaintenanceWindow(ctx context.Context, id openapi_types.UUID, body UpdateMaintenanceWindowJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CancelMaintenanceWindow request
+	CancelMaintenanceWindow(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// FinishMaintenanceWindow request
+	FinishMaintenanceWindow(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListMonitors request
 	ListMonitors(ctx context.Context, params *ListMonitorsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -4376,6 +5044,126 @@ func (c *Client) GetIncident(ctx context.Context, id openapi_types.UUID, reqEdit
 
 func (c *Client) AcknowledgeIncident(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewAcknowledgeIncidentRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListMaintenanceWindows(ctx context.Context, params *ListMaintenanceWindowsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListMaintenanceWindowsRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateMaintenanceWindowWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateMaintenanceWindowRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateMaintenanceWindow(ctx context.Context, body CreateMaintenanceWindowJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateMaintenanceWindowRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetMaintenanceTargets(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetMaintenanceTargetsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteMaintenanceWindow(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteMaintenanceWindowRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetMaintenanceWindow(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetMaintenanceWindowRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateMaintenanceWindowWithBody(ctx context.Context, id openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateMaintenanceWindowRequestWithBody(c.Server, id, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateMaintenanceWindow(ctx context.Context, id openapi_types.UUID, body UpdateMaintenanceWindowJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateMaintenanceWindowRequest(c.Server, id, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CancelMaintenanceWindow(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCancelMaintenanceWindowRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) FinishMaintenanceWindow(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewFinishMaintenanceWindowRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
@@ -5695,6 +6483,358 @@ func NewAcknowledgeIncidentRequest(server string, id openapi_types.UUID) (*http.
 	}
 
 	operationPath := fmt.Sprintf("/incidents/%s/acknowledge", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListMaintenanceWindowsRequest generates requests for ListMaintenanceWindows
+func NewListMaintenanceWindowsRequest(server string, params *ListMaintenanceWindowsParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/maintenance-windows")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
+		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
+
+		if params.Cursor != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "cursor", *params.Cursor, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Limit != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "limit", *params.Limit, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.MonitorId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "monitorId", *params.MonitorId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: "uuid"}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Status != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "status", *params.Status, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.StatusPageId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "statusPageId", *params.StatusPageId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: "uuid"}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewCreateMaintenanceWindowRequest calls the generic CreateMaintenanceWindow builder with application/json body
+func NewCreateMaintenanceWindowRequest(server string, body CreateMaintenanceWindowJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateMaintenanceWindowRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewCreateMaintenanceWindowRequestWithBody generates requests for CreateMaintenanceWindow with any type of body
+func NewCreateMaintenanceWindowRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/maintenance-windows")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetMaintenanceTargetsRequest generates requests for GetMaintenanceTargets
+func NewGetMaintenanceTargetsRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/maintenance-windows/targets")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewDeleteMaintenanceWindowRequest generates requests for DeleteMaintenanceWindow
+func NewDeleteMaintenanceWindowRequest(server string, id openapi_types.UUID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: "uuid"})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/maintenance-windows/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodDelete, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetMaintenanceWindowRequest generates requests for GetMaintenanceWindow
+func NewGetMaintenanceWindowRequest(server string, id openapi_types.UUID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: "uuid"})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/maintenance-windows/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUpdateMaintenanceWindowRequest calls the generic UpdateMaintenanceWindow builder with application/json body
+func NewUpdateMaintenanceWindowRequest(server string, id openapi_types.UUID, body UpdateMaintenanceWindowJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateMaintenanceWindowRequestWithBody(server, id, "application/json", bodyReader)
+}
+
+// NewUpdateMaintenanceWindowRequestWithBody generates requests for UpdateMaintenanceWindow with any type of body
+func NewUpdateMaintenanceWindowRequestWithBody(server string, id openapi_types.UUID, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: "uuid"})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/maintenance-windows/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPatch, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewCancelMaintenanceWindowRequest generates requests for CancelMaintenanceWindow
+func NewCancelMaintenanceWindowRequest(server string, id openapi_types.UUID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: "uuid"})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/maintenance-windows/%s/cancel", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewFinishMaintenanceWindowRequest generates requests for FinishMaintenanceWindow
+func NewFinishMaintenanceWindowRequest(server string, id openapi_types.UUID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: "uuid"})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/maintenance-windows/%s/finish", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -7769,6 +8909,34 @@ type ClientWithResponsesInterface interface {
 	// AcknowledgeIncidentWithResponse request
 	AcknowledgeIncidentWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*AcknowledgeIncidentResponse, error)
 
+	// ListMaintenanceWindowsWithResponse request
+	ListMaintenanceWindowsWithResponse(ctx context.Context, params *ListMaintenanceWindowsParams, reqEditors ...RequestEditorFn) (*ListMaintenanceWindowsResponse, error)
+
+	// CreateMaintenanceWindowWithBodyWithResponse request with any body
+	CreateMaintenanceWindowWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateMaintenanceWindowResponse, error)
+
+	CreateMaintenanceWindowWithResponse(ctx context.Context, body CreateMaintenanceWindowJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateMaintenanceWindowResponse, error)
+
+	// GetMaintenanceTargetsWithResponse request
+	GetMaintenanceTargetsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetMaintenanceTargetsResponse, error)
+
+	// DeleteMaintenanceWindowWithResponse request
+	DeleteMaintenanceWindowWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*DeleteMaintenanceWindowResponse, error)
+
+	// GetMaintenanceWindowWithResponse request
+	GetMaintenanceWindowWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*GetMaintenanceWindowResponse, error)
+
+	// UpdateMaintenanceWindowWithBodyWithResponse request with any body
+	UpdateMaintenanceWindowWithBodyWithResponse(ctx context.Context, id openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateMaintenanceWindowResponse, error)
+
+	UpdateMaintenanceWindowWithResponse(ctx context.Context, id openapi_types.UUID, body UpdateMaintenanceWindowJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateMaintenanceWindowResponse, error)
+
+	// CancelMaintenanceWindowWithResponse request
+	CancelMaintenanceWindowWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*CancelMaintenanceWindowResponse, error)
+
+	// FinishMaintenanceWindowWithResponse request
+	FinishMaintenanceWindowWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*FinishMaintenanceWindowResponse, error)
+
 	// ListMonitorsWithResponse request
 	ListMonitorsWithResponse(ctx context.Context, params *ListMonitorsParams, reqEditors ...RequestEditorFn) (*ListMonitorsResponse, error)
 
@@ -8362,6 +9530,282 @@ func (r AcknowledgeIncidentResponse) StatusCode() int {
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
 func (r AcknowledgeIncidentResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type ListMaintenanceWindowsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Cursors ResponseAPIResponsePaginationCursors `json:"cursors"`
+		List    []DtoMaintenanceWindow               `json:"list"`
+		Meta    ResponseAPIResponsePaginationMeta    `json:"meta"`
+	}
+	JSON400 *ResponseProblem
+	JSON401 *ResponseProblem
+	JSON403 *ResponseProblem
+}
+
+// Status returns HTTPResponse.Status
+func (r ListMaintenanceWindowsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListMaintenanceWindowsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r ListMaintenanceWindowsResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type CreateMaintenanceWindowResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *DtoMaintenanceWindow
+	JSON400      *ResponseProblem
+	JSON401      *ResponseProblem
+	JSON403      *ResponseProblem
+	JSON422      *ResponseProblem
+	JSON503      *ResponseProblem
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateMaintenanceWindowResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateMaintenanceWindowResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r CreateMaintenanceWindowResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type GetMaintenanceTargetsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DtoMaintenanceTargets
+	JSON401      *ResponseProblem
+	JSON403      *ResponseProblem
+	JSON503      *ResponseProblem
+}
+
+// Status returns HTTPResponse.Status
+func (r GetMaintenanceTargetsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetMaintenanceTargetsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetMaintenanceTargetsResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type DeleteMaintenanceWindowResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON401      *ResponseProblem
+	JSON403      *ResponseProblem
+	JSON404      *ResponseProblem
+	JSON409      *ResponseProblem
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteMaintenanceWindowResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteMaintenanceWindowResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r DeleteMaintenanceWindowResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type GetMaintenanceWindowResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DtoMaintenanceWindow
+	JSON401      *ResponseProblem
+	JSON403      *ResponseProblem
+	JSON404      *ResponseProblem
+}
+
+// Status returns HTTPResponse.Status
+func (r GetMaintenanceWindowResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetMaintenanceWindowResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetMaintenanceWindowResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type UpdateMaintenanceWindowResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DtoMaintenanceWindow
+	JSON400      *ResponseProblem
+	JSON401      *ResponseProblem
+	JSON403      *ResponseProblem
+	JSON404      *ResponseProblem
+	JSON409      *ResponseProblem
+	JSON422      *ResponseProblem
+	JSON503      *ResponseProblem
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateMaintenanceWindowResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateMaintenanceWindowResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r UpdateMaintenanceWindowResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type CancelMaintenanceWindowResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DtoMaintenanceWindow
+	JSON401      *ResponseProblem
+	JSON403      *ResponseProblem
+	JSON404      *ResponseProblem
+	JSON409      *ResponseProblem
+}
+
+// Status returns HTTPResponse.Status
+func (r CancelMaintenanceWindowResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CancelMaintenanceWindowResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r CancelMaintenanceWindowResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type FinishMaintenanceWindowResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DtoMaintenanceWindow
+	JSON401      *ResponseProblem
+	JSON403      *ResponseProblem
+	JSON404      *ResponseProblem
+	JSON409      *ResponseProblem
+}
+
+// Status returns HTTPResponse.Status
+func (r FinishMaintenanceWindowResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r FinishMaintenanceWindowResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r FinishMaintenanceWindowResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
@@ -9941,6 +11385,94 @@ func (c *ClientWithResponses) AcknowledgeIncidentWithResponse(ctx context.Contex
 	return ParseAcknowledgeIncidentResponse(rsp)
 }
 
+// ListMaintenanceWindowsWithResponse request returning *ListMaintenanceWindowsResponse
+func (c *ClientWithResponses) ListMaintenanceWindowsWithResponse(ctx context.Context, params *ListMaintenanceWindowsParams, reqEditors ...RequestEditorFn) (*ListMaintenanceWindowsResponse, error) {
+	rsp, err := c.ListMaintenanceWindows(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListMaintenanceWindowsResponse(rsp)
+}
+
+// CreateMaintenanceWindowWithBodyWithResponse request with arbitrary body returning *CreateMaintenanceWindowResponse
+func (c *ClientWithResponses) CreateMaintenanceWindowWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateMaintenanceWindowResponse, error) {
+	rsp, err := c.CreateMaintenanceWindowWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateMaintenanceWindowResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateMaintenanceWindowWithResponse(ctx context.Context, body CreateMaintenanceWindowJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateMaintenanceWindowResponse, error) {
+	rsp, err := c.CreateMaintenanceWindow(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateMaintenanceWindowResponse(rsp)
+}
+
+// GetMaintenanceTargetsWithResponse request returning *GetMaintenanceTargetsResponse
+func (c *ClientWithResponses) GetMaintenanceTargetsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetMaintenanceTargetsResponse, error) {
+	rsp, err := c.GetMaintenanceTargets(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetMaintenanceTargetsResponse(rsp)
+}
+
+// DeleteMaintenanceWindowWithResponse request returning *DeleteMaintenanceWindowResponse
+func (c *ClientWithResponses) DeleteMaintenanceWindowWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*DeleteMaintenanceWindowResponse, error) {
+	rsp, err := c.DeleteMaintenanceWindow(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteMaintenanceWindowResponse(rsp)
+}
+
+// GetMaintenanceWindowWithResponse request returning *GetMaintenanceWindowResponse
+func (c *ClientWithResponses) GetMaintenanceWindowWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*GetMaintenanceWindowResponse, error) {
+	rsp, err := c.GetMaintenanceWindow(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetMaintenanceWindowResponse(rsp)
+}
+
+// UpdateMaintenanceWindowWithBodyWithResponse request with arbitrary body returning *UpdateMaintenanceWindowResponse
+func (c *ClientWithResponses) UpdateMaintenanceWindowWithBodyWithResponse(ctx context.Context, id openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateMaintenanceWindowResponse, error) {
+	rsp, err := c.UpdateMaintenanceWindowWithBody(ctx, id, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateMaintenanceWindowResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateMaintenanceWindowWithResponse(ctx context.Context, id openapi_types.UUID, body UpdateMaintenanceWindowJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateMaintenanceWindowResponse, error) {
+	rsp, err := c.UpdateMaintenanceWindow(ctx, id, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateMaintenanceWindowResponse(rsp)
+}
+
+// CancelMaintenanceWindowWithResponse request returning *CancelMaintenanceWindowResponse
+func (c *ClientWithResponses) CancelMaintenanceWindowWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*CancelMaintenanceWindowResponse, error) {
+	rsp, err := c.CancelMaintenanceWindow(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCancelMaintenanceWindowResponse(rsp)
+}
+
+// FinishMaintenanceWindowWithResponse request returning *FinishMaintenanceWindowResponse
+func (c *ClientWithResponses) FinishMaintenanceWindowWithResponse(ctx context.Context, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*FinishMaintenanceWindowResponse, error) {
+	rsp, err := c.FinishMaintenanceWindow(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseFinishMaintenanceWindowResponse(rsp)
+}
+
 // ListMonitorsWithResponse request returning *ListMonitorsResponse
 func (c *ClientWithResponses) ListMonitorsWithResponse(ctx context.Context, params *ListMonitorsParams, reqEditors ...RequestEditorFn) (*ListMonitorsResponse, error) {
 	rsp, err := c.ListMonitors(ctx, params, reqEditors...)
@@ -11081,6 +12613,442 @@ func ParseAcknowledgeIncidentResponse(rsp *http.Response) (*AcknowledgeIncidentR
 			return nil, err
 		}
 		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListMaintenanceWindowsResponse parses an HTTP response from a ListMaintenanceWindowsWithResponse call
+func ParseListMaintenanceWindowsResponse(rsp *http.Response) (*ListMaintenanceWindowsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListMaintenanceWindowsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Cursors ResponseAPIResponsePaginationCursors `json:"cursors"`
+			List    []DtoMaintenanceWindow               `json:"list"`
+			Meta    ResponseAPIResponsePaginationMeta    `json:"meta"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCreateMaintenanceWindowResponse parses an HTTP response from a CreateMaintenanceWindowWithResponse call
+func ParseCreateMaintenanceWindowResponse(rsp *http.Response) (*CreateMaintenanceWindowResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateMaintenanceWindowResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest DtoMaintenanceWindow
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON422 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON503 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetMaintenanceTargetsResponse parses an HTTP response from a GetMaintenanceTargetsWithResponse call
+func ParseGetMaintenanceTargetsResponse(rsp *http.Response) (*GetMaintenanceTargetsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetMaintenanceTargetsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DtoMaintenanceTargets
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON503 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDeleteMaintenanceWindowResponse parses an HTTP response from a DeleteMaintenanceWindowWithResponse call
+func ParseDeleteMaintenanceWindowResponse(rsp *http.Response) (*DeleteMaintenanceWindowResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteMaintenanceWindowResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetMaintenanceWindowResponse parses an HTTP response from a GetMaintenanceWindowWithResponse call
+func ParseGetMaintenanceWindowResponse(rsp *http.Response) (*GetMaintenanceWindowResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetMaintenanceWindowResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DtoMaintenanceWindow
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUpdateMaintenanceWindowResponse parses an HTTP response from a UpdateMaintenanceWindowWithResponse call
+func ParseUpdateMaintenanceWindowResponse(rsp *http.Response) (*UpdateMaintenanceWindowResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateMaintenanceWindowResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DtoMaintenanceWindow
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON422 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON503 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCancelMaintenanceWindowResponse parses an HTTP response from a CancelMaintenanceWindowWithResponse call
+func ParseCancelMaintenanceWindowResponse(rsp *http.Response) (*CancelMaintenanceWindowResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CancelMaintenanceWindowResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DtoMaintenanceWindow
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseFinishMaintenanceWindowResponse parses an HTTP response from a FinishMaintenanceWindowWithResponse call
+func ParseFinishMaintenanceWindowResponse(rsp *http.Response) (*FinishMaintenanceWindowResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &FinishMaintenanceWindowResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DtoMaintenanceWindow
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest ResponseProblem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
 
 	}
 

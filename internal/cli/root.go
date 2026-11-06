@@ -74,8 +74,8 @@ func NewRootCmd() *cobra.Command {
 
 	cmd.PersistentFlags().StringVar(&flags.Profile, "profile", "", "Use a named profile from the config file (env: NORCUBE_PROFILE)")
 	cmd.PersistentFlags().StringVar(&flags.OrgOverride, "org", "", "Run this command against a specific organization, id or slug (env: NORCUBE_ORG)")
-	cmd.PersistentFlags().StringVarP(&flags.Output, "output", "o", "table", "Output format: table | json | yaml | text (env: NORCUBE_OUTPUT)")
-	cmdutil.FlagEnum(cmd, "output", output.FormatTable, output.FormatJSON, output.FormatYAML, output.FormatText)
+	cmd.PersistentFlags().StringVarP(&flags.Output, "output", "o", "table", "Output format: table | json | yaml | text | id (env: NORCUBE_OUTPUT)")
+	cmdutil.FlagEnum(cmd, "output", output.FormatTable, output.FormatJSON, output.FormatYAML, output.FormatText, output.FormatID)
 	cmd.PersistentFlags().StringVar(&flags.Query, "query", "", "JMESPath expression applied to the result before it is printed, e.g. \"[?status=='failed'].jobId\"")
 	cmd.PersistentFlags().StringArrayVar(&flags.EndpointURLs, "endpoint-url", nil, "Override a service endpoint, service=url (repeatable; services: "+strings.Join(registry.Keys(), ", ")+")")
 	cmd.PersistentFlags().StringVar(&flags.TokenFile, "token-file", "", "Read an access token from this file instead of the profile's credentials (env: NORCUBE_TOKEN holds one directly)")

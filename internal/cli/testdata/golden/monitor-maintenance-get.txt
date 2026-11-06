@@ -1,0 +1,12 @@
+ID:            4d3c2b1a-0f9e-4d8c-b7a6-5f4e3d2c1b0a
+Title:         Deploy
+State:         in_progress
+Starts:        2026-11-03 10:00
+Ends:          2026-11-03 10:15
+Description:   Short interruptions are expected.
+Monitors:      7d1c2f7e-6a1f-4f5e-9b8a-1f7c2b3d4e5f
+Components:    none
+Status pages:  Acme status (published)
+Mail:          scheduled, started, finished
+Created:       2026-11-03 10:00
+Created by:    Dev Owner

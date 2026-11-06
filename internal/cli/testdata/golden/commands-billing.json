@@ -5,7 +5,8 @@
     "table",
     "json",
     "yaml",
-    "text"
+    "text",
+    "id"
   ],
   "globalFlags": [
     {
@@ -82,14 +83,15 @@
       "shorthand": "o",
       "type": "string",
       "default": "table",
-      "description": "Output format: table | json | yaml | text (env: NORCUBE_OUTPUT)",
+      "description": "Output format: table | json | yaml | text | id (env: NORCUBE_OUTPUT)",
       "required": false,
       "repeatable": false,
       "enum": [
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ]
     },
     {
@@ -188,7 +190,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": []
     },
@@ -218,7 +221,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": [
         {
@@ -302,7 +306,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": [
         {
@@ -340,7 +345,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": []
     },
@@ -369,7 +375,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": []
     },
@@ -422,7 +429,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": []
     },
@@ -472,7 +480,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": []
     },
@@ -502,7 +511,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": []
     }

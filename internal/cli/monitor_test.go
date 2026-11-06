@@ -168,6 +168,8 @@ func TestGoldenMonitor(t *testing.T) {
 		{"monitor-status-pages-incidents-list", []string{"monitor", "status-pages", "incidents", "list", spAcme}},
 		{"monitor-status-pages-incidents-get", []string{"monitor", "status-pages", "incidents", "get", spAcme, spPost}},
 		{"monitor-status-pages-subscribers-list", []string{"monitor", "status-pages", "subscribers", "list", "acme"}},
+		{"monitor-maintenance-list", []string{"monitor", "maintenance", "list"}},
+		{"monitor-maintenance-get", []string{"monitor", "maintenance", "get", mwDeploy}},
 	}
 	for _, c := range commands {
 		for format, ext := range goldenFormats {

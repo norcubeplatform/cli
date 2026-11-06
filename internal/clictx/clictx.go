@@ -124,10 +124,10 @@ func (g *Flags) ApplyPreferences() error {
 
 func validOutput(v string) error {
 	switch v {
-	case "table", "json", "yaml", "text":
+	case "table", "json", "yaml", "text", "id":
 		return nil
 	}
-	return clierr.Usage(fmt.Errorf("output format %q: want table, json, yaml or text", v))
+	return clierr.Usage(fmt.Errorf("output format %q: want table, json, yaml, text or id", v))
 }
 
 // Resolve loads the config file (migrating an old one) and resolves the

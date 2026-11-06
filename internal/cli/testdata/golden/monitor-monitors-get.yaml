@@ -51,6 +51,7 @@ last24h:
     critical: 20
     from: "2026-11-02T08:00:00Z"
     inconclusive: 0
+    maintenance: 0
     ok: 1420
     p50Ms: 110
     p95Ms: 240

@@ -5,3 +5,4 @@ Unacknowledged:            1
 Resolved 7d:               4
 Resolved 30d:              12
 Mean time to resolve 30d:  21m 0s
+In maintenance:            0

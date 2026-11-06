@@ -322,7 +322,7 @@ func wholeNumbers(v any) any {
 
 // errUnknownFormat is the error for a format Print doesn't know.
 func errUnknownFormat(format string) error {
-	return fmt.Errorf("unknown output format %q (want table | json | yaml | text)", format)
+	return fmt.Errorf("unknown output format %q (want table | json | yaml | text | id)", format)
 }
 
 // Done is the result of an action. A table shows Message, the sentence a

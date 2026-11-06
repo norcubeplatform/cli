@@ -100,7 +100,7 @@ type flagInfo struct {
 	Deprecated  string   `json:"deprecated,omitempty"`
 }
 
-var allOutputFormats = []string{output.FormatTable, output.FormatJSON, output.FormatYAML, output.FormatText}
+var allOutputFormats = []string{output.FormatTable, output.FormatJSON, output.FormatYAML, output.FormatText, output.FormatID}
 
 func newCommandsCmd() *cobra.Command {
 	var all bool
