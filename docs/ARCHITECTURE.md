@@ -16,7 +16,7 @@ cmd/norcube            main: signals, exit codes, error rendering
        │    ├─ auth          token exchange, per-profile session, refresh lock
        │    └─ transport     timeouts, retries, User-Agent, --debug trace
        ├─ api/<service>      generated clients (oapi-codegen); api/auth.go by hand
-       └─ cmdutil            result → --query → output (table | json | yaml | text)
+       └─ cmdutil            result → --query → output (table | json | yaml | text | id)
 ```
 
 A command's `RunE` builds its client with `service.New`, calls the API,

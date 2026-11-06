@@ -118,6 +118,7 @@ meaning across the tree:
 | `summary` | Counts over a whole resource, not a list | `monitor incidents summary` |
 | `publish` / `unpublish` | Make a thing public, or take it offline keeping everything on it | `monitor status-pages publish` |
 | `preview-link` | Print a short-lived link to see a thing as the public would | `monitor status-pages preview-link` |
+| `finish` | End something in progress now, as opposed to `cancel`, which calls off something that hasn't started | `monitor maintenance finish` |
 | `cancel`, `watch`, `results`, `status`, `check`, `generate`, `import`, `set`, `revoke`, `use` | As named | `domainradar bulk watch`, `langsync terms import status` |
 
 `rm` is an alias of `remove` only, never of `delete`.
@@ -160,7 +161,7 @@ pipeline downstream, silently.
 
 ### P3. Stable output formats and `--query`
 
-**Commitment.** Every command supports four formats:
+**Commitment.** Every command supports these formats:
 
 | Format | Contract |
 | --- | --- |
@@ -168,6 +169,7 @@ pipeline downstream, silently.
 | `json` | The API's own resource and field names. Lists are arrays. Changes are additive only. |
 | `yaml` | The same data and field names as `json`. |
 | `text` | Tab-separated, no header, one record per line, times in RFC 3339 UTC. Column order is part of the contract; a new column is a "change for scripts". |
+| `id` | Only the result's `id`, one per line for a list, for `id=$(... -o id)`. `--query` applies first, so it can name another field. A result without an id is a usage error (exit 2) and, for a write, comes after the change was made. Not settable with `configure`: it isn't a sensible default. |
 
 `--query` is a JMESPath expression applied to what `-o json` would print,
 before formatting, so it composes with every format. An invalid
@@ -182,7 +184,8 @@ thing everywhere.
 **Enforced.**
 - [`golden_test.go`](../internal/cli/golden_test.go): about 54 commands
   and query cases, each pinned in all four formats
-  (`testdata/golden/*.{json,yaml,txt,tsv}`) against a fake backend.
+  (`testdata/golden/*.{json,yaml,txt,tsv}`) against a fake backend;
+  `id` follows from the JSON and is pinned in `output/id_test.go`.
 - `--query` is compiled in the root `PersistentPreRunE` and again in
   `cmdutil.Run`, both as usage errors.
 - Known exception to fix before v1.0: some write commands return ad-hoc
@@ -521,6 +524,7 @@ and product packages use it instead of their own:
 | Reading items or text from args, a file or stdin | `cmdutil.ReadItems`, `cmdutil.ReadText` |
 | Writing a file | `cmdutil.SaveStream` |
 | Time arguments (`--since`) | `cmdutil.ParseTimeArg` |
+| Times ahead and lengths (`--start`, `--duration`) | `cmdutil.ParseFutureTimeArg`, `cmdutil.ParseDurationArg` |
 | Server-sent event streams with reconnect | `internal/sse` |
 | Usage errors | `clierr.Usage` |
 | What a command changes, a flag's allowed values, a platform command's service | `cmdutil.Reads` / `Writes` / `Local`, `cmdutil.FlagEnum`, `cmdutil.AnnotationService` (read by `nrc commands`) |
@@ -728,7 +732,7 @@ flag; [CHANGELOG.md](../CHANGELOG.md) says when each arrived.
 | `langsync` | `init`, `sync`, `pull`; `namespaces list | create | update | delete`; `terms list | add | update | delete | import`, `terms import status`; `translations get | set | suggest | translate-missing`; `languages list | add | remove | create | delete`; `prompts list | get | create | update | delete`; `glossary get`, `glossary items list | get | create | translate | delete`, `glossary languages attach`; `api-keys list | create | revoke`; `audit list` |
 | `domainradar` | `check`; `bulk create | list | get | results | watch | export | cancel | delete`; `saved list | add | remove`; `watchers list | get | create | update | delete`; `hits list | get`; `names generate | list | get | results | check | delete` |
 | `billing` | `status`; `subscriptions list`; `usage estimate | metrics`; `invoices list | download`; `budget get | set` |
-| `monitor` | `status` (`--fail-on`); `monitors list | get | create | update | delete | pause | resume | run` (`--wait`), `monitors bulk pause | resume | delete`, `monitors results list`, `monitors status-changes list`, `monitors stats get`, `monitors availability get`, `monitors certificate get`, `monitors alerts get | set`; `incidents list | get | acknowledge | summary`; `channels list | get | create | update | delete | test | verify`, `channels deliveries list`; `status-pages list | get | create | update | delete | publish | unpublish | preview-link`, `status-pages layout get | set`, `status-pages incidents list | get | create | update`, `status-pages incidents updates create`, `status-pages subscribers list | delete` |
+| `monitor` | `status` (`--fail-on`); `monitors list | get | create | update | delete | pause | resume | run` (`--wait`), `monitors bulk pause | resume | delete`, `monitors results list`, `monitors status-changes list`, `monitors stats get`, `monitors availability get`, `monitors certificate get`, `monitors alerts get | set`; `incidents list | get | acknowledge | summary`; `channels list | get | create | update | delete | test | verify`, `channels deliveries list`; `status-pages list | get | create | update | delete | publish | unpublish | preview-link`, `status-pages layout get | set`, `status-pages incidents list | get | create | update`, `status-pages incidents updates create`, `status-pages subscribers list | delete`; `maintenance list | get | create | update | cancel | finish` |
 | PromptHub | No command group; `nrc api prompthub ...` |
 | CMS | None (CMS has no public API) |
 
@@ -743,7 +747,9 @@ sends and verification codes; not included in `monitor.write`, because
 channels hold credentials and sends cost money), `monitor.statuspages` (manage status pages, post
 incidents on them and manage their subscribers; not included in any other
 scope, because what it changes is public and subscribers' addresses are
-personal data).
+personal data), `monitor.maintenance` (manage maintenance windows; not included
+in any other scope, because a window silences alerts, and one that shows on a
+published page also takes `monitor.statuspages`).
 
 Installation channels: Homebrew cask (with `nrc`), `.deb` / `.rpm` /
 `.apk`, `install.sh`, release archives (darwin and linux amd64/arm64,
@@ -793,6 +799,8 @@ changelog, and the owner's decisions in the planning sessions of
 | 2026-11-04 | `nrc commands`: the whole command tree as one versioned, offline document; what the tree cannot reveal is declared with annotations (`effect`, flag enums, service), never inferred from verbs | Agents should not crawl dozens of `--help` pages. Prior art: `kubectl api-resources` / `explain` (verbs per resource, offline schema), `aws ... --generate-cli-skeleton` (machine-readable input), cobra's doc generation (`tools/gendocs` already walks the tree). Global flags listed once rather than on every command, to keep the document small; a verb-based guess of the effect was rejected because domain verbs like `check`, `suggest` or `init` don't say whether they change anything | owner |
 | 2026-11-04 | PulseCheck is renamed Norcube Monitor before its first release, every technical name included: command group `monitor` (`nrc monitor monitors list`), registry key, OAuth audience and generated package `monitor`, scopes `monitor.read`, `monitor.check`, `monitor.write`, `monitor.channels`, endpoint `https://monitor.api.norcube.com/app/v1`, `NORCUBE_MONITOR_URL`. No `pulsecheck` alias or `cmdutil.Renamed` entry | The old name was never in a release, so no script, config file or token depends on it and P10 has nothing to keep; the backend renamed its service, audience and scopes in the same change. Rejected: keeping `pulsecheck` as a hidden alias, which would be a second name for one thing (P13) with no user to serve | owner |
 | 2026-11-05 | Status page subscribers in the CLI: `status-pages subscribers list` and `delete`. A subscriber is named by id only. `delete <page> <subscriber>` completes the page but not the subscriber, because completion candidates are cached on disk and addresses have no place there. The CLI words the scope refusal itself: the API's sentence is shared with the page's other writes and speaks of changing pages, which misleads on a list | Owner's brief. The API's `count` and `export` have no commands yet; `nrc api` reaches them | owner |
+| 2026-11-06 | Maintenance windows in the CLI: `monitor maintenance`. The resource is a mass noun, an exception to the plural rule of P1, because "maintenances" isn't a word and "maintenance windows" is long to type for something used in deploy scripts; `maintenance-windows` is an alias. A window is named by id only: titles repeat by design. `--state` filters on the field the result calls `state` (the API's query parameter is `status`), with the API's values. There is no `delete`: the API deletes only a cancelled window, a completed one explains a gap in uptime and goes by itself after two years, and `cancel` already takes a window out of everything people see; `nrc api` reaches the endpoint. `finish` is a new verb, because `cancel` would say the work didn't happen. `cancel` confirms, since it mails whoever was told; `finish` doesn't and has no `--yes`, because ending a silence is the safe direction and it must run unattended at the end of a deploy. Notifications are explicit in the request, because the API takes no defaults: the flags default to on, as the owner decided, and `--no-notify` turns off all three. `monitor status` keeps a monitor among `problems` when what is wrong is a calendar condition or a watched aspect, because a window doesn't hold those | Owner's brief. Rejected: a bare `2h` meaning two hours ahead, since `ParseTimeArg` reads the same spelling as two hours ago | owner |
+| 2026-11-06 | `-o id` prints only the result's id. Deploy scripts capture what they create with `id=$(... -o id)`, and `-o text` prints the state as well, so it would need `cut`. It is a global output value rather than a flag of one command, so it means the same everywhere (P1, P13) | Named in the owner's maintenance windows plan. Rejected: `--query id -o text` as the documented form, which still works but is too long for the one thing every script needs | owner |
 | 2026-11-05 | `--auto-post` is the one page setting `create` doesn't require: the flag came after 0.23.0, so requiring it would break scripts that create pages, and the API keeps it off unless asked. `--notify` is sent only when given, and exists only on writes that add an update | Compatibility rule P10; owner's brief | owner |
 
 ---
@@ -869,7 +877,7 @@ it with the same guarantees as every other product. The steps, in order:
 | Step | State |
 | --- | --- |
 | 1 Audience | `monitor` exists in Norcube Auth (sign-in audience list, CI token exchange) |
-| 2 Scopes | `monitor.read`, `monitor.check`, `monitor.write`, `monitor.channels`, `monitor.statuspages` in the CI token catalog (and so the CLI sign-in catalog), with IAM actions; channel changes and sends only with `monitor.channels`, status page changes, posts and subscribers only with `monitor.statuspages`, neither of which `monitor.write` includes; not on the MCP consent screen until the MCP redesign |
+| 2 Scopes | `monitor.read`, `monitor.check`, `monitor.write`, `monitor.channels`, `monitor.statuspages`, `monitor.maintenance` in the CI token catalog (and so the CLI sign-in catalog), with IAM actions; channel changes and sends only with `monitor.channels`, status page changes, posts and subscribers only with `monitor.statuspages`, neither of which `monitor.write` includes; not on the MCP consent screen until the MCP redesign |
 | 3 Enforcement | Default-closed route table (`internal/routers/app/scopes.go`) after the token middleware, coverage and matrix tests, and IAM refusing a scoped request the table never checked |
 | 4 Contract | Every operation has a verb-noun `@Id`, `@Security Bearer`, 401/403 problems and `x-norcube-scopes`; the status route is tagged `Status` and excluded here |
 | 5 to 10 CLI | Registry entry, hand-kept tables, client, `nrc monitor` commands, completion, command and golden tests |
