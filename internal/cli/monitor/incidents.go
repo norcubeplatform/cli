@@ -250,6 +250,7 @@ func summaryFields(s monitor.DtoIncidentSummary) []output.Field {
 		{Name: "Resolved 7d", Value: strconv.Itoa(s.ResolvedLast7d)},
 		{Name: "Resolved 30d", Value: strconv.Itoa(s.ResolvedLast30d)},
 		{Name: "Mean time to resolve 30d", Value: mttr},
+		{Name: "In maintenance", Value: strconv.Itoa(s.Open.InMaintenance)},
 	}
 }
 

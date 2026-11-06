@@ -4,6 +4,7 @@
   facts:
     statusCode: 503
   id: 3f2c8a8e-6c1d-4a59-9a43-2b1f0f6f9d10
+  maintenanceHeld: false
   monitorId: 7d1c2f7e-6a1f-4f5e-9b8a-1f7c2b3d4e5f
   monitorName: Shop
   monitorTarget: https://shop.example.com/health

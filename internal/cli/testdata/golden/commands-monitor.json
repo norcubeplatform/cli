@@ -5,7 +5,8 @@
     "table",
     "json",
     "yaml",
-    "text"
+    "text",
+    "id"
   ],
   "globalFlags": [
     {
@@ -82,14 +83,15 @@
       "shorthand": "o",
       "type": "string",
       "default": "table",
-      "description": "Output format: table | json | yaml | text (env: NORCUBE_OUTPUT)",
+      "description": "Output format: table | json | yaml | text | id (env: NORCUBE_OUTPUT)",
       "required": false,
       "repeatable": false,
       "enum": [
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ]
     },
     {
@@ -129,7 +131,7 @@
       ],
       "name": "monitor",
       "short": "Monitor uptime, SSL certificates and domain expiry, and manage incidents and alerts",
-      "long": "Norcube Monitor checks your sites, certificates and domains on a schedule\nfrom Norcube's servers. A monitor is an HTTP check (optionally with a\nkeyword), an SSL certificate check or a domain expiry check. Problems\nconfirmed by consecutive checks open incidents, which alert through your\nalert channels (email, webhook, Slack, Discord, SMS). Status pages show\nchosen monitors to the public.\n\nMonitors and channels are named by their id or, where a command says so,\nby their exact name. Checks count towards your Norcube Monitor usage, on a\nschedule and when you run one now.\n\nIn CI, \"monitor status --fail-on critical\" fails the job while a\ncritical incident is open, and \"monitor monitors run \u003cmonitor\u003e --wait\"\nfails it when the check finds the monitor down. CI tokens need a\nNorcube Monitor scope: monitor.read (everything that reads),\nmonitor.check (run checks), monitor.write (manage monitors and\nincidents), monitor.channels (manage alert channels) or\nmonitor.statuspages (manage status pages, post on them and manage their\nsubscribers). monitor.write includes neither of the last two.",
+      "long": "Norcube Monitor checks your sites, certificates and domains on a schedule\nfrom Norcube's servers. A monitor is an HTTP check (optionally with a\nkeyword), an SSL certificate check or a domain expiry check. Problems\nconfirmed by consecutive checks open incidents, which alert through your\nalert channels (email, webhook, Slack, Discord, SMS). Status pages show\nchosen monitors to the public. Maintenance windows pause alerts for planned\nwork and keep it out of uptime.\n\nMonitors and channels are named by their id or, where a command says so,\nby their exact name. Checks count towards your Norcube Monitor usage, on a\nschedule and when you run one now.\n\nIn CI, \"monitor status --fail-on critical\" fails the job while a\ncritical incident is open, and \"monitor monitors run \u003cmonitor\u003e --wait\"\nfails it when the check finds the monitor down. CI tokens need a\nNorcube Monitor scope: monitor.read (everything that reads),\nmonitor.check (run checks), monitor.write (manage monitors and\nincidents), monitor.channels (manage alert channels),\nmonitor.statuspages (manage status pages, post on them and manage their\nsubscribers) or monitor.maintenance (manage maintenance windows; one that\nshows on a published page also takes monitor.statuspages). monitor.write\nincludes none of the last three.",
       "usage": "norcube monitor \u003ccommand\u003e",
       "group": true,
       "service": {
@@ -194,7 +196,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": [
         {
@@ -298,7 +301,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": [
         {
@@ -360,7 +364,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": [
         {
@@ -442,7 +447,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": []
     },
@@ -471,7 +477,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": [
         {
@@ -542,7 +549,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": [
         {
@@ -582,7 +590,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": [
         {
@@ -703,7 +712,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": [
         {
@@ -777,7 +787,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": []
     },
@@ -808,7 +819,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": []
     },
@@ -838,7 +850,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": [
         {
@@ -986,9 +999,477 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": []
+    },
+    {
+      "command": "norcube monitor maintenance",
+      "path": [
+        "monitor",
+        "maintenance"
+      ],
+      "name": "maintenance",
+      "aliases": [
+        "maintenance-windows"
+      ],
+      "short": "Schedule maintenance windows that pause alerts and stay out of uptime",
+      "long": "A maintenance window is planned work on monitors or status page components.\nWhile it runs, its monitors don't alert or open incidents for availability\nproblems, and the time stays out of their uptime. Checks keep running and\ncount towards your usage. A certificate or domain running out still alerts,\nbecause that is true whatever work is going on.\n\nA window shows by itself on every published status page displaying one of its\ntargets, and subscribers get mail when it is scheduled, starts and finishes\nunless you turn that off. Which pages show it isn't a choice: otherwise a page\ncould stay green while its alerts are silent.\n\nA CI token changes windows with the monitor.maintenance scope, and also needs\nmonitor.statuspages when a window shows on a published page. Cancelling or\nfinishing needs only monitor.maintenance, so whoever can edit a window can\nalways end its silence. Any Norcube Monitor scope reads them.\n\nA window ends by itself, so a deploy that dies before \"finish\" can't silence\nalerts for longer than you asked for. Wrap a deploy in one:\n\n  id=$(norcube monitor maintenance create --monitor api --title \"Deploy\" --duration 15m -o id)\n  ./deploy.sh\n  norcube monitor maintenance finish \"$id\"",
+      "usage": "norcube monitor maintenance \u003ccommand\u003e",
+      "group": true,
+      "service": {
+        "key": "monitor",
+        "name": "Monitor",
+        "audience": "monitor"
+      },
+      "confirm": false,
+      "wait": false,
+      "paginated": false,
+      "flags": []
+    },
+    {
+      "command": "norcube monitor maintenance cancel",
+      "path": [
+        "monitor",
+        "maintenance",
+        "cancel"
+      ],
+      "name": "cancel",
+      "short": "Call off a maintenance window that hasn't started",
+      "long": "Calls off a scheduled window. It won't run, and subscribers who were told hear\nit was cancelled. One that has started exits 8: use \"finish\" instead. It needs\nonly the monitor.maintenance scope, even on a published page.",
+      "usage": "norcube monitor maintenance cancel \u003cwindow\u003e [flags]",
+      "args": "\u003cwindow\u003e",
+      "example": "norcube monitor maintenance cancel 4d3c2b1a-0f9e-4d8c-b7a6-5f4e3d2c1b0a\nnorcube monitor maintenance cancel 4d3c2b1a-0f9e-4d8c-b7a6-5f4e3d2c1b0a --yes",
+      "group": false,
+      "service": {
+        "key": "monitor",
+        "name": "Monitor",
+        "audience": "monitor"
+      },
+      "effect": "write",
+      "confirm": true,
+      "wait": false,
+      "paginated": false,
+      "outputFormats": [
+        "table",
+        "json",
+        "yaml",
+        "text",
+        "id"
+      ],
+      "flags": [
+        {
+          "name": "yes",
+          "type": "bool",
+          "default": "false",
+          "description": "Don't ask for confirmation",
+          "required": false,
+          "repeatable": false
+        }
+      ]
+    },
+    {
+      "command": "norcube monitor maintenance create",
+      "path": [
+        "monitor",
+        "maintenance",
+        "create"
+      ],
+      "name": "create",
+      "short": "Schedule a maintenance window, or start one now",
+      "long": "Schedules a window. Without --start it begins right away. It needs a title,\nat least one target, and --end or --duration; it can last at most 30 days and\nstart at most a year ahead.\n\nIt shows by itself on every published status page displaying a target, and\nsubscribers get all three mails unless you turn them off with --notify-scheduled,\n--notify-started, --notify-finished or --no-notify. A window that starts within\n15 minutes sends no scheduled mail, only the started one.\n\nA CI token needs the monitor.maintenance scope, and monitor.statuspages too when\nthe window shows on a published page.",
+      "usage": "norcube monitor maintenance create [flags]",
+      "example": "# Silence a monitor around a deploy\nid=$(norcube monitor maintenance create --monitor api --title \"Deploy\" --duration 15m -o id)\n./deploy.sh\nnorcube monitor maintenance finish \"$id\"\n\n# Announce work for tomorrow on everything a status page shows\nnorcube monitor maintenance create --status-page acme --title \"Database upgrade\" --description \"Short interruptions are expected.\" --start 2026-11-07T14:00:00Z --end 2026-11-07T16:00:00Z\n\n# A quiet window nobody hears about\nnorcube monitor maintenance create --monitor \"Shop API\" --monitor \"Shop cert\" --title \"Load test\" --start +1h --duration 2h --no-notify",
+      "group": false,
+      "service": {
+        "key": "monitor",
+        "name": "Monitor",
+        "audience": "monitor"
+      },
+      "effect": "write",
+      "confirm": false,
+      "wait": false,
+      "paginated": false,
+      "outputFormats": [
+        "table",
+        "json",
+        "yaml",
+        "text",
+        "id"
+      ],
+      "flags": [
+        {
+          "name": "component",
+          "type": "stringArray",
+          "description": "A manual status page component to mark, by id or exact name (repeatable)",
+          "required": false,
+          "repeatable": true
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "description": "What is happening; public on a published status page and in mail",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "duration",
+          "type": "string",
+          "description": "How long it lasts, counted from its start: 15m, 2h, 7d (at most 30 days)",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "end",
+          "type": "string",
+          "description": "When it ends: an RFC 3339 timestamp, now, or a span from now (+2h, +7d)",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "monitor",
+          "type": "stringArray",
+          "description": "A monitor to hold, by id or exact name (repeatable); domain monitors can't be held",
+          "required": false,
+          "repeatable": true
+        },
+        {
+          "name": "no-notify",
+          "type": "bool",
+          "default": "false",
+          "description": "Turn off all three mails; a cancellation still tells whoever was told",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "notify-finished",
+          "type": "bool",
+          "default": "true",
+          "description": "Email subscribers when it finishes",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "notify-scheduled",
+          "type": "bool",
+          "default": "true",
+          "description": "Email subscribers when it is scheduled",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "notify-started",
+          "type": "bool",
+          "default": "true",
+          "description": "Email subscribers when it starts",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "start",
+          "type": "string",
+          "description": "When it starts, if not now: an RFC 3339 timestamp, now, or a span from now (+2h, +7d)",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "status-page",
+          "type": "stringArray",
+          "description": "Everything a status page shows right now, by id or exact slug (repeatable); something added to the page later isn't included",
+          "required": false,
+          "repeatable": true
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": "The window's title; public on a published status page",
+          "required": true,
+          "repeatable": false
+        }
+      ]
+    },
+    {
+      "command": "norcube monitor maintenance finish",
+      "path": [
+        "monitor",
+        "maintenance",
+        "finish"
+      ],
+      "name": "finish",
+      "short": "End a maintenance window in progress now",
+      "long": "Ends a window in progress. The next check counts and alerts as usual, monitors\nwith an open incident it held are checked again within a minute, and subscribers\nhear it finished early. One that hasn't started exits 8: use \"cancel\" instead.\n\nIt asks for no confirmation, because ending a silence is the safe direction and\nit has to run unattended at the end of a deploy. It needs only the\nmonitor.maintenance scope, even on a published page.",
+      "usage": "norcube monitor maintenance finish \u003cwindow\u003e",
+      "args": "\u003cwindow\u003e",
+      "example": "norcube monitor maintenance finish 4d3c2b1a-0f9e-4d8c-b7a6-5f4e3d2c1b0a\nnorcube monitor maintenance finish \"$id\"",
+      "group": false,
+      "service": {
+        "key": "monitor",
+        "name": "Monitor",
+        "audience": "monitor"
+      },
+      "effect": "write",
+      "confirm": false,
+      "wait": false,
+      "paginated": false,
+      "outputFormats": [
+        "table",
+        "json",
+        "yaml",
+        "text",
+        "id"
+      ],
+      "flags": []
+    },
+    {
+      "command": "norcube monitor maintenance get",
+      "path": [
+        "monitor",
+        "maintenance",
+        "get"
+      ],
+      "name": "get",
+      "short": "Show a maintenance window, its targets and the pages it shows on",
+      "usage": "norcube monitor maintenance get \u003cwindow\u003e",
+      "args": "\u003cwindow\u003e",
+      "example": "norcube monitor maintenance get 4d3c2b1a-0f9e-4d8c-b7a6-5f4e3d2c1b0a",
+      "group": false,
+      "service": {
+        "key": "monitor",
+        "name": "Monitor",
+        "audience": "monitor"
+      },
+      "effect": "read",
+      "confirm": false,
+      "wait": false,
+      "paginated": false,
+      "outputFormats": [
+        "table",
+        "json",
+        "yaml",
+        "text",
+        "id"
+      ],
+      "flags": []
+    },
+    {
+      "command": "norcube monitor maintenance list",
+      "path": [
+        "monitor",
+        "maintenance",
+        "list"
+      ],
+      "name": "list",
+      "short": "List maintenance windows, latest start first",
+      "long": "Lists the organization's windows, latest start first; with --state scheduled, soonest first.",
+      "usage": "norcube monitor maintenance list [flags]",
+      "example": "norcube monitor maintenance list\nnorcube monitor maintenance list --state in_progress\nnorcube monitor maintenance list --monitor \"Shop API\" --all-pages\nnorcube monitor maintenance list --status-page acme --state scheduled -o json",
+      "group": false,
+      "service": {
+        "key": "monitor",
+        "name": "Monitor",
+        "audience": "monitor"
+      },
+      "effect": "read",
+      "confirm": false,
+      "wait": false,
+      "paginated": true,
+      "outputFormats": [
+        "table",
+        "json",
+        "yaml",
+        "text",
+        "id"
+      ],
+      "flags": [
+        {
+          "name": "all-pages",
+          "type": "bool",
+          "default": "false",
+          "description": "Follow cursors until every page is fetched (capped by --max-items)",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "cursor",
+          "type": "string",
+          "description": "Continue from the cursor a previous page printed",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "limit",
+          "type": "int",
+          "default": "0",
+          "description": "Same as --page-size",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "max-items",
+          "type": "int",
+          "default": "0",
+          "description": "Cap for --all-pages (0 = 10000)",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "monitor",
+          "type": "string",
+          "description": "Only windows holding this monitor (id or exact name)",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "page-size",
+          "type": "int",
+          "default": "0",
+          "description": "Items per request (0 = 50)",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "state",
+          "type": "string",
+          "description": "Only windows in this state: scheduled, in_progress, completed or cancelled",
+          "required": false,
+          "repeatable": false,
+          "enum": [
+            "scheduled",
+            "in_progress",
+            "completed",
+            "cancelled"
+          ]
+        },
+        {
+          "name": "status-page",
+          "type": "string",
+          "description": "Only windows showing on this status page (id or exact slug)",
+          "required": false,
+          "repeatable": false
+        }
+      ]
+    },
+    {
+      "command": "norcube monitor maintenance update",
+      "path": [
+        "monitor",
+        "maintenance",
+        "update"
+      ],
+      "name": "update",
+      "short": "Change a maintenance window, as far as where it stands allows",
+      "long": "Changes only what you pass.\n\nBefore the window starts, everything can change; moving a time by 5 minutes or\nmore tells subscribers who were already told. Once it has started, its targets\nand start are frozen: you can still change the text and the mail switches, and\nextend or shorten it, which sends no mail. Once it is over, only the text can\nchange. A cancelled window can't change. The API refuses anything else with\nexit 8.\n\n--monitor, --component and --status-page replace the targets as a whole, so name\neverything the window should keep. --duration counts from the new --start, or\nelse from the window's current start.\n\nA CI token needs the monitor.maintenance scope, and monitor.statuspages too when\nthe window shows on a published page before or after the change. To end a window\nnow, use \"finish\"; to call off one that hasn't started, use \"cancel\".",
+      "usage": "norcube monitor maintenance update \u003cwindow\u003e [flags]",
+      "args": "\u003cwindow\u003e",
+      "example": "# The deploy needs longer\nnorcube monitor maintenance update 4d3c2b1a-0f9e-4d8c-b7a6-5f4e3d2c1b0a --end +1h\nnorcube monitor maintenance update 4d3c2b1a-0f9e-4d8c-b7a6-5f4e3d2c1b0a --start 2026-11-08T14:00:00Z --duration 2h\nnorcube monitor maintenance update 4d3c2b1a-0f9e-4d8c-b7a6-5f4e3d2c1b0a --title \"Database upgrade\" --no-notify",
+      "group": false,
+      "service": {
+        "key": "monitor",
+        "name": "Monitor",
+        "audience": "monitor"
+      },
+      "effect": "write",
+      "confirm": false,
+      "wait": false,
+      "paginated": false,
+      "outputFormats": [
+        "table",
+        "json",
+        "yaml",
+        "text",
+        "id"
+      ],
+      "flags": [
+        {
+          "name": "component",
+          "type": "stringArray",
+          "description": "A manual status page component to mark, by id or exact name (repeatable)",
+          "required": false,
+          "repeatable": true
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "description": "What is happening; public on a published status page and in mail",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "duration",
+          "type": "string",
+          "description": "How long it lasts, counted from its start: 15m, 2h, 7d (at most 30 days)",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "end",
+          "type": "string",
+          "description": "When it ends: an RFC 3339 timestamp, now, or a span from now (+2h, +7d)",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "monitor",
+          "type": "stringArray",
+          "description": "A monitor to hold, by id or exact name (repeatable); domain monitors can't be held",
+          "required": false,
+          "repeatable": true
+        },
+        {
+          "name": "no-notify",
+          "type": "bool",
+          "default": "false",
+          "description": "Turn off all three mails; a cancellation still tells whoever was told",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "notify-finished",
+          "type": "bool",
+          "default": "false",
+          "description": "Email subscribers when it finishes",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "notify-scheduled",
+          "type": "bool",
+          "default": "false",
+          "description": "Email subscribers when it is scheduled",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "notify-started",
+          "type": "bool",
+          "default": "false",
+          "description": "Email subscribers when it starts",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "start",
+          "type": "string",
+          "description": "Move its start, before it has started: an RFC 3339 timestamp or a span from now (+2h, +7d)",
+          "required": false,
+          "repeatable": false
+        },
+        {
+          "name": "status-page",
+          "type": "stringArray",
+          "description": "Everything a status page shows right now, by id or exact slug (repeatable); something added to the page later isn't included",
+          "required": false,
+          "repeatable": true
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": "The window's title; public on a published status page",
+          "required": false,
+          "repeatable": false
+        }
+      ]
     },
     {
       "command": "norcube monitor monitors",
@@ -1063,7 +1544,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": []
     },
@@ -1095,7 +1577,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": [
         {
@@ -1203,7 +1686,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": [
         {
@@ -1225,7 +1709,7 @@
       ],
       "name": "bulk",
       "short": "Pause, resume or delete many monitors at once",
-      "long": "Applies one action to many monitors: the ones you name (ids or exact\nnames, as arguments or one per line with --file), or every monitor the\nlist filters match (--type, --status, --search). Each monitor is handled as\nits own request would be, so one refusal doesn't stop the others; the\nresult lists every monitor with ok or its problem code. The command exits\n1 when any monitor failed.",
+      "long": "Applies one action to many monitors: the ones you name (ids or exact\nnames, as arguments or one per line with --file), or every monitor the\nlist filters match (--type, --status, --search). Each monitor is handled as\nits own request would be, so one refusal doesn't stop the others; the\nresult lists every monitor with ok or its problem code. The command exits\n1 when any monitor failed.\n\nFor planned work, \"monitor maintenance create\" is usually better than\npausing: checks keep running, the time stays out of uptime, status pages say\nso, and it ends by itself.",
       "usage": "norcube monitor monitors bulk \u003ccommand\u003e",
       "group": true,
       "service": {
@@ -1265,7 +1749,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": [
         {
@@ -1331,7 +1816,7 @@
       "short": "Pause many monitors",
       "usage": "norcube monitor monitors bulk pause [\u003cmonitor\u003e...] [flags]",
       "args": "[\u003cmonitor\u003e...]",
-      "example": "# Maintenance window: pause everything behind api.example.com\nnorcube monitor monitors bulk pause --search api.example.com --yes",
+      "example": "# Pause everything behind api.example.com; for planned work, see \"monitor maintenance\"\nnorcube monitor monitors bulk pause --search api.example.com --yes",
       "group": false,
       "service": {
         "key": "monitor",
@@ -1346,7 +1831,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": [
         {
@@ -1427,7 +1913,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": [
         {
@@ -1533,7 +2020,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": []
     },
@@ -1564,7 +2052,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": [
         {
@@ -1821,7 +2310,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": [
         {
@@ -1861,7 +2351,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": []
     },
@@ -1891,7 +2382,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": [
         {
@@ -2017,7 +2509,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": []
     },
@@ -2073,7 +2566,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": [
         {
@@ -2158,7 +2652,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": []
     },
@@ -2171,7 +2666,7 @@
       ],
       "name": "run",
       "short": "Run a monitor's check now and show the result",
-      "long": "Runs the monitor's check right away (paused monitors too) and prints the\nstored result. The check is billed like a scheduled one and rate limited\n(200 per user and 600 per organization an hour).\n\nThe check runs while the command waits, so the result is always final.\n--wait makes the result the command's outcome, for deploy pipelines: it\nexits 1 with code job_failed (the result in \"details\") when the check\nfound the monitor critical or couldn't reach a verdict (inconclusive), or\nwith --fail-on warning also when it found a warning, and prints nothing\non stdout then; it exits 7 when no result arrives within --wait-timeout. Without --wait the command exits 0\nwhatever the check found.",
+      "long": "Runs the monitor's check right away (paused monitors too) and prints the\nstored result. The check is billed like a scheduled one and rate limited\n(200 per user and 600 per organization an hour).\n\nThe check runs while the command waits, so the result is always final.\n--wait makes the result the command's outcome, for deploy pipelines: it\nexits 1 with code job_failed (the result in \"details\") when the check\nfound the monitor critical or couldn't reach a verdict (inconclusive), or\nwith --fail-on warning also when it found a warning, and prints nothing\non stdout then; it exits 7 when no result arrives within --wait-timeout. Without --wait the command exits 0\nwhatever the check found.\n\nA maintenance window doesn't change any of that: --wait still fails on a\ncritical result, because it is there to tell whether the deploy worked. The\nresult says inMaintenance when one held the monitor.",
       "usage": "norcube monitor monitors run \u003cmonitor\u003e [flags]",
       "args": "\u003cmonitor\u003e",
       "example": "norcube monitor monitors run \"Shop API\"\n# Fail a deploy when the site is down after it\nnorcube monitor monitors run \"Shop API\" --wait\nnorcube monitor monitors run 7d1c2f7e-6a1f-4f5e-9b8a-1f7c2b3d4e5f --wait --fail-on warning -o json",
@@ -2189,7 +2684,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": [
         {
@@ -2270,7 +2766,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": [
         {
@@ -2341,7 +2838,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": [
         {
@@ -2412,7 +2910,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": [
         {
@@ -2660,7 +3159,7 @@
       ],
       "name": "status",
       "short": "Show the organization's monitoring status, or fail a CI job on open incidents",
-      "long": "Shows the open incidents by severity, the monitors by status, and every\nmonitor that is critical or warning. The verdict (\"status\" in JSON) comes\nfrom open incidents, which are problems the checks confirmed: critical\nwhile a critical incident is open, warning while only warnings are, else\nok.\n\n--fail-on turns the verdict into the exit code: with --fail-on critical\nthe command exits 1 (code unhealthy, the report in the error's details)\nwhile a critical incident is open, with --fail-on warning while any\nincident is open. The report is printed either way. The default, none,\nalways exits 0.",
+      "long": "Shows the open incidents by severity, the monitors by status, and every\nmonitor that is critical or warning. The verdict (\"status\" in JSON) comes\nfrom open incidents, which are problems the checks confirmed: critical\nwhile a critical incident is open, warning while only warnings are, else\nok.\n\n--fail-on turns the verdict into the exit code: with --fail-on critical\nthe command exits 1 (code unhealthy, the report in the error's details)\nwhile a critical incident is open, with --fail-on warning while any\nincident is open. The report is printed either way. The default, none,\nalways exits 0.\n\nAn incident a maintenance window holds doesn't count towards the verdict or\n--fail-on, and its monitor moves from \"problems\" to \"maintenance\". A certificate\nor domain running out isn't held: it stays in \"problems\" and still counts.",
       "usage": "norcube monitor status [flags]",
       "example": "norcube monitor status\n# Gate a deploy on Norcube Monitor\nnorcube monitor status --fail-on critical\nnorcube monitor status -o json --query problems[].name",
       "group": false,
@@ -2677,7 +3176,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": [
         {
@@ -2746,7 +3246,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": [
         {
@@ -2860,7 +3361,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": [
         {
@@ -2899,7 +3401,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": []
     },
@@ -2956,7 +3459,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": [
         {
@@ -3064,7 +3568,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": []
     },
@@ -3095,7 +3600,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": [
         {
@@ -3178,7 +3684,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": [
         {
@@ -3292,7 +3799,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": [
         {
@@ -3397,7 +3905,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": []
     },
@@ -3429,7 +3938,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": [
         {
@@ -3467,7 +3977,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": [
         {
@@ -3545,7 +4056,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": []
     },
@@ -3576,7 +4088,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": []
     },
@@ -3633,7 +4146,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": [
         {
@@ -3674,7 +4188,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": [
         {
@@ -3745,7 +4260,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": [
         {
@@ -3785,7 +4301,8 @@
         "table",
         "json",
         "yaml",
-        "text"
+        "text",
+        "id"
       ],
       "flags": [
         {

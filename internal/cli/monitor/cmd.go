@@ -1,7 +1,7 @@
 // Package monitor implements the `norcube monitor ...` command tree:
 // uptime, SSL certificate and domain expiry monitors, their check history,
-// incidents and alert channels, public status pages, and an
-// organization-wide status for scripts and CI.
+// incidents and alert channels, public status pages, maintenance windows,
+// and an organization-wide status for scripts and CI.
 package monitor
 
 import (
@@ -58,7 +58,8 @@ from Norcube's servers. A monitor is an HTTP check (optionally with a
 keyword), an SSL certificate check or a domain expiry check. Problems
 confirmed by consecutive checks open incidents, which alert through your
 alert channels (email, webhook, Slack, Discord, SMS). Status pages show
-chosen monitors to the public.
+chosen monitors to the public. Maintenance windows pause alerts for planned
+work and keep it out of uptime.
 
 Monitors and channels are named by their id or, where a command says so,
 by their exact name. Checks count towards your Norcube Monitor usage, on a
@@ -69,9 +70,11 @@ critical incident is open, and "monitor monitors run <monitor> --wait"
 fails it when the check finds the monitor down. CI tokens need a
 Norcube Monitor scope: monitor.read (everything that reads),
 monitor.check (run checks), monitor.write (manage monitors and
-incidents), monitor.channels (manage alert channels) or
+incidents), monitor.channels (manage alert channels),
 monitor.statuspages (manage status pages, post on them and manage their
-subscribers). monitor.write includes neither of the last two.`,
+subscribers) or monitor.maintenance (manage maintenance windows; one that
+shows on a published page also takes monitor.statuspages). monitor.write
+includes none of the last three.`,
 	}
 	cmd.AddCommand(
 		newStatusCmd(d),
@@ -79,6 +82,7 @@ subscribers). monitor.write includes neither of the last two.`,
 		newIncidentsCmd(d),
 		newChannelsCmd(d),
 		newStatusPagesCmd(d),
+		newMaintenanceCmd(d),
 	)
 	registerCompletions(cmd, d)
 	return cmd

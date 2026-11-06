@@ -18,18 +18,22 @@ const (
 	completeIncidents = "monitor-incidents"
 	completePages     = "monitor-status-pages"
 	completePosts     = "monitor-status-page-incidents"
+	completeWindows   = "monitor-maintenance-windows"
 )
 
 // registerCompletions offers monitor ids (named, with their status),
 // channel ids and open incident ids to the commands and flags that take
-// them, and status pages (and a page's posted incidents, once the page is
-// named) to the status page commands.
+// them, status pages (and a page's posted incidents, once the page is named)
+// to the status page commands, and maintenance windows to their commands.
 func registerCompletions(root *cobra.Command, d deps) {
 	monitors := monitorCandidates(d)
 	var walk func(c *cobra.Command)
 	walk = func(c *cobra.Command) {
 		if c.Flags().Lookup("monitor") != nil {
 			_ = c.RegisterFlagCompletionFunc("monitor", completion.Flag(completeMonitors, monitors))
+		}
+		if c.Flags().Lookup("status-page") != nil {
+			_ = c.RegisterFlagCompletionFunc("status-page", completion.Flag(completePages, pageCandidates(d)))
 		}
 		switch first := firstArg(c.Use); first {
 		case "<monitor>":
@@ -40,6 +44,8 @@ func registerCompletions(root *cobra.Command, d deps) {
 			c.ValidArgsFunction = completion.Func(completeChannels, 1, channelCandidates(d))
 		case "<incident>":
 			c.ValidArgsFunction = completion.Func(completeIncidents, 1, incidentCandidates(d))
+		case "<window>":
+			c.ValidArgsFunction = completion.Func(completeWindows, 1, windowCandidates(d))
 		case "<page>":
 			c.ValidArgsFunction = completion.Func(completePages, 1, pageCandidates(d))
 		case "<page> <incident>":
@@ -83,6 +89,28 @@ func monitorCandidates(d deps) completion.Fetcher {
 		out := make([]cobra.Completion, 0, len(res.JSON200.List))
 		for _, m := range res.JSON200.List {
 			out = append(out, fmt.Sprintf("%s\t%s (%s, %s)", m.Id, m.Name, m.Variant, monitorWord(m)))
+		}
+		return out, nil
+	}
+}
+
+func windowCandidates(d deps) completion.Fetcher {
+	return func(cmd *cobra.Command) ([]cobra.Completion, error) {
+		c, err := d.client(cmd)
+		if err != nil {
+			return nil, err
+		}
+		limit := maxPageSize
+		res, err := c.API.ListMaintenanceWindowsWithResponse(cmd.Context(), &monitor.ListMaintenanceWindowsParams{Limit: &limit})
+		if err != nil {
+			return nil, err
+		}
+		if res.JSON200 == nil {
+			return nil, fmt.Errorf("status %d", res.StatusCode())
+		}
+		out := make([]cobra.Completion, 0, len(res.JSON200.List))
+		for _, w := range res.JSON200.List {
+			out = append(out, fmt.Sprintf("%s\t%s: %s", w.Id, w.State, w.Title))
 		}
 		return out, nil
 	}

@@ -26,10 +26,14 @@ names, as arguments or one per line with --file), or every monitor the
 list filters match (--type, --status, --search). Each monitor is handled as
 its own request would be, so one refusal doesn't stop the others; the
 result lists every monitor with ok or its problem code. The command exits
-1 when any monitor failed.`,
+1 when any monitor failed.
+
+For planned work, "monitor maintenance create" is usually better than
+pausing: checks keep running, the time stays out of uptime, status pages say
+so, and it ends by itself.`,
 	}
 	for _, a := range []struct{ action, short, example string }{
-		{"pause", "Pause many monitors", `  # Maintenance window: pause everything behind api.example.com
+		{"pause", "Pause many monitors", `  # Pause everything behind api.example.com; for planned work, see "monitor maintenance"
   norcube monitor monitors bulk pause --search api.example.com --yes`},
 		{"resume", "Resume many monitors", `  norcube monitor monitors bulk resume --status paused --search api.example.com --yes`},
 		{"delete", "Delete many monitors and their history", `  norcube monitor monitors bulk delete 7d1c2f7e-6a1f-4f5e-9b8a-1f7c2b3d4e5f "Old landing page"

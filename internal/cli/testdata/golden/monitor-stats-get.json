@@ -5,6 +5,7 @@
   "from": "2026-11-02T08:00:00Z",
   "granularity": "hour",
   "inconclusive": 0,
+  "maintenance": 0,
   "maxMs": 980,
   "ok": 1420,
   "series": [],
