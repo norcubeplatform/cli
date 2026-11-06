@@ -1585,7 +1585,7 @@
       "dto.IncidentSummary": {
         "properties": {
           "mttrLast30dSeconds": {
-            "description": "MttrLast30dSeconds is the mean time to resolve of those incidents;\nabsent when none was resolved.",
+            "description": "MttrLast30dSeconds is the mean time to resolve of those incidents, leaving\nout any a maintenance window held open at some point, whose duration is\nmostly the planned work; absent when none is left.",
             "example": 1260,
             "type": "integer"
           },
@@ -1593,7 +1593,7 @@
             "$ref": "#/components/schemas/dto.IncidentOpenCounts"
           },
           "resolvedLast30d": {
-            "description": "ResolvedLast30d counts incidents resolved in the last 30 days, the\nones mttrLast30dSeconds averages: not those a maintenance window held\nopen at some point, whose duration is mostly the planned work.",
+            "description": "ResolvedLast30d counts every incident resolved in the last 30 days.",
             "example": 12,
             "type": "integer"
           },

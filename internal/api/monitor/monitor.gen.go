@@ -3037,14 +3037,13 @@ type DtoIncidentOpenCounts struct {
 
 // DtoIncidentSummary defines model for dto.IncidentSummary.
 type DtoIncidentSummary struct {
-	// MttrLast30dSeconds MttrLast30dSeconds is the mean time to resolve of those incidents;
-	// absent when none was resolved.
+	// MttrLast30dSeconds MttrLast30dSeconds is the mean time to resolve of those incidents, leaving
+	// out any a maintenance window held open at some point, whose duration is
+	// mostly the planned work; absent when none is left.
 	MttrLast30dSeconds *int                  `json:"mttrLast30dSeconds,omitempty"`
 	Open               DtoIncidentOpenCounts `json:"open"`
 
-	// ResolvedLast30d ResolvedLast30d counts incidents resolved in the last 30 days, the
-	// ones mttrLast30dSeconds averages: not those a maintenance window held
-	// open at some point, whose duration is mostly the planned work.
+	// ResolvedLast30d ResolvedLast30d counts every incident resolved in the last 30 days.
 	ResolvedLast30d int `json:"resolvedLast30d"`
 
 	// ResolvedLast7d ResolvedLast7d counts incidents resolved in the last 7 days.
