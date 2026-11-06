@@ -80,7 +80,7 @@ func TestCommandsSchemaVersion(t *testing.T) {
 	if tree.SchemaVersion != 1 {
 		t.Errorf("schemaVersion %d, want 1", tree.SchemaVersion)
 	}
-	if tree.CLIVersion == "" || len(tree.GlobalFlags) == 0 || len(tree.OutputFormats) != 4 {
+	if tree.CLIVersion == "" || len(tree.GlobalFlags) == 0 || len(tree.OutputFormats) != 5 {
 		t.Errorf("header incomplete: version %q, %d global flags, formats %v", tree.CLIVersion, len(tree.GlobalFlags), tree.OutputFormats)
 	}
 }
@@ -237,7 +237,7 @@ func TestCommandsBehaviourFields(t *testing.T) {
 	if c := byPath["norcube config edit"]; c.OutputFormats != nil {
 		t.Errorf("config edit prints no result, but lists formats %v", c.OutputFormats)
 	}
-	if c := byPath["norcube backup jobs list"]; len(c.OutputFormats) != 4 {
+	if c := byPath["norcube backup jobs list"]; len(c.OutputFormats) != 5 {
 		t.Errorf("backup jobs list formats %v", c.OutputFormats)
 	}
 	if c := byPath["norcube backup jobs list"]; slices.ContainsFunc(c.Flags, func(f flagInfo) bool { return f.Name == "output" || f.Name == "help" }) {

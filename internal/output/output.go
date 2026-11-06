@@ -1,5 +1,6 @@
-// Package output renders command results in one of four user-selected
-// formats: a human-friendly table, JSON, YAML, or tab-separated text.
+// Package output renders command results in one of the user-selected
+// formats: a human-friendly table, JSON, YAML, tab-separated text, or just
+// the result's id.
 //
 // Every service command should hand its result to Print so the global
 // --output flag works uniformly. Table rendering is opt-in per command:
@@ -65,6 +66,8 @@ func Print(w io.Writer, format string, value any) error {
 		return printTable(w, value)
 	case FormatText:
 		return printText(w, value)
+	case FormatID:
+		return printID(w, value)
 	default:
 		return errUnknownFormat(format)
 	}

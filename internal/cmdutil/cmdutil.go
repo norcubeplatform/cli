@@ -5,6 +5,7 @@
 package cmdutil
 
 import (
+	"errors"
 	"io"
 
 	"github.com/spf13/cobra"
@@ -63,7 +64,11 @@ func Print(cmd *cobra.Command, value any) error {
 		}
 		value = g
 	}
-	return output.PrintPaged(cmd.OutOrStdout(), format, noPager, value)
+	err := output.PrintPaged(cmd.OutOrStdout(), format, noPager, value)
+	if errors.Is(err, output.ErrNoID) {
+		return clierr.Usage(err)
+	}
+	return err
 }
 
 // Format is the output format of the running command.
