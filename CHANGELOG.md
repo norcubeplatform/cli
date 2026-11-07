@@ -36,8 +36,9 @@ this file collects what users and scripts need to know.
 ### Upgrading
 
 - A session from an older version moves to the new sign-in on its first
-  command, once, without signing in again. A session made before Norcube
-  recorded CLI sessions can't be moved: the CLI asks for one
+  command, once, without signing in again (`auth status` and `doctor` only
+  describe the session and leave it as it is). A session made before
+  Norcube recorded CLI sessions can't be moved: the CLI asks for one
   `norcube login`.
 - After that move, an **older `norcube` binary** on the same machine must
   sign in again: the session it knew was used up by the move.

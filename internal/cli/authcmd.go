@@ -345,6 +345,9 @@ func checkSession(ctx context.Context, flags *clictx.Flags, cfg *config.Config) 
 	ts.Profile = cfg.Profile
 	ts.HTTP = httpc
 	ts.ProbeOrgID = cfg.ActiveOrg.ID
+	// auth status and doctor describe the sign-in; they must not move
+	// an older one to OAuth.
+	ts.KeepLegacy = true
 	ctx, cancel := context.WithTimeout(ctx, sessionCheckTimeout)
 	defer cancel()
 	return ts.CheckSession(ctx)

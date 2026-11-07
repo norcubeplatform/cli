@@ -816,3 +816,27 @@ func TestLoginScopesAreKnownAndLimit(t *testing.T) {
 		t.Fatal("a monitor.read sign-in got a Backup token")
 	}
 }
+
+// With KeepLegacy an older sign-in stays as it is even when Norcube Auth
+// offers the OAuth sign-in: the older refresh is used instead.
+func TestKeepLegacyDoesNotUpgrade(t *testing.T) {
+	keyring.MockInit()
+	s := authtest.New()
+	defer s.Close()
+	ForgetMetadata(s.URL)
+	s.AddLegacySession("legacy-refresh")
+	if err := SaveRefreshToken("", s.URL, "legacy-refresh"); err != nil {
+		t.Fatal(err)
+	}
+	ts := oauthSource(t, s, AudienceSnapDB, authtest.HomeOrgID)
+	ts.KeepLegacy = true
+	if _, err := ts.Token(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	if st := s.Stats(); st.Upgrades != 0 || st.LegacyRefreshes != 1 {
+		t.Fatalf("upgrades %d legacy refreshes %d", st.Upgrades, st.LegacyRefreshes)
+	}
+	if sess, _ := LoadSession("", s.URL); sess.Format != FormatLegacy {
+		t.Fatalf("format %d", sess.Format)
+	}
+}

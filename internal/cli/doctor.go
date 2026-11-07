@@ -380,6 +380,8 @@ func sessionAndTokenChecks(ctx context.Context, flags *clictx.Flags, cfg *config
 		c := doctorCheck{Check: "token " + s.Command}
 		ts, err := flags.TokenSource(cfg, s.Audience, org.ID)
 		if err == nil {
+			// doctor describes the sign-in; it must not move it to OAuth.
+			ts.KeepLegacy = true
 			tctx, cancel := context.WithTimeout(ctx, sessionCheckTimeout)
 			_, err = ts.Token(tctx)
 			cancel()

@@ -73,6 +73,11 @@ type TokenSource struct {
 	// OrgLabel names OrgID in error messages (its slug); defaults to the id.
 	OrgLabel string
 
+	// KeepLegacy leaves an older sign-in (format 1) as it is instead of
+	// moving it to the OAuth sign-in on first use. For diagnostics such
+	// as doctor, which must not change the profile they describe.
+	KeepLegacy bool
+
 	// LockDir holds the cross-process refresh lock files. Empty means
 	// locks/ next to the config file.
 	LockDir string
@@ -267,11 +272,13 @@ func (t *TokenSource) legacyToken(ctx context.Context) (tok string, upgraded boo
 	// Move the sign-in to OAuth once, when Norcube Auth offers it. Without
 	// an answer from the metadata (an older server, or the network), the
 	// older refresh below keeps working and the move waits.
-	if m, derr := Discover(ctx, t.HTTP, t.APIBase); derr == nil {
-		if err := t.upgradeLegacy(ctx, m, refresh); err != nil {
-			return "", false, err
+	if !t.KeepLegacy {
+		if m, derr := Discover(ctx, t.HTTP, t.APIBase); derr == nil {
+			if err := t.upgradeLegacy(ctx, m, refresh); err != nil {
+				return "", false, err
+			}
+			return "", true, nil
 		}
-		return "", true, nil
 	}
 
 	received := t.clock()

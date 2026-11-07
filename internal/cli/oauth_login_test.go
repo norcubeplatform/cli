@@ -428,3 +428,26 @@ func TestLoginForceEndsThePreviousSession(t *testing.T) {
 		}
 	})
 }
+
+// doctor describes an older sign-in without moving it to OAuth, so the
+// profile is the same after the report as before.
+func TestDoctorKeepsTheOlderSignIn(t *testing.T) {
+	s := oauthEnv(t)
+	s.AddLegacySession("legacy-refresh")
+	if err := auth.SaveRefreshToken(oauthProfile, s.URL, "legacy-refresh"); err != nil {
+		t.Fatal(err)
+	}
+	checks, err := doctorReport(t)
+	if err != nil {
+		t.Fatalf("doctor: %v (%v)", err, checks)
+	}
+	if c := checks["credentials"]; !strings.Contains(c.Detail, "format 1") {
+		t.Errorf("credentials: %s (%s)", c.Status, c.Detail)
+	}
+	if st := s.Stats(); st.Upgrades != 0 {
+		t.Errorf("doctor moved the sign-in to OAuth (%d upgrades)", st.Upgrades)
+	}
+	if sess, _ := auth.LoadSession(oauthProfile, s.URL); sess.Format != auth.FormatLegacy {
+		t.Errorf("format %d after doctor, want the older one", sess.Format)
+	}
+}
