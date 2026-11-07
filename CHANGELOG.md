@@ -3,7 +3,7 @@
 Notable changes, newest first. Release notes on GitHub list every commit;
 this file collects what users and scripts need to know.
 
-## Unreleased
+## 0.26.0 (2026-11-07)
 
 ### New
 
@@ -32,6 +32,11 @@ this file collects what users and scripts need to know.
 - Fewer refreshes: a login refreshes one short-lived CLI token and
   exchanges it per service and organization without the profile lock, so
   parallel commands no longer queue behind each other.
+
+### Changes
+
+- `norcube upgrade` no longer links the deprecated `x/crypto/openpgp`
+  package (go-selfupdate 1.7.0).
 
 ### Upgrading
 
