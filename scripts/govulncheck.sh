@@ -4,13 +4,8 @@
 set -euo pipefail
 
 # Accepted advisories: ID, then why it is accepted and what removes it.
-accepted=(
-  # golang.org/x/crypto/openpgp is deprecated with no fix. It is linked
-  # only through github.com/creativeprojects/go-selfupdate's init; the CLI
-  # never verifies or creates PGP data. Goes away when `norcube upgrade`
-  # stops using go-selfupdate.
-  GO-2026-5932
-)
+# None at the moment.
+accepted=()
 
 json=$(go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 -format json ./...)
 
@@ -20,7 +15,7 @@ reachable=$(jq -r 'select(.finding != null and .finding.trace[0].function != nul
 
 failed=0
 for id in $reachable; do
-  if printf '%s\n' "${accepted[@]}" | grep -qx "$id"; then
+  if printf '%s\n' ${accepted[@]+"${accepted[@]}"} | grep -qx "$id"; then
     echo "accepted: $id"
   else
     echo "reachable vulnerability: $id (https://pkg.go.dev/vuln/$id)"

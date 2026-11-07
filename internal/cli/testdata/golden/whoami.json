@@ -11,5 +11,8 @@
   },
   "profile": "default",
   "environment": "custom",
-  "api": "http://backend"
+  "api": "http://backend",
+  "scopes": [
+    "full"
+  ]
 }

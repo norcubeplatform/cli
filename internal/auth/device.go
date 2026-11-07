@@ -18,7 +18,10 @@ import (
 // Device sign-in (OAuth 2.0 Device Authorization Grant, RFC 8628) for
 // machines without a usable browser: the CLI shows a short code, the
 // person approves it at <web app>/device on any device (a phone works),
-// and the CLI receives the same session a browser login gives.
+// and the CLI receives the same session a browser login gives. With
+// Metadata it runs against the OAuth server (/oauth/device/code, polled
+// at the token endpoint) and asks for Scopes; without, against the older
+// /auth/cli/device endpoints.
 
 // DeviceClientID identifies the CLI to Norcube Auth's device endpoints.
 const DeviceClientID = "norcube-cli"
@@ -39,6 +42,11 @@ type DeviceCode struct {
 type DeviceLoginOptions struct {
 	AuthURL string
 	HTTP    *http.Client
+	// Metadata selects the OAuth device flow (it must support it, see
+	// Metadata.SupportsDevice); nil means the older flow.
+	Metadata *Metadata
+	// Scopes to ask for in the OAuth flow; empty means full.
+	Scopes []string
 	// Hostname labels the session under Account › CLI sessions.
 	Hostname string
 	// OnCode is called once with the code to show the person.
@@ -100,6 +108,10 @@ func DeviceLogin(ctx context.Context, opts DeviceLoginOptions) (*CallbackPayload
 		payload, pollErr, err := pollDeviceToken(ctx, opts, code.DeviceCode)
 		switch {
 		case err != nil:
+			var fatal *fatalPollError
+			if errors.As(err, &fatal) {
+				return nil, fatal.err
+			}
 			// A dropped connection or a 5xx: keep trying, more slowly,
 			// while the code is valid.
 			if ctx.Err() != nil {
@@ -144,12 +156,25 @@ func requestDeviceCode(ctx context.Context, opts DeviceLoginOptions) (*DeviceCod
 	if host == "" {
 		host = deviceName()
 	}
-	if host != "" {
+	endpoint := opts.AuthURL + "/auth/cli/device/code"
+	if opts.Metadata != nil {
+		endpoint = opts.Metadata.DeviceAuthorizationEndpoint
+		form.Set("scope", requestScope(opts.Scopes))
+		form.Set("client_user_agent", truncate(transport.UserAgent()))
+		if host != "" {
+			form.Set("device_name", truncate(host))
+		}
+	} else if host != "" {
 		form.Set("hostname", truncate(host))
 	}
-	resp, raw, err := postForm(ctx, opts.HTTP, opts.AuthURL+"/auth/cli/device/code", form, true)
+	resp, raw, err := postForm(ctx, opts.HTTP, endpoint, form, true)
 	if err != nil {
 		return nil, fmt.Errorf("start device sign-in: %w", err)
+	}
+	if opts.Metadata != nil && resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusTooManyRequests {
+		if oe := parseOAuthError(resp.StatusCode, raw); oe != nil {
+			return nil, oauthFailure("start device sign-in", oe)
+		}
 	}
 	if resp.StatusCode != http.StatusOK {
 		var body struct {
@@ -187,14 +212,30 @@ func pollDeviceToken(ctx context.Context, opts DeviceLoginOptions, deviceCode st
 		"device_code": {deviceCode},
 		"client_id":   {DeviceClientID},
 	}
+	endpoint := opts.AuthURL + "/auth/cli/device/token"
+	if opts.Metadata != nil {
+		endpoint = opts.Metadata.TokenEndpoint
+	}
 	// Not retried by the transport: the loop owns the pacing, and a poll
 	// repeated behind its back would earn a slow_down.
-	resp, raw, err := postForm(ctx, opts.HTTP, opts.AuthURL+"/auth/cli/device/token", form, false)
+	resp, raw, err := postForm(ctx, opts.HTTP, endpoint, form, false)
 	if err != nil {
 		return nil, "", err
 	}
 	switch resp.StatusCode {
 	case http.StatusOK:
+		if opts.Metadata != nil {
+			// The approved code is used up: asking again can't help.
+			var tr tokenEndpointResponse
+			if err := json.Unmarshal(raw, &tr); err != nil || tr.AccessToken == "" {
+				return nil, "", &fatalPollError{errors.New("device sign-in: Norcube Auth returned no session")}
+			}
+			p, err := signInPayload(&tr)
+			if err != nil {
+				return nil, "", &fatalPollError{err}
+			}
+			return p, "", nil
+		}
 		var payload CallbackPayload
 		if err := json.Unmarshal(raw, &payload); err != nil {
 			return nil, "", fmt.Errorf("decode device sign-in: %w", err)
@@ -213,6 +254,12 @@ func pollDeviceToken(ctx context.Context, opts DeviceLoginOptions, deviceCode st
 	}
 	return nil, "", fmt.Errorf("device sign-in: %s", resp.Status)
 }
+
+// fatalPollError ends the polling loop: retrying can't succeed.
+type fatalPollError struct{ err error }
+
+func (e *fatalPollError) Error() string { return e.err.Error() }
+func (e *fatalPollError) Unwrap() error { return e.err }
 
 func postForm(ctx context.Context, httpc *http.Client, endpoint string, form url.Values, retryable bool) (*http.Response, []byte, error) {
 	// #nosec G704 -- the Norcube Auth URL the user configured.

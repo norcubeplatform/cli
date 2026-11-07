@@ -151,7 +151,7 @@ func TestRefreshAcrossProcesses(t *testing.T) {
 	}
 	// expires_in 31 with the 30s margin: each token is good for ~1s.
 	srv := &rotatingServer{expiresIn: 31, current: "refresh-0"}
-	hs := httptest.NewServer(srv)
+	hs := httptest.NewServer(olderServer(srv))
 	defer hs.Close()
 
 	storeDir, lockDir := t.TempDir(), t.TempDir()
@@ -228,7 +228,7 @@ func TestRefreshAcrossProcesses(t *testing.T) {
 // exchange, not one each.
 func TestConcurrentFirstTokenExchangesOnce(t *testing.T) {
 	srv := &rotatingServer{expiresIn: 300, current: "refresh-0"}
-	hs := httptest.NewServer(srv)
+	hs := httptest.NewServer(olderServer(srv))
 	defer hs.Close()
 	prev := SetStore(fileStore{dir: t.TempDir()})
 	defer SetStore(prev)
@@ -249,14 +249,14 @@ func TestConcurrentFirstTokenExchangesOnce(t *testing.T) {
 // whose JWT exp looks past (a local clock running fast) is still reused.
 func TestExpiryUsesExpiresInNotLocalClockVsJWT(t *testing.T) {
 	var exchanges atomic.Int32
-	hs := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+	hs := httptest.NewServer(olderServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		exchanges.Add(1)
 		_ = json.NewEncoder(w).Encode(map[string]any{
 			// exp claim already in the past by the local clock
 			"access_token": fakeJWT(t, time.Now().Add(-time.Hour)),
 			"expires_in":   300,
 		})
-	}))
+	})))
 	defer hs.Close()
 	prev := SetStore(fileStore{dir: t.TempDir()})
 	defer SetStore(prev)

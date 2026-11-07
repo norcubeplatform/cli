@@ -46,7 +46,7 @@ func TestTokenUsesCachedAccessToken(t *testing.T) {
 func TestTokenRefreshesAndPersistsRotation(t *testing.T) {
 	keyring.MockInit()
 	access := ""
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	srv := httptest.NewServer(olderServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/oauth/token" {
 			t.Errorf("unexpected path %s", r.URL.Path)
 		}
@@ -58,7 +58,7 @@ func TestTokenRefreshesAndPersistsRotation(t *testing.T) {
 			"access_token":  access,
 			"refresh_token": "rotated-refresh",
 		})
-	}))
+	})))
 	defer srv.Close()
 
 	access = fakeJWT(t, time.Now().Add(time.Hour))
@@ -99,10 +99,10 @@ func TestTokenMissingRefreshIsLoginRequired(t *testing.T) {
 
 func TestTokenRejectedRefreshIsLoginRequired(t *testing.T) {
 	keyring.MockInit()
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+	srv := httptest.NewServer(olderServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		fmt.Fprint(w, `{"msg":"refresh token revoked"}`)
-	}))
+	})))
 	defer srv.Close()
 
 	if err := SaveRefreshToken("", srv.URL, "revoked"); err != nil {
@@ -114,9 +114,9 @@ func TestTokenRejectedRefreshIsLoginRequired(t *testing.T) {
 		t.Fatalf("expected ErrLoginRequired on 401, got %v", err)
 	}
 	// A transient 500 must NOT read as login-required.
-	srv2 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+	srv2 := httptest.NewServer(olderServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
-	}))
+	})))
 	defer srv2.Close()
 	if err := SaveRefreshToken("", srv2.URL, "fine"); err != nil {
 		t.Fatal(err)
@@ -144,4 +144,16 @@ func newTestSource(t *testing.T, api string) *TokenSource {
 	ts := NewTokenSource(api, "aud", "org-1")
 	ts.LockDir = t.TempDir()
 	return ts
+}
+
+// olderServer plays a Norcube Auth without the OAuth sign-in for the CLI:
+// its metadata is missing, so the older sign-in stays in use.
+func olderServer(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/.well-known/oauth-authorization-server" {
+			http.NotFound(w, r)
+			return
+		}
+		h.ServeHTTP(w, r)
+	})
 }

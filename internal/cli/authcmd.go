@@ -49,6 +49,11 @@ type authStatus struct {
 	User            string            `json:"user,omitempty" yaml:"user,omitempty"`
 	Organization    string            `json:"organization,omitempty" yaml:"organization,omitempty"`
 	AccessExpiresAt *time.Time        `json:"accessExpiresAt,omitempty" yaml:"accessExpiresAt,omitempty"`
+	// CredentialFormat is the stored login's format: 1 for the older
+	// sign-in, 2 for the OAuth sign-in; absent when nothing is stored.
+	CredentialFormat int `json:"credentialFormat,omitempty" yaml:"credentialFormat,omitempty"`
+	// Scopes are the stored login's scopes (see whoami), or a CI token's.
+	Scopes []string `json:"scopes,omitempty" yaml:"scopes,omitempty"`
 	// CIToken describes the CI token in NORCUBE_TOKEN / --token-file, when
 	// the invocation uses one (learned from its exchanges).
 	CIToken *ciTokenStatus `json:"ciToken,omitempty" yaml:"ciToken,omitempty"`
@@ -89,6 +94,9 @@ whether the stored session still works. SIGNED IN is:
 A cached access token that hasn't expired counts as "yes" without a
 request: it was minted from the session within the last few minutes.
 --offline skips the check and only looks at what is stored locally.
+
+SCOPES is what the login may do: full, or the scopes ` + "`norcube login --scopes`" + `
+limited it to (a CI token's scopes when one is in use).
 
 Exits with 4 when the profile can't be used ("no" or "revoked/expired"), so
 scripts can check before they start: ` + "`norcube auth status >/dev/null || norcube login`" + `.
@@ -140,13 +148,20 @@ exits 0.`,
 				}
 			}
 			if err := cmdutil.Print(cmd, output.Table[authStatus]{
-				Headers: []string{"PROFILE", "ENVIRONMENT", "SIGNED IN", "USER", "ORGANIZATION", "STORE", "TOKEN EXPIRES"},
+				Headers: []string{"PROFILE", "ENVIRONMENT", "SIGNED IN", "USER", "ORGANIZATION", "SCOPES", "STORE", "TOKEN EXPIRES"},
 				Rows: func(s authStatus) []string {
 					exp := "-"
 					if s.AccessExpiresAt != nil {
 						exp = output.When(*s.AccessExpiresAt)
 					}
-					return []string{s.Profile, s.Environment, signedInLabel(s), orDash(s.User), orDash(s.Organization), s.CredentialStore, exp}
+					scopes := "-"
+					switch {
+					case s.CIToken != nil:
+						scopes = strings.Join(s.Scopes, ", ")
+					case s.Scopes != nil:
+						scopes = auth.DescribeScopes(s.Scopes)
+					}
+					return []string{s.Profile, s.Environment, signedInLabel(s), orDash(s.User), orDash(s.Organization), orDash(scopes), s.CredentialStore, exp}
 				},
 				Items: rows,
 			}); err != nil {
@@ -209,6 +224,10 @@ func statusOf(r *resolve.Result) authStatus {
 	default:
 		s.cfg = cfg
 		s.SignedIn = auth.HasCredentials(cfg.Profile, cfg.Auth)
+		if st, err := auth.LoadSession(cfg.Profile, cfg.Auth); err == nil {
+			s.CredentialFormat = st.Format
+		}
+		s.Scopes = loginScopes(cfg)
 		s.setAccessExpiry()
 	}
 	return s
@@ -220,6 +239,12 @@ func (s *authStatus) setAccessExpiry() {
 		return
 	}
 	if exp := auth.AccessExpiry(s.cfg.Profile, s.cfg.Auth, auth.AudienceAuth, s.cfg.ActiveOrg.ID); !exp.IsZero() {
+		s.AccessExpiresAt = &exp
+		return
+	}
+	// An OAuth sign-in caches only its CLI access token between commands.
+	if st, err := auth.LoadSession(s.cfg.Profile, s.cfg.Auth); err == nil && !st.CLIAccessExpiresAt.IsZero() {
+		exp := st.CLIAccessExpiresAt
 		s.AccessExpiresAt = &exp
 	}
 }
@@ -292,6 +317,7 @@ func checkCIToken(ctx context.Context, ci *auth.CIExchanger, s *authStatus) {
 	case info != nil:
 		sort.Strings(info.Scopes)
 		s.CIToken = info
+		s.Scopes = info.Scopes
 		s.Session, s.SignedIn = auth.SessionActive, true
 		s.User = "CI token · " + info.Name
 		exp := info.ExpiresAt
@@ -319,6 +345,9 @@ func checkSession(ctx context.Context, flags *clictx.Flags, cfg *config.Config) 
 	ts.Profile = cfg.Profile
 	ts.HTTP = httpc
 	ts.ProbeOrgID = cfg.ActiveOrg.ID
+	// auth status and doctor describe the sign-in; they must not move
+	// an older one to OAuth.
+	ts.KeepLegacy = true
 	ctx, cancel := context.WithTimeout(ctx, sessionCheckTimeout)
 	defer cancel()
 	return ts.CheckSession(ctx)

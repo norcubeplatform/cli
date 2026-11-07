@@ -31,6 +31,15 @@ func Describe(err error) *clierr.Error {
 	if err == nil {
 		return nil
 	}
+	var scopeErr *auth.ScopeError
+	if errors.As(err, &scopeErr) {
+		return &clierr.Error{
+			Code:    clierr.CodeInsufficientScope,
+			Message: scopeErr.Error(),
+			Hint:    limitedLoginHint(scopeErr.Scopes),
+			Err:     err,
+		}
+	}
 	var ce *clierr.Error
 	if errors.As(err, &ce) {
 		out := *ce
@@ -43,6 +52,11 @@ func Describe(err error) *clierr.Error {
 		if usingCIToken && out.Hint == "" &&
 			(out.Code == clierr.CodePermissionDenied || out.Code == clierr.CodeInsufficientScope) {
 			out.Hint = ciRefusalHint
+		}
+		if !usingCIToken && out.Hint == "" && out.Code == clierr.CodeInsufficientScope {
+			if scopes := selectedLoginScopes(); scopes != nil {
+				out.Hint = limitedLoginHint(scopes)
+			}
 		}
 		return &out
 	}
@@ -73,6 +87,28 @@ func Describe(err error) *clierr.Error {
 		e.Code = clierr.CodeTimeout
 	}
 	return e
+}
+
+// limitedLoginHint explains a refusal under a login limited by --scopes.
+func limitedLoginHint(scopes []string) string {
+	return fmt.Sprintf("This login is limited to %s; run `%s` for full access.", auth.DescribeScopes(scopes), LoginCommand())
+}
+
+// selectedAuthURL is the running command's auth URL, for
+// selectedLoginScopes.
+var selectedAuthURL string
+
+// selectedLoginScopes are the scopes of the running command's login when
+// --scopes limited it; nil for a full login or none.
+func selectedLoginScopes() []string {
+	if selectedAuthURL == "" {
+		return nil
+	}
+	s, err := auth.LoadSession(selectedProfile, selectedAuthURL)
+	if err != nil || s.Format != auth.FormatOAuth || auth.ScopesFull(s.Scopes) {
+		return nil
+	}
+	return s.Scopes
 }
 
 // usingCIToken is set when the running command authenticates with a CI

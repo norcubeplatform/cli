@@ -5,6 +5,8 @@ organization:
     name: Home
     slug: home
 profile: default
+scopes:
+    - full
 user:
     email: dev@example.com
     id: user-1

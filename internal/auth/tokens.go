@@ -41,9 +41,15 @@ const (
 // the rest of the CLI should ask for "give me a token I can use right now."
 //
 // It is safe for concurrent use, and refreshes are serialized across
-// processes too: the server rotates the refresh token on every exchange
-// and rejects the old one, so two exchanges racing with the same refresh
+// processes too: the server rotates the refresh token on every refresh
+// and rejects the old one, so two refreshes racing with the same refresh
 // token would sign the user out.
+//
+// An OAuth sign-in (credentials format 2) refreshes only its CLI access
+// token under the lock and exchanges it per (audience, organization)
+// without it; see oauthsession.go. An older sign-in (format 1) refreshes
+// straight into each token, under the lock, and is moved to OAuth on its
+// first refresh when Norcube Auth offers it.
 type TokenSource struct {
 	// Profile names whose credentials are used ("" is the default profile).
 	Profile  string
@@ -66,6 +72,11 @@ type TokenSource struct {
 	ProbeOrgID string
 	// OrgLabel names OrgID in error messages (its slug); defaults to the id.
 	OrgLabel string
+
+	// KeepLegacy leaves an older sign-in (format 1) as it is instead of
+	// moving it to the OAuth sign-in on first use. For diagnostics such
+	// as doctor, which must not change the profile they describe.
+	KeepLegacy bool
 
 	// LockDir holds the cross-process refresh lock files. Empty means
 	// locks/ next to the config file.
@@ -122,9 +133,19 @@ func (t *TokenSource) CheckSession(ctx context.Context) (SessionState, error) {
 	if !HasCredentials(t.Profile, t.APIBase) {
 		return SessionNone, nil
 	}
-	_, err := t.Token(ctx)
+	var err error
+	if s, _ := LoadSession(t.Profile, t.APIBase); s.Format == FormatOAuth && t.OrgID == "" {
+		// No organization to exchange for: a CLI access token (cached,
+		// or from a refresh) proves the sign-in works.
+		_, err = t.cliAccess(ctx, "")
+	} else {
+		_, err = t.Token(ctx)
+	}
 	switch {
 	case err == nil:
+		return SessionActive, nil
+	case isLimitedScope(err):
+		// The exchange checks the sign-in before its scopes.
 		return SessionActive, nil
 	case errors.Is(err, ErrOrgAccessDenied):
 		// Norcube Auth checks the session before the organization, so a
@@ -187,8 +208,26 @@ func (t *TokenSource) Token(ctx context.Context) (string, error) {
 	if t.Static != "" {
 		return t.Static, nil
 	}
-	if tok, ok := t.cached(); ok {
+	if tok, ok := t.memCached(); ok {
 		return tok, nil
+	}
+	c, err := loadCreds(t.Profile, t.APIBase)
+	if err == nil && c.format() == FormatOAuth && c.RefreshToken != "" {
+		return t.oauthToken(ctx)
+	}
+	tok, upgraded, err := t.legacyToken(ctx)
+	if upgraded {
+		return t.oauthToken(ctx)
+	}
+	return tok, err
+}
+
+// legacyToken is Token for an older sign-in (format 1). upgraded reports
+// that the profile now holds an OAuth sign-in (moved by this call, or
+// by another process meanwhile), which the caller then uses.
+func (t *TokenSource) legacyToken(ctx context.Context) (tok string, upgraded bool, err error) {
+	if tok, ok := t.cached(); ok {
+		return tok, false, nil
 	}
 
 	// In-process: one refresh at a time; the others wait and then find
@@ -197,50 +236,66 @@ func (t *TokenSource) Token(ctx context.Context) (string, error) {
 	select {
 	case t.sem <- struct{}{}:
 	case <-ctx.Done():
-		return "", ctx.Err()
+		return "", false, ctx.Err()
 	}
 	defer func() { <-t.sem }()
 	if tok, ok := t.cached(); ok {
-		return tok, nil
+		return tok, false, nil
 	}
 
 	// Cross-process: every token of this profile shares one refresh
 	// token, so every refresh for the profile takes the same lock.
 	unlock, err := LockProfile(ctx, t.LockDir, t.Profile, t.APIBase, t.LockTimeout)
 	if err != nil {
-		return "", err
+		return "", false, err
 	}
 	defer unlock()
 	// Another process may have refreshed while we waited for the lock.
 	if tok, ok := t.cached(); ok {
-		return tok, nil
+		return tok, false, nil
 	}
 
 	// Read the refresh token only now, under the lock: a value read
 	// before it may already have been rotated away by another process.
-	refresh, err := LoadRefreshToken(t.Profile, t.APIBase)
-	if err != nil {
-		if errors.Is(err, ErrNotLoggedIn) {
-			return "", err
+	c, err := loadCreds(t.Profile, t.APIBase)
+	switch {
+	case err != nil:
+		return "", false, fmt.Errorf("%w: %v", ErrLoginRequired, err)
+	case c.RefreshToken == "":
+		return "", false, ErrNotLoggedIn
+	case c.format() == FormatOAuth:
+		// Another process moved it to OAuth (or signed in) meanwhile.
+		return "", true, nil
+	}
+	refresh := c.RefreshToken
+
+	// Move the sign-in to OAuth once, when Norcube Auth offers it. Without
+	// an answer from the metadata (an older server, or the network), the
+	// older refresh below keeps working and the move waits.
+	if !t.KeepLegacy {
+		if m, derr := Discover(ctx, t.HTTP, t.APIBase); derr == nil {
+			if err := t.upgradeLegacy(ctx, m, refresh); err != nil {
+				return "", false, err
+			}
+			return "", true, nil
 		}
-		return "", fmt.Errorf("%w: %v", ErrLoginRequired, err)
 	}
 
 	received := t.clock()
 	tr, err := t.exchangeRefresh(ctx, refresh, t.Audience, t.OrgID)
 	if err != nil {
 		if errors.Is(err, errOrgRefused) {
-			return "", &OrgAccessError{Org: t.orgLabel()}
+			return "", false, &OrgAccessError{Org: t.orgLabel()}
 		}
 		if errors.Is(err, ErrLoginRequired) {
-			return "", t.diagnose(ctx, refresh, err)
+			return "", false, t.diagnose(ctx, refresh, err)
 		}
-		return "", err
+		return "", false, err
 	}
 	if err := t.saveExchange(tr, received, t.Audience, t.OrgID); err != nil {
-		return "", err
+		return "", false, err
 	}
-	return tr.AccessToken, nil
+	return tr.AccessToken, false, nil
 }
 
 // diagnose runs after an exchange for OrgID was refused with a bare 401.

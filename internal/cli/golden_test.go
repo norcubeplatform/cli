@@ -29,9 +29,9 @@ var update = flag.Bool("update", false, "rewrite the golden files")
 var goldenData = map[string]string{ // #nosec G101 -- API fixtures, no credentials
 	"GET /auth/me": `{"id":"user-1","name":"Dev Eloper","email":"dev@example.com","avatarUrl":""}`,
 	"GET /auth/me/sessions": `[
-		{"id":"sess-1","kind":"cli","hostname":"dev-laptop","client":{"name":"norcube","version":"0.17.0","os":"darwin","arch":"arm64"},"ip_address":"203.0.113.24","created_at":"2026-10-16T09:00:00Z","last_used_at":"2026-10-28T11:42:00Z","expires_at":"2026-11-27T11:42:00Z","current":true},
-		{"id":"sess-2","kind":"cli","hostname":"ci-runner-04","client":{"name":"norcube","version":"0.16.0","os":"linux","arch":"amd64"},"ip_address":"198.51.100.7","created_at":"2026-09-28T08:00:00Z","last_used_at":"2026-10-27T03:10:00Z","expires_at":"2026-11-26T03:10:00Z","current":false},
-		{"id":"sess-3","kind":"cli","hostname":null,"client":{"name":null,"version":null,"os":null,"arch":null},"ip_address":null,"created_at":"2026-08-29T10:00:00Z","last_used_at":"2026-10-19T10:00:00Z","expires_at":"2026-11-18T10:00:00Z","current":false}
+		{"id":"sess-1","kind":"cli","hostname":"dev-laptop","client":{"name":"norcube","version":"0.17.0","os":"darwin","arch":"arm64"},"ip_address":"203.0.113.24","created_at":"2026-10-16T09:00:00Z","last_used_at":"2026-10-28T11:42:00Z","expires_at":"2026-11-27T11:42:00Z","current":true,"oauth_grant_id":"6a1f0c7e-2b3d-4e5f-8a9b-0c1d2e3f4a5b","scopes":["full","org.read","offline_access"]},
+		{"id":"sess-2","kind":"cli","hostname":"ci-runner-04","client":{"name":"norcube","version":"0.16.0","os":"linux","arch":"amd64"},"ip_address":"198.51.100.7","created_at":"2026-09-28T08:00:00Z","last_used_at":"2026-10-27T03:10:00Z","expires_at":"2026-11-26T03:10:00Z","current":false,"oauth_grant_id":"7b2e1d8f-3c4e-4f6a-9b0c-1d2e3f4a5b6c","scopes":["backup.read","langsync.sync","org.read","offline_access"]},
+		{"id":"sess-3","kind":"cli","hostname":null,"client":{"name":null,"version":null,"os":null,"arch":null},"ip_address":null,"created_at":"2026-08-29T10:00:00Z","last_used_at":"2026-10-19T10:00:00Z","expires_at":"2026-11-18T10:00:00Z","current":false,"oauth_grant_id":null,"scopes":null}
 	]`,
 	"GET /iam/ci-tokens": `[
 		{"id":"0b7a4c8e-2d3f-4a1b-9c6d-5e4f3a2b1c0d","name":"GitHub Actions deploy","preview":"x7Kq","scopes":["langsync.sync"],"created_by":"user-1","created_at":"2026-10-01T09:00:00Z","expires_at":"2026-12-30T09:00:00Z","last_used_at":"2026-10-28T11:42:00Z","last_used_ip":"203.0.113.24","revoked_at":null,"revoked_by":null,"status":"active"},

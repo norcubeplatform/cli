@@ -38,7 +38,12 @@ func TestDoctorHealthyProfile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("doctor failed on a healthy setup: %v (%v)", err, checks)
 	}
-	for _, name := range []string{"cli version", "config file", "profile", "organization", "credentials", "clock", "session", "endpoint auth", "endpoint langsync", "token backup", "token langsync", "token domainradar"} {
+	// The fake Norcube Auth has no OAuth sign-in, so the session stays an
+	// older one, which doctor flags.
+	if c := checks["credentials"]; c.Status != checkWarn || !strings.Contains(c.Detail, "older sign-in (format 1)") {
+		t.Errorf("credentials: %s (%s)", c.Status, c.Detail)
+	}
+	for _, name := range []string{"cli version", "config file", "profile", "organization", "clock", "session", "endpoint auth", "endpoint langsync", "token backup", "token langsync", "token domainradar"} {
 		c, ok := checks[name]
 		if !ok {
 			t.Errorf("no %q check", name)

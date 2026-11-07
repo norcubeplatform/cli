@@ -53,8 +53,10 @@ func NewRootCmd() *cobra.Command {
 				return err
 			}
 			selectedOutput = flags.Output
+			selectedAuthURL = ""
 			if res, err := flags.Resolve(); err == nil {
 				selectedProfile = res.Profile.Value
+				selectedAuthURL = res.Endpoints[config.ServiceAuth].Value
 				// --profile or NORCUBE_PROFILE picked it; the hint then
 				// names it even when it is the default.
 				selectedProfileExplicit = !strings.HasPrefix(res.Profile.Source, "default")

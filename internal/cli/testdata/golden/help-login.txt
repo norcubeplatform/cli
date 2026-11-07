@@ -1,0 +1,63 @@
+Opens the Norcube sign-in page in your default browser. After you approve
+the sign-in there, the browser hands the CLI a one-time code over a localhost
+callback (127.0.0.1), which the CLI exchanges for its session (OAuth 2.0 with
+PKCE). The session is stored for the selected profile (--profile,
+NORCUBE_PROFILE or the default profile) in your operating system's keyring
+(Keychain / Secret Service / Windows Credential Manager), or in a file when
+no keyring is available.
+
+Logging in to a profile that doesn't exist yet creates it. Its
+organization is --org when given, else the profile's organization, else
+your default organization.
+
+By default the login can do everything you can do in the dashboard. With
+--scopes it is limited to the scopes you list, the same scopes CI tokens
+use (for example --scopes backup.read,langsync.sync); commands outside them
+fail with exit code 5. Your own permissions in each organization apply
+either way. Every login shows up under Account › CLI sessions and Connected
+apps in the dashboard, where you can revoke it.
+
+With --no-browser the CLI only prints the sign-in URL. Open it in any
+browser on this machine; the page hands the code back to the CLI over
+127.0.0.1.
+
+With --device you approve the sign-in on any other device instead, such as
+your phone or laptop: the CLI shows a short code and a page to enter it on
+(and a QR code when the terminal can show one). Use it over SSH, in a
+container or on any machine without a browser. Only approve a code you
+started yourself: Norcube never asks you for one.
+
+Usage:
+  norcube login [flags]
+
+Examples:
+  norcube login
+  norcube login --profile client-acme
+  norcube login --org acme
+  norcube login --scopes backup.read,langsync.sync
+  norcube login --device
+  norcube login --no-browser
+  norcube login --force
+
+Flags:
+      --device           Approve the sign-in on another device (phone, laptop) with a short code; for SSH and headless machines
+      --force            Re-authenticate even if a valid session already exists; the previous session is ended on Norcube
+  -h, --help             help for login
+      --no-browser       Print the login URL instead of opening a browser
+      --scopes strings   Limit the login to these scopes, comma-separated (default full: everything you can do in the dashboard); one of full, backup.read, backup.write, backup.verify, domainradar.check, langsync.read, langsync.sync, langsync.write, billing.read, cms.read, cms.write, monitor.read, monitor.check, monitor.write, monitor.channels, monitor.statuspages, monitor.maintenance
+
+Global Flags:
+      --auth-url string            Override the auth service base URL, same as --endpoint-url auth=URL (env: NORCUBE_AUTH_URL)
+      --cli-connect-timeout int    Seconds to wait for a connection, 0 for no limit (env: NORCUBE_CONNECT_TIMEOUT) (default 10)
+      --cli-read-timeout int       Seconds to wait for each API response, 0 for no limit (env: NORCUBE_READ_TIMEOUT) (default 60)
+      --debug                      Print every HTTP request and response to stderr, with credentials redacted (env: NORCUBE_DEBUG=1)
+      --endpoint-url stringArray   Override a service endpoint, service=url (repeatable; services: auth, web_app, snapdb, langsync, domainradar, billing, monitor, prompthub)
+      --max-attempts int           Attempts for a request that hit throttling or a transient failure, 1 disables retries (env: NORCUBE_MAX_ATTEMPTS) (default 3)
+      --no-color                   Disable color and styling (env: NO_COLOR, CLICOLOR=0)
+      --no-pager                   Disable automatic paging of long table output (env: $PAGER controls the pager, default: less)
+      --org string                 Run this command against a specific organization, id or slug (env: NORCUBE_ORG)
+  -o, --output string              Output format: table | json | yaml | text | id (env: NORCUBE_OUTPUT) (default "table")
+      --profile string             Use a named profile from the config file (env: NORCUBE_PROFILE)
+      --query string               JMESPath expression applied to the result before it is printed, e.g. "[?status=='failed'].jobId"
+      --token-file string          Read an access token from this file instead of the profile's credentials (env: NORCUBE_TOKEN holds one directly)
+      --web-app string             Override the web app base URL used for browser login (env: NORCUBE_WEB_APP)

@@ -5,8 +5,10 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/norcubeplatform/cli/internal/auth"
 	"github.com/norcubeplatform/cli/internal/clictx"
 	"github.com/norcubeplatform/cli/internal/cmdutil"
+	"github.com/norcubeplatform/cli/internal/config"
 	"github.com/norcubeplatform/cli/internal/output"
 )
 
@@ -44,6 +46,7 @@ func newWhoamiCmd() *cobra.Command {
 				Profile:      cfg.Profile,
 				Environment:  cfg.Environment,
 				API:          cfg.Auth,
+				Scopes:       loginScopes(cfg),
 			}
 			active := "(none — run `norcube org use <slug>`)"
 			if res.Organization != nil {
@@ -53,6 +56,7 @@ func newWhoamiCmd() *cobra.Command {
 				{Name: "User", Value: fmt.Sprintf("%s <%s>", me.Name, me.Email)},
 				{Name: "User ID", Value: me.ID},
 				{Name: "Active org", Value: active},
+				{Name: "Access", Value: accessLabel(res.Scopes)},
 				{Name: "Profile", Value: fmt.Sprintf("%s (%s)", cfg.Profile, cfg.Environment)},
 				{Name: "API", Value: cfg.Auth},
 			}})
@@ -66,4 +70,31 @@ type whoamiResult struct {
 	Profile      string  `json:"profile" yaml:"profile"`
 	Environment  string  `json:"environment" yaml:"environment"`
 	API          string  `json:"api" yaml:"api"`
+	// Scopes are the login's scopes: ["full"] for the older sign-in,
+	// what Norcube Auth granted for an OAuth sign-in, absent for a static
+	// access token.
+	Scopes []string `json:"scopes,omitempty" yaml:"scopes,omitempty"`
+}
+
+// loginScopes are the scopes of cfg's stored login (see whoamiResult).
+func loginScopes(cfg *config.Config) []string {
+	s, err := auth.LoadSession(cfg.Profile, cfg.Auth)
+	switch {
+	case err != nil || s.Format == 0:
+		return nil
+	case s.Format == auth.FormatLegacy || len(s.Scopes) == 0:
+		return []string{auth.ScopeFull}
+	}
+	return s.Scopes
+}
+
+// accessLabel reads like "full" or "limited to backup.read, langsync.sync".
+func accessLabel(scopes []string) string {
+	switch {
+	case scopes == nil:
+		return "-"
+	case auth.ScopesFull(scopes):
+		return auth.ScopeFull
+	}
+	return "limited to " + auth.DescribeScopes(scopes)
 }

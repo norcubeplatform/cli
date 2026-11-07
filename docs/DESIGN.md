@@ -458,15 +458,18 @@ themselves ([README, Verify a release](../README.md#verify-a-release)).
 ### P12. Authentication security model
 
 **Commitment.**
-- **People sign in in the browser.** `nrc login` opens the dashboard,
-  the person approves while signed in, and the CLI receives its own CLI
-  session on a loopback listener bound to `127.0.0.1` with a random
-  `state`; only the dashboard's origin may call back. `--no-browser`
-  prints the URL; `--device` uses the device authorization flow (a short
-  code approved on any device). Nothing is pasted.
+- **People sign in in the browser.** `nrc login` is a first-party OAuth
+  2.0 client: the browser approves the sign-in and hands a one-time code
+  to a loopback listener on `127.0.0.1`, and the CLI exchanges it with
+  PKCE. The callback checks `state` and `iss`; a request with another
+  `state` is refused and the login keeps waiting. Metadata endpoints must
+  share the issuer's origin. `--no-browser` prints the URL; `--device`
+  uses the device authorization flow (a short code approved on any
+  device). `--scopes` limits a login. Nothing is pasted.
 - **Sessions are visible and revocable.** Each login is a named CLI
-  session (`nrc auth sessions list | revoke`, and in the dashboard);
-  `logout` ends it on Norcube Auth, `logout --all` for every profile.
+  session (`nrc auth sessions list | revoke`, and under Connected apps in
+  the dashboard); `logout` revokes it on Norcube Auth, `logout --all` for
+  every profile.
 - **One refresh token per profile, short-lived access tokens per
   (audience, organization).** Access tokens are minted per service and
   cached with an expiry computed from `expires_in` at receipt (immune to
@@ -503,11 +506,6 @@ expiring, revocable credential instead.
 server that revokes on reuse), `keyring_concurrency_test.go`,
 `citoken_test.go`, `device_test.go`, `browser_test.go`,
 `session_check_test.go`, `logout_test.go`.
-
-A first-party OAuth client design (authorization code with PKCE, scoped
-logins with `--scopes`, sessions listed under Connected apps, RFC 7009
-revocation) was chosen on 2026-10-29 and is in development; until it
-ships, the model above is the contract.
 
 ### P13. One way to do each thing
 

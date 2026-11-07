@@ -3,6 +3,68 @@
 Notable changes, newest first. Release notes on GitHub list every commit;
 this file collects what users and scripts need to know.
 
+## 0.26.0 (2026-11-07)
+
+### New
+
+- `norcube login` signs in through OAuth 2.0: the browser approves the
+  sign-in and hands the CLI a one-time code over `127.0.0.1`, which the CLI
+  exchanges with PKCE. The session's tokens no longer pass through the
+  dashboard page. `login --device` uses the same OAuth server.
+- `norcube login --scopes backup.read,langsync.sync` limits a login to the
+  given scopes (the scopes CI tokens use; the default is `full`). The
+  login prints the scopes Norcube granted. Commands outside them exit with
+  code 5 (`insufficient_scope`) and the hint "This login is limited to …;
+  run `norcube login` for full access". A scope this release doesn't
+  know yet is still sent; Norcube Auth decides on it.
+- `auth sessions list` has a SCOPES column (and `scopes` in JSON);
+  `whoami` and `auth status` show the login's scopes; `doctor` shows the
+  credential format and scopes and warns about the older format.
+- `norcube logout` revokes the login's refresh token on Norcube (RFC 7009),
+  which ends its CLI session and removes it from Connected apps. A failure
+  on the server is reported, and the local sign-out happens anyway.
+- `norcube login --force` ends the session it replaces on Norcube (the way
+  `logout` does) before storing the new one. If that fails, it warns and
+  signs in anyway.
+- An account without an organization can sign in and use `whoami`, `org
+  list` and `org create`: Norcube Auth tokens are minted without an
+  organization. Product commands still need one.
+- Fewer refreshes: a login refreshes one short-lived CLI token and
+  exchanges it per service and organization without the profile lock, so
+  parallel commands no longer queue behind each other.
+
+### Changes
+
+- `norcube upgrade` no longer links the deprecated `x/crypto/openpgp`
+  package (go-selfupdate 1.7.0).
+
+### Upgrading
+
+- A session from an older version moves to the new sign-in on its first
+  command, once, without signing in again (`auth status` and `doctor` only
+  describe the session and leave it as it is). A session made before
+  Norcube recorded CLI sessions can't be moved: the CLI asks for one
+  `norcube login`.
+- After that move, an **older `norcube` binary** on the same machine must
+  sign in again: the session it knew was used up by the move.
+- An older binary that keeps **its own copy** of the session's refresh
+  token (for example a copied credentials file) and presents it after the
+  move counts as a replayed token: Norcube then ends the session, which
+  signs the upgraded CLI out as well. Upgrade every `norcube` that shares a
+  session, or sign each in separately.
+- Against a Norcube Auth that doesn't offer the OAuth sign-in yet, the CLI
+  keeps using the older sign-in for this release. CI tokens
+  (`NORCUBE_TOKEN`) are unchanged.
+
+### Changes for scripts
+
+- The credentials item of a profile has a new format (2): refresh token,
+  cached CLI access token, granted scopes and a format marker. Tokens per
+  service are no longer stored between commands.
+- `login -o json` has `scopes`; `whoami -o json` and `auth status -o json`
+  have `scopes`, and `auth status` has `credentialFormat`. The `auth status`
+  and `auth sessions list` tables have a SCOPES column.
+
 ## 0.25.0 (2026-11-06)
 
 ### New
