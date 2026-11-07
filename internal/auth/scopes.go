@@ -46,6 +46,8 @@ var LoginScopes = []LoginScope{
 	{"monitor.check", "Run a monitor's check now, plus everything monitor.read allows"},
 	{"monitor.write", "Create, change and delete monitors and acknowledge incidents, plus everything monitor.read allows"},
 	{"monitor.channels", "Create, change and delete alert channels and send test alerts, plus everything monitor.read allows"},
+	{"monitor.statuspages", "Create, publish and delete status pages and post incidents on them, plus everything monitor.read allows"},
+	{"monitor.maintenance", "Schedule, change and cancel maintenance windows, plus everything monitor.read allows"},
 }
 
 // scopeShape is what a Norcube scope looks like: product or product.action.

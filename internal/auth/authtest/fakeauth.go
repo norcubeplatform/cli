@@ -46,23 +46,25 @@ const (
 // scopeAudiences mirrors the server's catalog: which audiences a scope
 // lets a sign-in be exchanged for.
 var scopeAudiences = map[string][]string{
-	"full":              {"auth", "billing", "langsync-api", "snapdb-api", "prompthub", "domainradar", "cms-api", "monitor"},
-	"org.read":          {"auth"},
-	"offline_access":    nil,
-	"backup.read":       {"snapdb-api"},
-	"backup.write":      {"snapdb-api"},
-	"backup.verify":     {"snapdb-api"},
-	"domainradar.check": {"domainradar"},
-	"langsync.read":     {"langsync-api"},
-	"langsync.sync":     {"langsync-api"},
-	"langsync.write":    {"langsync-api"},
-	"billing.read":      {"billing"},
-	"cms.read":          {"cms-api"},
-	"cms.write":         {"cms-api"},
-	"monitor.read":      {"monitor"},
-	"monitor.check":     {"monitor"},
-	"monitor.write":     {"monitor"},
-	"monitor.channels":  {"monitor"},
+	"full":                {"auth", "billing", "langsync-api", "snapdb-api", "prompthub", "domainradar", "cms-api", "monitor"},
+	"org.read":            {"auth"},
+	"offline_access":      nil,
+	"backup.read":         {"snapdb-api"},
+	"backup.write":        {"snapdb-api"},
+	"backup.verify":       {"snapdb-api"},
+	"domainradar.check":   {"domainradar"},
+	"langsync.read":       {"langsync-api"},
+	"langsync.sync":       {"langsync-api"},
+	"langsync.write":      {"langsync-api"},
+	"billing.read":        {"billing"},
+	"cms.read":            {"cms-api"},
+	"cms.write":           {"cms-api"},
+	"monitor.read":        {"monitor"},
+	"monitor.check":       {"monitor"},
+	"monitor.write":       {"monitor"},
+	"monitor.channels":    {"monitor"},
+	"monitor.statuspages": {"monitor"},
+	"monitor.maintenance": {"monitor"},
 }
 
 // KnowsScope reports whether the fake's catalog has the scope.
@@ -351,7 +353,8 @@ func normalize(scopes []string) []string {
 	var out []string
 	for _, sc := range []string{"full", "org.read", "offline_access", "backup.read", "backup.write", "backup.verify",
 		"domainradar.check", "langsync.read", "langsync.sync", "langsync.write", "billing.read", "cms.read", "cms.write",
-		"monitor.read", "monitor.check", "monitor.write", "monitor.channels"} {
+		"monitor.read", "monitor.check", "monitor.write", "monitor.channels",
+		"monitor.statuspages", "monitor.maintenance"} {
 		if !want[sc] || (want["full"] && sc != "full" && sc != "org.read" && sc != "offline_access") {
 			continue
 		}
