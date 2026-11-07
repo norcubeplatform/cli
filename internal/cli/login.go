@@ -426,7 +426,7 @@ func runOAuthBrowserLogin(cmd *cobra.Command, httpc *http.Client, meta *auth.Met
 		Metadata:       meta,
 		HTTP:           httpc,
 		Scopes:         scopes,
-		Timeout:        5 * time.Minute,
+		Timeout:        auth.SignInWait,
 		NoBrowser:      noBrowser,
 		BrowserOpenURL: openBrowser,
 		OnURLReady:     loginURLPrinter(out, noBrowser),

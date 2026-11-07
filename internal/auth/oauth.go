@@ -428,6 +428,11 @@ func signInPayload(tr *tokenEndpointResponse) (*CallbackPayload, error) {
 
 // --- browser sign-in: authorization code + PKCE over a loopback redirect ---
 
+// SignInWait is how long a sign-in waits for the browser: as long as
+// Norcube Auth keeps the pending request (10 minutes), so an approval the
+// server still accepts always finds the CLI listening.
+const SignInWait = 10 * time.Minute
+
 // OAuthLoginOptions configures OAuthLogin.
 type OAuthLoginOptions struct {
 	Metadata *Metadata
@@ -462,7 +467,7 @@ func OAuthLogin(ctx context.Context, opts OAuthLoginOptions) (*CallbackPayload, 
 		return nil, ErrOAuthUnavailable
 	}
 	if opts.Timeout == 0 {
-		opts.Timeout = 5 * time.Minute
+		opts.Timeout = SignInWait
 	}
 	if opts.BrowserOpenURL == nil {
 		opts.BrowserOpenURL = browser.OpenURL
