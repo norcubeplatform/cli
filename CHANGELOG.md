@@ -3,6 +3,38 @@
 Notable changes, newest first. Release notes on GitHub list every commit;
 this file collects what users and scripts need to know.
 
+## Unreleased
+
+### New
+
+- `norcube cms validate [path]` checks a Norcube CMS site from its
+  repository, offline and without a sign-in: the schema in `.norcube/cms/`
+  (YAML, `$ref`, field types and knobs, options, bounds, regexes,
+  `visibleIf` paths, storages, preview), every content file against its
+  collection (the editor's rules: required, shapes, array item kinds and
+  bounds, regex, length, uniqueness, custom validators, out-of-schema
+  keys) and the links between files (two files at one URL, links no page
+  produces, missing images, dangling references). `--only
+  schema|content|links` narrows the run, `--collection` limits it to one
+  collection, `--fail-on warning|error|none` picks what fails the exit
+  code. The checks come from the public
+  [cms-schema](https://github.com/norcubeplatform/cms-schema) module, so a
+  site's CI runs exactly what the editor runs.
+
+### Changes
+
+- Built with Go 1.26.11, which fixes GO-2026-6859 in the standard library.
+
+### Changes for scripts
+
+- New error code `invalid` (exit 1): `cms validate` found findings at the
+  severity `--fail-on` asks it to fail on; `details` holds the counts and
+  stdout the report.
+- `cms validate -o json` prints `{schemaVersion, path, findings[],
+  summary{files, schemaFiles, errors, warnings}}`; each finding has `file`,
+  `path`, `severity`, `rule`, `message` and optionally `hint`. Rule ids
+  are frozen in the cms-schema module.
+
 ## 0.26.0 (2026-11-07)
 
 ### New

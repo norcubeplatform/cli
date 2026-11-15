@@ -2,7 +2,7 @@ module github.com/norcubeplatform/cli
 
 go 1.26.1
 
-toolchain go1.26.10
+toolchain go1.26.11
 
 require (
 	github.com/charmbracelet/huh v1.0.0
@@ -12,6 +12,7 @@ require (
 	github.com/gofrs/flock v0.13.0
 	github.com/google/uuid v1.6.0
 	github.com/jmespath-community/go-jmespath v1.1.1
+	github.com/norcubeplatform/cms-schema v0.1.1
 	github.com/oapi-codegen/runtime v1.4.0
 	github.com/pelletier/go-toml/v2 v2.3.1
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c

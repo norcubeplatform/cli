@@ -1,0 +1,2 @@
+warning	src/content/pages/contact.md		content.extra_keys	keys draft are not in the schema
+warning	src/content/pages/index.md	link	links.unresolved_link	links to /about/, which no content file produces

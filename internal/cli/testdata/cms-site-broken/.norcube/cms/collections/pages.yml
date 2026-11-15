@@ -1,0 +1,15 @@
+label: Pages
+path: src/content/pages
+previewPath: '/{slug}/'
+localeFrom: none
+fields:
+  - key: title
+    type: text
+    label: Title
+    required: true
+  - key: slug
+    type: text
+    label: Slug
+  - key: link
+    type: link
+    label: Link

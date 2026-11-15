@@ -1,0 +1,5 @@
+pagesDir: src/content/pages
+knownPaths: ['/api/*']
+preview:
+  defaultLocale: en
+  locales: [en]
