@@ -206,6 +206,7 @@ func TestGoldenOutput(t *testing.T) {
 		{"auth-sessions-list", []string{"auth", "sessions", "list"}},
 		{"auth-ci-token-list", []string{"auth", "ci-token", "list"}},
 		{"auth-ci-token-scopes", []string{"auth", "ci-token", "scopes"}},
+		{"cms-validate", []string{"cms", "validate", "testdata/cms-site"}},
 	}
 	for _, c := range commands {
 		for format, ext := range goldenFormats {

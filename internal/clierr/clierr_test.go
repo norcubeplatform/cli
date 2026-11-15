@@ -31,7 +31,7 @@ func TestIsUsage(t *testing.T) {
 
 // Codes that report an outcome rather than a failure of the CLI exit 1.
 func TestOutcomeCodesExitOne(t *testing.T) {
-	for _, c := range []string{CodeJobFailed, CodeUnhealthy} {
+	for _, c := range []string{CodeJobFailed, CodeUnhealthy, CodeInvalid} {
 		if got := ExitFor(c); got != ExitError {
 			t.Errorf("%s exits %d, want %d", c, got, ExitError)
 		}

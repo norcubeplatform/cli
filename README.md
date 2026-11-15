@@ -171,6 +171,7 @@ norcube langsync namespaces list    # LangSync namespaces
 norcube domainradar check acme.dev  # is a domain free?
 norcube monitor status              # open incidents and monitors that need attention
 norcube billing usage estimate      # this month's charges so far
+norcube cms validate ./site         # check a CMS site's schema and content, offline
 norcube doctor                      # something not working? start here
 ```
 

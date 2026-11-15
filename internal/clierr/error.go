@@ -29,6 +29,10 @@ const (
 	// (`monitor status --fail-on`) found it, e.g. an open critical
 	// incident. Exit code 1; details hold what it found.
 	CodeUnhealthy = "unhealthy"
+	// CodeInvalid: a command that checks something local (`cms validate`)
+	// found findings at the severity --fail-on asks it to fail on. Exit
+	// code 1; details hold the counts, the result on stdout the findings.
+	CodeInvalid = "invalid"
 )
 
 // Error is a failure described for both people and scripts. Printed as

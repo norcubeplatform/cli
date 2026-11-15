@@ -1,0 +1,19 @@
+findings:
+    - file: src/content/pages/contact.md
+      hint: They show in the editor's out-of-schema panel. Add them to the schema or remove them.
+      message: keys draft are not in the schema
+      rule: content.extra_keys
+      severity: warning
+    - file: src/content/pages/index.md
+      hint: If the site serves this route from code, add it to knownPaths in config.yml; otherwise fix the link.
+      message: links to /about/, which no content file produces
+      path: link
+      rule: links.unresolved_link
+      severity: warning
+path: testdata/cms-site
+schemaVersion: 1
+summary:
+    errors: 0
+    files: 2
+    schemaFiles: 2
+    warnings: 2

@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "path": "testdata/cms-site",
+  "findings": [
+    {
+      "file": "src/content/pages/contact.md",
+      "severity": "warning",
+      "rule": "content.extra_keys",
+      "message": "keys draft are not in the schema",
+      "hint": "They show in the editor's out-of-schema panel. Add them to the schema or remove them."
+    },
+    {
+      "file": "src/content/pages/index.md",
+      "path": "link",
+      "severity": "warning",
+      "rule": "links.unresolved_link",
+      "message": "links to /about/, which no content file produces",
+      "hint": "If the site serves this route from code, add it to knownPaths in config.yml; otherwise fix the link."
+    }
+  ],
+  "summary": {
+    "files": 2,
+    "schemaFiles": 2,
+    "errors": 0,
+    "warnings": 2
+  }
+}
