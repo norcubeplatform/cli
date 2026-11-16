@@ -191,7 +191,7 @@ attachment was a mistake or is permanently obsolete.`,
 				return nil
 			}
 
-			res, err := c.API.DeleteDatasourcesDatasourceIdPoliciesPolicyIdWithResponse(
+			res, err := c.API.DetachPolicyWithResponse(
 				cmd.Context(), datasourceID, policyID,
 			)
 			if err != nil {

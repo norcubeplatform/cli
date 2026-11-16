@@ -26,7 +26,7 @@ var (
 )
 
 func listPolicyDefinitions(cmd *cobra.Command, c *snapdbContext) error {
-	res, err := c.API.GetBackupPoliciesWithResponse(cmd.Context())
+	res, err := c.API.ListBackupPoliciesWithResponse(cmd.Context())
 	if err != nil {
 		return err
 	}
@@ -108,7 +108,7 @@ with ` + "`norcube backup destinations list`" + `.`,
 			if err := f.validate(cmd); err != nil {
 				return nil, err
 			}
-			body := snapdb.PostBackupPoliciesJSONRequestBody{
+			body := snapdb.CreateBackupPolicyJSONRequestBody{
 				Name: strings.TrimSpace(f.name), ScheduleCron: strings.TrimSpace(f.schedule), Timezone: strings.TrimSpace(f.timezone),
 				RetentionDays: f.retentionDays, KeepLastN: f.keepLast, DestinationId: strings.TrimSpace(destination),
 			}
@@ -122,7 +122,7 @@ with ` + "`norcube backup destinations list`" + `.`,
 			if err != nil {
 				return nil, err
 			}
-			res, err := c.API.PostBackupPoliciesWithResponse(cmd.Context(), body)
+			res, err := c.API.CreateBackupPolicyWithResponse(cmd.Context(), body)
 			if err != nil {
 				return nil, err
 			}
@@ -161,7 +161,7 @@ attached to follows the new settings from its next run.`,
 				return nil, err
 			}
 			changed := cmd.Flags().Changed
-			var body snapdb.PatchBackupPoliciesIdJSONRequestBody
+			var body snapdb.UpdateBackupPolicyJSONRequestBody
 			str := func(flag, v string) *string {
 				if !changed(flag) {
 					return nil
@@ -177,7 +177,7 @@ attached to follows the new settings from its next run.`,
 			if changed("keep-last") {
 				body.KeepLastN = &f.keepLast
 			}
-			if body == (snapdb.PatchBackupPoliciesIdJSONRequestBody{}) {
+			if body == (snapdb.UpdateBackupPolicyJSONRequestBody{}) {
 				return nil, clierr.Usage(errors.New("nothing to update: pass at least one of --name, --schedule, --timezone, --retention-days, --keep-last, --method, --compression"))
 			}
 			c, err := d.client(cmd)
@@ -185,7 +185,7 @@ attached to follows the new settings from its next run.`,
 				return nil, err
 			}
 			id := strings.TrimSpace(args[0])
-			res, err := c.API.PatchBackupPoliciesIdWithResponse(cmd.Context(), id, body)
+			res, err := c.API.UpdateBackupPolicyWithResponse(cmd.Context(), id, body)
 			if err != nil {
 				return nil, err
 			}
@@ -221,7 +221,7 @@ the highest-priority enabled one unless told otherwise.`,
   norcube backup policies attach --datasource 9f8e7d6c-… --policy 1a2b3c4d-… --priority 2 --paused`,
 		Args: cobra.NoArgs,
 		RunE: cmdutil.Run(func(cmd *cobra.Command, _ []string) (any, error) {
-			body := snapdb.PostDatasourcesDatasourceIdPoliciesJSONRequestBody{PolicyId: policyID, Enabled: !paused}
+			body := snapdb.AttachPolicyJSONRequestBody{PolicyId: policyID, Enabled: !paused}
 			if cmd.Flags().Changed("priority") {
 				body.Priority = &priority
 			}
@@ -229,7 +229,7 @@ the highest-priority enabled one unless told otherwise.`,
 			if err != nil {
 				return nil, err
 			}
-			res, err := c.API.PostDatasourcesDatasourceIdPoliciesWithResponse(cmd.Context(), datasourceID, body)
+			res, err := c.API.AttachPolicyWithResponse(cmd.Context(), datasourceID, body)
 			if err != nil {
 				return nil, err
 			}
@@ -278,7 +278,7 @@ and buckets of your own. A backup policy names one with --destination.`,
   norcube backup destinations list --managed -o json --query "[0].id"`,
 		Args: cobra.NoArgs,
 		RunE: cmdutil.Run(func(cmd *cobra.Command, _ []string) (any, error) {
-			params := &snapdb.GetStorageDestinationsParams{}
+			params := &snapdb.ListStorageDestinationsParams{}
 			switch {
 			case managed:
 				o := snapdb.Managed
@@ -291,7 +291,7 @@ and buckets of your own. A backup policy names one with --destination.`,
 			if err != nil {
 				return nil, err
 			}
-			res, err := c.API.GetStorageDestinationsWithResponse(cmd.Context(), params)
+			res, err := c.API.ListStorageDestinationsWithResponse(cmd.Context(), params)
 			if err != nil {
 				return nil, err
 			}

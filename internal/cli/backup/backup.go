@@ -54,7 +54,7 @@ and prints the next cursor to stderr if there are more results. Use
 				return err
 			}
 			page, err := cmdutil.Paginate(cmd.Context(), pages, func(ctx context.Context, cursor string, size int) ([]snapdb.DtoBackupJob, string, error) {
-				params := &snapdb.GetBackupsParams{Limit: &size}
+				params := &snapdb.ListBackupsParams{Limit: &size}
 				if cursor != "" {
 					params.Cursor = &cursor
 				}
@@ -62,7 +62,7 @@ and prints the next cursor to stderr if there are more results. Use
 					ids := append([]string(nil), datasourceIDs...)
 					params.DatasourceIDs = &ids
 				}
-				res, err := c.API.GetBackupsWithResponse(ctx, params)
+				res, err := c.API.ListBackupsWithResponse(ctx, params)
 				if err != nil {
 					return nil, "", err
 				}

@@ -45,7 +45,7 @@ func (d deps) datasourceCandidates(cmd *cobra.Command) ([]cobra.Completion, erro
 	if err != nil {
 		return nil, err
 	}
-	res, err := c.API.ListWithResponse(cmd.Context(), &snapdb.ListParams{})
+	res, err := c.API.ListDatasourcesWithResponse(cmd.Context(), &snapdb.ListDatasourcesParams{})
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func (d deps) jobCandidates(cmd *cobra.Command) ([]cobra.Completion, error) {
 		return nil, err
 	}
 	limit := 50
-	res, err := c.API.GetBackupsWithResponse(cmd.Context(), &snapdb.GetBackupsParams{Limit: &limit})
+	res, err := c.API.ListBackupsWithResponse(cmd.Context(), &snapdb.ListBackupsParams{Limit: &limit})
 	if err != nil {
 		return nil, err
 	}

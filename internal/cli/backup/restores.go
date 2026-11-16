@@ -109,7 +109,7 @@ func restoreObject(r snapdb.DtoRestoreJob) output.Object {
 }
 
 func getRestore(ctx context.Context, c *snapdbContext, id string) (snapdb.DtoRestoreJob, error) {
-	res, err := c.API.GetRestoresIdWithResponse(ctx, id)
+	res, err := c.API.GetRestoreWithResponse(ctx, id)
 	if err != nil {
 		return snapdb.DtoRestoreJob{}, err
 	}
@@ -139,11 +139,11 @@ func restoreFailed(what string, r snapdb.DtoRestoreJob) error {
 // listRestores pages through a data source's restores of one trigger.
 func listRestores(cmd *cobra.Command, c *snapdbContext, pages cmdutil.PageFlags, datasourceID, trigger string) (cmdutil.Page[snapdb.DtoRestoreJob], error) {
 	return cmdutil.Paginate(cmd.Context(), pages, func(ctx context.Context, cursor string, size int) ([]snapdb.DtoRestoreJob, string, error) {
-		params := &snapdb.GetDatasourcesDatasourceIdRestoresParams{Limit: &size, Trigger: &trigger}
+		params := &snapdb.ListDatasourceRestoresParams{Limit: &size, Trigger: &trigger}
 		if cursor != "" {
 			params.Cursor = &cursor
 		}
-		res, err := c.API.GetDatasourcesDatasourceIdRestoresWithResponse(ctx, datasourceID, params)
+		res, err := c.API.ListDatasourceRestoresWithResponse(ctx, datasourceID, params)
 		if err != nil {
 			return nil, "", err
 		}
@@ -295,7 +295,7 @@ for the restore to finish and exits 1 (code job_failed) when it failed.`,
 			if err := req.validate(); err != nil {
 				return nil, err
 			}
-			body := snapdb.PostRestoresJSONRequestBody{
+			body := snapdb.CreateRestoreJSONRequestBody{
 				DataSourceId: req.datasourceID, SourceBackupId: req.backupID, Mode: req.mode,
 			}
 			if req.targetURIFile != "" {
@@ -324,7 +324,7 @@ for the restore to finish and exits 1 (code job_failed) when it failed.`,
 			if err != nil {
 				return nil, err
 			}
-			res, err := c.API.PostRestoresWithResponse(cmd.Context(), body)
+			res, err := c.API.CreateRestoreWithResponse(cmd.Context(), body)
 			if err != nil {
 				return nil, err
 			}

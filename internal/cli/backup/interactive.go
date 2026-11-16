@@ -19,7 +19,7 @@ import (
 // accept an optional positional argument — when the caller passes an id
 // we run directly; when they don't and stdin is interactive, we pick.
 func pickDataSource(ctx context.Context, c *snapdbContext, title string) (*snapdb.DtoDataSource, error) {
-	res, err := c.API.ListWithResponse(ctx, &snapdb.ListParams{})
+	res, err := c.API.ListDatasourcesWithResponse(ctx, &snapdb.ListDatasourcesParams{})
 	if err != nil {
 		return nil, err
 	}
