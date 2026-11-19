@@ -72,12 +72,14 @@ the command needs no sign-in.
 
 Three groups of checks run, selectable with --only:
   schema   .norcube/cms/ loads: YAML, $ref, field types and knobs, select
-           options, bounds, regexes, visibleIf paths, storages, preview
+           options, bounds, regexes, visibleIf paths, storages, preview,
+           how a collection links its language versions (translations.by)
   content  every content file against its collection: required, value
            shapes, array item kinds and bounds, regex, length, uniqueness,
            custom validators, out-of-schema keys
   links    the site as a whole: two files at one URL, links no page
-           produces, missing images and files, dangling references
+           produces, missing images and files, dangling references, two
+           pages of one language sharing a translation key
 
 Each finding names the file, the field path inside it, a severity and a
 rule id (schema.unresolved_ref, content.required, links.missing_asset…).
