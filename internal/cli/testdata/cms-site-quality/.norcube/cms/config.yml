@@ -1,0 +1,5 @@
+pagesDir: src/content
+preview:
+  defaultLocale: en
+  locales: [en, cs]
+  prefixDefaultLocale: true

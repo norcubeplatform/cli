@@ -20,6 +20,23 @@ this file collects what users and scripts need to know.
   code. The checks come from the public
   [cms-schema](https://github.com/norcubeplatform/cms-schema) module, so a
   site's CI runs exactly what the editor runs.
+- `norcube cms validate --quality` also runs the content quality checks:
+  search (titles, descriptions, share images, noindex), accessibility (alt
+  text, heading levels, link text), languages (missing and incomplete
+  translations) and media (heavy images, unused files). Quality findings
+  are warnings (high and medium impact) or notices (low impact and
+  information only); they are never errors, and notices never fail a run.
+  `--strict-quality` turns quality warnings into errors. `--git` reads when
+  each file last changed from the checkout's git history, so a translation
+  left behind its newer language version is found
+  (`quality.translation_outdated`); it needs `--quality`, and a git failure
+  stops the run with a clear error. The table names what the quality checks
+  skipped or guessed, and shows the language of a finding about one
+  language of a page that holds every language (`title.en [en]`).
+- `cms validate` uses cms-schema 0.10.0: field roles (`role:`, `whenEmpty`,
+  `titleTemplate`), image alt text (`alt:`, `decorative`), languages held in
+  one file (`localized: true`), `translations.locales` and the new schema
+  rules that check them.
 
 ### Changes
 
@@ -34,6 +51,14 @@ this file collects what users and scripts need to know.
   summary{files, schemaFiles, errors, warnings}}`; each finding has `file`,
   `path`, `severity`, `rule`, `message` and optionally `hint`. Rule ids
   are frozen in the cms-schema module.
+- `cms validate -o json`: `summary.notices` counts notices, and with
+  `--quality` the report has a `quality` object (per rule how many
+  instances were checked, the rules turned off, skipped or guessed about).
+  A finding's `severity` may be `notice`; quality findings also carry
+  `impact`, `value`, `measure`, `basis` and `locale`.
+- `cms validate -o text`: a finding about one language of a page that holds
+  every language shows the language after its path in the third column
+  (`title.en [en]`). Only quality findings have a language.
 
 ## 0.26.0 (2026-11-07)
 

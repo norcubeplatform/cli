@@ -1,14 +1,20 @@
 package cms
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
+	"slices"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 
+	"github.com/norcubeplatform/cms-schema/gitlog"
 	"github.com/norcubeplatform/cms-schema/load"
+	"github.com/norcubeplatform/cms-schema/quality"
 	"github.com/norcubeplatform/cms-schema/report"
 	"github.com/norcubeplatform/cms-schema/validate"
 
@@ -26,8 +32,10 @@ const (
 	failOnNone    = "none"
 )
 
-// validateScopes are the values of --only, in the order the checks run.
-var validateScopes = []string{validate.ScopeSchema, validate.ScopeContent, validate.ScopeLinks}
+// validateScopes are the values of --only, in the order the checks run:
+// every scope of the module except content quality, which --quality adds
+// because it never runs unless asked for.
+var validateScopes = slices.DeleteFunc(validate.Scopes(), func(s string) bool { return s == validate.ScopeQuality })
 
 // validateReportVersion is the version of the `cms validate -o json`
 // document. Within a version changes are additive only.
@@ -42,6 +50,9 @@ type validateReport struct {
 	// from the frozen list in the cms-schema module.
 	Findings []report.Finding `json:"findings" yaml:"findings"`
 	Summary  validateSummary  `json:"summary" yaml:"summary"`
+	// Quality says what the content quality checks looked at, skipped and
+	// assumed; present only with --quality.
+	Quality *quality.Summary `json:"quality,omitempty" yaml:"quality,omitempty"`
 }
 
 // validateSummary counts what the run looked at and found.
@@ -52,13 +63,29 @@ type validateSummary struct {
 	SchemaFiles int `json:"schemaFiles" yaml:"schemaFiles"`
 	Errors      int `json:"errors" yaml:"errors"`
 	Warnings    int `json:"warnings" yaml:"warnings"`
+	// Notices are low-impact or information-only quality findings; they
+	// never fail a run.
+	Notices int `json:"notices" yaml:"notices"`
 }
 
-func newValidateCmd() *cobra.Command {
+// gitDates reads when each file of a checkout last changed
+// (gitlog.LastChanged); a parameter so tests need no git.
+type gitDates func(ctx context.Context, dir string, opts gitlog.Options) (map[string]time.Time, error)
+
+// validateDeps are what `cms validate` reaches outside the site's files.
+type validateDeps struct {
+	// lastChanged runs for --git only.
+	lastChanged gitDates
+}
+
+func newValidateCmd(deps validateDeps) *cobra.Command {
 	var (
-		only       []string
-		collection string
-		failOn     string
+		only          []string
+		collection    string
+		failOn        string
+		withQuality   bool
+		strictQuality bool
+		withGit       bool
 	)
 	cmd := &cobra.Command{
 		Use:         "validate [path]",
@@ -73,7 +100,8 @@ the command needs no sign-in.
 Three groups of checks run, selectable with --only:
   schema   .norcube/cms/ loads: YAML, $ref, field types and knobs, select
            options, bounds, regexes, visibleIf paths, storages, preview,
-           how a collection links its language versions (translations.by)
+           how a collection links its language versions (translations.by),
+           field roles and image alt text
   content  every content file against its collection: required, value
            shapes, array item kinds and bounds, regex, length, uniqueness,
            custom validators, out-of-schema keys
@@ -81,17 +109,33 @@ Three groups of checks run, selectable with --only:
            produces, missing images and files, dangling references, two
            pages of one language sharing a translation key
 
+--quality adds the content quality checks, which run only when asked
+for: search (titles, descriptions, share images, noindex), accessibility
+(alt text, heading levels, link text), languages (missing, incomplete and,
+with --git, outdated translations) and media (heavy images, unused
+files). Quality findings are never errors: high and medium impact ones are
+warnings, low impact and information-only ones notices. --strict-quality
+turns quality warnings into errors. --git reads when each file last
+changed from the checkout's git history (git must be installed), so a
+translation left behind its newer language version is found.
+
 Each finding names the file, the field path inside it, a severity and a
-rule id (schema.unresolved_ref, content.required, links.missing_asset…).
-Rule ids are stable; match on them in scripts.
+rule id (schema.unresolved_ref, content.required, quality.title_missing…).
+A finding about one language of a page that holds every language shows
+the language after its path, as in "title.en [en]". Rule ids are stable;
+match on them in scripts.
 
 The exit code follows --fail-on: with "error" (the default) the command
-exits 1 when any finding is an error, with "warning" when any finding
-exists, with "none" it always exits 0 and only reports. A path that is
-not a CMS site exits 3.`,
+exits 1 when any finding is an error, with "warning" when any finding is
+a warning or an error, with "none" it always exits 0 and only reports.
+Notices never fail a run. A path that is not a CMS site exits 3.`,
 		Example: `  norcube cms validate
   norcube cms validate ./site --fail-on warning
   norcube cms validate --only schema
+  # Also check titles, descriptions, alt text, languages and media
+  norcube cms validate --quality
+  # In CI: fail on high and medium impact quality findings, with outdated translations
+  norcube cms validate --quality --git --strict-quality
   # In CI, keep the report as an artifact
   norcube cms validate -o json > cms-validate.json
   norcube cms validate -o json --query "findings[?rule=='links.missing_asset'].file"`,
@@ -108,6 +152,12 @@ not a CMS site exits 3.`,
 			if err := oneOf("--fail-on", failOn, validateFailOn); err != nil {
 				return nil, err
 			}
+			if withGit && !withQuality {
+				return nil, clierr.Usage(errors.New("--git needs --quality: the dates are for the content quality checks"))
+			}
+			if strictQuality && !withQuality {
+				return nil, clierr.Usage(errors.New("--strict-quality needs --quality"))
+			}
 			path := "."
 			if len(args) == 1 {
 				path = args[0]
@@ -122,7 +172,25 @@ not a CMS site exits 3.`,
 				return nil, clierr.Usage(fmt.Errorf("%s is a file; pass the site's directory", path))
 			}
 
-			res, err := validate.Site(os.DirFS(path), validate.Options{Only: only, Collection: collection})
+			site := os.DirFS(path)
+			opts := validate.Options{Only: only, Collection: collection}
+			if withQuality {
+				if len(opts.Only) == 0 {
+					opts.Only = slices.Clone(validateScopes)
+				}
+				opts.Only = append(opts.Only, validate.ScopeQuality)
+				opts.StrictQuality = strictQuality
+				opts.Quality = quality.Options{ListMedia: quality.FSMedia(site), RootFiles: quality.FSRootFiles(site)}
+				if withGit {
+					dates, err := readGitDates(cmd.Context(), path, deps.lastChanged)
+					if err != nil {
+						return nil, err
+					}
+					opts.Quality.LastChanged = dates
+				}
+			}
+
+			res, err := validate.Site(site, opts)
 			if errors.Is(err, load.ErrNotASite) {
 				return nil, &clierr.Error{
 					Code:    clierr.CodeNotFound,
@@ -139,7 +207,11 @@ not a CMS site exits 3.`,
 				SchemaVersion: validateReportVersion,
 				Path:          path,
 				Findings:      res.Findings,
-				Summary:       validateSummary{Files: res.Files, SchemaFiles: res.SchemaFiles, Errors: res.Errors, Warnings: res.Warnings},
+				Summary: validateSummary{
+					Files: res.Files, SchemaFiles: res.SchemaFiles,
+					Errors: res.Errors, Warnings: res.Warnings, Notices: res.Notices,
+				},
+				Quality: res.Quality,
 			}
 			if rep.Findings == nil {
 				rep.Findings = []report.Finding{}
@@ -149,14 +221,21 @@ not a CMS site exits 3.`,
 				Table: output.Table[report.Finding]{
 					Headers: []string{"SEVERITY", "FILE", "PATH", "RULE", "MESSAGE"},
 					Rows: func(f report.Finding) []string {
-						return []string{string(f.Severity), f.File, f.Path, string(f.Rule), f.Message}
+						return []string{string(f.Severity), f.File, findingPath(f), string(f.Rule), f.Message}
 					},
 					Items: rep.Findings,
 				},
 			}
-			fmt.Fprintf(cmd.ErrOrStderr(), "%d content %s, %d schema %s: %d %s, %d %s\n",
-				res.Files, plural(res.Files, "file"), res.SchemaFiles, plural(res.SchemaFiles, "file"),
-				res.Errors, plural(res.Errors, "error"), res.Warnings, plural(res.Warnings, "warning"))
+			stderr := cmd.ErrOrStderr()
+			counts := fmt.Sprintf("%d %s, %d %s", res.Errors, plural(res.Errors, "error"), res.Warnings, plural(res.Warnings, "warning"))
+			if withQuality || res.Notices > 0 {
+				counts += fmt.Sprintf(", %d %s", res.Notices, plural(res.Notices, "notice"))
+			}
+			fmt.Fprintf(stderr, "%d content %s, %d schema %s: %s\n",
+				res.Files, plural(res.Files, "file"), res.SchemaFiles, plural(res.SchemaFiles, "file"), counts)
+			if res.Quality != nil && cmdutil.Human(cmd) {
+				printQualityNotes(stderr, res.Quality, withGit)
+			}
 
 			fail := (failOn == failOnError && res.Errors > 0) ||
 				(failOn == failOnWarning && (res.Errors > 0 || res.Warnings > 0))
@@ -175,11 +254,85 @@ not a CMS site exits 3.`,
 		}),
 	}
 	cmd.Flags().StringSliceVar(&only, "only", nil, "Run only these checks: schema, content, links (repeatable or comma-separated; default all)")
-	cmd.Flags().StringVar(&collection, "collection", "", "Check the content and links of one collection only, by its key")
+	cmd.Flags().StringVar(&collection, "collection", "", "Check the content, links and quality of one collection only, by its key")
 	cmd.Flags().StringVar(&failOn, "fail-on", failOnError, "Exit 1 on findings of this severity or worse: warning, error or none")
+	cmd.Flags().BoolVar(&withQuality, "quality", false, "Also run the content quality checks (search, accessibility, languages, media); their findings are warnings and notices")
+	cmd.Flags().BoolVar(&strictQuality, "strict-quality", false, "With --quality, treat content quality warnings as errors; notices stay notices")
+	cmd.Flags().BoolVar(&withGit, "git", false, "With --quality, read when each file last changed from the checkout's git history, so outdated translations are found")
 	cmdutil.FlagEnum(cmd, "only", validateScopes...)
 	cmdutil.FlagEnum(cmd, "fail-on", validateFailOn...)
 	return cmd
+}
+
+// readGitDates runs read on the checkout at path with a deadline
+// (gitlog.DefaultTimeout) and turns its failures into errors a person can
+// act on. --git asked for the dates, so a failure ends the run rather than
+// silently skipping the check that needs them.
+func readGitDates(ctx context.Context, path string, read gitDates) (map[string]time.Time, error) {
+	ctx, cancel := context.WithTimeout(ctx, gitlog.DefaultTimeout)
+	defer cancel()
+	dates, err := read(ctx, path, gitlog.Options{})
+	switch {
+	case err == nil:
+		return dates, nil
+	case errors.Is(err, context.Canceled):
+		// Interrupted: the root reports it as such.
+		return nil, err
+	case errors.Is(err, gitlog.ErrNotARepository):
+		return nil, &clierr.Error{
+			Code:    clierr.CodeUsage,
+			Message: fmt.Sprintf("--git: %s is not in a git checkout, or git is not installed", path),
+			Hint:    "Run it on a clone of the site's repository with git on the PATH, or drop --git.",
+			Err:     err,
+		}
+	case errors.Is(err, context.DeadlineExceeded):
+		return nil, &clierr.Error{
+			Code:    clierr.CodeTimeout,
+			Message: fmt.Sprintf("--git: reading the git history of %s took longer than %s", path, gitlog.DefaultTimeout),
+			Hint:    "Drop --git to check without the dates; outdated translations are then not looked for.",
+			Err:     err,
+		}
+	default:
+		return nil, &clierr.Error{
+			Code:    clierr.CodeError,
+			Message: fmt.Sprintf("--git: reading the git history of %s: %v", path, err),
+			Hint:    "Drop --git to check without the dates; outdated translations are then not looked for.",
+			Err:     err,
+		}
+	}
+}
+
+// findingPath is the PATH cell: the field path, followed by the language
+// when the finding is about one language of a page that holds every
+// language, so per-language findings tell apart.
+func findingPath(f report.Finding) string {
+	if f.Locale == "" {
+		return f.Path
+	}
+	if f.Path == "" {
+		return "[" + f.Locale + "]"
+	}
+	return f.Path + " [" + f.Locale + "]"
+}
+
+// printQualityNotes tells a person what the quality checks could not do
+// and what they assumed, for the table output only (-o json carries the
+// same in "quality").
+func printQualityNotes(w io.Writer, s *quality.Summary, withGit bool) {
+	for _, sk := range s.Skipped {
+		note := sk.Reason
+		if sk.Rule == report.RuleQualityTranslationOutdated && !withGit {
+			note += "; pass --git to read the dates from the git history"
+		}
+		fmt.Fprintf(w, "skipped %s: %s\n", sk.Rule, note)
+	}
+	for _, g := range s.Guessed {
+		fmt.Fprintf(w, "guessed %s: %t for %s (storage %s, %s site); set it on the storage to confirm\n",
+			g.Kind, g.Value, g.Path, g.Storage, g.Framework)
+	}
+	if s.Drafts > 0 {
+		fmt.Fprintf(w, "%d draft %s not checked for search and accessibility\n", s.Drafts, plural(s.Drafts, "page"))
+	}
 }
 
 // oneOf rejects a flag value outside its allowed list before any work.

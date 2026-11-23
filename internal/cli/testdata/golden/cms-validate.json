@@ -22,6 +22,7 @@
     "files": 2,
     "schemaFiles": 2,
     "errors": 0,
-    "warnings": 2
+    "warnings": 2,
+    "notices": 0
   }
 }

@@ -6,7 +6,11 @@
 // opens cleanly in the CMS.
 package cms
 
-import "github.com/spf13/cobra"
+import (
+	"github.com/spf13/cobra"
+
+	"github.com/norcubeplatform/cms-schema/gitlog"
+)
 
 // NewCmd returns the `cms` parent command with all subcommands.
 func NewCmd() *cobra.Command {
@@ -18,6 +22,6 @@ site's own repository. These commands read a checkout of that repository
 and need no sign-in: run them on your machine before you push, or in the
 site's CI to block a change that breaks the content model.`,
 	}
-	cmd.AddCommand(newValidateCmd())
+	cmd.AddCommand(newValidateCmd(validateDeps{lastChanged: gitlog.LastChanged}))
 	return cmd
 }
