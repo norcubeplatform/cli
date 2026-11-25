@@ -57,7 +57,7 @@ var goldenData = map[string]string{ // #nosec G101 -- API fixtures, no credentia
 		{"id":"att-1","isEnabled":true,"priority":1,"jitterSeconds":60,"createdAt":"2026-01-01T00:00:00Z","nextRunAt":"2026-10-02T02:00:00Z","backupPolicy":{"id":"pol-1","name":"Nightly","cronExpression":"0 2 * * *","retentionDays":30}}
 	]`,
 	"GET /namespaces": `[
-		{"id":"ns-1","name":"web","context":"Marketing site","defaultLanguageId":4,"languages":["en","cs"],"organization_id":"org-1","progress":50,"total_terms":12,"created_at":"2026-01-01T00:00:00Z","updated_at":"2026-01-02T00:00:00Z","created_by":"user-1"}
+		{"id":"ns-1","name":"web","context":"Marketing site","defaultLanguageId":4,"messageSyntax":"plain","languages":["en","cs"],"organization_id":"org-1","progress":50,"total_terms":12,"created_at":"2026-01-01T00:00:00Z","updated_at":"2026-01-02T00:00:00Z","created_by":"user-1"}
 	]`,
 	"GET /languages": `[
 		{"id":4,"code":"en","name":"English","isCustom":false},

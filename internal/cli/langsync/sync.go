@@ -74,7 +74,19 @@ Flags:
                        when a term's source-language value has changed,
                        empty its existing non-source-language translations
                        so the server re-translates them via the LLM
-                       (default off: stale translations stay as-is)`,
+                       (default off: stale translations stay as-is)
+
+Key descriptions: a namespace whose .langsync.json entry has
+"context_file" (a flat JSON object {"key": "what the key is"} in the
+source language, outside the language files' directory or in a
+subdirectory of it) sends the descriptions of the source file's keys
+with the job; the people and the model that translate a key see it.
+Descriptions of keys the source file doesn't have are not sent (one
+warning says how many); an empty description clears a key's.
+
+After the run, the Issues block lists every translation LangSync didn't
+store, with the key, language and reason, and "Not reviewed" counts the
+translations per language nobody has marked reviewed yet.`,
 		Example: `  norcube langsync sync
   norcube langsync sync --dry-run
   norcube langsync sync -n ytracker-backend
@@ -149,6 +161,10 @@ type syncOptions struct {
 	// vs the new source). Opt-in to avoid blasting hand-curated
 	// translations on a casual sync.
 	retranslateOnSourceChange bool
+
+	// contexts are the key descriptions from each namespace's
+	// context_file, keyed by namespace (see loadSyncContexts).
+	contexts map[string]map[string]string
 }
 
 // runParallelSync is the shared entry point for both `sync` and the
@@ -169,6 +185,15 @@ func runParallelSync(cmd *cobra.Command, c *langsyncContext, cfg *projectcfg.Fil
 	// the user almost certainly wants to fix the situation before
 	// committing to the sync.
 	if opts.strategy != strategyServer {
+		// Key descriptions are read before anything is sent: a context
+		// file that can't be used stops the run instead of half of it.
+		// The server strategy pushes nothing, descriptions included, so
+		// pull doesn't read them.
+		contexts, err := loadSyncContexts(cmd.ErrOrStderr(), cfg, configPath, targets)
+		if err != nil {
+			return nil, err
+		}
+		opts.contexts = contexts
 		if err := preflightAttachLanguages(cmd.Context(), c, cfg, configPath, targets); err != nil {
 			return nil, err
 		}
@@ -215,6 +240,21 @@ func runParallelSync(cmd *cobra.Command, c *langsyncContext, cfg *projectcfg.Fil
 		}
 	}
 
+	var unreviewed []string
+	for _, r := range results {
+		if r.err == nil && r.finalJob != nil && r.finalJob.UnreviewedPerLanguage != nil {
+			if line := unreviewedLine(r.namespace, *r.finalJob.UnreviewedPerLanguage); line != "" {
+				unreviewed = append(unreviewed, line)
+			}
+		}
+	}
+	if len(unreviewed) > 0 {
+		d.PrintHeading("Not reviewed")
+		for _, line := range unreviewed {
+			d.PrintNote(line)
+		}
+	}
+
 	if opts.dryRun {
 		d.PrintHeading("Dry run — nothing was changed")
 	}
@@ -256,6 +296,11 @@ type syncSummary struct {
 	StillUntranslated      int    `json:"stillUntranslated" yaml:"stillUntranslated"`
 	FilesWritten           int    `json:"filesWritten" yaml:"filesWritten"`
 	Error                  string `json:"error,omitempty" yaml:"error,omitempty"`
+	// UnreviewedPerLanguage and Failures are the job's own fields: per
+	// language code, the translations nobody marked reviewed, and the
+	// keys and ops that failed (with the code of a refused translation).
+	UnreviewedPerLanguage map[string]int                  `json:"unreviewedPerLanguage,omitempty" yaml:"unreviewedPerLanguage,omitempty"`
+	Failures              []langsync.DtoDTOSyncJobFailure `json:"failures,omitempty" yaml:"failures,omitempty"`
 }
 
 // summarizeSync turns the per-namespace results into summaries.
@@ -276,6 +321,14 @@ func summarizeSync(results []syncResult) []syncSummary {
 		}
 		if r.err != nil {
 			row.Status, row.Error = "failed", r.err.Error()
+		}
+		if j := r.finalJob; j != nil {
+			if j.UnreviewedPerLanguage != nil {
+				row.UnreviewedPerLanguage = *j.UnreviewedPerLanguage
+			}
+			if j.Failures != nil {
+				row.Failures = *j.Failures
+			}
 		}
 		rows = append(rows, row)
 	}
@@ -510,7 +563,15 @@ func submitSyncJob(ctx context.Context, c *langsyncContext, ns projectcfg.Namesp
 	// server and the source-override lookup fails with "isn't
 	// attached".
 	defaultCode := serverLangCode(ns.DefaultLocalLanguage, ns.LanguageAliases)
+	// Only descriptions of keys this request pushes in the source
+	// language: the server refuses any other (loadSyncContexts already
+	// filtered and warned; this keeps the rule where the body is built).
+	var contexts *map[string]string
+	if kept, _ := sourceContexts(opts.contexts[ns.Namespace], marksPerLang[defaultCode]); len(kept) > 0 {
+		contexts = &kept
+	}
 	body := langsync.SyncjobCreateSyncRequest{
+		Contexts:                  contexts,
 		DefaultLanguageCode:       ptrStr(defaultCode),
 		DryRun:                    ptrBool(opts.dryRun),
 		MarksPerLanguage:          &mpl,
@@ -519,7 +580,7 @@ func submitSyncJob(ctx context.Context, c *langsyncContext, ns projectcfg.Namesp
 		WaitForAutotranslate:      ptrBool(opts.wait),
 		RetranslateOnSourceChange: ptrBool(opts.retranslateOnSourceChange),
 	}
-	res, err := c.API.PostNamespacesNamespaceNameSyncWithResponse(ctx, ns.Namespace, body)
+	res, err := c.API.CreateSyncJobWithResponse(ctx, ns.Namespace, body)
 	if err != nil {
 		return "", err
 	}
@@ -527,8 +588,16 @@ func submitSyncJob(ctx context.Context, c *langsyncContext, ns projectcfg.Namesp
 		if isNamespaceForbidden(res.JSON403) || isNamespaceForbidden(res.JSON404) {
 			return "", namespaceAccessError(c.OrgLabel(), ns.Namespace)
 		}
-		return "", apiError(res.HTTPResponse, res.Body,
-			res.JSON400, res.JSON401, res.JSON403, res.JSON404, res.JSON500)
+		var bad *langsync.ResponseAPIError
+		if res.JSON400 != nil {
+			bad = refusal(res.JSON400.Msg, res.JSON400.Type, res.JSON400.Data)
+		}
+		err := apiError(res.HTTPResponse, res.Body,
+			bad, res.JSON401, res.JSON403, res.JSON404, res.JSON500)
+		if res.JSON400 != nil && res.JSON400.Type == langsync.ErrSyncContextsInvalid {
+			return "", syncContextsError(err, ns.ContextFile, res.JSON400.Data)
+		}
+		return "", err
 	}
 	if res.JSON202.Id == nil || *res.JSON202.Id == "" {
 		return "", fmt.Errorf("backend returned a 202 with no job id")
@@ -636,3 +705,13 @@ func relPath(configPath, target string) string {
 
 func ptrStr(s string) *string { return &s }
 func ptrBool(b bool) *bool    { return &b }
+
+// optional is a pointer to v, or nil for the zero value, for the
+// generated client's optional query parameters (left out when nil).
+func optional[T comparable](v T) *T {
+	var zero T
+	if v == zero {
+		return nil
+	}
+	return &v
+}

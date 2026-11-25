@@ -28,6 +28,9 @@ const maxRawBody = 500
 type Typed struct {
 	Msg  string
 	Type string
+	// Data is the body's machine-readable data object (a refusal's reason
+	// and facts), when it has one; it goes to the error's details.
+	Data any
 }
 
 // Format builds the standard "service METHOD URL: detail" error as a
@@ -51,6 +54,9 @@ func Format(service string, resp *http.Response, body []byte, typed ...*Typed) e
 				e.Message = fmt.Sprintf("status %d", e.HTTPStatus)
 			}
 			e.Code = clierr.CodeForStatus(e.HTTPStatus, e.Type)
+			if t.Data != nil {
+				e.Details = map[string]any{"data": t.Data}
+			}
 			return e
 		}
 	}

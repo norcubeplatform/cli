@@ -94,8 +94,12 @@ explicitly or the command errors out before touching the network.`,
 				if isNamespaceForbidden(res.JSON403) || isNamespaceForbidden(res.JSON404) {
 					return namespaceAccessError(c.OrgLabel(), ns)
 				}
+				var bad *langsync.ResponseAPIError
+				if res.JSON400 != nil {
+					bad = refusal(res.JSON400.Msg, res.JSON400.Type, res.JSON400.Data)
+				}
 				return apiError(res.HTTPResponse, res.Body,
-					res.JSON400, res.JSON401, res.JSON403, res.JSON404, res.JSON500)
+					bad, res.JSON401, res.JSON403, res.JSON404, res.JSON500)
 			}
 
 			msg := fmt.Sprintf("Added mark %q to namespace %q.", mark, ns)
@@ -160,9 +164,9 @@ translation carries the same flag as "aiGenerated".`,
 
 			page, err := cmdutil.Paginate(cmd.Context(), pages, func(ctx context.Context, cursor string, size int) ([]langsync.DtoDTOTerm, string, error) {
 				params := &langsync.ListByNamespaceParams{
-					Cursor: cursor,
-					Limit:  size,
-					Search: search,
+					Cursor: optional(cursor),
+					Limit:  optional(size),
+					Search: optional(search),
 				}
 				if cmd.Flags().Changed("has-untranslated") {
 					params.HasAnyUntranslated = &hasUntranslated

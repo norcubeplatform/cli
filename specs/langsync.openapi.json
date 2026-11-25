@@ -119,6 +119,17 @@
         },
         "type": "object"
       },
+      "constants.AITranslationWorkWindow": {
+        "enum": [
+          "hour",
+          "day"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "AITranslationWorkWindowHour",
+          "AITranslationWorkWindowDay"
+        ]
+      },
       "constants.AuditAction": {
         "enum": [
           "namespace.created",
@@ -133,6 +144,7 @@
           "glossary_item.created",
           "glossary_item.updated",
           "glossary_item.deleted",
+          "glossary_item.translation_added",
           "custom_language.created",
           "custom_language.deleted",
           "custom_prompt.created",
@@ -141,6 +153,15 @@
           "sync_job.created",
           "sync_job.completed",
           "sync_job.failed",
+          "term.created",
+          "term.updated",
+          "term.deleted",
+          "term_translation.updated",
+          "translation.missing_requested",
+          "translation.recommended",
+          "translation.text_translated",
+          "translation.texts_translated",
+          "translation.reviewed",
           "term_import.finished",
           "migrator.imported"
         ],
@@ -158,6 +179,7 @@
           "AuditActionGlossaryItemCreated",
           "AuditActionGlossaryItemUpdated",
           "AuditActionGlossaryItemDeleted",
+          "AuditActionGlossaryItemTranslationAdded",
           "AuditActionCustomLanguageCreated",
           "AuditActionCustomLanguageDeleted",
           "AuditActionCustomPromptCreated",
@@ -166,6 +188,15 @@
           "AuditActionSyncJobCreated",
           "AuditActionSyncJobCompleted",
           "AuditActionSyncJobFailed",
+          "AuditActionTermCreated",
+          "AuditActionTermUpdated",
+          "AuditActionTermDeleted",
+          "AuditActionTermTranslationUpdated",
+          "AuditActionTranslationMissingRequested",
+          "AuditActionTranslationRecommended",
+          "AuditActionTranslationTextTranslated",
+          "AuditActionTranslationTextsTranslated",
+          "AuditActionTranslationReviewed",
           "AuditActionTermImportFinished",
           "AuditActionMigratorImported"
         ]
@@ -179,6 +210,7 @@
           "custom_language",
           "custom_prompt",
           "sync_job",
+          "term",
           "term_import",
           "migrator"
         ],
@@ -191,6 +223,7 @@
           "AuditTargetCustomLanguage",
           "AuditTargetCustomPrompt",
           "AuditTargetSyncJob",
+          "AuditTargetTerm",
           "AuditTargetTermImport",
           "AuditTargetMigrator"
         ]
@@ -222,6 +255,32 @@
           "GlossaryItemTypePhrase",
           "GlossaryItemTypeIdiom",
           "GlossaryItemTypeNotApplicable"
+        ]
+      },
+      "constants.NamespaceMessageSyntax": {
+        "enum": [
+          "plain",
+          "icu"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "NamespaceMessageSyntaxPlain",
+          "NamespaceMessageSyntaxICU"
+        ]
+      },
+      "constants.SyncContextsProblem": {
+        "enum": [
+          "too_many",
+          "unknown_key",
+          "too_long",
+          "not_text"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "SyncContextsProblemTooMany",
+          "SyncContextsProblemUnknownKey",
+          "SyncContextsProblemTooLong",
+          "SyncContextsProblemNotText"
         ]
       },
       "constants.TermBulkImportStatus": {
@@ -268,6 +327,63 @@
           "TermImportFormatXLSX",
           "TermImportFormatXLS"
         ]
+      },
+      "constants.TermReviewProblem": {
+        "enum": [
+          "no_terms",
+          "too_many_terms"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "TermReviewProblemNoTerms",
+          "TermReviewProblemTooManyTerms"
+        ]
+      },
+      "constants.TermTranslationProblem": {
+        "enum": [
+          "placeholders_changed",
+          "icu_invalid",
+          "plural_forms",
+          "tags_changed",
+          "glossary_term_missing",
+          "too_many_variants",
+          "untranslated",
+          "model_failed"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "TermTranslationProblemPlaceholdersChanged",
+          "TermTranslationProblemICUInvalid",
+          "TermTranslationProblemPluralForms",
+          "TermTranslationProblemTagsChanged",
+          "TermTranslationProblemGlossaryTermMissing",
+          "TermTranslationProblemTooManyVariants",
+          "TermTranslationProblemUntranslated",
+          "TermTranslationProblemModelFailed"
+        ]
+      },
+      "dto.AITranslationBudgetRefusal": {
+        "properties": {
+          "retryAt": {
+            "type": "string"
+          },
+          "window": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/constants.AITranslationWorkWindow"
+              }
+            ],
+            "enum": [
+              "hour",
+              "day"
+            ]
+          }
+        },
+        "required": [
+          "retryAt",
+          "window"
+        ],
+        "type": "object"
       },
       "dto.APIKey": {
         "properties": {
@@ -394,8 +510,15 @@
           },
           "language_shared": {
             "type": "boolean"
+          },
+          "unreviewedCount": {
+            "description": "UnreviewedCount is how many of the language's translations have\ntext that nobody marked reviewed (POST\n.../translations/{languageId}/review). 0 for the default language,\nwhose texts are what the others are translated from.",
+            "type": "integer"
           }
         },
+        "required": [
+          "unreviewedCount"
+        ],
         "type": "object"
       },
       "dto.DTONamespace": {
@@ -425,6 +548,14 @@
             },
             "type": "array"
           },
+          "messageSyntax": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/constants.NamespaceMessageSyntax"
+              }
+            ],
+            "description": "MessageSyntax is what the namespace's strings are: plain (variables\nkept as they are) or icu (ICU MessageFormat 1, translated per plural\nform and checked before storing)."
+          },
           "name": {
             "type": "string"
           },
@@ -441,6 +572,9 @@
             "type": "string"
           }
         },
+        "required": [
+          "messageSyntax"
+        ],
         "type": "object"
       },
       "dto.DTOSyncJob": {
@@ -532,6 +666,13 @@
           "strategy": {
             "type": "string"
           },
+          "unreviewedPerLanguage": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "description": "UnreviewedPerLanguage counts, per language code, the translations\nwith text nobody marked reviewed when the job finished (not the\njob's source language). Set on status='completed'.",
+            "type": "object"
+          },
           "updatedCount": {
             "type": "integer"
           },
@@ -551,17 +692,53 @@
       },
       "dto.DTOSyncJobFailure": {
         "properties": {
+          "argument": {
+            "type": "string"
+          },
+          "code": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/constants.TermTranslationProblem"
+              }
+            ],
+            "description": "Code says why a translation was not stored: an automatic\ntranslation the checks refused (phase autotranslate) or a pushed\nvalue an ICU namespace refused (phase push). Absent for other\nfailures."
+          },
+          "dropped": {
+            "description": "Dropped counts the phase's failures not listed (more than 500); set\non one summary entry.",
+            "type": "integer"
+          },
           "error": {
+            "description": "Error is English, for logs and older clients; a client words Code.",
+            "type": "string"
+          },
+          "languageCode": {
+            "description": "LanguageCode is the language of the translation Code is about.",
             "type": "string"
           },
           "mark": {
             "type": "string"
+          },
+          "missing": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "offset": {
+            "description": "The facts of Code: where an ICU message stops being valid, which\nplural or select, which forms, variables, tags or terms.",
+            "type": "integer"
           },
           "opIdx": {
             "type": "integer"
           },
           "phase": {
             "type": "string"
+          },
+          "unexpected": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
           }
         },
         "type": "object"
@@ -799,6 +976,165 @@
         ],
         "type": "object"
       },
+      "dto.MarkReviewedRequest": {
+        "properties": {
+          "termIds": {
+            "description": "TermIDs are the terms, 1 to 1,000.",
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "termIds"
+        ],
+        "type": "object"
+      },
+      "dto.MarkReviewedResponse": {
+        "properties": {
+          "reviewed": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "reviewed"
+        ],
+        "type": "object"
+      },
+      "dto.SyncContextsProblem": {
+        "properties": {
+          "key": {
+            "description": "Key is the entry it is about (unknown_key, too_long, not_text).",
+            "type": "string"
+          },
+          "max": {
+            "description": "Max is the most entries the request may have (too_many).",
+            "type": "integer"
+          },
+          "maxChars": {
+            "description": "MaxChars is the longest a description may be (too_long).",
+            "type": "integer"
+          },
+          "reason": {
+            "$ref": "#/components/schemas/constants.SyncContextsProblem"
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "type": "object"
+      },
+      "dto.TermImportTranslationProblem": {
+        "properties": {
+          "argument": {
+            "description": "Argument is the plural or select whose branches are wrong\n(plural_forms).",
+            "type": "string"
+          },
+          "languageId": {
+            "type": "integer"
+          },
+          "mark": {
+            "type": "string"
+          },
+          "missing": {
+            "description": "Missing and Unexpected list the forms, variables, tags or glossary\nterms missing or not allowed.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "offset": {
+            "description": "Offset is the character (Unicode code point, from 0) where the\nmessage stops being valid ICU (icu_invalid).",
+            "type": "integer"
+          },
+          "reason": {
+            "$ref": "#/components/schemas/constants.TermTranslationProblem"
+          },
+          "row": {
+            "description": "Row is the file's row, from 1 (the header is row 1, so the first\nvalue is row 2).",
+            "type": "integer"
+          },
+          "unexpected": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "languageId",
+          "mark",
+          "reason",
+          "row"
+        ],
+        "type": "object"
+      },
+      "dto.TermImportTranslationProblems": {
+        "properties": {
+          "problems": {
+            "items": {
+              "$ref": "#/components/schemas/dto.TermImportTranslationProblem"
+            },
+            "type": "array"
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "problems",
+          "total"
+        ],
+        "type": "object"
+      },
+      "dto.TermReviewProblem": {
+        "properties": {
+          "max": {
+            "description": "Max is the most terms one request may mark (too_many_terms).",
+            "type": "integer"
+          },
+          "reason": {
+            "$ref": "#/components/schemas/constants.TermReviewProblem"
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "type": "object"
+      },
+      "dto.TermTranslationProblem": {
+        "properties": {
+          "argument": {
+            "description": "Argument is the plural or select whose branches are wrong\n(plural_forms).",
+            "type": "string"
+          },
+          "missing": {
+            "description": "Missing and Unexpected list the forms, variables, tags or glossary\nterms missing or not allowed.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "offset": {
+            "description": "Offset is the character (Unicode code point, from 0) where the\nmessage stops being valid ICU (icu_invalid).",
+            "type": "integer"
+          },
+          "reason": {
+            "$ref": "#/components/schemas/constants.TermTranslationProblem"
+          },
+          "unexpected": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "type": "object"
+      },
       "dto.TranslationInfo": {
         "properties": {
           "aiGenerated": {
@@ -813,6 +1149,10 @@
           },
           "language_to_namespace_id": {
             "type": "integer"
+          },
+          "reviewedAt": {
+            "description": "ReviewedAt is when a person marked the current text reviewed; null\nwhile it is not (a changed text is unreviewed again).",
+            "type": "string"
           },
           "updated_at": {
             "type": "string"
@@ -1040,6 +1380,14 @@
             "description": "Preferred new fields — pass exactly one. The CLI/frontend should\nemit these going forward.",
             "type": "integer"
           },
+          "messageSyntax": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/constants.NamespaceMessageSyntax"
+              }
+            ],
+            "description": "MessageSyntax is what the namespace's strings are: plain (the\ndefault) or icu (ICU MessageFormat 1)."
+          },
           "name": {
             "type": "string"
           }
@@ -1073,6 +1421,14 @@
               }
             ],
             "description": "Deprecated: kept for one release. Used to be `default_language` (int);\nnow accepts either int or string via LanguageRef. Prefer the explicit\nfields above."
+          },
+          "messageSyntax": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/constants.NamespaceMessageSyntax"
+              }
+            ],
+            "description": "MessageSyntax sets what the namespace's strings are: plain or icu\n(ICU MessageFormat 1). Omit to keep it."
           },
           "name": {
             "type": "string"
@@ -1185,6 +1541,7 @@
           "INSUFFICIENT_SCOPE",
           "ORG_BLOCKED",
           "TOO_MANY_REQUESTS",
+          "AI_TRANSLATION_BUDGET_EXCEEDED",
           "INSUFFICIENT_PERMISSIONS",
           "INVALID_PAYLOAD",
           "EMPTY",
@@ -1223,7 +1580,13 @@
           "COLUMN_COUNT_MISMATCH",
           "LANGUAGE_NOT_IN_NAMESPACE",
           "INVALID_IMPORT_STATUS",
-          "DUPLICATE"
+          "DUPLICATE",
+          "INVALID_MESSAGE_SYNTAX",
+          "TERM_TRANSLATION_INVALID",
+          "TERM_IMPORT_TRANSLATIONS_INVALID",
+          "SYNC_CONTEXTS_INVALID",
+          "TERM_REVIEW_INVALID",
+          "TERM_FILTER_LANGUAGE_REQUIRED"
         ],
         "type": "string",
         "x-enum-varnames": [
@@ -1239,6 +1602,7 @@
           "ErrInsufficientScope",
           "ErrOrgBlocked",
           "ErrTooManyRequests",
+          "ErrAITranslationBudgetExceeded",
           "ErrInsufficientPermissions",
           "ErrPayloadInvalid",
           "ErrEmpty",
@@ -1277,7 +1641,13 @@
           "ErrColumnCountMismatch",
           "ErrLanguageNotInNamespace",
           "ErrInvalidImportStatus",
-          "ErrDuplicate"
+          "ErrDuplicate",
+          "ErrInvalidMessageSyntax",
+          "ErrTermTranslationInvalid",
+          "ErrTermImportTranslationsInvalid",
+          "ErrSyncContextsInvalid",
+          "ErrTermReviewInvalid",
+          "ErrTermFilterLanguageRequired"
         ]
       },
       "shared.TermBulkImportPrecheckData": {
@@ -1369,6 +1739,13 @@
       },
       "syncjob.createSyncRequest": {
         "properties": {
+          "contexts": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Contexts are key descriptions ({key: description}) the push phase\nstores with the terms; an empty description clears one, a key left\nout keeps its own. Each key must be one of the source language's\nkeys in this request, each description at most 1,000 characters.\nThe model gets them with the key when it translates.",
+            "type": "object"
+          },
           "defaultLanguageCode": {
             "type": "string"
           },
@@ -1770,7 +2147,8 @@
         "summary": "List API keys",
         "tags": [
           "API keys"
-        ]
+        ],
+        "x-norcube-never": true
       },
       "post": {
         "description": "Create API key",
@@ -1852,7 +2230,8 @@
         "summary": "Create API key",
         "tags": [
           "API keys"
-        ]
+        ],
+        "x-norcube-never": true
       }
     },
     "/apikeys/{id}": {
@@ -1928,7 +2307,8 @@
         "summary": "Delete API key",
         "tags": [
           "API keys"
-        ]
+        ],
+        "x-norcube-never": true
       }
     },
     "/audit-log": {
@@ -2053,7 +2433,8 @@
         "summary": "List Audit Log",
         "tags": [
           "Audit"
-        ]
+        ],
+        "x-norcube-never": true
       }
     },
     "/audit-log/actors": {
@@ -2098,7 +2479,8 @@
         "summary": "List Audit Log Actors",
         "tags": [
           "Audit"
-        ]
+        ],
+        "x-norcube-never": true
       }
     },
     "/glossary": {
@@ -2147,9 +2529,14 @@
             "description": "Internal Server Error"
           }
         },
-        "summary": "Get Glossary",
+        "summary": "Get the glossary",
         "tags": [
           "Glossary"
+        ],
+        "x-norcube-scopes": [
+          "langsync.read",
+          "langsync.write",
+          "langsync.sync"
         ]
       },
       "post": {
@@ -2212,7 +2599,9 @@
         "summary": "Create Glossary",
         "tags": [
           "Glossary"
-        ]
+        ],
+        "x-norcube-risk": "changes settings",
+        "x-norcube-summary": "Starts the organization's glossary, with the default language {defaultLanguageId}."
       }
     },
     "/glossary/items": {
@@ -2292,9 +2681,14 @@
             "description": "Internal Server Error"
           }
         },
-        "summary": "List Glossary Items",
+        "summary": "List glossary items",
         "tags": [
           "Glossary"
+        ],
+        "x-norcube-scopes": [
+          "langsync.read",
+          "langsync.write",
+          "langsync.sync"
         ]
       },
       "post": {
@@ -2357,7 +2751,9 @@
         "summary": "Create Glossary Item",
         "tags": [
           "Glossary"
-        ]
+        ],
+        "x-norcube-risk": "changes settings",
+        "x-norcube-summary": "Adds {defaultLanguageValue} to the glossary as a {type}[ ({context})]; translatable: {isTranslatable}."
       }
     },
     "/glossary/items/{itemId}": {
@@ -2420,7 +2816,9 @@
         "summary": "Delete Glossary Item",
         "tags": [
           "Glossary"
-        ]
+        ],
+        "x-norcube-risk": "cannot be undone",
+        "x-norcube-summary": "Deletes the glossary item {itemId} with its translations."
       },
       "get": {
         "description": "Retrieve a glossary item by ID",
@@ -2478,9 +2876,15 @@
             "description": "Internal Server Error"
           }
         },
-        "summary": "Get Glossary Item",
+        "summary": "Get a glossary item",
         "tags": [
           "Glossary"
+        ],
+        "x-norcube-page": "glossary-item",
+        "x-norcube-scopes": [
+          "langsync.read",
+          "langsync.write",
+          "langsync.sync"
         ]
       }
     },
@@ -2556,7 +2960,9 @@
         "summary": "Add Translation to Glossary Item",
         "tags": [
           "Glossary"
-        ]
+        ],
+        "x-norcube-risk": "changes settings",
+        "x-norcube-summary": "Translates the glossary item {itemId} into the language {languageId} as {value}."
       }
     },
     "/glossary/items/{itemId}/translations/{languageId}": {
@@ -2640,7 +3046,9 @@
         "summary": "Update Glossary Item Translation",
         "tags": [
           "Glossary"
-        ]
+        ],
+        "x-norcube-risk": "changes settings",
+        "x-norcube-summary": "Changes the translation of the glossary item {itemId} in the language {languageId} to {value}."
       }
     },
     "/glossary/languages": {
@@ -2704,7 +3112,9 @@
         "summary": "Attach Language to Glossary",
         "tags": [
           "Glossary"
-        ]
+        ],
+        "x-norcube-risk": "changes settings",
+        "x-norcube-summary": "Adds the language {languageId} to the glossary."
       }
     },
     "/languages": {
@@ -2746,9 +3156,14 @@
             "description": "Internal Server Error"
           }
         },
-        "summary": "List languages (shared + this org's custom)",
+        "summary": "List languages",
         "tags": [
           "languages"
+        ],
+        "x-norcube-scopes": [
+          "langsync.read",
+          "langsync.write",
+          "langsync.sync"
         ]
       },
       "post": {
@@ -2821,7 +3236,9 @@
         "summary": "Create a custom language",
         "tags": [
           "languages"
-        ]
+        ],
+        "x-norcube-risk": "changes settings",
+        "x-norcube-summary": "Adds the custom language {name} ({code})."
       }
     },
     "/languages/{id}": {
@@ -2897,7 +3314,9 @@
         "summary": "Delete a custom language",
         "tags": [
           "languages"
-        ]
+        ],
+        "x-norcube-risk": "cannot be undone",
+        "x-norcube-summary": "Deletes the custom language {id}."
       }
     },
     "/migrators/poeditor/projects": {
@@ -2983,7 +3402,8 @@
         "summary": "Get projects from POEditor",
         "tags": [
           "Migrator"
-        ]
+        ],
+        "x-norcube-never": true
       }
     },
     "/migrators/poeditor/start": {
@@ -3066,12 +3486,13 @@
         "summary": "Migrate terms from POEditor",
         "tags": [
           "Migrator"
-        ]
+        ],
+        "x-norcube-never": true
       }
     },
     "/namespaces": {
       "get": {
-        "description": "List all namespaces",
+        "description": "Lists the organization's namespaces (translation projects) with their languages, term counts and overall translation progress. For which terms or languages are missing, list the namespace's terms.",
         "operationId": "listNamespaces",
         "responses": {
           "200": {
@@ -3138,9 +3559,14 @@
             "description": "Internal Server Error"
           }
         },
-        "summary": "List all namespaces",
+        "summary": "List namespaces",
         "tags": [
           "Namespace"
+        ],
+        "x-norcube-scopes": [
+          "langsync.read",
+          "langsync.write",
+          "langsync.sync"
         ]
       },
       "post": {
@@ -3223,7 +3649,9 @@
         "summary": "Create a namespace",
         "tags": [
           "Namespace"
-        ]
+        ],
+        "x-norcube-risk": "counts toward your plan",
+        "x-norcube-summary": "Creates the namespace {name}[ with the default language {defaultLanguageCode}][, message syntax {messageSyntax}]: {context}."
       }
     },
     "/namespaces/{namespaceName}": {
@@ -3306,7 +3734,9 @@
         "summary": "Delete a namespace",
         "tags": [
           "Namespace"
-        ]
+        ],
+        "x-norcube-risk": "cannot be undone",
+        "x-norcube-summary": "Deletes the namespace {namespaceName} with all its terms and translations."
       },
       "get": {
         "description": "Get a namespace by name",
@@ -3387,6 +3817,12 @@
         "summary": "Get a namespace by name",
         "tags": [
           "Namespace"
+        ],
+        "x-norcube-page": "namespace",
+        "x-norcube-scopes": [
+          "langsync.read",
+          "langsync.write",
+          "langsync.sync"
         ]
       },
       "patch": {
@@ -3480,7 +3916,9 @@
         "summary": "Update a namespace",
         "tags": [
           "Namespace"
-        ]
+        ],
+        "x-norcube-risk": "changes settings",
+        "x-norcube-summary": "Changes the namespace {namespaceName}[: renames it to {name}, which the CLI's sync settings must follow][, context {context}][, default language {defaultLanguageCode}][, message syntax {messageSyntax}]."
       }
     },
     "/namespaces/{namespaceName}/languages": {
@@ -3563,9 +4001,14 @@
             "description": "Internal Server Error"
           }
         },
-        "summary": "Get languages attached to a namespace",
+        "summary": "List a namespace's languages",
         "tags": [
           "Namespace"
+        ],
+        "x-norcube-scopes": [
+          "langsync.read",
+          "langsync.write",
+          "langsync.sync"
         ]
       },
       "post": {
@@ -3659,7 +4102,9 @@
         "summary": "Add a language to a namespace",
         "tags": [
           "Namespace"
-        ]
+        ],
+        "x-norcube-risk": "changes settings",
+        "x-norcube-summary": "Adds the language {languageCode|languageId} to {namespaceName}."
       }
     },
     "/namespaces/{namespaceName}/languages/{languageId}": {
@@ -3751,12 +4196,15 @@
         "summary": "Remove a language from a namespace",
         "tags": [
           "Namespace"
-        ]
+        ],
+        "x-norcube-risk": "cannot be undone",
+        "x-norcube-summary": "Removes the language {languageId} from {namespaceName}, with all its translations there."
       }
     },
     "/namespaces/{namespaceName}/sync": {
       "post": {
         "description": "Enqueues a sync job that diffs the submitted default-language marks against the server's state, optionally pushes the diff, triggers autotranslate, and finalises a per-language result. The actual work happens asynchronously; the CLI polls GET .../sync/{id} for progress.",
+        "operationId": "createSyncJob",
         "parameters": [
           {
             "description": "Namespace name (URL slug)",
@@ -3795,11 +4243,23 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response.APIError"
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/response.APIError"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/dto.SyncContextsProblem"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
                 }
               }
             },
-            "description": "Bad Request"
+            "description": "SYNC_CONTEXTS_INVALID: contexts name a key the request's source language does not have, are too many, too long or not text; INVALID_REQUEST otherwise"
           },
           "401": {
             "content": {
@@ -3845,12 +4305,14 @@
         "summary": "Create a sync job for a namespace",
         "tags": [
           "Namespaces"
-        ]
+        ],
+        "x-norcube-never": true
       }
     },
     "/namespaces/{namespaceName}/sync/{jobId}": {
       "get": {
         "description": "Returns the sync job's progress and (when complete) the per-language result. Clients poll this endpoint until status is one of {completed, planned, failed, cancelled}.",
+        "operationId": "getSyncJob",
         "parameters": [
           {
             "description": "Namespace name (URL slug)",
@@ -3933,15 +4395,20 @@
             "description": "Internal Server Error"
           }
         },
-        "summary": "Get a sync job's current state",
+        "summary": "Get a sync job",
         "tags": [
           "Namespaces"
+        ],
+        "x-norcube-scopes": [
+          "langsync.read",
+          "langsync.write",
+          "langsync.sync"
         ]
       }
     },
     "/namespaces/{namespaceName}/terms": {
       "get": {
-        "description": "Get terms by namespace name",
+        "description": "Lists every term of a namespace with its translation in each of the namespace's languages; a language with no translation is missing for that term. Use it to see which translations are missing or incomplete, per term and per language.",
         "operationId": "listByNamespace",
         "parameters": [
           {
@@ -3954,9 +4421,17 @@
             }
           },
           {
+            "description": "AIGenerated lists only terms whose translation in languageId has\ntext that is (true) or is not (false) exactly the AI's.",
+            "in": "query",
+            "name": "aiGenerated",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Cursor is the next value of the page before; empty for the first.",
             "in": "query",
             "name": "cursor",
-            "required": true,
             "schema": {
               "type": "string"
             }
@@ -3969,17 +4444,35 @@
             }
           },
           {
+            "description": "LanguageID is the language the reviewed and aiGenerated filters\nlook at; required with either.",
             "in": "query",
-            "name": "limit",
-            "required": true,
+            "name": "languageId",
             "schema": {
               "type": "integer"
             }
           },
           {
+            "description": "Limit is the page size, 1 to 100; 25 when absent or out of range.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Reviewed lists only terms whose translation in languageId has text\nand is (true) or is not (false) marked reviewed.",
+            "in": "query",
+            "name": "reviewed",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Search narrows the list to terms whose key or translations contain\nit; empty lists every term.",
             "in": "query",
             "name": "search",
-            "required": true,
             "schema": {
               "type": "string"
             }
@@ -4026,7 +4519,7 @@
                 }
               }
             },
-            "description": "Bad Request"
+            "description": "TERM_FILTER_LANGUAGE_REQUIRED: reviewed or aiGenerated without languageId"
           },
           "401": {
             "content": {
@@ -4069,9 +4562,14 @@
             "description": "Internal Server Error"
           }
         },
-        "summary": "Get terms by namespace name",
+        "summary": "List a namespace's terms",
         "tags": [
           "Terms"
+        ],
+        "x-norcube-scopes": [
+          "langsync.read",
+          "langsync.write",
+          "langsync.sync"
         ]
       },
       "post": {
@@ -4114,11 +4612,23 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response.APIError"
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/response.APIError"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/dto.TermTranslationProblem"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
                 }
               }
             },
-            "description": "Bad Request"
+            "description": "TERM_TRANSLATION_INVALID: in an ICU namespace, the default language value is not a valid message"
           },
           "401": {
             "content": {
@@ -4150,6 +4660,36 @@
             },
             "description": "Not Found"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/response.APIError"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/dto.AITranslationBudgetRefusal"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "AI_TRANSLATION_BUDGET_EXCEEDED: the organization's AI translation limit for the hour or day is reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until the limit frees up",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -4164,7 +4704,15 @@
         "summary": "Add term",
         "tags": [
           "Terms"
-        ]
+        ],
+        "x-norcube-keywords": [
+          "translation key",
+          "new key",
+          "new string",
+          "new term"
+        ],
+        "x-norcube-risk": "changes settings",
+        "x-norcube-summary": "Adds the term {mark} to {namespaceName}: {defaultLanguageValue}; translated automatically: {translateAutomatically}."
       }
     },
     "/namespaces/{namespaceName}/terms/imports": {
@@ -4266,7 +4814,8 @@
         "summary": "Import creation and precheck",
         "tags": [
           "Terms"
-        ]
+        ],
+        "x-norcube-never": true
       }
     },
     "/namespaces/{namespaceName}/terms/imports/{importId}": {
@@ -4411,11 +4960,23 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response.APIError"
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/response.APIError"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/dto.TermImportTranslationProblems"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
                 }
               }
             },
-            "description": "Bad Request"
+            "description": "TERM_IMPORT_TRANSLATIONS_INVALID: in an ICU namespace, values of the file are not valid messages (nothing is imported); other codes for the setup"
           },
           "401": {
             "content": {
@@ -4447,6 +5008,36 @@
             },
             "description": "Not Found"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/response.APIError"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/dto.AITranslationBudgetRefusal"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "AI_TRANSLATION_BUDGET_EXCEEDED: the organization's AI translation limit for the hour or day is reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until the limit frees up",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -4461,7 +5052,8 @@
         "summary": "Import finish",
         "tags": [
           "Terms"
-        ]
+        ],
+        "x-norcube-never": true
       }
     },
     "/namespaces/{namespaceName}/terms/translate-missing": {
@@ -4541,6 +5133,36 @@
             },
             "description": "Not Found"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/response.APIError"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/dto.AITranslationBudgetRefusal"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "AI_TRANSLATION_BUDGET_EXCEEDED: the organization's AI translation limit for the hour or day is reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until the limit frees up",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -4555,7 +5177,9 @@
         "summary": "Translate missing translations",
         "tags": [
           "Terms"
-        ]
+        ],
+        "x-norcube-risk": "costs usage",
+        "x-norcube-summary": "Translates the missing translations of {namespaceName} with AI[ into {languageIds}]."
       }
     },
     "/namespaces/{namespaceName}/terms/{termId}": {
@@ -4639,7 +5263,9 @@
         "summary": "Delete term",
         "tags": [
           "Terms"
-        ]
+        ],
+        "x-norcube-risk": "cannot be undone",
+        "x-norcube-summary": "Deletes the term {termId} from {namespaceName}, with its translations."
       },
       "get": {
         "description": "One term of the namespace with its translations in every language of the namespace, in the same shape as an item of the term list.",
@@ -4729,6 +5355,11 @@
         "summary": "Get a term",
         "tags": [
           "Terms"
+        ],
+        "x-norcube-scopes": [
+          "langsync.read",
+          "langsync.write",
+          "langsync.sync"
         ]
       },
       "patch": {
@@ -4830,7 +5461,9 @@
         "summary": "Update term",
         "tags": [
           "Terms"
-        ]
+        ],
+        "x-norcube-risk": "changes settings",
+        "x-norcube-summary": "Changes the term {termId} in {namespaceName}[: mark {mark}][, context {context}]."
       }
     },
     "/namespaces/{namespaceName}/terms/{termId}/translations/{languageId}/recommend": {
@@ -4928,6 +5561,36 @@
             },
             "description": "Not Found"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/response.APIError"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/dto.AITranslationBudgetRefusal"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "AI_TRANSLATION_BUDGET_EXCEEDED: the organization's AI translation limit for the hour or day is reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until the limit frees up",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -4942,7 +5605,9 @@
         "summary": "Recommend magic translation",
         "tags": [
           "Terms"
-        ]
+        ],
+        "x-norcube-risk": "costs usage",
+        "x-norcube-summary": "Suggests an AI translation of the term {termId} in {namespaceName} into {languageId}; nothing is saved."
       }
     },
     "/namespaces/{namespaceName}/terms/{termId}/translations/{languageToNamespaceId}": {
@@ -5004,11 +5669,23 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response.APIError"
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/response.APIError"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/dto.TermTranslationProblem"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
                 }
               }
             },
-            "description": "Bad Request"
+            "description": "TERM_TRANSLATION_INVALID: in an ICU namespace, the value is not a valid message or does not hold against the source"
           },
           "401": {
             "content": {
@@ -5054,7 +5731,126 @@
         "summary": "Update translation",
         "tags": [
           "Terms"
-        ]
+        ],
+        "x-norcube-risk": "changes settings",
+        "x-norcube-summary": "Sets the translation of the term {termId} in {namespaceName} to {value}."
+      }
+    },
+    "/namespaces/{namespaceName}/translations/{languageId}/review": {
+      "post": {
+        "description": "Marks the current text of the listed terms' translations in one language reviewed by the person asking. Translations without text, terms of another namespace and translations reviewed already are skipped; reviewed says how many were marked. A translation whose text changes later (an edit, an AI translation, a sync) is unreviewed again.",
+        "operationId": "markTranslationsReviewed",
+        "parameters": [
+          {
+            "description": "Namespace name",
+            "in": "path",
+            "name": "namespaceName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Language ID",
+            "in": "path",
+            "name": "languageId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/dto.MarkReviewedRequest"
+              }
+            }
+          },
+          "description": "Terms to mark",
+          "required": true,
+          "x-originalParamName": "payload"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dto.MarkReviewedResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/response.APIError"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/dto.TermReviewProblem"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "TERM_REVIEW_INVALID: no terms, or more than 1,000"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "LANGUAGE_NOT_IN_NAMESPACE"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response.APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Mark translations reviewed",
+        "tags": [
+          "Terms"
+        ],
+        "x-norcube-never": true
       }
     },
     "/translations/custom-prompts": {
@@ -5096,7 +5892,7 @@
             "description": "Internal Server Error"
           }
         },
-        "summary": "List Custom Prompts",
+        "summary": "List custom prompts",
         "tags": [
           "CustomPrompts"
         ]
@@ -5161,7 +5957,9 @@
         "summary": "Create Custom Prompt",
         "tags": [
           "CustomPrompts"
-        ]
+        ],
+        "x-norcube-risk": "changes settings",
+        "x-norcube-summary": "Creates the custom prompt {name}[, private: {isPrivate}]."
       }
     },
     "/translations/custom-prompts/{promptId}": {
@@ -5224,7 +6022,9 @@
         "summary": "Delete Custom Prompt",
         "tags": [
           "CustomPrompts"
-        ]
+        ],
+        "x-norcube-risk": "cannot be undone",
+        "x-norcube-summary": "Deletes the custom prompt {promptId}."
       },
       "get": {
         "description": "One custom prompt of the organization: shared prompts, or a private prompt of the caller.",
@@ -5302,7 +6102,7 @@
             "description": "Internal Server Error"
           }
         },
-        "summary": "Get Custom Prompt",
+        "summary": "Get a custom prompt",
         "tags": [
           "CustomPrompts"
         ]
@@ -5378,12 +6178,15 @@
         "summary": "Update Custom Prompt",
         "tags": [
           "CustomPrompts"
-        ]
+        ],
+        "x-norcube-risk": "changes settings",
+        "x-norcube-summary": "Changes the custom prompt {promptId}[: name {name}][, private: {isPrivate}]."
       }
     },
     "/translations/translate": {
       "post": {
         "description": "Translates text from a source language to a target language.",
+        "operationId": "translateText",
         "requestBody": {
           "content": {
             "application/json": {
@@ -5417,6 +6220,36 @@
             },
             "description": "Bad Request"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/response.APIError"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/dto.AITranslationBudgetRefusal"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "AI_TRANSLATION_BUDGET_EXCEEDED: the organization's AI translation limit for the hour or day is reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until the limit frees up",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -5431,7 +6264,9 @@
         "summary": "Translate Text",
         "tags": [
           "Translation"
-        ]
+        ],
+        "x-norcube-risk": "costs usage",
+        "x-norcube-summary": "Translates the text {text} with AI; nothing is saved."
       }
     }
   }

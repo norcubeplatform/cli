@@ -60,7 +60,7 @@ func pollSyncJobDashboard(ctx context.Context, c *langsyncContext, d *dashboard,
 }
 
 func fetchSyncJob(ctx context.Context, c *langsyncContext, namespace, jobID string) (*langsync.DtoDTOSyncJob, error) {
-	res, err := c.API.GetNamespacesNamespaceNameSyncJobIdWithResponse(ctx, namespace, jobID)
+	res, err := c.API.GetSyncJobWithResponse(ctx, namespace, jobID)
 	if err != nil {
 		return nil, err
 	}

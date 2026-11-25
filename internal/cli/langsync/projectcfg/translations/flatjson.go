@@ -121,6 +121,15 @@ func WriteFlatJSON(path string, data map[string]string) error {
 	return os.Rename(tmpName, path)
 }
 
+// IsLangFileName reports whether a file of this name, directly in a
+// namespace's directory, is read as a language by ListLangsInDir: a
+// "<code>.json" that is not a dotfile. Anything else that must live next
+// to the language files (the key descriptions of a context file) is
+// checked against it.
+func IsLangFileName(name string) bool {
+	return !strings.HasPrefix(name, ".") && LangCodeFromFileName(name) != ""
+}
+
 // ListLangsInDir scans dir for files matching the flat-json convention
 // and returns the discovered language codes (basename minus ".json"),
 // sorted, plus the absolute paths in matching order.
@@ -139,13 +148,10 @@ func ListLangsInDir(dir string) (codes []string, paths []string, err error) {
 	type entry struct{ code, path string }
 	var hits []entry
 	for _, e := range entries {
-		if e.IsDir() || strings.HasPrefix(e.Name(), ".") {
+		if e.IsDir() || !IsLangFileName(e.Name()) {
 			continue
 		}
 		code := LangCodeFromFileName(e.Name())
-		if code == "" {
-			continue
-		}
 		hits = append(hits, entry{code: code, path: filepath.Join(dir, e.Name())})
 	}
 	sort.Slice(hits, func(i, j int) bool { return hits[i].code < hits[j].code })
