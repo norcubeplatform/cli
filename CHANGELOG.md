@@ -5,6 +5,61 @@ this file collects what users and scripts need to know.
 
 ## Unreleased
 
+## 0.28.0 (2026-11-25)
+
+### New
+
+- `norcube cms validate --quality` also runs the content quality checks:
+  search (titles, descriptions, share images, noindex), accessibility (alt
+  text, heading levels, link text), languages (missing and incomplete
+  translations) and media (heavy images, unused files). Quality findings
+  are warnings (high and medium impact) or notices (low impact and
+  information only); they are never errors, and notices never fail a run.
+  `--strict-quality` turns quality warnings into errors. The table names
+  what the quality checks skipped or guessed, and shows the language of a
+  finding about one language of a page that holds every language
+  (`title.en [en]`).
+- `cms validate --quality --git` reads the checkout's git history to find
+  outdated translations (`quality.translation_outdated`): a language
+  version whose source, the page in the site's default language, changed
+  a text since the version last changed or was marked current. Changed
+  links, images, numbers, select values and white space are not texts to
+  translate and never count, and a version whose history can't be read
+  (a file git doesn't know, or older than the history read) is not
+  judged. `--git` needs `--quality`; if git cannot read the history, the
+  run stops with an error (`usage_error` outside a checkout, `timeout`,
+  `error`). A shallow clone is refused with `usage_error`, because its
+  history would make every translation look current: in CI, check out
+  with `fetch-depth: 0` (`actions/checkout`) or run `git fetch
+  --unshallow` first.
+- `cms validate` uses cms-schema 0.11.1: language versions
+  (`translations.by`), field roles (`role:`, `whenEmpty`,
+  `titleTemplate`), image alt text (`alt:`, `decorative`), languages held
+  in one file (`localized: true`), `translations.locales`, translation
+  marks and the schema rules that check them.
+- `cms validate` on a repository whose site lives in a folder (a monorepo
+  with the site in `website/`) names that folder when the path holds no
+  site: "The site is in website/: run nrc cms validate website". Passing
+  the folder validates it, `--git` included (the history is read for the
+  folder's files).
+
+### Changes for scripts
+
+- `cms validate -o json`: `summary.notices` counts notices, and with
+  `--quality` the report has a `quality` object (per rule how many
+  instances were checked, the rules turned off, skipped or guessed about).
+  A finding's `severity` may be `notice`; quality findings also carry
+  `impact`, `value`, `measure`, `basis` and `locale`. A
+  `quality.translation_outdated` finding sits at the path of the first
+  changed text, its `measure` counts the changed texts (unit
+  `changedTexts`) and its `value` is the source's path and blob id
+  (`<path>@<blob>`).
+- `cms validate -o text`: a finding about one language of a page that holds
+  every language shows the language after its path in the third column
+  (`title.en [en]`). Only quality findings have a language.
+
+## 0.27.0 (2026-11-15)
+
 ### New
 
 - `norcube cms validate [path]` checks a Norcube CMS site from its

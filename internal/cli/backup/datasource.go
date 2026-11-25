@@ -120,14 +120,14 @@ func newDataSourceListCmd(d deps) *cobra.Command {
 				return err
 			}
 			page, err := cmdutil.Paginate(cmd.Context(), pages, func(ctx context.Context, cursor string, _ int) ([]snapdb.DtoDataSource, string, error) {
-				params := &snapdb.ListParams{}
+				params := &snapdb.ListDatasourcesParams{}
 				if search != "" {
 					params.Query = &search
 				}
 				if cursor != "" {
 					params.Cursor = &cursor
 				}
-				res, err := c.API.ListWithResponse(ctx, params)
+				res, err := c.API.ListDatasourcesWithResponse(ctx, params)
 				if err != nil {
 					return nil, "", err
 				}
@@ -179,7 +179,7 @@ func newDataSourceGetCmd(d deps) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			res, err := c.API.GetWithResponse(cmd.Context(), args[0])
+			res, err := c.API.GetDatasourceWithResponse(cmd.Context(), args[0])
 			if err != nil {
 				return err
 			}

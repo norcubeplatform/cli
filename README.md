@@ -232,6 +232,41 @@ On a machine without a browser, `norcube login --device` signs you in with a
 code you approve on your phone or laptop. See
 [CI and automation](https://docs.norcube.com/platform/cli#ci-and-automation).
 
+## Checking a Norcube CMS site
+
+`norcube cms validate` reads a checkout of the site's repository and runs
+the checks the Norcube CMS editor runs, offline and without a sign-in. It
+exits 1 when a finding is an error (`--fail-on warning` or `none` changes
+that), so it can guard a site's CI.
+
+```bash
+norcube cms validate ./site                                  # schema, content and links
+norcube cms validate ./site --quality                        # plus content quality
+norcube cms validate ./site --quality --git --strict-quality # in CI
+```
+
+- `--quality` adds the content quality checks: titles and descriptions for
+  search, alt text, headings and link text, missing and incomplete
+  translations, heavy images and unused files. Their findings are warnings
+  or notices, never errors, and notices never fail a run.
+- `--strict-quality` (with `--quality`) turns quality warnings into errors.
+- `--git` (with `--quality`) reads the checkout's git history, so a
+  translation whose source changed a text since the translation last
+  changed is found; changed links, images and numbers don't count. It
+  needs git and a full clone of the repository; if git cannot read the
+  history, the command stops with an error. A shallow clone is refused,
+  so in CI check out with `fetch-depth: 0`:
+
+  ```yaml
+  - uses: actions/checkout@v4
+    with:
+      fetch-depth: 0 # cms validate --git reads the whole history
+  - run: norcube cms validate --quality --git --strict-quality
+  ```
+
+`-o json` prints every finding with its rule id, and with `--quality` a
+`quality` summary of what was checked, skipped and guessed.
+
 ## Documentation
 
 - [CLI guide](https://docs.norcube.com/platform/cli): login, profiles,

@@ -1,0 +1,16 @@
+label: Works
+path: src/content/works
+match: '*.md'
+previewPath: '/{locale}/works/{slug}/'
+localeFrom: none
+fields:
+  - key: title
+    type: group
+    label: Title
+    localized: true
+    fallback: en
+    role: seoTitle
+    fields:
+      - {key: en, type: text, label: English}
+      - {key: cs, type: text, label: Czech}
+  - {key: slug, type: text, label: Slug}

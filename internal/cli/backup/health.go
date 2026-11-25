@@ -39,7 +39,7 @@ dash; enable restore testing in the dashboard or run one now with
 				return err
 			}
 
-			res, err := c.API.ListWithResponse(cmd.Context(), &snapdb.ListParams{})
+			res, err := c.API.ListDatasourcesWithResponse(cmd.Context(), &snapdb.ListDatasourcesParams{})
 			if err != nil {
 				return err
 			}

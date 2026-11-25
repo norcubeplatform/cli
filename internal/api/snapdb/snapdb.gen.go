@@ -460,15 +460,15 @@ func (e ResponseType) Valid() bool {
 	}
 }
 
-// Defines values for GetStorageDestinationsParamsOwnership.
+// Defines values for ListStorageDestinationsParamsOwnership.
 const (
-	All     GetStorageDestinationsParamsOwnership = "all"
-	Byo     GetStorageDestinationsParamsOwnership = "byo"
-	Managed GetStorageDestinationsParamsOwnership = "managed"
+	All     ListStorageDestinationsParamsOwnership = "all"
+	Byo     ListStorageDestinationsParamsOwnership = "byo"
+	Managed ListStorageDestinationsParamsOwnership = "managed"
 )
 
-// Valid indicates whether the value is a known member of the GetStorageDestinationsParamsOwnership enum.
-func (e GetStorageDestinationsParamsOwnership) Valid() bool {
+// Valid indicates whether the value is a known member of the ListStorageDestinationsParamsOwnership enum.
+func (e ListStorageDestinationsParamsOwnership) Valid() bool {
 	switch e {
 	case All:
 		return true
@@ -1289,15 +1289,15 @@ type ListAuditLogsParams struct {
 	ActorIds *[]string `form:"actorIds,omitempty" json:"actorIds,omitempty"`
 }
 
-// GetBackupsParams defines parameters for GetBackups.
-type GetBackupsParams struct {
+// ListBackupsParams defines parameters for ListBackups.
+type ListBackupsParams struct {
 	Cursor        *string   `form:"cursor,omitempty" json:"cursor,omitempty"`
 	DatasourceIDs *[]string `form:"datasourceIDs,omitempty" json:"datasourceIDs,omitempty"`
 	Limit         *int      `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
-// ListParams defines parameters for List.
-type ListParams struct {
+// ListDatasourcesParams defines parameters for ListDatasources.
+type ListDatasourcesParams struct {
 	// Cursor Pagination cursor
 	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
 
@@ -1321,8 +1321,8 @@ type GetRestoreCheckHistoryParams struct {
 	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
-// GetDatasourcesDatasourceIdRestoresParams defines parameters for GetDatasourcesDatasourceIdRestores.
-type GetDatasourcesDatasourceIdRestoresParams struct {
+// ListDatasourceRestoresParams defines parameters for ListDatasourceRestores.
+type ListDatasourceRestoresParams struct {
 	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
 	Limit  *int    `form:"limit,omitempty" json:"limit,omitempty"`
 
@@ -1331,29 +1331,29 @@ type GetDatasourcesDatasourceIdRestoresParams struct {
 	Trigger *string `form:"trigger,omitempty" json:"trigger,omitempty"`
 }
 
-// GetStorageDestinationsParams defines parameters for GetStorageDestinations.
-type GetStorageDestinationsParams struct {
+// ListStorageDestinationsParams defines parameters for ListStorageDestinations.
+type ListStorageDestinationsParams struct {
 	// Search Substring search across name, bucket, endpoint URL, and type
 	Search *string `form:"search,omitempty" json:"search,omitempty"`
 
 	// Ownership Filter by ownership: all | managed | byo
-	Ownership *GetStorageDestinationsParamsOwnership `form:"ownership,omitempty" json:"ownership,omitempty"`
+	Ownership *ListStorageDestinationsParamsOwnership `form:"ownership,omitempty" json:"ownership,omitempty"`
 
 	// UnverifiedOnly Only return BYO rows with NULL last_verified_at
 	UnverifiedOnly *bool `form:"unverifiedOnly,omitempty" json:"unverifiedOnly,omitempty"`
 }
 
-// GetStorageDestinationsParamsOwnership defines parameters for GetStorageDestinations.
-type GetStorageDestinationsParamsOwnership string
+// ListStorageDestinationsParamsOwnership defines parameters for ListStorageDestinations.
+type ListStorageDestinationsParamsOwnership string
 
-// PostBackupPoliciesJSONRequestBody defines body for PostBackupPolicies for application/json ContentType.
-type PostBackupPoliciesJSONRequestBody = PolicyhandlerPayloadCreateRequest
+// CreateBackupPolicyJSONRequestBody defines body for CreateBackupPolicy for application/json ContentType.
+type CreateBackupPolicyJSONRequestBody = PolicyhandlerPayloadCreateRequest
 
-// PatchBackupPoliciesIdJSONRequestBody defines body for PatchBackupPoliciesId for application/json ContentType.
-type PatchBackupPoliciesIdJSONRequestBody = PolicyhandlerPayloadUpdateRequest
+// UpdateBackupPolicyJSONRequestBody defines body for UpdateBackupPolicy for application/json ContentType.
+type UpdateBackupPolicyJSONRequestBody = PolicyhandlerPayloadUpdateRequest
 
-// PostDatasourcesJSONRequestBody defines body for PostDatasources for application/json ContentType.
-type PostDatasourcesJSONRequestBody = DatasourcehandlerPayloadCreateRequest
+// CreateDatasourceJSONRequestBody defines body for CreateDatasource for application/json ContentType.
+type CreateDatasourceJSONRequestBody = DatasourcehandlerPayloadCreateRequest
 
 // ProtectDatasourceJSONRequestBody defines body for ProtectDatasource for application/json ContentType.
 type ProtectDatasourceJSONRequestBody = DatasourcehandlerPayloadProtectRequest
@@ -1361,8 +1361,8 @@ type ProtectDatasourceJSONRequestBody = DatasourcehandlerPayloadProtectRequest
 // RunBackupNowJSONRequestBody defines body for RunBackupNow for application/json ContentType.
 type RunBackupNowJSONRequestBody = DatasourcehandlerPayloadRunBackupNowRequest
 
-// PostDatasourcesDatasourceIdPoliciesJSONRequestBody defines body for PostDatasourcesDatasourceIdPolicies for application/json ContentType.
-type PostDatasourcesDatasourceIdPoliciesJSONRequestBody = DatasourcehandlerPayloadDataSourcePolicyAttachRequest
+// AttachPolicyJSONRequestBody defines body for AttachPolicy for application/json ContentType.
+type AttachPolicyJSONRequestBody = DatasourcehandlerPayloadDataSourcePolicyAttachRequest
 
 // UpdatePolicyAttachmentJSONRequestBody defines body for UpdatePolicyAttachment for application/json ContentType.
 type UpdatePolicyAttachmentJSONRequestBody = DatasourcehandlerPayloadDatasourcePolicyUpdateRequest
@@ -1373,8 +1373,8 @@ type DeleteDatasourceJSONRequestBody = DatasourcehandlerDeleteDatasourcePayload
 // UpdateDataSourceJSONRequestBody defines body for UpdateDataSource for application/json ContentType.
 type UpdateDataSourceJSONRequestBody = DatasourcehandlerPayloadDatasourceUpdateRequest
 
-// PutDatasourcesIdCredentialsJSONRequestBody defines body for PutDatasourcesIdCredentials for application/json ContentType.
-type PutDatasourcesIdCredentialsJSONRequestBody = DatasourcehandlerPayloadSetCredentialsRequest
+// SetDatasourceCredentialsJSONRequestBody defines body for SetDatasourceCredentials for application/json ContentType.
+type SetDatasourceCredentialsJSONRequestBody = DatasourcehandlerPayloadSetCredentialsRequest
 
 // PutRestoreCheckJSONRequestBody defines body for PutRestoreCheck for application/json ContentType.
 type PutRestoreCheckJSONRequestBody = DatasourcehandlerPayloadRestoreCheckRequest
@@ -1382,20 +1382,20 @@ type PutRestoreCheckJSONRequestBody = DatasourcehandlerPayloadRestoreCheckReques
 // PutNotificationSettingsJSONRequestBody defines body for PutNotificationSettings for application/json ContentType.
 type PutNotificationSettingsJSONRequestBody = NotificationhandlerPayloadNotificationSettingsRequest
 
-// PostRestoresJSONRequestBody defines body for PostRestores for application/json ContentType.
-type PostRestoresJSONRequestBody = RestorehandlerPayloadCreateRequest
+// CreateRestoreJSONRequestBody defines body for CreateRestore for application/json ContentType.
+type CreateRestoreJSONRequestBody = RestorehandlerPayloadCreateRequest
 
-// PostRestoresTargetProbeJSONRequestBody defines body for PostRestoresTargetProbe for application/json ContentType.
-type PostRestoresTargetProbeJSONRequestBody = RestorehandlerPayloadProbeTargetRequest
+// ProbeRestoreTargetJSONRequestBody defines body for ProbeRestoreTarget for application/json ContentType.
+type ProbeRestoreTargetJSONRequestBody = RestorehandlerPayloadProbeTargetRequest
 
-// PostStorageDestinationsJSONRequestBody defines body for PostStorageDestinations for application/json ContentType.
-type PostStorageDestinationsJSONRequestBody = PolicyhandlerPayloadCreateStorageDestinationRequest
+// CreateStorageDestinationJSONRequestBody defines body for CreateStorageDestination for application/json ContentType.
+type CreateStorageDestinationJSONRequestBody = PolicyhandlerPayloadCreateStorageDestinationRequest
 
-// PostStorageDestinationsManagedEnsureJSONRequestBody defines body for PostStorageDestinationsManagedEnsure for application/json ContentType.
-type PostStorageDestinationsManagedEnsureJSONRequestBody = PolicyhandlerPayloadEnsureManagedStorageDestinationRequest
+// EnsureManagedStorageDestinationJSONRequestBody defines body for EnsureManagedStorageDestination for application/json ContentType.
+type EnsureManagedStorageDestinationJSONRequestBody = PolicyhandlerPayloadEnsureManagedStorageDestinationRequest
 
-// PatchStorageDestinationsIdJSONRequestBody defines body for PatchStorageDestinationsId for application/json ContentType.
-type PatchStorageDestinationsIdJSONRequestBody = PolicyhandlerPayloadUpdateStorageDestinationRequest
+// UpdateStorageDestinationJSONRequestBody defines body for UpdateStorageDestination for application/json ContentType.
+type UpdateStorageDestinationJSONRequestBody = PolicyhandlerPayloadUpdateStorageDestinationRequest
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -1476,29 +1476,29 @@ type ClientInterface interface {
 	// ListAuditLogActors request
 	ListAuditLogActors(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetBackupPolicies request
-	GetBackupPolicies(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// ListBackupPolicies request
+	ListBackupPolicies(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostBackupPoliciesWithBody request with any body
-	PostBackupPoliciesWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// CreateBackupPolicyWithBody request with any body
+	CreateBackupPolicyWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostBackupPolicies(ctx context.Context, body PostBackupPoliciesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	CreateBackupPolicy(ctx context.Context, body CreateBackupPolicyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PatchBackupPoliciesIdWithBody request with any body
-	PatchBackupPoliciesIdWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// UpdateBackupPolicyWithBody request with any body
+	UpdateBackupPolicyWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PatchBackupPoliciesId(ctx context.Context, id string, body PatchBackupPoliciesIdJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	UpdateBackupPolicy(ctx context.Context, id string, body UpdateBackupPolicyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetBackups request
-	GetBackups(ctx context.Context, params *GetBackupsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// ListBackups request
+	ListBackups(ctx context.Context, params *ListBackupsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// List request
-	List(ctx context.Context, params *ListParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// ListDatasources request
+	ListDatasources(ctx context.Context, params *ListDatasourcesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostDatasourcesWithBody request with any body
-	PostDatasourcesWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// CreateDatasourceWithBody request with any body
+	CreateDatasourceWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostDatasources(ctx context.Context, body PostDatasourcesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	CreateDatasource(ctx context.Context, body CreateDatasourceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ProtectDatasourceWithBody request with any body
 	ProtectDatasourceWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -1531,13 +1531,13 @@ type ClientInterface interface {
 	// ListPolicies request
 	ListPolicies(ctx context.Context, datasourceId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostDatasourcesDatasourceIdPoliciesWithBody request with any body
-	PostDatasourcesDatasourceIdPoliciesWithBody(ctx context.Context, datasourceId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// AttachPolicyWithBody request with any body
+	AttachPolicyWithBody(ctx context.Context, datasourceId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostDatasourcesDatasourceIdPolicies(ctx context.Context, datasourceId string, body PostDatasourcesDatasourceIdPoliciesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	AttachPolicy(ctx context.Context, datasourceId string, body AttachPolicyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// DeleteDatasourcesDatasourceIdPoliciesPolicyId request
-	DeleteDatasourcesDatasourceIdPoliciesPolicyId(ctx context.Context, datasourceId string, policyId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// DetachPolicy request
+	DetachPolicy(ctx context.Context, datasourceId string, policyId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UpdatePolicyAttachmentWithBody request with any body
 	UpdatePolicyAttachmentWithBody(ctx context.Context, datasourceId string, policyId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -1547,26 +1547,26 @@ type ClientInterface interface {
 	// GetRestoreCheckHistory request
 	GetRestoreCheckHistory(ctx context.Context, datasourceId string, params *GetRestoreCheckHistoryParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetDatasourcesDatasourceIdRestores request
-	GetDatasourcesDatasourceIdRestores(ctx context.Context, datasourceId string, params *GetDatasourcesDatasourceIdRestoresParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// ListDatasourceRestores request
+	ListDatasourceRestores(ctx context.Context, datasourceId string, params *ListDatasourceRestoresParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DeleteDatasourceWithBody request with any body
 	DeleteDatasourceWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	DeleteDatasource(ctx context.Context, id string, body DeleteDatasourceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// Get request
-	Get(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetDatasource request
+	GetDatasource(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UpdateDataSourceWithBody request with any body
 	UpdateDataSourceWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	UpdateDataSource(ctx context.Context, id string, body UpdateDataSourceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PutDatasourcesIdCredentialsWithBody request with any body
-	PutDatasourcesIdCredentialsWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// SetDatasourceCredentialsWithBody request with any body
+	SetDatasourceCredentialsWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PutDatasourcesIdCredentials(ctx context.Context, id string, body PutDatasourcesIdCredentialsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	SetDatasourceCredentials(ctx context.Context, id string, body SetDatasourceCredentialsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetRestoreCheck request
 	GetRestoreCheck(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -1590,45 +1590,45 @@ type ClientInterface interface {
 	// TestNotifications request
 	TestNotifications(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostRestoresWithBody request with any body
-	PostRestoresWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// CreateRestoreWithBody request with any body
+	CreateRestoreWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostRestores(ctx context.Context, body PostRestoresJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	CreateRestore(ctx context.Context, body CreateRestoreJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostRestoresTargetProbeWithBody request with any body
-	PostRestoresTargetProbeWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// ProbeRestoreTargetWithBody request with any body
+	ProbeRestoreTargetWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostRestoresTargetProbe(ctx context.Context, body PostRestoresTargetProbeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	ProbeRestoreTarget(ctx context.Context, body ProbeRestoreTargetJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetRestoresId request
-	GetRestoresId(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetRestore request
+	GetRestore(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetRestoresIdLogsPresign request
-	GetRestoresIdLogsPresign(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetRestoreLogsLink request
+	GetRestoreLogsLink(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetStorageDestinations request
-	GetStorageDestinations(ctx context.Context, params *GetStorageDestinationsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// ListStorageDestinations request
+	ListStorageDestinations(ctx context.Context, params *ListStorageDestinationsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostStorageDestinationsWithBody request with any body
-	PostStorageDestinationsWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// CreateStorageDestinationWithBody request with any body
+	CreateStorageDestinationWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostStorageDestinations(ctx context.Context, body PostStorageDestinationsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	CreateStorageDestination(ctx context.Context, body CreateStorageDestinationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostStorageDestinationsManagedEnsureWithBody request with any body
-	PostStorageDestinationsManagedEnsureWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// EnsureManagedStorageDestinationWithBody request with any body
+	EnsureManagedStorageDestinationWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostStorageDestinationsManagedEnsure(ctx context.Context, body PostStorageDestinationsManagedEnsureJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	EnsureManagedStorageDestination(ctx context.Context, body EnsureManagedStorageDestinationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// DeleteStorageDestinationsId request
-	DeleteStorageDestinationsId(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// DeleteStorageDestination request
+	DeleteStorageDestination(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetStorageDestinationsId request
-	GetStorageDestinationsId(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetStorageDestination request
+	GetStorageDestination(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PatchStorageDestinationsIdWithBody request with any body
-	PatchStorageDestinationsIdWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// UpdateStorageDestinationWithBody request with any body
+	UpdateStorageDestinationWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PatchStorageDestinationsId(ctx context.Context, id string, body PatchStorageDestinationsIdJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	UpdateStorageDestination(ctx context.Context, id string, body UpdateStorageDestinationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) ListAuditLogs(ctx context.Context, params *ListAuditLogsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -1655,8 +1655,8 @@ func (c *Client) ListAuditLogActors(ctx context.Context, reqEditors ...RequestEd
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetBackupPolicies(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetBackupPoliciesRequest(c.Server)
+func (c *Client) ListBackupPolicies(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListBackupPoliciesRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -1667,8 +1667,8 @@ func (c *Client) GetBackupPolicies(ctx context.Context, reqEditors ...RequestEdi
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostBackupPoliciesWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostBackupPoliciesRequestWithBody(c.Server, contentType, body)
+func (c *Client) CreateBackupPolicyWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateBackupPolicyRequestWithBody(c.Server, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -1679,8 +1679,8 @@ func (c *Client) PostBackupPoliciesWithBody(ctx context.Context, contentType str
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostBackupPolicies(ctx context.Context, body PostBackupPoliciesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostBackupPoliciesRequest(c.Server, body)
+func (c *Client) CreateBackupPolicy(ctx context.Context, body CreateBackupPolicyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateBackupPolicyRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -1691,8 +1691,8 @@ func (c *Client) PostBackupPolicies(ctx context.Context, body PostBackupPolicies
 	return c.Client.Do(req)
 }
 
-func (c *Client) PatchBackupPoliciesIdWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPatchBackupPoliciesIdRequestWithBody(c.Server, id, contentType, body)
+func (c *Client) UpdateBackupPolicyWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateBackupPolicyRequestWithBody(c.Server, id, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -1703,8 +1703,8 @@ func (c *Client) PatchBackupPoliciesIdWithBody(ctx context.Context, id string, c
 	return c.Client.Do(req)
 }
 
-func (c *Client) PatchBackupPoliciesId(ctx context.Context, id string, body PatchBackupPoliciesIdJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPatchBackupPoliciesIdRequest(c.Server, id, body)
+func (c *Client) UpdateBackupPolicy(ctx context.Context, id string, body UpdateBackupPolicyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateBackupPolicyRequest(c.Server, id, body)
 	if err != nil {
 		return nil, err
 	}
@@ -1715,8 +1715,8 @@ func (c *Client) PatchBackupPoliciesId(ctx context.Context, id string, body Patc
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetBackups(ctx context.Context, params *GetBackupsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetBackupsRequest(c.Server, params)
+func (c *Client) ListBackups(ctx context.Context, params *ListBackupsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListBackupsRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -1727,8 +1727,8 @@ func (c *Client) GetBackups(ctx context.Context, params *GetBackupsParams, reqEd
 	return c.Client.Do(req)
 }
 
-func (c *Client) List(ctx context.Context, params *ListParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewListRequest(c.Server, params)
+func (c *Client) ListDatasources(ctx context.Context, params *ListDatasourcesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListDatasourcesRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -1739,8 +1739,8 @@ func (c *Client) List(ctx context.Context, params *ListParams, reqEditors ...Req
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostDatasourcesWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostDatasourcesRequestWithBody(c.Server, contentType, body)
+func (c *Client) CreateDatasourceWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateDatasourceRequestWithBody(c.Server, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -1751,8 +1751,8 @@ func (c *Client) PostDatasourcesWithBody(ctx context.Context, contentType string
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostDatasources(ctx context.Context, body PostDatasourcesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostDatasourcesRequest(c.Server, body)
+func (c *Client) CreateDatasource(ctx context.Context, body CreateDatasourceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateDatasourceRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -1895,8 +1895,8 @@ func (c *Client) ListPolicies(ctx context.Context, datasourceId string, reqEdito
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostDatasourcesDatasourceIdPoliciesWithBody(ctx context.Context, datasourceId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostDatasourcesDatasourceIdPoliciesRequestWithBody(c.Server, datasourceId, contentType, body)
+func (c *Client) AttachPolicyWithBody(ctx context.Context, datasourceId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAttachPolicyRequestWithBody(c.Server, datasourceId, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -1907,8 +1907,8 @@ func (c *Client) PostDatasourcesDatasourceIdPoliciesWithBody(ctx context.Context
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostDatasourcesDatasourceIdPolicies(ctx context.Context, datasourceId string, body PostDatasourcesDatasourceIdPoliciesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostDatasourcesDatasourceIdPoliciesRequest(c.Server, datasourceId, body)
+func (c *Client) AttachPolicy(ctx context.Context, datasourceId string, body AttachPolicyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAttachPolicyRequest(c.Server, datasourceId, body)
 	if err != nil {
 		return nil, err
 	}
@@ -1919,8 +1919,8 @@ func (c *Client) PostDatasourcesDatasourceIdPolicies(ctx context.Context, dataso
 	return c.Client.Do(req)
 }
 
-func (c *Client) DeleteDatasourcesDatasourceIdPoliciesPolicyId(ctx context.Context, datasourceId string, policyId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDeleteDatasourcesDatasourceIdPoliciesPolicyIdRequest(c.Server, datasourceId, policyId)
+func (c *Client) DetachPolicy(ctx context.Context, datasourceId string, policyId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDetachPolicyRequest(c.Server, datasourceId, policyId)
 	if err != nil {
 		return nil, err
 	}
@@ -1967,8 +1967,8 @@ func (c *Client) GetRestoreCheckHistory(ctx context.Context, datasourceId string
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetDatasourcesDatasourceIdRestores(ctx context.Context, datasourceId string, params *GetDatasourcesDatasourceIdRestoresParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetDatasourcesDatasourceIdRestoresRequest(c.Server, datasourceId, params)
+func (c *Client) ListDatasourceRestores(ctx context.Context, datasourceId string, params *ListDatasourceRestoresParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListDatasourceRestoresRequest(c.Server, datasourceId, params)
 	if err != nil {
 		return nil, err
 	}
@@ -2003,8 +2003,8 @@ func (c *Client) DeleteDatasource(ctx context.Context, id string, body DeleteDat
 	return c.Client.Do(req)
 }
 
-func (c *Client) Get(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetRequest(c.Server, id)
+func (c *Client) GetDatasource(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetDatasourceRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
@@ -2039,8 +2039,8 @@ func (c *Client) UpdateDataSource(ctx context.Context, id string, body UpdateDat
 	return c.Client.Do(req)
 }
 
-func (c *Client) PutDatasourcesIdCredentialsWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPutDatasourcesIdCredentialsRequestWithBody(c.Server, id, contentType, body)
+func (c *Client) SetDatasourceCredentialsWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetDatasourceCredentialsRequestWithBody(c.Server, id, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -2051,8 +2051,8 @@ func (c *Client) PutDatasourcesIdCredentialsWithBody(ctx context.Context, id str
 	return c.Client.Do(req)
 }
 
-func (c *Client) PutDatasourcesIdCredentials(ctx context.Context, id string, body PutDatasourcesIdCredentialsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPutDatasourcesIdCredentialsRequest(c.Server, id, body)
+func (c *Client) SetDatasourceCredentials(ctx context.Context, id string, body SetDatasourceCredentialsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetDatasourceCredentialsRequest(c.Server, id, body)
 	if err != nil {
 		return nil, err
 	}
@@ -2159,8 +2159,8 @@ func (c *Client) TestNotifications(ctx context.Context, reqEditors ...RequestEdi
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostRestoresWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostRestoresRequestWithBody(c.Server, contentType, body)
+func (c *Client) CreateRestoreWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateRestoreRequestWithBody(c.Server, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -2171,8 +2171,8 @@ func (c *Client) PostRestoresWithBody(ctx context.Context, contentType string, b
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostRestores(ctx context.Context, body PostRestoresJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostRestoresRequest(c.Server, body)
+func (c *Client) CreateRestore(ctx context.Context, body CreateRestoreJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateRestoreRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -2183,8 +2183,8 @@ func (c *Client) PostRestores(ctx context.Context, body PostRestoresJSONRequestB
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostRestoresTargetProbeWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostRestoresTargetProbeRequestWithBody(c.Server, contentType, body)
+func (c *Client) ProbeRestoreTargetWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewProbeRestoreTargetRequestWithBody(c.Server, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -2195,8 +2195,8 @@ func (c *Client) PostRestoresTargetProbeWithBody(ctx context.Context, contentTyp
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostRestoresTargetProbe(ctx context.Context, body PostRestoresTargetProbeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostRestoresTargetProbeRequest(c.Server, body)
+func (c *Client) ProbeRestoreTarget(ctx context.Context, body ProbeRestoreTargetJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewProbeRestoreTargetRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -2207,8 +2207,8 @@ func (c *Client) PostRestoresTargetProbe(ctx context.Context, body PostRestoresT
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetRestoresId(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetRestoresIdRequest(c.Server, id)
+func (c *Client) GetRestore(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetRestoreRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
@@ -2219,8 +2219,8 @@ func (c *Client) GetRestoresId(ctx context.Context, id string, reqEditors ...Req
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetRestoresIdLogsPresign(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetRestoresIdLogsPresignRequest(c.Server, id)
+func (c *Client) GetRestoreLogsLink(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetRestoreLogsLinkRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
@@ -2231,8 +2231,8 @@ func (c *Client) GetRestoresIdLogsPresign(ctx context.Context, id string, reqEdi
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetStorageDestinations(ctx context.Context, params *GetStorageDestinationsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetStorageDestinationsRequest(c.Server, params)
+func (c *Client) ListStorageDestinations(ctx context.Context, params *ListStorageDestinationsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListStorageDestinationsRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -2243,8 +2243,8 @@ func (c *Client) GetStorageDestinations(ctx context.Context, params *GetStorageD
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostStorageDestinationsWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostStorageDestinationsRequestWithBody(c.Server, contentType, body)
+func (c *Client) CreateStorageDestinationWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateStorageDestinationRequestWithBody(c.Server, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -2255,8 +2255,8 @@ func (c *Client) PostStorageDestinationsWithBody(ctx context.Context, contentTyp
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostStorageDestinations(ctx context.Context, body PostStorageDestinationsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostStorageDestinationsRequest(c.Server, body)
+func (c *Client) CreateStorageDestination(ctx context.Context, body CreateStorageDestinationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateStorageDestinationRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -2267,8 +2267,8 @@ func (c *Client) PostStorageDestinations(ctx context.Context, body PostStorageDe
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostStorageDestinationsManagedEnsureWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostStorageDestinationsManagedEnsureRequestWithBody(c.Server, contentType, body)
+func (c *Client) EnsureManagedStorageDestinationWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEnsureManagedStorageDestinationRequestWithBody(c.Server, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -2279,8 +2279,8 @@ func (c *Client) PostStorageDestinationsManagedEnsureWithBody(ctx context.Contex
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostStorageDestinationsManagedEnsure(ctx context.Context, body PostStorageDestinationsManagedEnsureJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostStorageDestinationsManagedEnsureRequest(c.Server, body)
+func (c *Client) EnsureManagedStorageDestination(ctx context.Context, body EnsureManagedStorageDestinationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEnsureManagedStorageDestinationRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -2291,8 +2291,8 @@ func (c *Client) PostStorageDestinationsManagedEnsure(ctx context.Context, body 
 	return c.Client.Do(req)
 }
 
-func (c *Client) DeleteStorageDestinationsId(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDeleteStorageDestinationsIdRequest(c.Server, id)
+func (c *Client) DeleteStorageDestination(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteStorageDestinationRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
@@ -2303,8 +2303,8 @@ func (c *Client) DeleteStorageDestinationsId(ctx context.Context, id string, req
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetStorageDestinationsId(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetStorageDestinationsIdRequest(c.Server, id)
+func (c *Client) GetStorageDestination(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetStorageDestinationRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
@@ -2315,8 +2315,8 @@ func (c *Client) GetStorageDestinationsId(ctx context.Context, id string, reqEdi
 	return c.Client.Do(req)
 }
 
-func (c *Client) PatchStorageDestinationsIdWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPatchStorageDestinationsIdRequestWithBody(c.Server, id, contentType, body)
+func (c *Client) UpdateStorageDestinationWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateStorageDestinationRequestWithBody(c.Server, id, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -2327,8 +2327,8 @@ func (c *Client) PatchStorageDestinationsIdWithBody(ctx context.Context, id stri
 	return c.Client.Do(req)
 }
 
-func (c *Client) PatchStorageDestinationsId(ctx context.Context, id string, body PatchStorageDestinationsIdJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPatchStorageDestinationsIdRequest(c.Server, id, body)
+func (c *Client) UpdateStorageDestination(ctx context.Context, id string, body UpdateStorageDestinationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateStorageDestinationRequest(c.Server, id, body)
 	if err != nil {
 		return nil, err
 	}
@@ -2516,8 +2516,8 @@ func NewListAuditLogActorsRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
-// NewGetBackupPoliciesRequest generates requests for GetBackupPolicies
-func NewGetBackupPoliciesRequest(server string) (*http.Request, error) {
+// NewListBackupPoliciesRequest generates requests for ListBackupPolicies
+func NewListBackupPoliciesRequest(server string) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -2543,19 +2543,19 @@ func NewGetBackupPoliciesRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
-// NewPostBackupPoliciesRequest calls the generic PostBackupPolicies builder with application/json body
-func NewPostBackupPoliciesRequest(server string, body PostBackupPoliciesJSONRequestBody) (*http.Request, error) {
+// NewCreateBackupPolicyRequest calls the generic CreateBackupPolicy builder with application/json body
+func NewCreateBackupPolicyRequest(server string, body CreateBackupPolicyJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewPostBackupPoliciesRequestWithBody(server, "application/json", bodyReader)
+	return NewCreateBackupPolicyRequestWithBody(server, "application/json", bodyReader)
 }
 
-// NewPostBackupPoliciesRequestWithBody generates requests for PostBackupPolicies with any type of body
-func NewPostBackupPoliciesRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+// NewCreateBackupPolicyRequestWithBody generates requests for CreateBackupPolicy with any type of body
+func NewCreateBackupPolicyRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -2583,19 +2583,19 @@ func NewPostBackupPoliciesRequestWithBody(server string, contentType string, bod
 	return req, nil
 }
 
-// NewPatchBackupPoliciesIdRequest calls the generic PatchBackupPoliciesId builder with application/json body
-func NewPatchBackupPoliciesIdRequest(server string, id string, body PatchBackupPoliciesIdJSONRequestBody) (*http.Request, error) {
+// NewUpdateBackupPolicyRequest calls the generic UpdateBackupPolicy builder with application/json body
+func NewUpdateBackupPolicyRequest(server string, id string, body UpdateBackupPolicyJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewPatchBackupPoliciesIdRequestWithBody(server, id, "application/json", bodyReader)
+	return NewUpdateBackupPolicyRequestWithBody(server, id, "application/json", bodyReader)
 }
 
-// NewPatchBackupPoliciesIdRequestWithBody generates requests for PatchBackupPoliciesId with any type of body
-func NewPatchBackupPoliciesIdRequestWithBody(server string, id string, contentType string, body io.Reader) (*http.Request, error) {
+// NewUpdateBackupPolicyRequestWithBody generates requests for UpdateBackupPolicy with any type of body
+func NewUpdateBackupPolicyRequestWithBody(server string, id string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -2630,8 +2630,8 @@ func NewPatchBackupPoliciesIdRequestWithBody(server string, id string, contentTy
 	return req, nil
 }
 
-// NewGetBackupsRequest generates requests for GetBackups
-func NewGetBackupsRequest(server string, params *GetBackupsParams) (*http.Request, error) {
+// NewListBackupsRequest generates requests for ListBackups
+func NewListBackupsRequest(server string, params *ListBackupsParams) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -2708,8 +2708,8 @@ func NewGetBackupsRequest(server string, params *GetBackupsParams) (*http.Reques
 	return req, nil
 }
 
-// NewListRequest generates requests for List
-func NewListRequest(server string, params *ListParams) (*http.Request, error) {
+// NewListDatasourcesRequest generates requests for ListDatasources
+func NewListDatasourcesRequest(server string, params *ListDatasourcesParams) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -2774,19 +2774,19 @@ func NewListRequest(server string, params *ListParams) (*http.Request, error) {
 	return req, nil
 }
 
-// NewPostDatasourcesRequest calls the generic PostDatasources builder with application/json body
-func NewPostDatasourcesRequest(server string, body PostDatasourcesJSONRequestBody) (*http.Request, error) {
+// NewCreateDatasourceRequest calls the generic CreateDatasource builder with application/json body
+func NewCreateDatasourceRequest(server string, body CreateDatasourceJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewPostDatasourcesRequestWithBody(server, "application/json", bodyReader)
+	return NewCreateDatasourceRequestWithBody(server, "application/json", bodyReader)
 }
 
-// NewPostDatasourcesRequestWithBody generates requests for PostDatasources with any type of body
-func NewPostDatasourcesRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+// NewCreateDatasourceRequestWithBody generates requests for CreateDatasource with any type of body
+func NewCreateDatasourceRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -3233,19 +3233,19 @@ func NewListPoliciesRequest(server string, datasourceId string) (*http.Request, 
 	return req, nil
 }
 
-// NewPostDatasourcesDatasourceIdPoliciesRequest calls the generic PostDatasourcesDatasourceIdPolicies builder with application/json body
-func NewPostDatasourcesDatasourceIdPoliciesRequest(server string, datasourceId string, body PostDatasourcesDatasourceIdPoliciesJSONRequestBody) (*http.Request, error) {
+// NewAttachPolicyRequest calls the generic AttachPolicy builder with application/json body
+func NewAttachPolicyRequest(server string, datasourceId string, body AttachPolicyJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewPostDatasourcesDatasourceIdPoliciesRequestWithBody(server, datasourceId, "application/json", bodyReader)
+	return NewAttachPolicyRequestWithBody(server, datasourceId, "application/json", bodyReader)
 }
 
-// NewPostDatasourcesDatasourceIdPoliciesRequestWithBody generates requests for PostDatasourcesDatasourceIdPolicies with any type of body
-func NewPostDatasourcesDatasourceIdPoliciesRequestWithBody(server string, datasourceId string, contentType string, body io.Reader) (*http.Request, error) {
+// NewAttachPolicyRequestWithBody generates requests for AttachPolicy with any type of body
+func NewAttachPolicyRequestWithBody(server string, datasourceId string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -3280,8 +3280,8 @@ func NewPostDatasourcesDatasourceIdPoliciesRequestWithBody(server string, dataso
 	return req, nil
 }
 
-// NewDeleteDatasourcesDatasourceIdPoliciesPolicyIdRequest generates requests for DeleteDatasourcesDatasourceIdPoliciesPolicyId
-func NewDeleteDatasourcesDatasourceIdPoliciesPolicyIdRequest(server string, datasourceId string, policyId string) (*http.Request, error) {
+// NewDetachPolicyRequest generates requests for DetachPolicy
+func NewDetachPolicyRequest(server string, datasourceId string, policyId string) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -3436,8 +3436,8 @@ func NewGetRestoreCheckHistoryRequest(server string, datasourceId string, params
 	return req, nil
 }
 
-// NewGetDatasourcesDatasourceIdRestoresRequest generates requests for GetDatasourcesDatasourceIdRestores
-func NewGetDatasourcesDatasourceIdRestoresRequest(server string, datasourceId string, params *GetDatasourcesDatasourceIdRestoresParams) (*http.Request, error) {
+// NewListDatasourceRestoresRequest generates requests for ListDatasourceRestores
+func NewListDatasourceRestoresRequest(server string, datasourceId string, params *ListDatasourceRestoresParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -3568,8 +3568,8 @@ func NewDeleteDatasourceRequestWithBody(server string, id string, contentType st
 	return req, nil
 }
 
-// NewGetRequest generates requests for Get
-func NewGetRequest(server string, id string) (*http.Request, error) {
+// NewGetDatasourceRequest generates requests for GetDatasource
+func NewGetDatasourceRequest(server string, id string) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -3649,19 +3649,19 @@ func NewUpdateDataSourceRequestWithBody(server string, id string, contentType st
 	return req, nil
 }
 
-// NewPutDatasourcesIdCredentialsRequest calls the generic PutDatasourcesIdCredentials builder with application/json body
-func NewPutDatasourcesIdCredentialsRequest(server string, id string, body PutDatasourcesIdCredentialsJSONRequestBody) (*http.Request, error) {
+// NewSetDatasourceCredentialsRequest calls the generic SetDatasourceCredentials builder with application/json body
+func NewSetDatasourceCredentialsRequest(server string, id string, body SetDatasourceCredentialsJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewPutDatasourcesIdCredentialsRequestWithBody(server, id, "application/json", bodyReader)
+	return NewSetDatasourceCredentialsRequestWithBody(server, id, "application/json", bodyReader)
 }
 
-// NewPutDatasourcesIdCredentialsRequestWithBody generates requests for PutDatasourcesIdCredentials with any type of body
-func NewPutDatasourcesIdCredentialsRequestWithBody(server string, id string, contentType string, body io.Reader) (*http.Request, error) {
+// NewSetDatasourceCredentialsRequestWithBody generates requests for SetDatasourceCredentials with any type of body
+func NewSetDatasourceCredentialsRequestWithBody(server string, id string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -3905,19 +3905,19 @@ func NewTestNotificationsRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
-// NewPostRestoresRequest calls the generic PostRestores builder with application/json body
-func NewPostRestoresRequest(server string, body PostRestoresJSONRequestBody) (*http.Request, error) {
+// NewCreateRestoreRequest calls the generic CreateRestore builder with application/json body
+func NewCreateRestoreRequest(server string, body CreateRestoreJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewPostRestoresRequestWithBody(server, "application/json", bodyReader)
+	return NewCreateRestoreRequestWithBody(server, "application/json", bodyReader)
 }
 
-// NewPostRestoresRequestWithBody generates requests for PostRestores with any type of body
-func NewPostRestoresRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+// NewCreateRestoreRequestWithBody generates requests for CreateRestore with any type of body
+func NewCreateRestoreRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -3945,19 +3945,19 @@ func NewPostRestoresRequestWithBody(server string, contentType string, body io.R
 	return req, nil
 }
 
-// NewPostRestoresTargetProbeRequest calls the generic PostRestoresTargetProbe builder with application/json body
-func NewPostRestoresTargetProbeRequest(server string, body PostRestoresTargetProbeJSONRequestBody) (*http.Request, error) {
+// NewProbeRestoreTargetRequest calls the generic ProbeRestoreTarget builder with application/json body
+func NewProbeRestoreTargetRequest(server string, body ProbeRestoreTargetJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewPostRestoresTargetProbeRequestWithBody(server, "application/json", bodyReader)
+	return NewProbeRestoreTargetRequestWithBody(server, "application/json", bodyReader)
 }
 
-// NewPostRestoresTargetProbeRequestWithBody generates requests for PostRestoresTargetProbe with any type of body
-func NewPostRestoresTargetProbeRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+// NewProbeRestoreTargetRequestWithBody generates requests for ProbeRestoreTarget with any type of body
+func NewProbeRestoreTargetRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -3985,8 +3985,8 @@ func NewPostRestoresTargetProbeRequestWithBody(server string, contentType string
 	return req, nil
 }
 
-// NewGetRestoresIdRequest generates requests for GetRestoresId
-func NewGetRestoresIdRequest(server string, id string) (*http.Request, error) {
+// NewGetRestoreRequest generates requests for GetRestore
+func NewGetRestoreRequest(server string, id string) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -4019,8 +4019,8 @@ func NewGetRestoresIdRequest(server string, id string) (*http.Request, error) {
 	return req, nil
 }
 
-// NewGetRestoresIdLogsPresignRequest generates requests for GetRestoresIdLogsPresign
-func NewGetRestoresIdLogsPresignRequest(server string, id string) (*http.Request, error) {
+// NewGetRestoreLogsLinkRequest generates requests for GetRestoreLogsLink
+func NewGetRestoreLogsLinkRequest(server string, id string) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -4053,8 +4053,8 @@ func NewGetRestoresIdLogsPresignRequest(server string, id string) (*http.Request
 	return req, nil
 }
 
-// NewGetStorageDestinationsRequest generates requests for GetStorageDestinations
-func NewGetStorageDestinationsRequest(server string, params *GetStorageDestinationsParams) (*http.Request, error) {
+// NewListStorageDestinationsRequest generates requests for ListStorageDestinations
+func NewListStorageDestinationsRequest(server string, params *ListStorageDestinationsParams) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -4131,19 +4131,19 @@ func NewGetStorageDestinationsRequest(server string, params *GetStorageDestinati
 	return req, nil
 }
 
-// NewPostStorageDestinationsRequest calls the generic PostStorageDestinations builder with application/json body
-func NewPostStorageDestinationsRequest(server string, body PostStorageDestinationsJSONRequestBody) (*http.Request, error) {
+// NewCreateStorageDestinationRequest calls the generic CreateStorageDestination builder with application/json body
+func NewCreateStorageDestinationRequest(server string, body CreateStorageDestinationJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewPostStorageDestinationsRequestWithBody(server, "application/json", bodyReader)
+	return NewCreateStorageDestinationRequestWithBody(server, "application/json", bodyReader)
 }
 
-// NewPostStorageDestinationsRequestWithBody generates requests for PostStorageDestinations with any type of body
-func NewPostStorageDestinationsRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+// NewCreateStorageDestinationRequestWithBody generates requests for CreateStorageDestination with any type of body
+func NewCreateStorageDestinationRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -4171,19 +4171,19 @@ func NewPostStorageDestinationsRequestWithBody(server string, contentType string
 	return req, nil
 }
 
-// NewPostStorageDestinationsManagedEnsureRequest calls the generic PostStorageDestinationsManagedEnsure builder with application/json body
-func NewPostStorageDestinationsManagedEnsureRequest(server string, body PostStorageDestinationsManagedEnsureJSONRequestBody) (*http.Request, error) {
+// NewEnsureManagedStorageDestinationRequest calls the generic EnsureManagedStorageDestination builder with application/json body
+func NewEnsureManagedStorageDestinationRequest(server string, body EnsureManagedStorageDestinationJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewPostStorageDestinationsManagedEnsureRequestWithBody(server, "application/json", bodyReader)
+	return NewEnsureManagedStorageDestinationRequestWithBody(server, "application/json", bodyReader)
 }
 
-// NewPostStorageDestinationsManagedEnsureRequestWithBody generates requests for PostStorageDestinationsManagedEnsure with any type of body
-func NewPostStorageDestinationsManagedEnsureRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+// NewEnsureManagedStorageDestinationRequestWithBody generates requests for EnsureManagedStorageDestination with any type of body
+func NewEnsureManagedStorageDestinationRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -4211,8 +4211,8 @@ func NewPostStorageDestinationsManagedEnsureRequestWithBody(server string, conte
 	return req, nil
 }
 
-// NewDeleteStorageDestinationsIdRequest generates requests for DeleteStorageDestinationsId
-func NewDeleteStorageDestinationsIdRequest(server string, id string) (*http.Request, error) {
+// NewDeleteStorageDestinationRequest generates requests for DeleteStorageDestination
+func NewDeleteStorageDestinationRequest(server string, id string) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -4245,8 +4245,8 @@ func NewDeleteStorageDestinationsIdRequest(server string, id string) (*http.Requ
 	return req, nil
 }
 
-// NewGetStorageDestinationsIdRequest generates requests for GetStorageDestinationsId
-func NewGetStorageDestinationsIdRequest(server string, id string) (*http.Request, error) {
+// NewGetStorageDestinationRequest generates requests for GetStorageDestination
+func NewGetStorageDestinationRequest(server string, id string) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -4279,19 +4279,19 @@ func NewGetStorageDestinationsIdRequest(server string, id string) (*http.Request
 	return req, nil
 }
 
-// NewPatchStorageDestinationsIdRequest calls the generic PatchStorageDestinationsId builder with application/json body
-func NewPatchStorageDestinationsIdRequest(server string, id string, body PatchStorageDestinationsIdJSONRequestBody) (*http.Request, error) {
+// NewUpdateStorageDestinationRequest calls the generic UpdateStorageDestination builder with application/json body
+func NewUpdateStorageDestinationRequest(server string, id string, body UpdateStorageDestinationJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewPatchStorageDestinationsIdRequestWithBody(server, id, "application/json", bodyReader)
+	return NewUpdateStorageDestinationRequestWithBody(server, id, "application/json", bodyReader)
 }
 
-// NewPatchStorageDestinationsIdRequestWithBody generates requests for PatchStorageDestinationsId with any type of body
-func NewPatchStorageDestinationsIdRequestWithBody(server string, id string, contentType string, body io.Reader) (*http.Request, error) {
+// NewUpdateStorageDestinationRequestWithBody generates requests for UpdateStorageDestination with any type of body
+func NewUpdateStorageDestinationRequestWithBody(server string, id string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -4375,29 +4375,29 @@ type ClientWithResponsesInterface interface {
 	// ListAuditLogActorsWithResponse request
 	ListAuditLogActorsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListAuditLogActorsResponse, error)
 
-	// GetBackupPoliciesWithResponse request
-	GetBackupPoliciesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetBackupPoliciesResponse, error)
+	// ListBackupPoliciesWithResponse request
+	ListBackupPoliciesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListBackupPoliciesResponse, error)
 
-	// PostBackupPoliciesWithBodyWithResponse request with any body
-	PostBackupPoliciesWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostBackupPoliciesResponse, error)
+	// CreateBackupPolicyWithBodyWithResponse request with any body
+	CreateBackupPolicyWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateBackupPolicyResponse, error)
 
-	PostBackupPoliciesWithResponse(ctx context.Context, body PostBackupPoliciesJSONRequestBody, reqEditors ...RequestEditorFn) (*PostBackupPoliciesResponse, error)
+	CreateBackupPolicyWithResponse(ctx context.Context, body CreateBackupPolicyJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateBackupPolicyResponse, error)
 
-	// PatchBackupPoliciesIdWithBodyWithResponse request with any body
-	PatchBackupPoliciesIdWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PatchBackupPoliciesIdResponse, error)
+	// UpdateBackupPolicyWithBodyWithResponse request with any body
+	UpdateBackupPolicyWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateBackupPolicyResponse, error)
 
-	PatchBackupPoliciesIdWithResponse(ctx context.Context, id string, body PatchBackupPoliciesIdJSONRequestBody, reqEditors ...RequestEditorFn) (*PatchBackupPoliciesIdResponse, error)
+	UpdateBackupPolicyWithResponse(ctx context.Context, id string, body UpdateBackupPolicyJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateBackupPolicyResponse, error)
 
-	// GetBackupsWithResponse request
-	GetBackupsWithResponse(ctx context.Context, params *GetBackupsParams, reqEditors ...RequestEditorFn) (*GetBackupsResponse, error)
+	// ListBackupsWithResponse request
+	ListBackupsWithResponse(ctx context.Context, params *ListBackupsParams, reqEditors ...RequestEditorFn) (*ListBackupsResponse, error)
 
-	// ListWithResponse request
-	ListWithResponse(ctx context.Context, params *ListParams, reqEditors ...RequestEditorFn) (*ListResponse, error)
+	// ListDatasourcesWithResponse request
+	ListDatasourcesWithResponse(ctx context.Context, params *ListDatasourcesParams, reqEditors ...RequestEditorFn) (*ListDatasourcesResponse, error)
 
-	// PostDatasourcesWithBodyWithResponse request with any body
-	PostDatasourcesWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostDatasourcesResponse, error)
+	// CreateDatasourceWithBodyWithResponse request with any body
+	CreateDatasourceWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDatasourceResponse, error)
 
-	PostDatasourcesWithResponse(ctx context.Context, body PostDatasourcesJSONRequestBody, reqEditors ...RequestEditorFn) (*PostDatasourcesResponse, error)
+	CreateDatasourceWithResponse(ctx context.Context, body CreateDatasourceJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateDatasourceResponse, error)
 
 	// ProtectDatasourceWithBodyWithResponse request with any body
 	ProtectDatasourceWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ProtectDatasourceResponse, error)
@@ -4430,13 +4430,13 @@ type ClientWithResponsesInterface interface {
 	// ListPoliciesWithResponse request
 	ListPoliciesWithResponse(ctx context.Context, datasourceId string, reqEditors ...RequestEditorFn) (*ListPoliciesResponse, error)
 
-	// PostDatasourcesDatasourceIdPoliciesWithBodyWithResponse request with any body
-	PostDatasourcesDatasourceIdPoliciesWithBodyWithResponse(ctx context.Context, datasourceId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostDatasourcesDatasourceIdPoliciesResponse, error)
+	// AttachPolicyWithBodyWithResponse request with any body
+	AttachPolicyWithBodyWithResponse(ctx context.Context, datasourceId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AttachPolicyResponse, error)
 
-	PostDatasourcesDatasourceIdPoliciesWithResponse(ctx context.Context, datasourceId string, body PostDatasourcesDatasourceIdPoliciesJSONRequestBody, reqEditors ...RequestEditorFn) (*PostDatasourcesDatasourceIdPoliciesResponse, error)
+	AttachPolicyWithResponse(ctx context.Context, datasourceId string, body AttachPolicyJSONRequestBody, reqEditors ...RequestEditorFn) (*AttachPolicyResponse, error)
 
-	// DeleteDatasourcesDatasourceIdPoliciesPolicyIdWithResponse request
-	DeleteDatasourcesDatasourceIdPoliciesPolicyIdWithResponse(ctx context.Context, datasourceId string, policyId string, reqEditors ...RequestEditorFn) (*DeleteDatasourcesDatasourceIdPoliciesPolicyIdResponse, error)
+	// DetachPolicyWithResponse request
+	DetachPolicyWithResponse(ctx context.Context, datasourceId string, policyId string, reqEditors ...RequestEditorFn) (*DetachPolicyResponse, error)
 
 	// UpdatePolicyAttachmentWithBodyWithResponse request with any body
 	UpdatePolicyAttachmentWithBodyWithResponse(ctx context.Context, datasourceId string, policyId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdatePolicyAttachmentResponse, error)
@@ -4446,26 +4446,26 @@ type ClientWithResponsesInterface interface {
 	// GetRestoreCheckHistoryWithResponse request
 	GetRestoreCheckHistoryWithResponse(ctx context.Context, datasourceId string, params *GetRestoreCheckHistoryParams, reqEditors ...RequestEditorFn) (*GetRestoreCheckHistoryResponse, error)
 
-	// GetDatasourcesDatasourceIdRestoresWithResponse request
-	GetDatasourcesDatasourceIdRestoresWithResponse(ctx context.Context, datasourceId string, params *GetDatasourcesDatasourceIdRestoresParams, reqEditors ...RequestEditorFn) (*GetDatasourcesDatasourceIdRestoresResponse, error)
+	// ListDatasourceRestoresWithResponse request
+	ListDatasourceRestoresWithResponse(ctx context.Context, datasourceId string, params *ListDatasourceRestoresParams, reqEditors ...RequestEditorFn) (*ListDatasourceRestoresResponse, error)
 
 	// DeleteDatasourceWithBodyWithResponse request with any body
 	DeleteDatasourceWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteDatasourceResponse, error)
 
 	DeleteDatasourceWithResponse(ctx context.Context, id string, body DeleteDatasourceJSONRequestBody, reqEditors ...RequestEditorFn) (*DeleteDatasourceResponse, error)
 
-	// GetWithResponse request
-	GetWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetResponse, error)
+	// GetDatasourceWithResponse request
+	GetDatasourceWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetDatasourceResponse, error)
 
 	// UpdateDataSourceWithBodyWithResponse request with any body
 	UpdateDataSourceWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateDataSourceResponse, error)
 
 	UpdateDataSourceWithResponse(ctx context.Context, id string, body UpdateDataSourceJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateDataSourceResponse, error)
 
-	// PutDatasourcesIdCredentialsWithBodyWithResponse request with any body
-	PutDatasourcesIdCredentialsWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutDatasourcesIdCredentialsResponse, error)
+	// SetDatasourceCredentialsWithBodyWithResponse request with any body
+	SetDatasourceCredentialsWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetDatasourceCredentialsResponse, error)
 
-	PutDatasourcesIdCredentialsWithResponse(ctx context.Context, id string, body PutDatasourcesIdCredentialsJSONRequestBody, reqEditors ...RequestEditorFn) (*PutDatasourcesIdCredentialsResponse, error)
+	SetDatasourceCredentialsWithResponse(ctx context.Context, id string, body SetDatasourceCredentialsJSONRequestBody, reqEditors ...RequestEditorFn) (*SetDatasourceCredentialsResponse, error)
 
 	// GetRestoreCheckWithResponse request
 	GetRestoreCheckWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetRestoreCheckResponse, error)
@@ -4489,45 +4489,45 @@ type ClientWithResponsesInterface interface {
 	// TestNotificationsWithResponse request
 	TestNotificationsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*TestNotificationsResponse, error)
 
-	// PostRestoresWithBodyWithResponse request with any body
-	PostRestoresWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostRestoresResponse, error)
+	// CreateRestoreWithBodyWithResponse request with any body
+	CreateRestoreWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateRestoreResponse, error)
 
-	PostRestoresWithResponse(ctx context.Context, body PostRestoresJSONRequestBody, reqEditors ...RequestEditorFn) (*PostRestoresResponse, error)
+	CreateRestoreWithResponse(ctx context.Context, body CreateRestoreJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateRestoreResponse, error)
 
-	// PostRestoresTargetProbeWithBodyWithResponse request with any body
-	PostRestoresTargetProbeWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostRestoresTargetProbeResponse, error)
+	// ProbeRestoreTargetWithBodyWithResponse request with any body
+	ProbeRestoreTargetWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ProbeRestoreTargetResponse, error)
 
-	PostRestoresTargetProbeWithResponse(ctx context.Context, body PostRestoresTargetProbeJSONRequestBody, reqEditors ...RequestEditorFn) (*PostRestoresTargetProbeResponse, error)
+	ProbeRestoreTargetWithResponse(ctx context.Context, body ProbeRestoreTargetJSONRequestBody, reqEditors ...RequestEditorFn) (*ProbeRestoreTargetResponse, error)
 
-	// GetRestoresIdWithResponse request
-	GetRestoresIdWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetRestoresIdResponse, error)
+	// GetRestoreWithResponse request
+	GetRestoreWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetRestoreResponse, error)
 
-	// GetRestoresIdLogsPresignWithResponse request
-	GetRestoresIdLogsPresignWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetRestoresIdLogsPresignResponse, error)
+	// GetRestoreLogsLinkWithResponse request
+	GetRestoreLogsLinkWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetRestoreLogsLinkResponse, error)
 
-	// GetStorageDestinationsWithResponse request
-	GetStorageDestinationsWithResponse(ctx context.Context, params *GetStorageDestinationsParams, reqEditors ...RequestEditorFn) (*GetStorageDestinationsResponse, error)
+	// ListStorageDestinationsWithResponse request
+	ListStorageDestinationsWithResponse(ctx context.Context, params *ListStorageDestinationsParams, reqEditors ...RequestEditorFn) (*ListStorageDestinationsResponse, error)
 
-	// PostStorageDestinationsWithBodyWithResponse request with any body
-	PostStorageDestinationsWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostStorageDestinationsResponse, error)
+	// CreateStorageDestinationWithBodyWithResponse request with any body
+	CreateStorageDestinationWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateStorageDestinationResponse, error)
 
-	PostStorageDestinationsWithResponse(ctx context.Context, body PostStorageDestinationsJSONRequestBody, reqEditors ...RequestEditorFn) (*PostStorageDestinationsResponse, error)
+	CreateStorageDestinationWithResponse(ctx context.Context, body CreateStorageDestinationJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateStorageDestinationResponse, error)
 
-	// PostStorageDestinationsManagedEnsureWithBodyWithResponse request with any body
-	PostStorageDestinationsManagedEnsureWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostStorageDestinationsManagedEnsureResponse, error)
+	// EnsureManagedStorageDestinationWithBodyWithResponse request with any body
+	EnsureManagedStorageDestinationWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EnsureManagedStorageDestinationResponse, error)
 
-	PostStorageDestinationsManagedEnsureWithResponse(ctx context.Context, body PostStorageDestinationsManagedEnsureJSONRequestBody, reqEditors ...RequestEditorFn) (*PostStorageDestinationsManagedEnsureResponse, error)
+	EnsureManagedStorageDestinationWithResponse(ctx context.Context, body EnsureManagedStorageDestinationJSONRequestBody, reqEditors ...RequestEditorFn) (*EnsureManagedStorageDestinationResponse, error)
 
-	// DeleteStorageDestinationsIdWithResponse request
-	DeleteStorageDestinationsIdWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*DeleteStorageDestinationsIdResponse, error)
+	// DeleteStorageDestinationWithResponse request
+	DeleteStorageDestinationWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*DeleteStorageDestinationResponse, error)
 
-	// GetStorageDestinationsIdWithResponse request
-	GetStorageDestinationsIdWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetStorageDestinationsIdResponse, error)
+	// GetStorageDestinationWithResponse request
+	GetStorageDestinationWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetStorageDestinationResponse, error)
 
-	// PatchStorageDestinationsIdWithBodyWithResponse request with any body
-	PatchStorageDestinationsIdWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PatchStorageDestinationsIdResponse, error)
+	// UpdateStorageDestinationWithBodyWithResponse request with any body
+	UpdateStorageDestinationWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateStorageDestinationResponse, error)
 
-	PatchStorageDestinationsIdWithResponse(ctx context.Context, id string, body PatchStorageDestinationsIdJSONRequestBody, reqEditors ...RequestEditorFn) (*PatchStorageDestinationsIdResponse, error)
+	UpdateStorageDestinationWithResponse(ctx context.Context, id string, body UpdateStorageDestinationJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateStorageDestinationResponse, error)
 }
 
 type ListAuditLogsResponse struct {
@@ -4594,7 +4594,7 @@ func (r ListAuditLogActorsResponse) ContentType() string {
 	return ""
 }
 
-type GetBackupPoliciesResponse struct {
+type ListBackupPoliciesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
@@ -4607,7 +4607,7 @@ type GetBackupPoliciesResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetBackupPoliciesResponse) Status() string {
+func (r ListBackupPoliciesResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -4615,7 +4615,7 @@ func (r GetBackupPoliciesResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetBackupPoliciesResponse) StatusCode() int {
+func (r ListBackupPoliciesResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -4623,14 +4623,14 @@ func (r GetBackupPoliciesResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r GetBackupPoliciesResponse) ContentType() string {
+func (r ListBackupPoliciesResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type PostBackupPoliciesResponse struct {
+type CreateBackupPolicyResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON201      *PolicyhandlerPayloadCreateResponse
@@ -4639,7 +4639,7 @@ type PostBackupPoliciesResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r PostBackupPoliciesResponse) Status() string {
+func (r CreateBackupPolicyResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -4647,7 +4647,7 @@ func (r PostBackupPoliciesResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostBackupPoliciesResponse) StatusCode() int {
+func (r CreateBackupPolicyResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -4655,14 +4655,14 @@ func (r PostBackupPoliciesResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r PostBackupPoliciesResponse) ContentType() string {
+func (r CreateBackupPolicyResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type PatchBackupPoliciesIdResponse struct {
+type UpdateBackupPolicyResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON400      *ResponseAPIError
@@ -4672,7 +4672,7 @@ type PatchBackupPoliciesIdResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r PatchBackupPoliciesIdResponse) Status() string {
+func (r UpdateBackupPolicyResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -4680,7 +4680,7 @@ func (r PatchBackupPoliciesIdResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PatchBackupPoliciesIdResponse) StatusCode() int {
+func (r UpdateBackupPolicyResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -4688,14 +4688,14 @@ func (r PatchBackupPoliciesIdResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r PatchBackupPoliciesIdResponse) ContentType() string {
+func (r UpdateBackupPolicyResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type GetBackupsResponse struct {
+type ListBackupsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
@@ -4708,7 +4708,7 @@ type GetBackupsResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetBackupsResponse) Status() string {
+func (r ListBackupsResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -4716,7 +4716,7 @@ func (r GetBackupsResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetBackupsResponse) StatusCode() int {
+func (r ListBackupsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -4724,14 +4724,14 @@ func (r GetBackupsResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r GetBackupsResponse) ContentType() string {
+func (r ListBackupsResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type ListResponse struct {
+type ListDatasourcesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
@@ -4744,7 +4744,7 @@ type ListResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r ListResponse) Status() string {
+func (r ListDatasourcesResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -4752,7 +4752,7 @@ func (r ListResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r ListResponse) StatusCode() int {
+func (r ListDatasourcesResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -4760,14 +4760,14 @@ func (r ListResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r ListResponse) ContentType() string {
+func (r ListDatasourcesResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type PostDatasourcesResponse struct {
+type CreateDatasourceResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON201      *DatasourcehandlerPayloadCreateResponse
@@ -4777,7 +4777,7 @@ type PostDatasourcesResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r PostDatasourcesResponse) Status() string {
+func (r CreateDatasourceResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -4785,7 +4785,7 @@ func (r PostDatasourcesResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostDatasourcesResponse) StatusCode() int {
+func (r CreateDatasourceResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -4793,7 +4793,7 @@ func (r PostDatasourcesResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r PostDatasourcesResponse) ContentType() string {
+func (r CreateDatasourceResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
@@ -5100,7 +5100,7 @@ func (r ListPoliciesResponse) ContentType() string {
 	return ""
 }
 
-type PostDatasourcesDatasourceIdPoliciesResponse struct {
+type AttachPolicyResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON201      *DatasourcehandlerPayloadDataSourcePolicyAttachResponse
@@ -5109,7 +5109,7 @@ type PostDatasourcesDatasourceIdPoliciesResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r PostDatasourcesDatasourceIdPoliciesResponse) Status() string {
+func (r AttachPolicyResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -5117,7 +5117,7 @@ func (r PostDatasourcesDatasourceIdPoliciesResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostDatasourcesDatasourceIdPoliciesResponse) StatusCode() int {
+func (r AttachPolicyResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -5125,14 +5125,14 @@ func (r PostDatasourcesDatasourceIdPoliciesResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r PostDatasourcesDatasourceIdPoliciesResponse) ContentType() string {
+func (r AttachPolicyResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type DeleteDatasourcesDatasourceIdPoliciesPolicyIdResponse struct {
+type DetachPolicyResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON400      *ResponseAPIError
@@ -5140,7 +5140,7 @@ type DeleteDatasourcesDatasourceIdPoliciesPolicyIdResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r DeleteDatasourcesDatasourceIdPoliciesPolicyIdResponse) Status() string {
+func (r DetachPolicyResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -5148,7 +5148,7 @@ func (r DeleteDatasourcesDatasourceIdPoliciesPolicyIdResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r DeleteDatasourcesDatasourceIdPoliciesPolicyIdResponse) StatusCode() int {
+func (r DetachPolicyResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -5156,7 +5156,7 @@ func (r DeleteDatasourcesDatasourceIdPoliciesPolicyIdResponse) StatusCode() int 
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r DeleteDatasourcesDatasourceIdPoliciesPolicyIdResponse) ContentType() string {
+func (r DetachPolicyResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
@@ -5227,7 +5227,7 @@ func (r GetRestoreCheckHistoryResponse) ContentType() string {
 	return ""
 }
 
-type GetDatasourcesDatasourceIdRestoresResponse struct {
+type ListDatasourceRestoresResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
@@ -5240,7 +5240,7 @@ type GetDatasourcesDatasourceIdRestoresResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetDatasourcesDatasourceIdRestoresResponse) Status() string {
+func (r ListDatasourceRestoresResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -5248,7 +5248,7 @@ func (r GetDatasourcesDatasourceIdRestoresResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetDatasourcesDatasourceIdRestoresResponse) StatusCode() int {
+func (r ListDatasourceRestoresResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -5256,7 +5256,7 @@ func (r GetDatasourcesDatasourceIdRestoresResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r GetDatasourcesDatasourceIdRestoresResponse) ContentType() string {
+func (r ListDatasourceRestoresResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
@@ -5297,7 +5297,7 @@ func (r DeleteDatasourceResponse) ContentType() string {
 	return ""
 }
 
-type GetResponse struct {
+type GetDatasourceResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *DtoDataSource
@@ -5306,7 +5306,7 @@ type GetResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetResponse) Status() string {
+func (r GetDatasourceResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -5314,7 +5314,7 @@ func (r GetResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetResponse) StatusCode() int {
+func (r GetDatasourceResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -5322,7 +5322,7 @@ func (r GetResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r GetResponse) ContentType() string {
+func (r GetDatasourceResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
@@ -5361,7 +5361,7 @@ func (r UpdateDataSourceResponse) ContentType() string {
 	return ""
 }
 
-type PutDatasourcesIdCredentialsResponse struct {
+type SetDatasourceCredentialsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *DatasourcehandlerPayloadSetCredentialsResponse
@@ -5370,7 +5370,7 @@ type PutDatasourcesIdCredentialsResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r PutDatasourcesIdCredentialsResponse) Status() string {
+func (r SetDatasourceCredentialsResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -5378,7 +5378,7 @@ func (r PutDatasourcesIdCredentialsResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PutDatasourcesIdCredentialsResponse) StatusCode() int {
+func (r SetDatasourceCredentialsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -5386,7 +5386,7 @@ func (r PutDatasourcesIdCredentialsResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r PutDatasourcesIdCredentialsResponse) ContentType() string {
+func (r SetDatasourceCredentialsResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
@@ -5584,7 +5584,7 @@ func (r TestNotificationsResponse) ContentType() string {
 	return ""
 }
 
-type PostRestoresResponse struct {
+type CreateRestoreResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON201      *RestorehandlerPayloadCreateResponse
@@ -5594,7 +5594,7 @@ type PostRestoresResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r PostRestoresResponse) Status() string {
+func (r CreateRestoreResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -5602,7 +5602,7 @@ func (r PostRestoresResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostRestoresResponse) StatusCode() int {
+func (r CreateRestoreResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -5610,14 +5610,14 @@ func (r PostRestoresResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r PostRestoresResponse) ContentType() string {
+func (r CreateRestoreResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type PostRestoresTargetProbeResponse struct {
+type ProbeRestoreTargetResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *RestorehandlerPayloadProbeTargetResponse
@@ -5626,7 +5626,7 @@ type PostRestoresTargetProbeResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r PostRestoresTargetProbeResponse) Status() string {
+func (r ProbeRestoreTargetResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -5634,7 +5634,7 @@ func (r PostRestoresTargetProbeResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostRestoresTargetProbeResponse) StatusCode() int {
+func (r ProbeRestoreTargetResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -5642,14 +5642,14 @@ func (r PostRestoresTargetProbeResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r PostRestoresTargetProbeResponse) ContentType() string {
+func (r ProbeRestoreTargetResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type GetRestoresIdResponse struct {
+type GetRestoreResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *DtoRestoreJob
@@ -5659,7 +5659,7 @@ type GetRestoresIdResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetRestoresIdResponse) Status() string {
+func (r GetRestoreResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -5667,7 +5667,7 @@ func (r GetRestoresIdResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetRestoresIdResponse) StatusCode() int {
+func (r GetRestoreResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -5675,14 +5675,14 @@ func (r GetRestoresIdResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r GetRestoresIdResponse) ContentType() string {
+func (r GetRestoreResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type GetRestoresIdLogsPresignResponse struct {
+type GetRestoreLogsLinkResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *RestorehandlerPayloadLogsPresignResponse
@@ -5691,7 +5691,7 @@ type GetRestoresIdLogsPresignResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetRestoresIdLogsPresignResponse) Status() string {
+func (r GetRestoreLogsLinkResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -5699,7 +5699,7 @@ func (r GetRestoresIdLogsPresignResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetRestoresIdLogsPresignResponse) StatusCode() int {
+func (r GetRestoreLogsLinkResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -5707,14 +5707,14 @@ func (r GetRestoresIdLogsPresignResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r GetRestoresIdLogsPresignResponse) ContentType() string {
+func (r GetRestoreLogsLinkResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type GetStorageDestinationsResponse struct {
+type ListStorageDestinationsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *[]PolicyhandlerPayloadStorageDestinationResponse
@@ -5723,7 +5723,7 @@ type GetStorageDestinationsResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetStorageDestinationsResponse) Status() string {
+func (r ListStorageDestinationsResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -5731,7 +5731,7 @@ func (r GetStorageDestinationsResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetStorageDestinationsResponse) StatusCode() int {
+func (r ListStorageDestinationsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -5739,14 +5739,14 @@ func (r GetStorageDestinationsResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r GetStorageDestinationsResponse) ContentType() string {
+func (r ListStorageDestinationsResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type PostStorageDestinationsResponse struct {
+type CreateStorageDestinationResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *PolicyhandlerPayloadCreateStorageDestinationResponse
@@ -5756,7 +5756,7 @@ type PostStorageDestinationsResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r PostStorageDestinationsResponse) Status() string {
+func (r CreateStorageDestinationResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -5764,7 +5764,7 @@ func (r PostStorageDestinationsResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostStorageDestinationsResponse) StatusCode() int {
+func (r CreateStorageDestinationResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -5772,14 +5772,14 @@ func (r PostStorageDestinationsResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r PostStorageDestinationsResponse) ContentType() string {
+func (r CreateStorageDestinationResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type PostStorageDestinationsManagedEnsureResponse struct {
+type EnsureManagedStorageDestinationResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *PolicyhandlerPayloadEnsureManagedStorageDestinationResponse
@@ -5788,7 +5788,7 @@ type PostStorageDestinationsManagedEnsureResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r PostStorageDestinationsManagedEnsureResponse) Status() string {
+func (r EnsureManagedStorageDestinationResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -5796,7 +5796,7 @@ func (r PostStorageDestinationsManagedEnsureResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostStorageDestinationsManagedEnsureResponse) StatusCode() int {
+func (r EnsureManagedStorageDestinationResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -5804,14 +5804,14 @@ func (r PostStorageDestinationsManagedEnsureResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r PostStorageDestinationsManagedEnsureResponse) ContentType() string {
+func (r EnsureManagedStorageDestinationResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type DeleteStorageDestinationsIdResponse struct {
+type DeleteStorageDestinationResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON400      *ResponseAPIError
@@ -5821,7 +5821,7 @@ type DeleteStorageDestinationsIdResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r DeleteStorageDestinationsIdResponse) Status() string {
+func (r DeleteStorageDestinationResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -5829,7 +5829,7 @@ func (r DeleteStorageDestinationsIdResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r DeleteStorageDestinationsIdResponse) StatusCode() int {
+func (r DeleteStorageDestinationResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -5837,14 +5837,14 @@ func (r DeleteStorageDestinationsIdResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r DeleteStorageDestinationsIdResponse) ContentType() string {
+func (r DeleteStorageDestinationResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type GetStorageDestinationsIdResponse struct {
+type GetStorageDestinationResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *PolicyhandlerPayloadStorageDestinationResponse
@@ -5854,7 +5854,7 @@ type GetStorageDestinationsIdResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetStorageDestinationsIdResponse) Status() string {
+func (r GetStorageDestinationResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -5862,7 +5862,7 @@ func (r GetStorageDestinationsIdResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetStorageDestinationsIdResponse) StatusCode() int {
+func (r GetStorageDestinationResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -5870,14 +5870,14 @@ func (r GetStorageDestinationsIdResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r GetStorageDestinationsIdResponse) ContentType() string {
+func (r GetStorageDestinationResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type PatchStorageDestinationsIdResponse struct {
+type UpdateStorageDestinationResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *PolicyhandlerPayloadStorageDestinationResponse
@@ -5888,7 +5888,7 @@ type PatchStorageDestinationsIdResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r PatchStorageDestinationsIdResponse) Status() string {
+func (r UpdateStorageDestinationResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -5896,7 +5896,7 @@ func (r PatchStorageDestinationsIdResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PatchStorageDestinationsIdResponse) StatusCode() int {
+func (r UpdateStorageDestinationResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -5904,7 +5904,7 @@ func (r PatchStorageDestinationsIdResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r PatchStorageDestinationsIdResponse) ContentType() string {
+func (r UpdateStorageDestinationResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
@@ -5929,82 +5929,82 @@ func (c *ClientWithResponses) ListAuditLogActorsWithResponse(ctx context.Context
 	return ParseListAuditLogActorsResponse(rsp)
 }
 
-// GetBackupPoliciesWithResponse request returning *GetBackupPoliciesResponse
-func (c *ClientWithResponses) GetBackupPoliciesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetBackupPoliciesResponse, error) {
-	rsp, err := c.GetBackupPolicies(ctx, reqEditors...)
+// ListBackupPoliciesWithResponse request returning *ListBackupPoliciesResponse
+func (c *ClientWithResponses) ListBackupPoliciesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListBackupPoliciesResponse, error) {
+	rsp, err := c.ListBackupPolicies(ctx, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetBackupPoliciesResponse(rsp)
+	return ParseListBackupPoliciesResponse(rsp)
 }
 
-// PostBackupPoliciesWithBodyWithResponse request with arbitrary body returning *PostBackupPoliciesResponse
-func (c *ClientWithResponses) PostBackupPoliciesWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostBackupPoliciesResponse, error) {
-	rsp, err := c.PostBackupPoliciesWithBody(ctx, contentType, body, reqEditors...)
+// CreateBackupPolicyWithBodyWithResponse request with arbitrary body returning *CreateBackupPolicyResponse
+func (c *ClientWithResponses) CreateBackupPolicyWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateBackupPolicyResponse, error) {
+	rsp, err := c.CreateBackupPolicyWithBody(ctx, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostBackupPoliciesResponse(rsp)
+	return ParseCreateBackupPolicyResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostBackupPoliciesWithResponse(ctx context.Context, body PostBackupPoliciesJSONRequestBody, reqEditors ...RequestEditorFn) (*PostBackupPoliciesResponse, error) {
-	rsp, err := c.PostBackupPolicies(ctx, body, reqEditors...)
+func (c *ClientWithResponses) CreateBackupPolicyWithResponse(ctx context.Context, body CreateBackupPolicyJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateBackupPolicyResponse, error) {
+	rsp, err := c.CreateBackupPolicy(ctx, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostBackupPoliciesResponse(rsp)
+	return ParseCreateBackupPolicyResponse(rsp)
 }
 
-// PatchBackupPoliciesIdWithBodyWithResponse request with arbitrary body returning *PatchBackupPoliciesIdResponse
-func (c *ClientWithResponses) PatchBackupPoliciesIdWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PatchBackupPoliciesIdResponse, error) {
-	rsp, err := c.PatchBackupPoliciesIdWithBody(ctx, id, contentType, body, reqEditors...)
+// UpdateBackupPolicyWithBodyWithResponse request with arbitrary body returning *UpdateBackupPolicyResponse
+func (c *ClientWithResponses) UpdateBackupPolicyWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateBackupPolicyResponse, error) {
+	rsp, err := c.UpdateBackupPolicyWithBody(ctx, id, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePatchBackupPoliciesIdResponse(rsp)
+	return ParseUpdateBackupPolicyResponse(rsp)
 }
 
-func (c *ClientWithResponses) PatchBackupPoliciesIdWithResponse(ctx context.Context, id string, body PatchBackupPoliciesIdJSONRequestBody, reqEditors ...RequestEditorFn) (*PatchBackupPoliciesIdResponse, error) {
-	rsp, err := c.PatchBackupPoliciesId(ctx, id, body, reqEditors...)
+func (c *ClientWithResponses) UpdateBackupPolicyWithResponse(ctx context.Context, id string, body UpdateBackupPolicyJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateBackupPolicyResponse, error) {
+	rsp, err := c.UpdateBackupPolicy(ctx, id, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePatchBackupPoliciesIdResponse(rsp)
+	return ParseUpdateBackupPolicyResponse(rsp)
 }
 
-// GetBackupsWithResponse request returning *GetBackupsResponse
-func (c *ClientWithResponses) GetBackupsWithResponse(ctx context.Context, params *GetBackupsParams, reqEditors ...RequestEditorFn) (*GetBackupsResponse, error) {
-	rsp, err := c.GetBackups(ctx, params, reqEditors...)
+// ListBackupsWithResponse request returning *ListBackupsResponse
+func (c *ClientWithResponses) ListBackupsWithResponse(ctx context.Context, params *ListBackupsParams, reqEditors ...RequestEditorFn) (*ListBackupsResponse, error) {
+	rsp, err := c.ListBackups(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetBackupsResponse(rsp)
+	return ParseListBackupsResponse(rsp)
 }
 
-// ListWithResponse request returning *ListResponse
-func (c *ClientWithResponses) ListWithResponse(ctx context.Context, params *ListParams, reqEditors ...RequestEditorFn) (*ListResponse, error) {
-	rsp, err := c.List(ctx, params, reqEditors...)
+// ListDatasourcesWithResponse request returning *ListDatasourcesResponse
+func (c *ClientWithResponses) ListDatasourcesWithResponse(ctx context.Context, params *ListDatasourcesParams, reqEditors ...RequestEditorFn) (*ListDatasourcesResponse, error) {
+	rsp, err := c.ListDatasources(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseListResponse(rsp)
+	return ParseListDatasourcesResponse(rsp)
 }
 
-// PostDatasourcesWithBodyWithResponse request with arbitrary body returning *PostDatasourcesResponse
-func (c *ClientWithResponses) PostDatasourcesWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostDatasourcesResponse, error) {
-	rsp, err := c.PostDatasourcesWithBody(ctx, contentType, body, reqEditors...)
+// CreateDatasourceWithBodyWithResponse request with arbitrary body returning *CreateDatasourceResponse
+func (c *ClientWithResponses) CreateDatasourceWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDatasourceResponse, error) {
+	rsp, err := c.CreateDatasourceWithBody(ctx, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostDatasourcesResponse(rsp)
+	return ParseCreateDatasourceResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostDatasourcesWithResponse(ctx context.Context, body PostDatasourcesJSONRequestBody, reqEditors ...RequestEditorFn) (*PostDatasourcesResponse, error) {
-	rsp, err := c.PostDatasources(ctx, body, reqEditors...)
+func (c *ClientWithResponses) CreateDatasourceWithResponse(ctx context.Context, body CreateDatasourceJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateDatasourceResponse, error) {
+	rsp, err := c.CreateDatasource(ctx, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostDatasourcesResponse(rsp)
+	return ParseCreateDatasourceResponse(rsp)
 }
 
 // ProtectDatasourceWithBodyWithResponse request with arbitrary body returning *ProtectDatasourceResponse
@@ -6104,30 +6104,30 @@ func (c *ClientWithResponses) ListPoliciesWithResponse(ctx context.Context, data
 	return ParseListPoliciesResponse(rsp)
 }
 
-// PostDatasourcesDatasourceIdPoliciesWithBodyWithResponse request with arbitrary body returning *PostDatasourcesDatasourceIdPoliciesResponse
-func (c *ClientWithResponses) PostDatasourcesDatasourceIdPoliciesWithBodyWithResponse(ctx context.Context, datasourceId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostDatasourcesDatasourceIdPoliciesResponse, error) {
-	rsp, err := c.PostDatasourcesDatasourceIdPoliciesWithBody(ctx, datasourceId, contentType, body, reqEditors...)
+// AttachPolicyWithBodyWithResponse request with arbitrary body returning *AttachPolicyResponse
+func (c *ClientWithResponses) AttachPolicyWithBodyWithResponse(ctx context.Context, datasourceId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AttachPolicyResponse, error) {
+	rsp, err := c.AttachPolicyWithBody(ctx, datasourceId, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostDatasourcesDatasourceIdPoliciesResponse(rsp)
+	return ParseAttachPolicyResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostDatasourcesDatasourceIdPoliciesWithResponse(ctx context.Context, datasourceId string, body PostDatasourcesDatasourceIdPoliciesJSONRequestBody, reqEditors ...RequestEditorFn) (*PostDatasourcesDatasourceIdPoliciesResponse, error) {
-	rsp, err := c.PostDatasourcesDatasourceIdPolicies(ctx, datasourceId, body, reqEditors...)
+func (c *ClientWithResponses) AttachPolicyWithResponse(ctx context.Context, datasourceId string, body AttachPolicyJSONRequestBody, reqEditors ...RequestEditorFn) (*AttachPolicyResponse, error) {
+	rsp, err := c.AttachPolicy(ctx, datasourceId, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostDatasourcesDatasourceIdPoliciesResponse(rsp)
+	return ParseAttachPolicyResponse(rsp)
 }
 
-// DeleteDatasourcesDatasourceIdPoliciesPolicyIdWithResponse request returning *DeleteDatasourcesDatasourceIdPoliciesPolicyIdResponse
-func (c *ClientWithResponses) DeleteDatasourcesDatasourceIdPoliciesPolicyIdWithResponse(ctx context.Context, datasourceId string, policyId string, reqEditors ...RequestEditorFn) (*DeleteDatasourcesDatasourceIdPoliciesPolicyIdResponse, error) {
-	rsp, err := c.DeleteDatasourcesDatasourceIdPoliciesPolicyId(ctx, datasourceId, policyId, reqEditors...)
+// DetachPolicyWithResponse request returning *DetachPolicyResponse
+func (c *ClientWithResponses) DetachPolicyWithResponse(ctx context.Context, datasourceId string, policyId string, reqEditors ...RequestEditorFn) (*DetachPolicyResponse, error) {
+	rsp, err := c.DetachPolicy(ctx, datasourceId, policyId, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseDeleteDatasourcesDatasourceIdPoliciesPolicyIdResponse(rsp)
+	return ParseDetachPolicyResponse(rsp)
 }
 
 // UpdatePolicyAttachmentWithBodyWithResponse request with arbitrary body returning *UpdatePolicyAttachmentResponse
@@ -6156,13 +6156,13 @@ func (c *ClientWithResponses) GetRestoreCheckHistoryWithResponse(ctx context.Con
 	return ParseGetRestoreCheckHistoryResponse(rsp)
 }
 
-// GetDatasourcesDatasourceIdRestoresWithResponse request returning *GetDatasourcesDatasourceIdRestoresResponse
-func (c *ClientWithResponses) GetDatasourcesDatasourceIdRestoresWithResponse(ctx context.Context, datasourceId string, params *GetDatasourcesDatasourceIdRestoresParams, reqEditors ...RequestEditorFn) (*GetDatasourcesDatasourceIdRestoresResponse, error) {
-	rsp, err := c.GetDatasourcesDatasourceIdRestores(ctx, datasourceId, params, reqEditors...)
+// ListDatasourceRestoresWithResponse request returning *ListDatasourceRestoresResponse
+func (c *ClientWithResponses) ListDatasourceRestoresWithResponse(ctx context.Context, datasourceId string, params *ListDatasourceRestoresParams, reqEditors ...RequestEditorFn) (*ListDatasourceRestoresResponse, error) {
+	rsp, err := c.ListDatasourceRestores(ctx, datasourceId, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetDatasourcesDatasourceIdRestoresResponse(rsp)
+	return ParseListDatasourceRestoresResponse(rsp)
 }
 
 // DeleteDatasourceWithBodyWithResponse request with arbitrary body returning *DeleteDatasourceResponse
@@ -6182,13 +6182,13 @@ func (c *ClientWithResponses) DeleteDatasourceWithResponse(ctx context.Context, 
 	return ParseDeleteDatasourceResponse(rsp)
 }
 
-// GetWithResponse request returning *GetResponse
-func (c *ClientWithResponses) GetWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetResponse, error) {
-	rsp, err := c.Get(ctx, id, reqEditors...)
+// GetDatasourceWithResponse request returning *GetDatasourceResponse
+func (c *ClientWithResponses) GetDatasourceWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetDatasourceResponse, error) {
+	rsp, err := c.GetDatasource(ctx, id, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetResponse(rsp)
+	return ParseGetDatasourceResponse(rsp)
 }
 
 // UpdateDataSourceWithBodyWithResponse request with arbitrary body returning *UpdateDataSourceResponse
@@ -6208,21 +6208,21 @@ func (c *ClientWithResponses) UpdateDataSourceWithResponse(ctx context.Context, 
 	return ParseUpdateDataSourceResponse(rsp)
 }
 
-// PutDatasourcesIdCredentialsWithBodyWithResponse request with arbitrary body returning *PutDatasourcesIdCredentialsResponse
-func (c *ClientWithResponses) PutDatasourcesIdCredentialsWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutDatasourcesIdCredentialsResponse, error) {
-	rsp, err := c.PutDatasourcesIdCredentialsWithBody(ctx, id, contentType, body, reqEditors...)
+// SetDatasourceCredentialsWithBodyWithResponse request with arbitrary body returning *SetDatasourceCredentialsResponse
+func (c *ClientWithResponses) SetDatasourceCredentialsWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetDatasourceCredentialsResponse, error) {
+	rsp, err := c.SetDatasourceCredentialsWithBody(ctx, id, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePutDatasourcesIdCredentialsResponse(rsp)
+	return ParseSetDatasourceCredentialsResponse(rsp)
 }
 
-func (c *ClientWithResponses) PutDatasourcesIdCredentialsWithResponse(ctx context.Context, id string, body PutDatasourcesIdCredentialsJSONRequestBody, reqEditors ...RequestEditorFn) (*PutDatasourcesIdCredentialsResponse, error) {
-	rsp, err := c.PutDatasourcesIdCredentials(ctx, id, body, reqEditors...)
+func (c *ClientWithResponses) SetDatasourceCredentialsWithResponse(ctx context.Context, id string, body SetDatasourceCredentialsJSONRequestBody, reqEditors ...RequestEditorFn) (*SetDatasourceCredentialsResponse, error) {
+	rsp, err := c.SetDatasourceCredentials(ctx, id, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePutDatasourcesIdCredentialsResponse(rsp)
+	return ParseSetDatasourceCredentialsResponse(rsp)
 }
 
 // GetRestoreCheckWithResponse request returning *GetRestoreCheckResponse
@@ -6295,134 +6295,134 @@ func (c *ClientWithResponses) TestNotificationsWithResponse(ctx context.Context,
 	return ParseTestNotificationsResponse(rsp)
 }
 
-// PostRestoresWithBodyWithResponse request with arbitrary body returning *PostRestoresResponse
-func (c *ClientWithResponses) PostRestoresWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostRestoresResponse, error) {
-	rsp, err := c.PostRestoresWithBody(ctx, contentType, body, reqEditors...)
+// CreateRestoreWithBodyWithResponse request with arbitrary body returning *CreateRestoreResponse
+func (c *ClientWithResponses) CreateRestoreWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateRestoreResponse, error) {
+	rsp, err := c.CreateRestoreWithBody(ctx, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostRestoresResponse(rsp)
+	return ParseCreateRestoreResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostRestoresWithResponse(ctx context.Context, body PostRestoresJSONRequestBody, reqEditors ...RequestEditorFn) (*PostRestoresResponse, error) {
-	rsp, err := c.PostRestores(ctx, body, reqEditors...)
+func (c *ClientWithResponses) CreateRestoreWithResponse(ctx context.Context, body CreateRestoreJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateRestoreResponse, error) {
+	rsp, err := c.CreateRestore(ctx, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostRestoresResponse(rsp)
+	return ParseCreateRestoreResponse(rsp)
 }
 
-// PostRestoresTargetProbeWithBodyWithResponse request with arbitrary body returning *PostRestoresTargetProbeResponse
-func (c *ClientWithResponses) PostRestoresTargetProbeWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostRestoresTargetProbeResponse, error) {
-	rsp, err := c.PostRestoresTargetProbeWithBody(ctx, contentType, body, reqEditors...)
+// ProbeRestoreTargetWithBodyWithResponse request with arbitrary body returning *ProbeRestoreTargetResponse
+func (c *ClientWithResponses) ProbeRestoreTargetWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ProbeRestoreTargetResponse, error) {
+	rsp, err := c.ProbeRestoreTargetWithBody(ctx, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostRestoresTargetProbeResponse(rsp)
+	return ParseProbeRestoreTargetResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostRestoresTargetProbeWithResponse(ctx context.Context, body PostRestoresTargetProbeJSONRequestBody, reqEditors ...RequestEditorFn) (*PostRestoresTargetProbeResponse, error) {
-	rsp, err := c.PostRestoresTargetProbe(ctx, body, reqEditors...)
+func (c *ClientWithResponses) ProbeRestoreTargetWithResponse(ctx context.Context, body ProbeRestoreTargetJSONRequestBody, reqEditors ...RequestEditorFn) (*ProbeRestoreTargetResponse, error) {
+	rsp, err := c.ProbeRestoreTarget(ctx, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostRestoresTargetProbeResponse(rsp)
+	return ParseProbeRestoreTargetResponse(rsp)
 }
 
-// GetRestoresIdWithResponse request returning *GetRestoresIdResponse
-func (c *ClientWithResponses) GetRestoresIdWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetRestoresIdResponse, error) {
-	rsp, err := c.GetRestoresId(ctx, id, reqEditors...)
+// GetRestoreWithResponse request returning *GetRestoreResponse
+func (c *ClientWithResponses) GetRestoreWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetRestoreResponse, error) {
+	rsp, err := c.GetRestore(ctx, id, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetRestoresIdResponse(rsp)
+	return ParseGetRestoreResponse(rsp)
 }
 
-// GetRestoresIdLogsPresignWithResponse request returning *GetRestoresIdLogsPresignResponse
-func (c *ClientWithResponses) GetRestoresIdLogsPresignWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetRestoresIdLogsPresignResponse, error) {
-	rsp, err := c.GetRestoresIdLogsPresign(ctx, id, reqEditors...)
+// GetRestoreLogsLinkWithResponse request returning *GetRestoreLogsLinkResponse
+func (c *ClientWithResponses) GetRestoreLogsLinkWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetRestoreLogsLinkResponse, error) {
+	rsp, err := c.GetRestoreLogsLink(ctx, id, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetRestoresIdLogsPresignResponse(rsp)
+	return ParseGetRestoreLogsLinkResponse(rsp)
 }
 
-// GetStorageDestinationsWithResponse request returning *GetStorageDestinationsResponse
-func (c *ClientWithResponses) GetStorageDestinationsWithResponse(ctx context.Context, params *GetStorageDestinationsParams, reqEditors ...RequestEditorFn) (*GetStorageDestinationsResponse, error) {
-	rsp, err := c.GetStorageDestinations(ctx, params, reqEditors...)
+// ListStorageDestinationsWithResponse request returning *ListStorageDestinationsResponse
+func (c *ClientWithResponses) ListStorageDestinationsWithResponse(ctx context.Context, params *ListStorageDestinationsParams, reqEditors ...RequestEditorFn) (*ListStorageDestinationsResponse, error) {
+	rsp, err := c.ListStorageDestinations(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetStorageDestinationsResponse(rsp)
+	return ParseListStorageDestinationsResponse(rsp)
 }
 
-// PostStorageDestinationsWithBodyWithResponse request with arbitrary body returning *PostStorageDestinationsResponse
-func (c *ClientWithResponses) PostStorageDestinationsWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostStorageDestinationsResponse, error) {
-	rsp, err := c.PostStorageDestinationsWithBody(ctx, contentType, body, reqEditors...)
+// CreateStorageDestinationWithBodyWithResponse request with arbitrary body returning *CreateStorageDestinationResponse
+func (c *ClientWithResponses) CreateStorageDestinationWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateStorageDestinationResponse, error) {
+	rsp, err := c.CreateStorageDestinationWithBody(ctx, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostStorageDestinationsResponse(rsp)
+	return ParseCreateStorageDestinationResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostStorageDestinationsWithResponse(ctx context.Context, body PostStorageDestinationsJSONRequestBody, reqEditors ...RequestEditorFn) (*PostStorageDestinationsResponse, error) {
-	rsp, err := c.PostStorageDestinations(ctx, body, reqEditors...)
+func (c *ClientWithResponses) CreateStorageDestinationWithResponse(ctx context.Context, body CreateStorageDestinationJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateStorageDestinationResponse, error) {
+	rsp, err := c.CreateStorageDestination(ctx, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostStorageDestinationsResponse(rsp)
+	return ParseCreateStorageDestinationResponse(rsp)
 }
 
-// PostStorageDestinationsManagedEnsureWithBodyWithResponse request with arbitrary body returning *PostStorageDestinationsManagedEnsureResponse
-func (c *ClientWithResponses) PostStorageDestinationsManagedEnsureWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostStorageDestinationsManagedEnsureResponse, error) {
-	rsp, err := c.PostStorageDestinationsManagedEnsureWithBody(ctx, contentType, body, reqEditors...)
+// EnsureManagedStorageDestinationWithBodyWithResponse request with arbitrary body returning *EnsureManagedStorageDestinationResponse
+func (c *ClientWithResponses) EnsureManagedStorageDestinationWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EnsureManagedStorageDestinationResponse, error) {
+	rsp, err := c.EnsureManagedStorageDestinationWithBody(ctx, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostStorageDestinationsManagedEnsureResponse(rsp)
+	return ParseEnsureManagedStorageDestinationResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostStorageDestinationsManagedEnsureWithResponse(ctx context.Context, body PostStorageDestinationsManagedEnsureJSONRequestBody, reqEditors ...RequestEditorFn) (*PostStorageDestinationsManagedEnsureResponse, error) {
-	rsp, err := c.PostStorageDestinationsManagedEnsure(ctx, body, reqEditors...)
+func (c *ClientWithResponses) EnsureManagedStorageDestinationWithResponse(ctx context.Context, body EnsureManagedStorageDestinationJSONRequestBody, reqEditors ...RequestEditorFn) (*EnsureManagedStorageDestinationResponse, error) {
+	rsp, err := c.EnsureManagedStorageDestination(ctx, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostStorageDestinationsManagedEnsureResponse(rsp)
+	return ParseEnsureManagedStorageDestinationResponse(rsp)
 }
 
-// DeleteStorageDestinationsIdWithResponse request returning *DeleteStorageDestinationsIdResponse
-func (c *ClientWithResponses) DeleteStorageDestinationsIdWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*DeleteStorageDestinationsIdResponse, error) {
-	rsp, err := c.DeleteStorageDestinationsId(ctx, id, reqEditors...)
+// DeleteStorageDestinationWithResponse request returning *DeleteStorageDestinationResponse
+func (c *ClientWithResponses) DeleteStorageDestinationWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*DeleteStorageDestinationResponse, error) {
+	rsp, err := c.DeleteStorageDestination(ctx, id, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseDeleteStorageDestinationsIdResponse(rsp)
+	return ParseDeleteStorageDestinationResponse(rsp)
 }
 
-// GetStorageDestinationsIdWithResponse request returning *GetStorageDestinationsIdResponse
-func (c *ClientWithResponses) GetStorageDestinationsIdWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetStorageDestinationsIdResponse, error) {
-	rsp, err := c.GetStorageDestinationsId(ctx, id, reqEditors...)
+// GetStorageDestinationWithResponse request returning *GetStorageDestinationResponse
+func (c *ClientWithResponses) GetStorageDestinationWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetStorageDestinationResponse, error) {
+	rsp, err := c.GetStorageDestination(ctx, id, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetStorageDestinationsIdResponse(rsp)
+	return ParseGetStorageDestinationResponse(rsp)
 }
 
-// PatchStorageDestinationsIdWithBodyWithResponse request with arbitrary body returning *PatchStorageDestinationsIdResponse
-func (c *ClientWithResponses) PatchStorageDestinationsIdWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PatchStorageDestinationsIdResponse, error) {
-	rsp, err := c.PatchStorageDestinationsIdWithBody(ctx, id, contentType, body, reqEditors...)
+// UpdateStorageDestinationWithBodyWithResponse request with arbitrary body returning *UpdateStorageDestinationResponse
+func (c *ClientWithResponses) UpdateStorageDestinationWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateStorageDestinationResponse, error) {
+	rsp, err := c.UpdateStorageDestinationWithBody(ctx, id, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePatchStorageDestinationsIdResponse(rsp)
+	return ParseUpdateStorageDestinationResponse(rsp)
 }
 
-func (c *ClientWithResponses) PatchStorageDestinationsIdWithResponse(ctx context.Context, id string, body PatchStorageDestinationsIdJSONRequestBody, reqEditors ...RequestEditorFn) (*PatchStorageDestinationsIdResponse, error) {
-	rsp, err := c.PatchStorageDestinationsId(ctx, id, body, reqEditors...)
+func (c *ClientWithResponses) UpdateStorageDestinationWithResponse(ctx context.Context, id string, body UpdateStorageDestinationJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateStorageDestinationResponse, error) {
+	rsp, err := c.UpdateStorageDestination(ctx, id, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePatchStorageDestinationsIdResponse(rsp)
+	return ParseUpdateStorageDestinationResponse(rsp)
 }
 
 // ParseListAuditLogsResponse parses an HTTP response from a ListAuditLogsWithResponse call
@@ -6505,15 +6505,15 @@ func ParseListAuditLogActorsResponse(rsp *http.Response) (*ListAuditLogActorsRes
 	return response, nil
 }
 
-// ParseGetBackupPoliciesResponse parses an HTTP response from a GetBackupPoliciesWithResponse call
-func ParseGetBackupPoliciesResponse(rsp *http.Response) (*GetBackupPoliciesResponse, error) {
+// ParseListBackupPoliciesResponse parses an HTTP response from a ListBackupPoliciesWithResponse call
+func ParseListBackupPoliciesResponse(rsp *http.Response) (*ListBackupPoliciesResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetBackupPoliciesResponse{
+	response := &ListBackupPoliciesResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -6549,15 +6549,15 @@ func ParseGetBackupPoliciesResponse(rsp *http.Response) (*GetBackupPoliciesRespo
 	return response, nil
 }
 
-// ParsePostBackupPoliciesResponse parses an HTTP response from a PostBackupPoliciesWithResponse call
-func ParsePostBackupPoliciesResponse(rsp *http.Response) (*PostBackupPoliciesResponse, error) {
+// ParseCreateBackupPolicyResponse parses an HTTP response from a CreateBackupPolicyWithResponse call
+func ParseCreateBackupPolicyResponse(rsp *http.Response) (*CreateBackupPolicyResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostBackupPoliciesResponse{
+	response := &CreateBackupPolicyResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -6589,15 +6589,15 @@ func ParsePostBackupPoliciesResponse(rsp *http.Response) (*PostBackupPoliciesRes
 	return response, nil
 }
 
-// ParsePatchBackupPoliciesIdResponse parses an HTTP response from a PatchBackupPoliciesIdWithResponse call
-func ParsePatchBackupPoliciesIdResponse(rsp *http.Response) (*PatchBackupPoliciesIdResponse, error) {
+// ParseUpdateBackupPolicyResponse parses an HTTP response from a UpdateBackupPolicyWithResponse call
+func ParseUpdateBackupPolicyResponse(rsp *http.Response) (*UpdateBackupPolicyResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PatchBackupPoliciesIdResponse{
+	response := &UpdateBackupPolicyResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -6636,15 +6636,15 @@ func ParsePatchBackupPoliciesIdResponse(rsp *http.Response) (*PatchBackupPolicie
 	return response, nil
 }
 
-// ParseGetBackupsResponse parses an HTTP response from a GetBackupsWithResponse call
-func ParseGetBackupsResponse(rsp *http.Response) (*GetBackupsResponse, error) {
+// ParseListBackupsResponse parses an HTTP response from a ListBackupsWithResponse call
+func ParseListBackupsResponse(rsp *http.Response) (*ListBackupsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetBackupsResponse{
+	response := &ListBackupsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -6680,15 +6680,15 @@ func ParseGetBackupsResponse(rsp *http.Response) (*GetBackupsResponse, error) {
 	return response, nil
 }
 
-// ParseListResponse parses an HTTP response from a ListWithResponse call
-func ParseListResponse(rsp *http.Response) (*ListResponse, error) {
+// ParseListDatasourcesResponse parses an HTTP response from a ListDatasourcesWithResponse call
+func ParseListDatasourcesResponse(rsp *http.Response) (*ListDatasourcesResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &ListResponse{
+	response := &ListDatasourcesResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -6724,15 +6724,15 @@ func ParseListResponse(rsp *http.Response) (*ListResponse, error) {
 	return response, nil
 }
 
-// ParsePostDatasourcesResponse parses an HTTP response from a PostDatasourcesWithResponse call
-func ParsePostDatasourcesResponse(rsp *http.Response) (*PostDatasourcesResponse, error) {
+// ParseCreateDatasourceResponse parses an HTTP response from a CreateDatasourceWithResponse call
+func ParseCreateDatasourceResponse(rsp *http.Response) (*CreateDatasourceResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostDatasourcesResponse{
+	response := &CreateDatasourceResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -7191,15 +7191,15 @@ func ParseListPoliciesResponse(rsp *http.Response) (*ListPoliciesResponse, error
 	return response, nil
 }
 
-// ParsePostDatasourcesDatasourceIdPoliciesResponse parses an HTTP response from a PostDatasourcesDatasourceIdPoliciesWithResponse call
-func ParsePostDatasourcesDatasourceIdPoliciesResponse(rsp *http.Response) (*PostDatasourcesDatasourceIdPoliciesResponse, error) {
+// ParseAttachPolicyResponse parses an HTTP response from a AttachPolicyWithResponse call
+func ParseAttachPolicyResponse(rsp *http.Response) (*AttachPolicyResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostDatasourcesDatasourceIdPoliciesResponse{
+	response := &AttachPolicyResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -7231,15 +7231,15 @@ func ParsePostDatasourcesDatasourceIdPoliciesResponse(rsp *http.Response) (*Post
 	return response, nil
 }
 
-// ParseDeleteDatasourcesDatasourceIdPoliciesPolicyIdResponse parses an HTTP response from a DeleteDatasourcesDatasourceIdPoliciesPolicyIdWithResponse call
-func ParseDeleteDatasourcesDatasourceIdPoliciesPolicyIdResponse(rsp *http.Response) (*DeleteDatasourcesDatasourceIdPoliciesPolicyIdResponse, error) {
+// ParseDetachPolicyResponse parses an HTTP response from a DetachPolicyWithResponse call
+func ParseDetachPolicyResponse(rsp *http.Response) (*DetachPolicyResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &DeleteDatasourcesDatasourceIdPoliciesPolicyIdResponse{
+	response := &DetachPolicyResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -7344,15 +7344,15 @@ func ParseGetRestoreCheckHistoryResponse(rsp *http.Response) (*GetRestoreCheckHi
 	return response, nil
 }
 
-// ParseGetDatasourcesDatasourceIdRestoresResponse parses an HTTP response from a GetDatasourcesDatasourceIdRestoresWithResponse call
-func ParseGetDatasourcesDatasourceIdRestoresResponse(rsp *http.Response) (*GetDatasourcesDatasourceIdRestoresResponse, error) {
+// ParseListDatasourceRestoresResponse parses an HTTP response from a ListDatasourceRestoresWithResponse call
+func ParseListDatasourceRestoresResponse(rsp *http.Response) (*ListDatasourceRestoresResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetDatasourcesDatasourceIdRestoresResponse{
+	response := &ListDatasourceRestoresResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -7442,15 +7442,15 @@ func ParseDeleteDatasourceResponse(rsp *http.Response) (*DeleteDatasourceRespons
 	return response, nil
 }
 
-// ParseGetResponse parses an HTTP response from a GetWithResponse call
-func ParseGetResponse(rsp *http.Response) (*GetResponse, error) {
+// ParseGetDatasourceResponse parses an HTTP response from a GetDatasourceWithResponse call
+func ParseGetDatasourceResponse(rsp *http.Response) (*GetDatasourceResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetResponse{
+	response := &GetDatasourceResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -7522,15 +7522,15 @@ func ParseUpdateDataSourceResponse(rsp *http.Response) (*UpdateDataSourceRespons
 	return response, nil
 }
 
-// ParsePutDatasourcesIdCredentialsResponse parses an HTTP response from a PutDatasourcesIdCredentialsWithResponse call
-func ParsePutDatasourcesIdCredentialsResponse(rsp *http.Response) (*PutDatasourcesIdCredentialsResponse, error) {
+// ParseSetDatasourceCredentialsResponse parses an HTTP response from a SetDatasourceCredentialsWithResponse call
+func ParseSetDatasourceCredentialsResponse(rsp *http.Response) (*SetDatasourceCredentialsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PutDatasourcesIdCredentialsResponse{
+	response := &SetDatasourceCredentialsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -7795,15 +7795,15 @@ func ParseTestNotificationsResponse(rsp *http.Response) (*TestNotificationsRespo
 	return response, nil
 }
 
-// ParsePostRestoresResponse parses an HTTP response from a PostRestoresWithResponse call
-func ParsePostRestoresResponse(rsp *http.Response) (*PostRestoresResponse, error) {
+// ParseCreateRestoreResponse parses an HTTP response from a CreateRestoreWithResponse call
+func ParseCreateRestoreResponse(rsp *http.Response) (*CreateRestoreResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostRestoresResponse{
+	response := &CreateRestoreResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -7842,15 +7842,15 @@ func ParsePostRestoresResponse(rsp *http.Response) (*PostRestoresResponse, error
 	return response, nil
 }
 
-// ParsePostRestoresTargetProbeResponse parses an HTTP response from a PostRestoresTargetProbeWithResponse call
-func ParsePostRestoresTargetProbeResponse(rsp *http.Response) (*PostRestoresTargetProbeResponse, error) {
+// ParseProbeRestoreTargetResponse parses an HTTP response from a ProbeRestoreTargetWithResponse call
+func ParseProbeRestoreTargetResponse(rsp *http.Response) (*ProbeRestoreTargetResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostRestoresTargetProbeResponse{
+	response := &ProbeRestoreTargetResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -7882,15 +7882,15 @@ func ParsePostRestoresTargetProbeResponse(rsp *http.Response) (*PostRestoresTarg
 	return response, nil
 }
 
-// ParseGetRestoresIdResponse parses an HTTP response from a GetRestoresIdWithResponse call
-func ParseGetRestoresIdResponse(rsp *http.Response) (*GetRestoresIdResponse, error) {
+// ParseGetRestoreResponse parses an HTTP response from a GetRestoreWithResponse call
+func ParseGetRestoreResponse(rsp *http.Response) (*GetRestoreResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetRestoresIdResponse{
+	response := &GetRestoreResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -7929,15 +7929,15 @@ func ParseGetRestoresIdResponse(rsp *http.Response) (*GetRestoresIdResponse, err
 	return response, nil
 }
 
-// ParseGetRestoresIdLogsPresignResponse parses an HTTP response from a GetRestoresIdLogsPresignWithResponse call
-func ParseGetRestoresIdLogsPresignResponse(rsp *http.Response) (*GetRestoresIdLogsPresignResponse, error) {
+// ParseGetRestoreLogsLinkResponse parses an HTTP response from a GetRestoreLogsLinkWithResponse call
+func ParseGetRestoreLogsLinkResponse(rsp *http.Response) (*GetRestoreLogsLinkResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetRestoresIdLogsPresignResponse{
+	response := &GetRestoreLogsLinkResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -7969,15 +7969,15 @@ func ParseGetRestoresIdLogsPresignResponse(rsp *http.Response) (*GetRestoresIdLo
 	return response, nil
 }
 
-// ParseGetStorageDestinationsResponse parses an HTTP response from a GetStorageDestinationsWithResponse call
-func ParseGetStorageDestinationsResponse(rsp *http.Response) (*GetStorageDestinationsResponse, error) {
+// ParseListStorageDestinationsResponse parses an HTTP response from a ListStorageDestinationsWithResponse call
+func ParseListStorageDestinationsResponse(rsp *http.Response) (*ListStorageDestinationsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetStorageDestinationsResponse{
+	response := &ListStorageDestinationsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -8009,15 +8009,15 @@ func ParseGetStorageDestinationsResponse(rsp *http.Response) (*GetStorageDestina
 	return response, nil
 }
 
-// ParsePostStorageDestinationsResponse parses an HTTP response from a PostStorageDestinationsWithResponse call
-func ParsePostStorageDestinationsResponse(rsp *http.Response) (*PostStorageDestinationsResponse, error) {
+// ParseCreateStorageDestinationResponse parses an HTTP response from a CreateStorageDestinationWithResponse call
+func ParseCreateStorageDestinationResponse(rsp *http.Response) (*CreateStorageDestinationResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostStorageDestinationsResponse{
+	response := &CreateStorageDestinationResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -8056,15 +8056,15 @@ func ParsePostStorageDestinationsResponse(rsp *http.Response) (*PostStorageDesti
 	return response, nil
 }
 
-// ParsePostStorageDestinationsManagedEnsureResponse parses an HTTP response from a PostStorageDestinationsManagedEnsureWithResponse call
-func ParsePostStorageDestinationsManagedEnsureResponse(rsp *http.Response) (*PostStorageDestinationsManagedEnsureResponse, error) {
+// ParseEnsureManagedStorageDestinationResponse parses an HTTP response from a EnsureManagedStorageDestinationWithResponse call
+func ParseEnsureManagedStorageDestinationResponse(rsp *http.Response) (*EnsureManagedStorageDestinationResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostStorageDestinationsManagedEnsureResponse{
+	response := &EnsureManagedStorageDestinationResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -8096,15 +8096,15 @@ func ParsePostStorageDestinationsManagedEnsureResponse(rsp *http.Response) (*Pos
 	return response, nil
 }
 
-// ParseDeleteStorageDestinationsIdResponse parses an HTTP response from a DeleteStorageDestinationsIdWithResponse call
-func ParseDeleteStorageDestinationsIdResponse(rsp *http.Response) (*DeleteStorageDestinationsIdResponse, error) {
+// ParseDeleteStorageDestinationResponse parses an HTTP response from a DeleteStorageDestinationWithResponse call
+func ParseDeleteStorageDestinationResponse(rsp *http.Response) (*DeleteStorageDestinationResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &DeleteStorageDestinationsIdResponse{
+	response := &DeleteStorageDestinationResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -8143,15 +8143,15 @@ func ParseDeleteStorageDestinationsIdResponse(rsp *http.Response) (*DeleteStorag
 	return response, nil
 }
 
-// ParseGetStorageDestinationsIdResponse parses an HTTP response from a GetStorageDestinationsIdWithResponse call
-func ParseGetStorageDestinationsIdResponse(rsp *http.Response) (*GetStorageDestinationsIdResponse, error) {
+// ParseGetStorageDestinationResponse parses an HTTP response from a GetStorageDestinationWithResponse call
+func ParseGetStorageDestinationResponse(rsp *http.Response) (*GetStorageDestinationResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetStorageDestinationsIdResponse{
+	response := &GetStorageDestinationResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -8190,15 +8190,15 @@ func ParseGetStorageDestinationsIdResponse(rsp *http.Response) (*GetStorageDesti
 	return response, nil
 }
 
-// ParsePatchStorageDestinationsIdResponse parses an HTTP response from a PatchStorageDestinationsIdWithResponse call
-func ParsePatchStorageDestinationsIdResponse(rsp *http.Response) (*PatchStorageDestinationsIdResponse, error) {
+// ParseUpdateStorageDestinationResponse parses an HTTP response from a UpdateStorageDestinationWithResponse call
+func ParseUpdateStorageDestinationResponse(rsp *http.Response) (*UpdateStorageDestinationResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PatchStorageDestinationsIdResponse{
+	response := &UpdateStorageDestinationResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}

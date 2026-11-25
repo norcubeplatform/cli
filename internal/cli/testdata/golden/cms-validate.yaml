@@ -15,5 +15,6 @@ schemaVersion: 1
 summary:
     errors: 0
     files: 2
+    notices: 0
     schemaFiles: 2
     warnings: 2

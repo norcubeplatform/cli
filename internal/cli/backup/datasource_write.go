@@ -51,7 +51,7 @@ func readConnectionURI(cmd *cobra.Command, file string) (string, error) {
 
 // setCredentials stores a data source's connection string.
 func setCredentials(ctx context.Context, c *snapdbContext, id, uri string) error {
-	res, err := c.API.PutDatasourcesIdCredentialsWithResponse(ctx, id, snapdb.PutDatasourcesIdCredentialsJSONRequestBody{
+	res, err := c.API.SetDatasourceCredentialsWithResponse(ctx, id, snapdb.SetDatasourceCredentialsJSONRequestBody{
 		Mode: snapdb.CredentialModeURI, Uri: &uri,
 	})
 	if err != nil {
@@ -100,7 +100,7 @@ Nothing is backed up until a policy is attached
 			if err != nil {
 				return nil, err
 			}
-			res, err := c.API.PostDatasourcesWithResponse(cmd.Context(), snapdb.PostDatasourcesJSONRequestBody{
+			res, err := c.API.CreateDatasourceWithResponse(cmd.Context(), snapdb.CreateDatasourceJSONRequestBody{
 				Name: name, Engine: snapdb.ConstantsDatasourceEngine(engine),
 				Environment: snapdb.ConstantsDatasourceEnvironment(env), Region: snapdb.ConstantsDatasourceRegion(region),
 			})

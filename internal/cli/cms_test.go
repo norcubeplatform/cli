@@ -84,6 +84,9 @@ func TestCmsValidateRejectsBadInvocations(t *testing.T) {
 		{"unknown scope", []string{"cms", "validate", "testdata/cms-site", "--only", "everything"}, clierr.CodeUsage, clierr.ExitUsage},
 		{"unknown fail-on", []string{"cms", "validate", "testdata/cms-site", "--fail-on", "sometimes"}, clierr.CodeUsage, clierr.ExitUsage},
 		{"two paths", []string{"cms", "validate", "a", "b"}, clierr.CodeUsage, clierr.ExitUsage},
+		{"git without quality", []string{"cms", "validate", "testdata/cms-site", "--git"}, clierr.CodeUsage, clierr.ExitUsage},
+		{"strict-quality without quality", []string{"cms", "validate", "testdata/cms-site", "--strict-quality"}, clierr.CodeUsage, clierr.ExitUsage},
+		{"quality is not an --only scope", []string{"cms", "validate", "testdata/cms-site", "--only", "quality"}, clierr.CodeUsage, clierr.ExitUsage},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
@@ -136,5 +139,113 @@ func TestCmsValidateIsLocal(t *testing.T) {
 	_, _, err := run(t, "cms", "validate", "testdata")
 	if !errors.As(err, &notASite) || notASite.Code != clierr.CodeNotFound {
 		t.Fatalf("got %v", err)
+	}
+}
+
+// cmsQualityReport is the part of `cms validate -o json` the quality tests
+// read.
+type cmsQualityReport struct {
+	Findings []struct {
+		File, Path, Rule, Severity, Impact, Locale string
+	}
+	Summary struct{ Errors, Warnings, Notices int }
+	Quality *struct {
+		Checked map[string]int
+		Skipped []struct{ Rule, Reason string }
+	}
+}
+
+func decodeCmsReport(t *testing.T, out string) cmsQualityReport {
+	t.Helper()
+	var rep cmsQualityReport
+	if err := json.Unmarshal([]byte(out), &rep); err != nil {
+		t.Fatalf("stdout is not the JSON report: %v\n%s", err, out)
+	}
+	return rep
+}
+
+func TestCmsValidateQualityRunsOnlyWhenAsked(t *testing.T) {
+	cmsEnv(t)
+	out, _, err := run(t, "cms", "validate", "testdata/cms-site-quality", "-o", "json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(out, `"quality"`) {
+		t.Fatalf("quality summary without --quality:\n%s", out)
+	}
+	for _, f := range decodeCmsReport(t, out).Findings {
+		if strings.HasPrefix(f.Rule, "quality.") {
+			t.Fatalf("quality finding without --quality: %+v", f)
+		}
+	}
+
+	out, stderr, err := run(t, "cms", "validate", "testdata/cms-site-quality", "--quality", "-o", "json")
+	if err != nil {
+		t.Fatalf("quality warnings failed the run: %v", err)
+	}
+	rep := decodeCmsReport(t, out)
+	if rep.Quality == nil || rep.Quality.Checked["quality.title_duplicate"] == 0 {
+		t.Fatalf("no quality summary: %s", out)
+	}
+	var dupEn, incompleteCs bool
+	for _, f := range rep.Findings {
+		switch {
+		case f.Rule == "quality.title_duplicate" && f.Locale == "en" && f.Severity == "warning" && f.Impact == "medium":
+			dupEn = true
+		case f.Rule == "quality.translation_incomplete" && f.Locale == "cs" && f.Severity == "notice":
+			incompleteCs = true
+		}
+	}
+	if !dupEn || !incompleteCs || rep.Summary.Errors != 0 || rep.Summary.Warnings != 2 || rep.Summary.Notices != 1 {
+		t.Fatalf("report: %+v", rep)
+	}
+	skipped := false
+	for _, s := range rep.Quality.Skipped {
+		skipped = skipped || s.Rule == "quality.translation_outdated"
+	}
+	if !skipped {
+		t.Errorf("translation_outdated should be skipped without --git: %+v", rep.Quality.Skipped)
+	}
+	if !strings.Contains(stderr, "2 warnings, 1 notice") {
+		t.Errorf("summary on stderr: %q", stderr)
+	}
+}
+
+func TestCmsValidateStrictQuality(t *testing.T) {
+	cmsEnv(t)
+	out, _, err := run(t, "cms", "validate", "testdata/cms-site-quality", "--quality", "--strict-quality", "-o", "json")
+	e := Describe(err)
+	if e == nil || e.Code != clierr.CodeInvalid || e.ExitCode() != clierr.ExitError {
+		t.Fatalf("got %v", err)
+	}
+	rep := decodeCmsReport(t, out)
+	// Quality warnings become errors; notices stay notices.
+	if rep.Summary.Errors != 2 || rep.Summary.Warnings != 0 || rep.Summary.Notices != 1 {
+		t.Fatalf("summary: %+v", rep.Summary)
+	}
+}
+
+func TestCmsValidateQualityTable(t *testing.T) {
+	cmsEnv(t)
+	out, stderr, err := run(t, "cms", "validate", "testdata/cms-site-quality", "--quality", "-o", "table", "--no-pager")
+	if err != nil {
+		t.Fatal(err)
+	}
+	// One file, one field, two languages: the language tells the rows apart.
+	for _, want := range []string{"title.cs [cs]", "title.en [en]", "notice", "quality.translation_incomplete"} {
+		if !strings.Contains(out, want) {
+			t.Errorf("table lacks %q:\n%s", want, out)
+		}
+	}
+	if !strings.Contains(stderr, "skipped quality.translation_outdated") {
+		t.Errorf("the skipped rule is not named: %q", stderr)
+	}
+	// Notes for people stay out of the scripts' formats.
+	_, stderr, err = run(t, "cms", "validate", "testdata/cms-site-quality", "--quality", "-o", "json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(stderr, "skipped") {
+		t.Errorf("table notes printed with -o json: %q", stderr)
 	}
 }

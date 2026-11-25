@@ -2348,6 +2348,7 @@
     "/backup-policies": {
       "get": {
         "description": "List all backup policies for the organization.",
+        "operationId": "listBackupPolicies",
         "responses": {
           "200": {
             "content": {
@@ -2398,10 +2399,18 @@
         "summary": "List Policies",
         "tags": [
           "Policies"
+        ],
+        "x-norcube-effect": "read",
+        "x-norcube-scopes": [
+          "backup.read",
+          "backup.write",
+          "backup.verify",
+          "backup.assist.read"
         ]
       },
       "post": {
         "description": "Create a new backup policy for the organization.",
+        "operationId": "createBackupPolicy",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2455,6 +2464,7 @@
     "/backup-policies/{id}": {
       "patch": {
         "description": "Partially update a backup policy. Omitted fields are left unchanged.",
+        "operationId": "updateBackupPolicy",
         "parameters": [
           {
             "description": "Policy ID",
@@ -2532,6 +2542,7 @@
     "/backups": {
       "get": {
         "description": "Cross-datasource listing of backup jobs in the calling user's organization, sorted by created_at descending. Pass datasourceIds[] to filter to a subset of data sources. Org scoping is enforced at the SQL level — datasource ids belonging to other organizations are silently ignored.",
+        "operationId": "listBackups",
         "parameters": [
           {
             "in": "query",
@@ -2608,13 +2619,20 @@
         "summary": "List backups across the organization",
         "tags": [
           "Backups"
+        ],
+        "x-norcube-effect": "read",
+        "x-norcube-scopes": [
+          "backup.read",
+          "backup.write",
+          "backup.verify",
+          "backup.assist.read"
         ]
       }
     },
     "/datasources": {
       "get": {
         "description": "Retrieve a paginated list of data sources for the organization.",
-        "operationId": "list",
+        "operationId": "listDatasources",
         "parameters": [
           {
             "description": "Pagination cursor",
@@ -2683,10 +2701,18 @@
         "summary": "List Data Sources",
         "tags": [
           "Data Sources"
+        ],
+        "x-norcube-effect": "read",
+        "x-norcube-scopes": [
+          "backup.read",
+          "backup.write",
+          "backup.verify",
+          "backup.assist.read"
         ]
       },
       "post": {
         "description": "Create a new data source for the organization.",
+        "operationId": "createDatasource",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2868,6 +2894,13 @@
         "summary": "Backup history time series",
         "tags": [
           "Data Sources"
+        ],
+        "x-norcube-effect": "read",
+        "x-norcube-scopes": [
+          "backup.read",
+          "backup.write",
+          "backup.verify",
+          "backup.assist.read"
         ]
       }
     },
@@ -2950,6 +2983,13 @@
         "summary": "List Backup Jobs",
         "tags": [
           "Data Sources"
+        ],
+        "x-norcube-effect": "read",
+        "x-norcube-scopes": [
+          "backup.read",
+          "backup.write",
+          "backup.verify",
+          "backup.assist.read"
         ]
       }
     },
@@ -3186,6 +3226,13 @@
         "summary": "Get one backup job",
         "tags": [
           "Data Sources"
+        ],
+        "x-norcube-effect": "read",
+        "x-norcube-scopes": [
+          "backup.read",
+          "backup.write",
+          "backup.verify",
+          "backup.assist.read"
         ]
       }
     },
@@ -3386,10 +3433,18 @@
         "summary": "List policies of data source",
         "tags": [
           "Data Sources"
+        ],
+        "x-norcube-effect": "read",
+        "x-norcube-scopes": [
+          "backup.read",
+          "backup.write",
+          "backup.verify",
+          "backup.assist.read"
         ]
       },
       "post": {
         "description": "Attach a backup policy to a data source with a specific storage destination.",
+        "operationId": "attachPolicy",
         "parameters": [
           {
             "description": "Data Source ID",
@@ -3454,6 +3509,7 @@
     "/datasources/{datasourceId}/policies/{policyId}": {
       "delete": {
         "description": "Detach a backup policy from a specific data source.",
+        "operationId": "detachPolicy",
         "parameters": [
           {
             "description": "Data Source ID",
@@ -3637,12 +3693,20 @@
         "summary": "Restore-check history",
         "tags": [
           "Data Sources"
+        ],
+        "x-norcube-effect": "read",
+        "x-norcube-scopes": [
+          "backup.read",
+          "backup.write",
+          "backup.verify",
+          "backup.assist.read"
         ]
       }
     },
     "/datasources/{datasourceId}/restores": {
       "get": {
         "description": "Restore jobs for one datasource, newest first, cursor-paginated. Org + datasource scoping is enforced at the SQL level (and by the datasource-access middleware on the route).",
+        "operationId": "listDatasourceRestores",
         "parameters": [
           {
             "description": "Datasource ID",
@@ -3726,6 +3790,13 @@
         "summary": "List a datasource's restore jobs",
         "tags": [
           "Restores"
+        ],
+        "x-norcube-effect": "read",
+        "x-norcube-scopes": [
+          "backup.read",
+          "backup.write",
+          "backup.verify",
+          "backup.assist.read"
         ]
       }
     },
@@ -3815,7 +3886,7 @@
       },
       "get": {
         "description": "Retrieve details of a specific data source by its ID.",
-        "operationId": "get",
+        "operationId": "getDatasource",
         "parameters": [
           {
             "description": "Data Source ID",
@@ -3862,6 +3933,13 @@
         "summary": "Get Data Source",
         "tags": [
           "Data Sources"
+        ],
+        "x-norcube-effect": "read",
+        "x-norcube-scopes": [
+          "backup.read",
+          "backup.write",
+          "backup.verify",
+          "backup.assist.read"
         ]
       },
       "patch": {
@@ -3934,6 +4012,7 @@
     "/datasources/{id}/credentials": {
       "put": {
         "description": "Set or update the credentials for a specific data source. Supports two types of credentials: username/password and connection URI.",
+        "operationId": "setDatasourceCredentials",
         "parameters": [
           {
             "description": "Data Source ID",
@@ -4045,6 +4124,13 @@
         "summary": "Get restore-check config",
         "tags": [
           "Data Sources"
+        ],
+        "x-norcube-effect": "read",
+        "x-norcube-scopes": [
+          "backup.read",
+          "backup.write",
+          "backup.verify",
+          "backup.assist.read"
         ]
       },
       "put": {
@@ -4293,6 +4379,7 @@
     "/restores": {
       "post": {
         "description": "Creates a restore job from a successful backup and dispatches it to a restore worker. Modes: `new_database` (create a fresh DB on a server you point at — targetUri needs create-database rights, targetDatabase is the name to create), `overwrite` (restore over the datasource's existing database using its stored credentials — requires confirmOverwrite=true and a write-capable role), `new_server` (restore into the database named in targetUri). Probe the target first via POST /restores/target-probe. Restores are deliberately not billing-gated.",
+        "operationId": "createRestore",
         "requestBody": {
           "content": {
             "application/json": {
@@ -4356,6 +4443,7 @@
     "/restores/target-probe": {
       "post": {
         "description": "The restore wizard's pre-flight. For `overwrite` it checks the datasource's stored credentials can actually write (creates + drops a throwaway norcube_write_test table/collection) — backup roles are usually read-only, so this catches the failure before anything runs. For `new_database` it checks the supplied targetUri can create databases and that targetDatabase doesn't exist yet; for `new_server` it write-probes the database named in targetUri. Domain failures come back as errorCode/errorMessage with HTTP 200.",
+        "operationId": "probeRestoreTarget",
         "requestBody": {
           "content": {
             "application/json": {
@@ -4409,6 +4497,7 @@
     "/restores/{id}": {
       "get": {
         "description": "Full detail of a restore job, including status, byte counters, the redacted target, and whether a log is available.",
+        "operationId": "getRestore",
         "parameters": [
           {
             "description": "Restore job ID",
@@ -4465,12 +4554,20 @@
         "summary": "Get one restore job",
         "tags": [
           "Restores"
+        ],
+        "x-norcube-effect": "read",
+        "x-norcube-scopes": [
+          "backup.read",
+          "backup.write",
+          "backup.verify",
+          "backup.assist.read"
         ]
       }
     },
     "/restores/{id}/logs.presign": {
       "get": {
         "description": "Returns a short-lived presigned URL for the restore run's output log (the redacted pg_restore / mongorestore output the worker uploaded). Available for both successful and failed restores once the worker has reported; `errorCode: no_log` until then.",
+        "operationId": "getRestoreLogsLink",
         "parameters": [
           {
             "description": "Restore job ID",
@@ -4523,6 +4620,7 @@
     "/storage-destinations": {
       "get": {
         "description": "Returns every storage destination an organization can attach to a backup policy — both Norcube-managed buckets and BYO (customer-owned) S3-compatible destinations. Credential fields are never included in the response; the agent dispatcher fetches them via a separate decrypt path when starting a job. Supports server-side filtering by search substring (matched against name / bucket / endpoint / type), ownership (`all` / `managed` / `byo`), and unverifiedOnly (BYO rows whose verify rotted).",
+        "operationId": "listStorageDestinations",
         "parameters": [
           {
             "description": "Substring search across name, bucket, endpoint URL, and type",
@@ -4596,6 +4694,7 @@
       },
       "post": {
         "description": "Registers a customer-owned S3-compatible storage destination (AWS S3 outside our account, Cloudflare R2, Backblaze B2, Wasabi, MinIO, etc.). The supplied credentials are verified end-to-end (PutObject → HeadObject → DeleteObject of a tiny probe object) BEFORE the row is persisted — if any step fails the request returns 400 and nothing is saved. Credentials are KMS-wrapped (envelope-encrypted with the same {org_id, destination_id} context we use for datasource credentials) before persistence and never leave the encrypted path again until the agent dispatcher unseals them at job-start time.",
+        "operationId": "createStorageDestination",
         "requestBody": {
           "content": {
             "application/json": {
@@ -4659,6 +4758,7 @@
     "/storage-destinations/managed/ensure": {
       "post": {
         "description": "Ensure that a managed storage destination exists for the given region. If it does not exist, it will be created.",
+        "operationId": "ensureManagedStorageDestination",
         "requestBody": {
           "content": {
             "application/json": {
@@ -4712,6 +4812,7 @@
     "/storage-destinations/{id}": {
       "delete": {
         "description": "Soft-deletes a customer-owned (BYO) storage destination (sets is_active=false and wipes the credential blob). Refuses with 409 if any data_source_policy still references this destination — the customer must detach those policies first. Managed destinations cannot be deleted through this endpoint.",
+        "operationId": "deleteStorageDestination",
         "parameters": [
           {
             "description": "Storage destination ID",
@@ -4775,6 +4876,7 @@
       },
       "get": {
         "description": "Returns a single storage destination by id, scoped to the calling organization.",
+        "operationId": "getStorageDestination",
         "parameters": [
           {
             "description": "Storage destination ID",
@@ -4835,6 +4937,7 @@
       },
       "patch": {
         "description": "Updates a customer-owned (BYO) storage destination. Two paths: metadata-only (name / storageClass / encryptionMode) writes immediately. Any connection-knob change (region / endpointUrl / forcePathStyle) OR credential change requires accessKeyId + secretAccessKey to be supplied together — the new combination is re-verified end-to-end (PutObject → HeadObject → DeleteObject) before the row is updated. Managed destinations cannot be edited through this endpoint.",
+        "operationId": "updateStorageDestination",
         "parameters": [
           {
             "description": "Storage destination ID",

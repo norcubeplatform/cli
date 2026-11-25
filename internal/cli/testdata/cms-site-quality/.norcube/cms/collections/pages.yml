@@ -1,0 +1,10 @@
+label: Pages
+path: src/content/pages
+match: '**/*.md'
+previewPath: '/{locale}/{slug}/'
+localeFrom: path
+translations:
+  by: path
+fields:
+  - {key: title, type: text, label: Title, required: true, role: seoTitle}
+  - {key: slug, type: text, label: Slug}
