@@ -264,8 +264,12 @@ norcube cms validate ./site --quality --git --strict-quality # in CI
   - run: norcube cms validate --quality --git --strict-quality
   ```
 
-`-o json` prints every finding with its rule id, and with `--quality` a
-`quality` summary of what was checked, skipped and guessed.
+`-o json` prints every finding with its rule id, its `cause` (which of
+the rule's causes it is) and `params` (the facts its message is made of,
+typed), and with `--quality` a `quality` summary of what was checked,
+skipped and guessed. The English `message` and `hint` stay; a tool that
+words findings itself keys on `rule`, `cause` and `params`, as the
+module's `report/catalog.json` lists them.
 
 ## Documentation
 

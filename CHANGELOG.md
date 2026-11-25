@@ -5,6 +5,14 @@ this file collects what users and scripts need to know.
 
 ## Unreleased
 
+### New
+
+- `norcube cms validate -o json` (and `-o yaml`) gives each finding its
+  `cause`, which of the rule's causes it is, and `params`, the facts its
+  message is made of, typed (cms-schema 0.12.0). The table, `-o text`
+  and the English `message` and `hint` are unchanged. A skipped quality
+  rule keeps its English `reason` and gains `code` and `params`.
+
 ## 0.28.0 (2026-11-25)
 
 ### New

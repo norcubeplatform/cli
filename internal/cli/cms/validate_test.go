@@ -3,6 +3,7 @@ package cms
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -106,7 +107,7 @@ func TestValidateGitHistoryReachesQuality(t *testing.T) {
 	if got := outdatedLines(out); len(got) != 0 {
 		t.Fatalf("outdated translations reported without the history:\n%s", out)
 	}
-	if !strings.Contains(stderr, "skipped quality.translation_outdated") || !strings.Contains(stderr, "--git") {
+	if !strings.Contains(stderr, "skipped quality.translation_outdated: the history of the content files was not given; pass --git") {
 		t.Errorf("the skipped rule is not explained: %q", stderr)
 	}
 
@@ -209,5 +210,41 @@ func TestFindingPathShowsTheLanguage(t *testing.T) {
 		if got := findingPath(c.f); got != c.want {
 			t.Errorf("findingPath(%+v) = %q, want %q", c.f, got, c.want)
 		}
+	}
+}
+
+// Report version 1 printed a skipped rule's reason as English: it stays
+// English, with the module's code and params beside it, and the rest of
+// the module's summary as it is.
+func TestQualityReportKeepsSkippedReasonEnglish(t *testing.T) {
+	s := &quality.Summary{
+		Checked: map[report.Rule]int{report.RuleQualityTitleMissing: 2},
+		Skipped: []quality.Skipped{{
+			Rule: report.RuleQualityImageHeavy, Reason: quality.SkipMediaUnlistable,
+			Params: &report.Params{Detail: "disk gone"}, Message: "the media files could not be listed: disk gone",
+		}},
+		Drafts: 1,
+	}
+	raw, err := json.Marshal(newQualityReport(s))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got map[string]any
+	if err := json.Unmarshal(raw, &got); err != nil {
+		t.Fatal(err)
+	}
+	skipped, _ := got["skipped"].([]any)
+	if len(skipped) != 1 {
+		t.Fatalf("skipped %s", raw)
+	}
+	sk := skipped[0].(map[string]any)
+	if sk["reason"] != "the media files could not be listed: disk gone" || sk["code"] != "media_unlistable" || sk["rule"] != "quality.image_heavy" {
+		t.Errorf("skipped %v", sk)
+	}
+	if got["drafts"] != float64(1) || got["checked"] == nil {
+		t.Errorf("the module's summary is missing: %s", raw)
+	}
+	if newQualityReport(nil) != nil {
+		t.Error("no summary is no report")
 	}
 }
