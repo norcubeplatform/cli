@@ -250,10 +250,11 @@ norcube cms validate ./site --quality --git --strict-quality # in CI
   translations, heavy images and unused files. Their findings are warnings
   or notices, never errors, and notices never fail a run.
 - `--strict-quality` (with `--quality`) turns quality warnings into errors.
-- `--git` (with `--quality`) reads when each file last changed from the
-  checkout's git history, so a translation left behind its newer language
-  version is found. It needs git and a clone of the repository; if git
-  cannot read the history, the command stops with an error.
+- `--git` (with `--quality`) reads the checkout's git history, so a
+  translation whose source changed a text since the translation last
+  changed is found; changed links, images and numbers don't count. It
+  needs git and a clone of the repository; if git cannot read the
+  history, the command stops with an error.
 
 `-o json` prints every finding with its rule id, and with `--quality` a
 `quality` summary of what was checked, skipped and guessed.

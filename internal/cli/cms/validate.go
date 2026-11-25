@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
-	"time"
 
 	"github.com/spf13/cobra"
 
@@ -70,14 +69,16 @@ type validateSummary struct {
 	Notices int `json:"notices" yaml:"notices"`
 }
 
-// gitDates reads when each file of a checkout last changed
-// (gitlog.LastChanged); a parameter so tests need no git.
-type gitDates func(ctx context.Context, dir string, opts gitlog.Options) (map[string]time.Time, error)
+// sourceBasesFunc opens a reader of what the source of each language
+// version said when the version was last current with it, from the git
+// checkout at dir (gitlog.SourceBases); a parameter so tests need no git.
+// The reader must be called before cancel.
+type sourceBasesFunc func(ctx context.Context, dir string, opts gitlog.Options) (reader quality.BaseReader, cancel func())
 
 // validateDeps are what `cms validate` reaches outside the site's files.
 type validateDeps struct {
-	// lastChanged runs for --git only.
-	lastChanged gitDates
+	// sourceBases runs for --git only.
+	sourceBases sourceBasesFunc
 }
 
 func newValidateCmd(deps validateDeps) *cobra.Command {
@@ -117,9 +118,12 @@ for: search (titles, descriptions, share images, noindex), accessibility
 with --git, outdated translations) and media (heavy images, unused
 files). Quality findings are never errors: high and medium impact ones are
 warnings, low impact and information-only ones notices. --strict-quality
-turns quality warnings into errors. --git reads when each file last
-changed from the checkout's git history (git must be installed), so a
-translation left behind its newer language version is found.
+turns quality warnings into errors. --git reads the checkout's git
+history (git must be installed) to find a translation whose source, the
+page in the site's default language, changed a text since the
+translation last changed or was marked as current. Changed links,
+images, numbers and white space are not texts to translate and never
+count.
 
 Each finding names the file, the field path inside it, a severity and a
 rule id (schema.unresolved_ref, content.required, quality.title_missing…).
@@ -155,7 +159,7 @@ Notices never fail a run. A path that is not a CMS site exits 3.`,
 				return nil, err
 			}
 			if withGit && !withQuality {
-				return nil, clierr.Usage(errors.New("--git needs --quality: the dates are for the content quality checks"))
+				return nil, clierr.Usage(errors.New("--git needs --quality: the history is for the content quality checks"))
 			}
 			if strictQuality && !withQuality {
 				return nil, clierr.Usage(errors.New("--strict-quality needs --quality"))
@@ -183,12 +187,24 @@ Notices never fail a run. A path that is not a CMS site exits 3.`,
 				opts.Only = append(opts.Only, validate.ScopeQuality)
 				opts.StrictQuality = strictQuality
 				opts.Quality = quality.Options{ListMedia: quality.FSMedia(site), RootFiles: quality.FSRootFiles(site)}
-				if withGit {
-					dates, err := readGitDates(cmd.Context(), path, deps.lastChanged)
+			}
+			// The history is read only when the checks have language
+			// versions to judge, during validate.Site; its error is kept
+			// and ends the run after it.
+			var historyErr error
+			historyCtx := cmd.Context()
+			if withGit {
+				var cancel context.CancelFunc
+				historyCtx, cancel = context.WithTimeout(historyCtx, gitlog.DefaultTimeout)
+				defer cancel()
+				read, stop := deps.sourceBases(historyCtx, path, gitlog.Options{})
+				defer stop()
+				opts.Quality.SourceBases = func(q []quality.BaseQuery) ([]quality.SourceBase, error) {
+					out, err := read(q)
 					if err != nil {
-						return nil, err
+						historyErr = err
 					}
-					opts.Quality.LastChanged = dates
+					return out, err
 				}
 			}
 
@@ -203,6 +219,9 @@ Notices never fail a run. A path that is not a CMS site exits 3.`,
 			}
 			if err != nil {
 				return nil, err
+			}
+			if historyErr != nil {
+				return nil, gitHistoryError(historyCtx, path, historyErr)
 			}
 
 			rep := validateReport{
@@ -260,45 +279,41 @@ Notices never fail a run. A path that is not a CMS site exits 3.`,
 	cmd.Flags().StringVar(&failOn, "fail-on", failOnError, "Exit 1 on findings of this severity or worse: warning, error or none")
 	cmd.Flags().BoolVar(&withQuality, "quality", false, "Also run the content quality checks (search, accessibility, languages, media); their findings are warnings and notices")
 	cmd.Flags().BoolVar(&strictQuality, "strict-quality", false, "With --quality, treat content quality warnings as errors; notices stay notices")
-	cmd.Flags().BoolVar(&withGit, "git", false, "With --quality, read when each file last changed from the checkout's git history, so outdated translations are found")
+	cmd.Flags().BoolVar(&withGit, "git", false, "With --quality, read the checkout's git history, so translations whose source changed a text are found")
 	cmdutil.FlagEnum(cmd, "only", validateScopes...)
 	cmdutil.FlagEnum(cmd, "fail-on", validateFailOn...)
 	return cmd
 }
 
-// readGitDates runs read on the checkout at path with a deadline
-// (gitlog.DefaultTimeout) and turns its failures into errors a person can
-// act on. --git asked for the dates, so a failure ends the run rather than
-// silently skipping the check that needs them.
-func readGitDates(ctx context.Context, path string, read gitDates) (map[string]time.Time, error) {
-	ctx, cancel := context.WithTimeout(ctx, gitlog.DefaultTimeout)
-	defer cancel()
-	dates, err := read(ctx, path, gitlog.Options{})
+// gitHistoryError turns a failure to read the git history (ctx is the
+// one the history was read under) into an error a person can act on.
+// --git asked for the history, so a failure ends the run rather than
+// silently skipping the check that needs it. The context decides first:
+// git stopped by the deadline or an interrupt may fail in any way.
+func gitHistoryError(ctx context.Context, path string, err error) error {
 	switch {
-	case err == nil:
-		return dates, nil
-	case errors.Is(err, context.Canceled):
+	case errors.Is(ctx.Err(), context.Canceled), errors.Is(err, context.Canceled):
 		// Interrupted: the root reports it as such.
-		return nil, err
+		return errors.Join(context.Canceled, err)
+	case errors.Is(ctx.Err(), context.DeadlineExceeded), errors.Is(err, context.DeadlineExceeded):
+		return &clierr.Error{
+			Code:    clierr.CodeTimeout,
+			Message: fmt.Sprintf("--git: reading the git history of %s took longer than %s", path, gitlog.DefaultTimeout),
+			Hint:    "Drop --git to check without the history; outdated translations are then not looked for.",
+			Err:     errors.Join(context.DeadlineExceeded, err),
+		}
 	case errors.Is(err, gitlog.ErrNotARepository):
-		return nil, &clierr.Error{
+		return &clierr.Error{
 			Code:    clierr.CodeUsage,
 			Message: fmt.Sprintf("--git: %s is not in a git checkout, or git is not installed", path),
 			Hint:    "Run it on a clone of the site's repository with git on the PATH, or drop --git.",
 			Err:     err,
 		}
-	case errors.Is(err, context.DeadlineExceeded):
-		return nil, &clierr.Error{
-			Code:    clierr.CodeTimeout,
-			Message: fmt.Sprintf("--git: reading the git history of %s took longer than %s", path, gitlog.DefaultTimeout),
-			Hint:    "Drop --git to check without the dates; outdated translations are then not looked for.",
-			Err:     err,
-		}
 	default:
-		return nil, &clierr.Error{
+		return &clierr.Error{
 			Code:    clierr.CodeError,
 			Message: fmt.Sprintf("--git: reading the git history of %s: %v", path, err),
-			Hint:    "Drop --git to check without the dates; outdated translations are then not looked for.",
+			Hint:    "Drop --git to check without the history; outdated translations are then not looked for.",
 			Err:     err,
 		}
 	}
@@ -324,7 +339,7 @@ func printQualityNotes(w io.Writer, s *quality.Summary, withGit bool) {
 	for _, sk := range s.Skipped {
 		note := sk.Reason
 		if sk.Rule == report.RuleQualityTranslationOutdated && !withGit {
-			note += "; pass --git to read the dates from the git history"
+			note += "; pass --git to read the git history"
 		}
 		fmt.Fprintf(w, "skipped %s: %s\n", sk.Rule, note)
 	}

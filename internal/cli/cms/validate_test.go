@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/norcubeplatform/cms-schema/gitlog"
+	"github.com/norcubeplatform/cms-schema/quality"
 	"github.com/norcubeplatform/cms-schema/report"
 
 	"github.com/norcubeplatform/cli/internal/clierr"
@@ -33,29 +35,76 @@ func execValidate(t *testing.T, deps validateDeps, args ...string) (string, stri
 	return stdout.String(), stderr.String(), err
 }
 
-func TestValidateGitDatesReachQuality(t *testing.T) {
-	now := time.Now()
-	calls := 0
-	deps := validateDeps{lastChanged: func(_ context.Context, dir string, _ gitlog.Options) (map[string]time.Time, error) {
-		calls++
-		if dir != qualitySite {
-			t.Errorf("git read %q, want the site's path", dir)
+// The pages of qualitySite: English is the default language, so the
+// English page is the source of the Czech one.
+const (
+	qualityEnPage = "src/content/pages/en/about.md"
+	qualityCsPage = "src/content/pages/cs/about.md"
+)
+
+// fakeSourceBases answers every query with base, and counts the readers
+// opened and the calls made.
+type fakeSourceBases struct {
+	t       *testing.T
+	base    func(q quality.BaseQuery) quality.SourceBase
+	err     error
+	opened  int
+	read    int
+	queries []quality.BaseQuery
+}
+
+func (f *fakeSourceBases) open(ctx context.Context, dir string, _ gitlog.Options) (quality.BaseReader, func()) {
+	f.opened++
+	if dir != qualitySite {
+		f.t.Errorf("git read %q, want the site's path", dir)
+	}
+	if deadline, ok := ctx.Deadline(); !ok || time.Until(deadline) > gitlog.DefaultTimeout {
+		f.t.Errorf("no deadline of at most %s: %v %v", gitlog.DefaultTimeout, deadline, ok)
+	}
+	return func(q []quality.BaseQuery) ([]quality.SourceBase, error) {
+		f.read++
+		f.queries = append(f.queries, q...)
+		if f.err != nil {
+			return nil, f.err
 		}
-		return map[string]time.Time{
-			"src/content/pages/en/about.md": now,
-			"src/content/pages/cs/about.md": now.Add(-30 * 24 * time.Hour),
-		}, nil
+		out := make([]quality.SourceBase, len(q))
+		for i := range q {
+			out[i] = f.base(q[i])
+		}
+		return out, nil
+	}, func() {}
+}
+
+// outdatedLines are the table rows of quality.translation_outdated.
+func outdatedLines(out string) []string {
+	var lines []string
+	for _, line := range strings.Split(out, "\n") {
+		if strings.Contains(line, string(report.RuleQualityTranslationOutdated)) {
+			lines = append(lines, line)
+		}
+	}
+	return lines
+}
+
+func TestValidateGitHistoryReachesQuality(t *testing.T) {
+	fake := &fakeSourceBases{t: t, base: func(q quality.BaseQuery) quality.SourceBase {
+		if q.Translation != qualityCsPage || q.Source != qualityEnPage {
+			return quality.SourceBase{}
+		}
+		// The English title was different when the Czech page last changed.
+		return quality.SourceBase{Known: true, Content: []byte("---\ntitle: About us\nslug: about\n---\n")}
 	}}
+	deps := validateDeps{sourceBases: fake.open}
 
 	out, stderr, err := execValidate(t, deps, qualitySite, "--quality")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if calls != 0 {
+	if fake.opened != 0 {
 		t.Fatalf("git ran without --git")
 	}
-	if strings.Contains(out, string(report.RuleQualityTranslationOutdated)) {
-		t.Fatalf("outdated translations reported without dates:\n%s", out)
+	if got := outdatedLines(out); len(got) != 0 {
+		t.Fatalf("outdated translations reported without the history:\n%s", out)
 	}
 	if !strings.Contains(stderr, "skipped quality.translation_outdated") || !strings.Contains(stderr, "--git") {
 		t.Errorf("the skipped rule is not explained: %q", stderr)
@@ -65,71 +114,81 @@ func TestValidateGitDatesReachQuality(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if calls != 1 {
-		t.Fatalf("git ran %d times", calls)
+	if fake.opened != 1 || fake.read != 1 {
+		t.Fatalf("history opened %d times, read %d times", fake.opened, fake.read)
 	}
-	var outdated string
-	for _, line := range strings.Split(out, "\n") {
-		if strings.Contains(line, string(report.RuleQualityTranslationOutdated)) {
-			outdated = line
-		}
-	}
-	if !strings.Contains(outdated, "src/content/pages/cs/about.md") {
-		t.Fatalf("the older language version is not reported as outdated:\n%s", out)
+	got := outdatedLines(out)
+	if len(got) != 1 || !strings.Contains(got[0], qualityCsPage) || !strings.Contains(got[0], "title") {
+		t.Fatalf("the Czech page whose source changed its title is not reported once:\n%s", out)
 	}
 	if strings.Contains(stderr, "skipped quality.translation_outdated") {
 		t.Errorf("the rule is still skipped with --git: %q", stderr)
 	}
+
+	// A base that says the source is the same: nothing to translate.
+	fake.base = func(quality.BaseQuery) quality.SourceBase { return quality.SourceBase{Known: true, Same: true} }
+	out, _, err = execValidate(t, deps, qualitySite, "--quality", "--git")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := outdatedLines(out); len(got) != 0 {
+		t.Fatalf("an unchanged source made a translation outdated:\n%s", out)
+	}
 }
 
-func TestReadGitDates(t *testing.T) {
-	t.Run("a deadline and the path", func(t *testing.T) {
-		want := map[string]time.Time{"a.md": time.Unix(1, 0)}
-		got, err := readGitDates(context.Background(), "site", func(ctx context.Context, dir string, _ gitlog.Options) (map[string]time.Time, error) {
-			deadline, ok := ctx.Deadline()
-			if !ok || time.Until(deadline) > gitlog.DefaultTimeout {
-				t.Errorf("no deadline of at most %s: %v %v", gitlog.DefaultTimeout, deadline, ok)
-			}
-			if dir != "site" {
-				t.Errorf("dir %q", dir)
-			}
-			return want, nil
-		})
-		if err != nil || len(got) != 1 || !got["a.md"].Equal(want["a.md"]) {
-			t.Fatalf("got %v, %v", got, err)
-		}
-	})
-
+// A history that can't be read ends the run with an error that says why:
+// --git asked for it, so the check is not silently skipped.
+func TestValidateGitHistoryFailures(t *testing.T) {
 	cases := []struct {
 		name string
 		err  error
 		code string
 	}{
 		{"not a checkout is a usage error", gitlog.ErrNotARepository, clierr.CodeUsage},
-		{"too slow is a timeout", context.DeadlineExceeded, clierr.CodeTimeout},
+		{"too slow is a timeout", fmt.Errorf("git log: %w", context.DeadlineExceeded), clierr.CodeTimeout},
 		{"anything else is an error", errors.New("git log: exit status 128"), clierr.CodeError},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			dates, err := readGitDates(context.Background(), "site", func(context.Context, string, gitlog.Options) (map[string]time.Time, error) {
-				return nil, c.err
-			})
+			fake := &fakeSourceBases{t: t, err: c.err}
+			out, _, err := execValidate(t, validateDeps{sourceBases: fake.open}, qualitySite, "--quality", "--git")
 			var ce *clierr.Error
-			if dates != nil || !errors.As(err, &ce) || ce.Code != c.code || !errors.Is(err, c.err) {
-				t.Fatalf("got %v, %v", dates, err)
+			if !errors.As(err, &ce) || ce.Code != c.code || !errors.Is(err, c.err) {
+				t.Fatalf("got %v", err)
 			}
 			if !strings.Contains(ce.Message, "--git") || ce.Hint == "" {
 				t.Errorf("message %q hint %q", ce.Message, ce.Hint)
+			}
+			if out != "" {
+				t.Errorf("a report was printed: %q", out)
 			}
 		})
 	}
 
 	t.Run("an interrupt stays an interrupt", func(t *testing.T) {
-		_, err := readGitDates(context.Background(), "site", func(context.Context, string, gitlog.Options) (map[string]time.Time, error) {
-			return nil, context.Canceled
-		})
+		fake := &fakeSourceBases{t: t, err: fmt.Errorf("git log: %w", context.Canceled)}
+		_, _, err := execValidate(t, validateDeps{sourceBases: fake.open}, qualitySite, "--quality", "--git")
 		var ce *clierr.Error
 		if !errors.Is(err, context.Canceled) || errors.As(err, &ce) {
+			t.Fatalf("got %v", err)
+		}
+	})
+
+	// git killed by the deadline fails in any way (a killed
+	// `git rev-parse` reads as "not a repository"): the context decides.
+	t.Run("a passed deadline is a timeout whatever git said", func(t *testing.T) {
+		ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(-time.Second))
+		defer cancel()
+		var ce *clierr.Error
+		if err := gitHistoryError(ctx, "site", gitlog.ErrNotARepository); !errors.As(err, &ce) || ce.Code != clierr.CodeTimeout {
+			t.Fatalf("got %v", err)
+		}
+	})
+	t.Run("an interrupt is an interrupt whatever git said", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		var ce *clierr.Error
+		if err := gitHistoryError(ctx, "site", errors.New("signal: killed")); !errors.Is(err, context.Canceled) || errors.As(err, &ce) {
 			t.Fatalf("got %v", err)
 		}
 	})

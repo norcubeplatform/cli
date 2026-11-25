@@ -22,6 +22,6 @@ site's own repository. These commands read a checkout of that repository
 and need no sign-in: run them on your machine before you push, or in the
 site's CI to block a change that breaks the content model.`,
 	}
-	cmd.AddCommand(newValidateCmd(validateDeps{lastChanged: gitlog.LastChanged}))
+	cmd.AddCommand(newValidateCmd(validateDeps{sourceBases: gitlog.SourceBases}))
 	return cmd
 }
