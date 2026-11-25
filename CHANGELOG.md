@@ -5,6 +5,8 @@ this file collects what users and scripts need to know.
 
 ## Unreleased
 
+## 0.28.0 (2026-11-25)
+
 ### New
 
 - `norcube cms validate --quality` also runs the content quality checks:
