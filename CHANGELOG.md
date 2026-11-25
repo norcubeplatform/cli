@@ -37,6 +37,11 @@ this file collects what users and scripts need to know.
   `titleTemplate`), image alt text (`alt:`, `decorative`), languages held in
   one file (`localized: true`), `translations.locales` and the new schema
   rules that check them.
+- `cms validate` on a repository whose site lives in a folder (a monorepo
+  with the site in `website/`) names that folder when the path holds no
+  site: "The site is in website/: run nrc cms validate website". Passing
+  the folder validates it, `--git` included (the history is read for the
+  folder's files).
 
 ### Changes
 

@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 	"time"
@@ -195,7 +197,7 @@ Notices never fail a run. A path that is not a CMS site exits 3.`,
 				return nil, &clierr.Error{
 					Code:    clierr.CodeNotFound,
 					Message: fmt.Sprintf("%s holds no Norcube CMS site: no %s and no %s", path, load.ConfigFile, load.LegacyConfigFile),
-					Hint:    "Run the command from the site's root, or pass its path.",
+					Hint:    notASiteHint(path, siteFoldersBelow(site, siteFolderDepth)),
 					Err:     err,
 				}
 			}
@@ -350,4 +352,57 @@ func plural(n int, word string) string {
 		return word
 	}
 	return word + "s"
+}
+
+// siteFolderDepth is how deep below the path a site is looked for when
+// the path holds none: a monorepo keeps its site in a folder (website/)
+// or a folder of a folder (apps/web/).
+const siteFolderDepth = 2
+
+// siteFoldersBelow lists the folders of fsys, at most depth levels deep,
+// that hold a Norcube CMS site (load.ConfigFile or load.LegacyConfigFile),
+// in name order. Hidden folders and node_modules are not entered.
+func siteFoldersBelow(fsys fs.FS, depth int) []string {
+	var out []string
+	var visit func(dir string, level int)
+	visit = func(dir string, level int) {
+		entries, err := fs.ReadDir(fsys, dir)
+		if err != nil {
+			return
+		}
+		for _, e := range entries {
+			name := e.Name()
+			if !e.IsDir() || strings.HasPrefix(name, ".") || name == "node_modules" {
+				continue
+			}
+			child := name
+			if dir != "." {
+				child = dir + "/" + name
+			}
+			for _, marker := range []string{load.ConfigFile, load.LegacyConfigFile} {
+				if info, err := fs.Stat(fsys, child+"/"+marker); err == nil && !info.IsDir() {
+					out = append(out, child)
+					break
+				}
+			}
+			if level < depth {
+				visit(child, level+1)
+			}
+		}
+	}
+	visit(".", 1)
+	return out
+}
+
+// notASiteHint tells where a site is when the path holds none but a folder
+// below it does (a site in a subfolder of a monorepo).
+func notASiteHint(path string, folders []string) string {
+	if len(folders) == 0 {
+		return "Run the command from the site's root, or pass its path."
+	}
+	where := filepath.ToSlash(filepath.Join(path, folders[0]))
+	if len(folders) == 1 {
+		return fmt.Sprintf("The site is in %s/: run nrc cms validate %s", folders[0], where)
+	}
+	return fmt.Sprintf("Sites are in %s/: pass one, for example nrc cms validate %s", strings.Join(folders, "/, "), where)
 }
