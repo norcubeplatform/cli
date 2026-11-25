@@ -23,10 +23,14 @@ this file collects what users and scripts need to know.
   a text since the version last changed or was marked current. Changed
   links, images, numbers, select values and white space are not texts to
   translate and never count, and a version whose history can't be read
-  (a shallow clone, a file git doesn't know) is not judged. `--git` needs
-  `--quality`; if git cannot read the history, the run stops with an error
-  (`usage_error` outside a checkout, `timeout`, `error`).
-- `cms validate` uses cms-schema 0.11.0: language versions
+  (a file git doesn't know, or older than the history read) is not
+  judged. `--git` needs `--quality`; if git cannot read the history, the
+  run stops with an error (`usage_error` outside a checkout, `timeout`,
+  `error`). A shallow clone is refused with `usage_error`, because its
+  history would make every translation look current: in CI, check out
+  with `fetch-depth: 0` (`actions/checkout`) or run `git fetch
+  --unshallow` first.
+- `cms validate` uses cms-schema 0.11.1: language versions
   (`translations.by`), field roles (`role:`, `whenEmpty`,
   `titleTemplate`), image alt text (`alt:`, `decorative`), languages held
   in one file (`localized: true`), `translations.locales`, translation

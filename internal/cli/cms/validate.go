@@ -123,7 +123,8 @@ history (git must be installed) to find a translation whose source, the
 page in the site's default language, changed a text since the
 translation last changed or was marked as current. Changed links,
 images, numbers and white space are not texts to translate and never
-count.
+count. --git needs the full history: a shallow clone is refused (in CI,
+check out with fetch-depth: 0).
 
 Each finding names the file, the field path inside it, a severity and a
 rule id (schema.unresolved_ref, content.required, quality.title_missing…).
@@ -307,6 +308,15 @@ func gitHistoryError(ctx context.Context, path string, err error) error {
 			Code:    clierr.CodeUsage,
 			Message: fmt.Sprintf("--git: %s is not in a git checkout, or git is not installed", path),
 			Hint:    "Run it on a clone of the site's repository with git on the PATH, or drop --git.",
+			Err:     err,
+		}
+	case errors.Is(err, gitlog.ErrShallowHistory):
+		// Its oldest commit lists every file as added, so every
+		// translation would look current: refused, never judged.
+		return &clierr.Error{
+			Code:    clierr.CodeUsage,
+			Message: fmt.Sprintf("--git: %s is a shallow clone, so its history can't tell which translations are out of date", path),
+			Hint:    "Fetch the full history (git fetch --unshallow, or fetch-depth: 0 in actions/checkout), or drop --git.",
 			Err:     err,
 		}
 	default:

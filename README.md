@@ -253,8 +253,16 @@ norcube cms validate ./site --quality --git --strict-quality # in CI
 - `--git` (with `--quality`) reads the checkout's git history, so a
   translation whose source changed a text since the translation last
   changed is found; changed links, images and numbers don't count. It
-  needs git and a clone of the repository; if git cannot read the
-  history, the command stops with an error.
+  needs git and a full clone of the repository; if git cannot read the
+  history, the command stops with an error. A shallow clone is refused,
+  so in CI check out with `fetch-depth: 0`:
+
+  ```yaml
+  - uses: actions/checkout@v4
+    with:
+      fetch-depth: 0 # cms validate --git reads the whole history
+  - run: norcube cms validate --quality --git --strict-quality
+  ```
 
 `-o json` prints every finding with its rule id, and with `--quality` a
 `quality` summary of what was checked, skipped and guessed.

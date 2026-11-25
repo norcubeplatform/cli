@@ -145,6 +145,7 @@ func TestValidateGitHistoryFailures(t *testing.T) {
 		code string
 	}{
 		{"not a checkout is a usage error", gitlog.ErrNotARepository, clierr.CodeUsage},
+		{"a shallow clone is a usage error", fmt.Errorf("%w: site", gitlog.ErrShallowHistory), clierr.CodeUsage},
 		{"too slow is a timeout", fmt.Errorf("git log: %w", context.DeadlineExceeded), clierr.CodeTimeout},
 		{"anything else is an error", errors.New("git log: exit status 128"), clierr.CodeError},
 	}

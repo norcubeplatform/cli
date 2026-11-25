@@ -146,3 +146,38 @@ func TestValidateGitOutsideACheckout(t *testing.T) {
 		t.Errorf("hint %q", ce.Hint)
 	}
 }
+
+// A shallow clone (`--depth 1`, the default of CI checkouts) would make
+// every translation look current: --git refuses it with a usage error
+// that says how to fetch the full history.
+func TestValidateGitShallowClone(t *testing.T) {
+	r := newGitRepo(t)
+	r.git("init", "-q")
+	r.commit(map[string]string{
+		".norcube/cms/collections/pages.yml": gitPages,
+		qualityEnPage:                        gitPage("About the studio", "/cs/about/"),
+		qualityCsPage:                        gitPage("O ateliéru", "/en/about/"),
+	})
+	r.commit(map[string]string{qualityEnPage: gitPage("About the studio and its people", "/cs/about/")})
+	if got := r.outdated(); len(got) != 1 {
+		t.Fatalf("the full repository: %v", got)
+	}
+
+	shallow := filepath.Join(t.TempDir(), "shallow")
+	r.git("clone", "-q", "--depth", "1", "file://"+r.root, shallow)
+	site := filepath.Join(shallow, "website")
+	out, _, err := execValidate(t, validateDeps{sourceBases: gitlog.SourceBases}, site, "--quality", "--git")
+	var ce *clierr.Error
+	if !errors.As(err, &ce) || ce.Code != clierr.CodeUsage || !errors.Is(err, gitlog.ErrShallowHistory) {
+		t.Fatalf("got %v", err)
+	}
+	if want := "--git: " + site + " is a shallow clone"; !strings.HasPrefix(ce.Message, want) {
+		t.Errorf("message %q", ce.Message)
+	}
+	if !strings.Contains(ce.Hint, "fetch-depth: 0") || !strings.Contains(ce.Hint, "git fetch --unshallow") {
+		t.Errorf("hint %q", ce.Hint)
+	}
+	if out != "" {
+		t.Errorf("a report was printed: %q", out)
+	}
+}
