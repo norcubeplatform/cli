@@ -63,8 +63,8 @@ func newNamespaceListCmd() *cobra.Command {
 			}
 
 			return cmdutil.Print(cmd, output.Table[langsync.DtoDTONamespace]{
-				Headers:   []string{"NAME", "DEFAULT_LANG", "LANGUAGES", "CONTEXT", "ID"},
-				MaxWidths: []int{32, 0, 0, 40, 0},
+				Headers:   []string{"NAME", "DEFAULT_LANG", "LANGUAGES", "CONTEXT", "ID", "SYNTAX"},
+				MaxWidths: []int{32, 0, 0, 40, 0, 0},
 				Rows: func(n langsync.DtoDTONamespace) []string {
 					return []string{
 						deref(n.Name),
@@ -72,6 +72,7 @@ func newNamespaceListCmd() *cobra.Command {
 						languageCount(n.Languages),
 						deref(n.Context),
 						deref(n.Id),
+						deref(ptrStr(string(n.MessageSyntax))),
 					}
 				},
 				Items: items,
@@ -84,6 +85,7 @@ func newNamespaceCreateCmd() *cobra.Command {
 	var (
 		defaultLanguage string
 		context         string
+		messageSyntax   string
 	)
 	cmd := &cobra.Command{
 		Use:         "create [name]",
@@ -96,12 +98,23 @@ The default language is the source of truth — it's the language users
 write marks in. It's a language code like "en", "cs", "de"; the backend
 maps it to an actual language record on creation.
 
+--message-syntax says what the namespace's strings are: ` + messageSyntaxHelp + `.
+
 In an interactive shell, omitting any value pops a prompt; in a script
 the name positional + --default-language are both required.`,
 		Example: `  norcube langsync namespaces create web --default-language en
-  norcube langsync namespaces create marketing --default-language cs --context "Marketing site copy"`,
+  norcube langsync namespaces create marketing --default-language cs --context "Marketing site copy"
+  norcube langsync namespaces create app --default-language en --message-syntax icu`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			var syntax *langsync.ConstantsNamespaceMessageSyntax
+			if cmd.Flags().Changed("message-syntax") {
+				v, err := parseMessageSyntax(messageSyntax)
+				if err != nil {
+					return err
+				}
+				syntax = &v
+			}
 			c, err := newLangsyncContext(cmd)
 			if err != nil {
 				return err
@@ -134,8 +147,9 @@ the name positional + --default-language are both required.`,
 			// typed: numeric → defaultLanguageId, else → defaultLanguageCode.
 			// The backend resolver does the org-scoped lookup.
 			body := langsync.CreateNamespaceJSONRequestBody{
-				Name:    name,
-				Context: context,
+				Name:          name,
+				Context:       context,
+				MessageSyntax: syntax,
 			}
 			if id, parseErr := strconv.Atoi(strings.TrimSpace(defaultLanguage)); parseErr == nil && id > 0 {
 				body.DefaultLanguageId = &id
@@ -154,13 +168,14 @@ the name positional + --default-language are both required.`,
 			}
 			return cmdutil.Print(cmd, output.Done{
 				Message: fmt.Sprintf("Created namespace %q (default language %q).", name, defaultLanguage),
-				Value:   namespaceResult{Name: name, DefaultLanguage: defaultLanguage, Context: context},
+				Value:   namespaceResult{Name: name, DefaultLanguage: defaultLanguage, Context: context, MessageSyntax: messageSyntaxOf(syntax)},
 				Fields:  []output.Field{{Value: name}, {Value: defaultLanguage}},
 			})
 		},
 	}
 	cmd.Flags().StringVar(&defaultLanguage, "default-language", "", "Language code that source marks are written in (e.g. en, cs, de)")
 	cmd.Flags().StringVar(&context, "context", "", "Free-form description shown next to the namespace in the picker")
+	addMessageSyntaxFlag(cmd, &messageSyntax, "What the namespace's strings are: "+messageSyntaxHelp+"; the server's default is "+string(langsync.NamespaceMessageSyntaxPlain))
 	return cmd
 }
 
@@ -325,11 +340,12 @@ func newNamespaceUpdateCmd() *cobra.Command {
 		context         string
 		defaultLanguage string // accept code OR id; resolve below
 		defaultPrompt   string
+		messageSyntax   string
 	)
 	cmd := &cobra.Command{
 		Use:         "update <name>",
 		Annotations: cmdutil.Writes(),
-		Short:       "Update a namespace's name, context, default language or default prompt",
+		Short:       "Update a namespace's name, context, default language, default prompt or message syntax",
 		Long: `Partial update of a namespace. Pass only the fields you want to
 change — omitted flags leave existing values alone.
 
@@ -339,13 +355,26 @@ sending the request (the underlying endpoint wants the id form).
 
 --default-prompt sets the custom prompt every automatic translation in
 the namespace uses unless a run names another (see
-` + "`norcube langsync prompts list`" + `); "none" removes it.`,
+` + "`norcube langsync prompts list`" + `); "none" removes it.
+
+--message-syntax says what the namespace's strings are: ` + messageSyntaxHelp + `.
+Changing it rewrites nothing: it decides how the next translations and
+writes are made and checked.`,
 		Example: `  norcube langsync namespaces update web --rename website
   norcube langsync namespaces update web --default-language cs
   norcube langsync namespaces update web --default-prompt 5f0c2a9e-1d2b-4c3d-8e9f-0a1b2c3d4e5f
-  norcube langsync namespaces update web --default-prompt none`,
+  norcube langsync namespaces update web --default-prompt none
+  norcube langsync namespaces update web --message-syntax icu`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			body := langsync.UpdateNamespaceJSONRequestBody{}
+			if cmd.Flags().Changed("message-syntax") {
+				v, err := parseMessageSyntax(messageSyntax)
+				if err != nil {
+					return err
+				}
+				body.MessageSyntax = &v
+			}
 			c, err := newLangsyncContext(cmd)
 			if err != nil {
 				return err
@@ -355,7 +384,6 @@ the namespace uses unless a run names another (see
 				return fmt.Errorf("namespace name must not be empty")
 			}
 
-			body := langsync.UpdateNamespaceJSONRequestBody{}
 			if cmd.Flags().Changed("rename") {
 				body.Name = &rename
 			}
@@ -380,8 +408,8 @@ the namespace uses unless a run names another (see
 				}
 				body.DefaultCustomPromptId = &id
 			}
-			if body.Name == nil && body.Context == nil && body.DefaultLanguageId == nil && body.DefaultLanguageCode == nil && body.DefaultCustomPromptId == nil {
-				return clierr.Usage(errors.New("nothing to update: pass at least one of --rename, --context, --default-language, --default-prompt"))
+			if body.Name == nil && body.Context == nil && body.DefaultLanguageId == nil && body.DefaultLanguageCode == nil && body.DefaultCustomPromptId == nil && body.MessageSyntax == nil {
+				return clierr.Usage(errors.New("nothing to update: pass at least one of --rename, --context, --default-language, --default-prompt, --message-syntax"))
 			}
 
 			res, err := c.API.UpdateNamespaceWithResponse(cmd.Context(), name, body)
@@ -406,6 +434,7 @@ the namespace uses unless a run names another (see
 				updated.DefaultLanguage = defaultLanguage
 			}
 			updated.DefaultPromptID = body.DefaultCustomPromptId
+			updated.MessageSyntax = messageSyntaxOf(body.MessageSyntax)
 			return cmdutil.Print(cmd, output.Done{
 				Message: fmt.Sprintf("Updated namespace %q.", name),
 				Value:   updated,
@@ -417,6 +446,7 @@ the namespace uses unless a run names another (see
 	cmd.Flags().StringVar(&context, "context", "", "New context description")
 	cmd.Flags().StringVar(&defaultLanguage, "default-language", "", "New default language — accepts either the code (e.g. en) or the numeric id; codes are resolved to ids client-side")
 	cmd.Flags().StringVar(&defaultPrompt, "default-prompt", "", `Custom prompt id for the namespace's automatic translations, or "none" to remove it`)
+	addMessageSyntaxFlag(cmd, &messageSyntax, "What the namespace's strings are: "+messageSyntaxHelp)
 	return cmd
 }
 
@@ -519,4 +549,47 @@ type namespaceResult struct {
 	// DefaultPromptID is set when the update changed the default prompt;
 	// "" means it was removed.
 	DefaultPromptID *string `json:"defaultPromptId,omitempty" yaml:"defaultPromptId,omitempty"`
+	// MessageSyntax is set when the command set it.
+	MessageSyntax string `json:"messageSyntax,omitempty" yaml:"messageSyntax,omitempty"`
+}
+
+// messageSyntaxes are the values of --message-syntax: the API's enum,
+// named by the generated client's constants (a test checks the list
+// against the spec, so a new value can't be missed).
+var messageSyntaxes = []langsync.ConstantsNamespaceMessageSyntax{
+	langsync.NamespaceMessageSyntaxPlain,
+	langsync.NamespaceMessageSyntaxICU,
+}
+
+// messageSyntaxHelp names the values for help text.
+var messageSyntaxHelp = string(langsync.NamespaceMessageSyntaxPlain) + " (variables such as {name} or %s are kept as they are) or " +
+	string(langsync.NamespaceMessageSyntaxICU) + " (ICU MessageFormat, translated per plural form of each language and checked before storing)"
+
+func addMessageSyntaxFlag(cmd *cobra.Command, value *string, usage string) {
+	cmd.Flags().StringVar(value, "message-syntax", "", usage)
+	names := make([]string, len(messageSyntaxes))
+	for i, v := range messageSyntaxes {
+		names[i] = string(v)
+	}
+	cmdutil.FlagEnum(cmd, "message-syntax", names...)
+}
+
+// parseMessageSyntax checks a --message-syntax value before any request.
+func parseMessageSyntax(s string) (langsync.ConstantsNamespaceMessageSyntax, error) {
+	v := langsync.ConstantsNamespaceMessageSyntax(strings.ToLower(strings.TrimSpace(s)))
+	if !v.Valid() {
+		names := make([]string, len(messageSyntaxes))
+		for i, m := range messageSyntaxes {
+			names[i] = string(m)
+		}
+		return "", clierr.Usage(fmt.Errorf("invalid --message-syntax %q (must be %s)", s, strings.Join(names, "|")))
+	}
+	return v, nil
+}
+
+func messageSyntaxOf(p *langsync.ConstantsNamespaceMessageSyntax) string {
+	if p == nil {
+		return ""
+	}
+	return string(*p)
 }

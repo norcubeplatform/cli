@@ -17,30 +17,58 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
+// Defines values for ConstantsAITranslationWorkWindow.
+const (
+	AITranslationWorkWindowDay  ConstantsAITranslationWorkWindow = "day"
+	AITranslationWorkWindowHour ConstantsAITranslationWorkWindow = "hour"
+)
+
+// Valid indicates whether the value is a known member of the ConstantsAITranslationWorkWindow enum.
+func (e ConstantsAITranslationWorkWindow) Valid() bool {
+	switch e {
+	case AITranslationWorkWindowDay:
+		return true
+	case AITranslationWorkWindowHour:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ConstantsAuditAction.
 const (
-	AuditActionAPIKeyCreated            ConstantsAuditAction = "apikey.created"
-	AuditActionAPIKeyDeleted            ConstantsAuditAction = "apikey.deleted"
-	AuditActionCustomLanguageCreated    ConstantsAuditAction = "custom_language.created"
-	AuditActionCustomLanguageDeleted    ConstantsAuditAction = "custom_language.deleted"
-	AuditActionCustomPromptCreated      ConstantsAuditAction = "custom_prompt.created"
-	AuditActionCustomPromptDeleted      ConstantsAuditAction = "custom_prompt.deleted"
-	AuditActionCustomPromptUpdated      ConstantsAuditAction = "custom_prompt.updated"
-	AuditActionGlossaryCreated          ConstantsAuditAction = "glossary.created"
-	AuditActionGlossaryItemCreated      ConstantsAuditAction = "glossary_item.created"
-	AuditActionGlossaryItemDeleted      ConstantsAuditAction = "glossary_item.deleted"
-	AuditActionGlossaryItemUpdated      ConstantsAuditAction = "glossary_item.updated"
-	AuditActionGlossaryLanguageAttached ConstantsAuditAction = "glossary.language_attached"
-	AuditActionMigratorImported         ConstantsAuditAction = "migrator.imported"
-	AuditActionNamespaceCreated         ConstantsAuditAction = "namespace.created"
-	AuditActionNamespaceDeleted         ConstantsAuditAction = "namespace.deleted"
-	AuditActionNamespaceLanguageAdded   ConstantsAuditAction = "namespace.language_added"
-	AuditActionNamespaceLanguageRemoved ConstantsAuditAction = "namespace.language_removed"
-	AuditActionNamespaceUpdated         ConstantsAuditAction = "namespace.updated"
-	AuditActionSyncJobCompleted         ConstantsAuditAction = "sync_job.completed"
-	AuditActionSyncJobCreated           ConstantsAuditAction = "sync_job.created"
-	AuditActionSyncJobFailed            ConstantsAuditAction = "sync_job.failed"
-	AuditActionTermImportFinished       ConstantsAuditAction = "term_import.finished"
+	AuditActionAPIKeyCreated                ConstantsAuditAction = "apikey.created"
+	AuditActionAPIKeyDeleted                ConstantsAuditAction = "apikey.deleted"
+	AuditActionCustomLanguageCreated        ConstantsAuditAction = "custom_language.created"
+	AuditActionCustomLanguageDeleted        ConstantsAuditAction = "custom_language.deleted"
+	AuditActionCustomPromptCreated          ConstantsAuditAction = "custom_prompt.created"
+	AuditActionCustomPromptDeleted          ConstantsAuditAction = "custom_prompt.deleted"
+	AuditActionCustomPromptUpdated          ConstantsAuditAction = "custom_prompt.updated"
+	AuditActionGlossaryCreated              ConstantsAuditAction = "glossary.created"
+	AuditActionGlossaryItemCreated          ConstantsAuditAction = "glossary_item.created"
+	AuditActionGlossaryItemDeleted          ConstantsAuditAction = "glossary_item.deleted"
+	AuditActionGlossaryItemTranslationAdded ConstantsAuditAction = "glossary_item.translation_added"
+	AuditActionGlossaryItemUpdated          ConstantsAuditAction = "glossary_item.updated"
+	AuditActionGlossaryLanguageAttached     ConstantsAuditAction = "glossary.language_attached"
+	AuditActionMigratorImported             ConstantsAuditAction = "migrator.imported"
+	AuditActionNamespaceCreated             ConstantsAuditAction = "namespace.created"
+	AuditActionNamespaceDeleted             ConstantsAuditAction = "namespace.deleted"
+	AuditActionNamespaceLanguageAdded       ConstantsAuditAction = "namespace.language_added"
+	AuditActionNamespaceLanguageRemoved     ConstantsAuditAction = "namespace.language_removed"
+	AuditActionNamespaceUpdated             ConstantsAuditAction = "namespace.updated"
+	AuditActionSyncJobCompleted             ConstantsAuditAction = "sync_job.completed"
+	AuditActionSyncJobCreated               ConstantsAuditAction = "sync_job.created"
+	AuditActionSyncJobFailed                ConstantsAuditAction = "sync_job.failed"
+	AuditActionTermCreated                  ConstantsAuditAction = "term.created"
+	AuditActionTermDeleted                  ConstantsAuditAction = "term.deleted"
+	AuditActionTermImportFinished           ConstantsAuditAction = "term_import.finished"
+	AuditActionTermTranslationUpdated       ConstantsAuditAction = "term_translation.updated"
+	AuditActionTermUpdated                  ConstantsAuditAction = "term.updated"
+	AuditActionTranslationMissingRequested  ConstantsAuditAction = "translation.missing_requested"
+	AuditActionTranslationRecommended       ConstantsAuditAction = "translation.recommended"
+	AuditActionTranslationReviewed          ConstantsAuditAction = "translation.reviewed"
+	AuditActionTranslationTextTranslated    ConstantsAuditAction = "translation.text_translated"
+	AuditActionTranslationTextsTranslated   ConstantsAuditAction = "translation.texts_translated"
 )
 
 // Valid indicates whether the value is a known member of the ConstantsAuditAction enum.
@@ -66,6 +94,8 @@ func (e ConstantsAuditAction) Valid() bool {
 		return true
 	case AuditActionGlossaryItemDeleted:
 		return true
+	case AuditActionGlossaryItemTranslationAdded:
+		return true
 	case AuditActionGlossaryItemUpdated:
 		return true
 	case AuditActionGlossaryLanguageAttached:
@@ -88,7 +118,25 @@ func (e ConstantsAuditAction) Valid() bool {
 		return true
 	case AuditActionSyncJobFailed:
 		return true
+	case AuditActionTermCreated:
+		return true
+	case AuditActionTermDeleted:
+		return true
 	case AuditActionTermImportFinished:
+		return true
+	case AuditActionTermTranslationUpdated:
+		return true
+	case AuditActionTermUpdated:
+		return true
+	case AuditActionTranslationMissingRequested:
+		return true
+	case AuditActionTranslationRecommended:
+		return true
+	case AuditActionTranslationReviewed:
+		return true
+	case AuditActionTranslationTextTranslated:
+		return true
+	case AuditActionTranslationTextsTranslated:
 		return true
 	default:
 		return false
@@ -105,6 +153,7 @@ const (
 	AuditTargetMigrator       ConstantsAuditTargetType = "migrator"
 	AuditTargetNamespace      ConstantsAuditTargetType = "namespace"
 	AuditTargetSyncJob        ConstantsAuditTargetType = "sync_job"
+	AuditTargetTerm           ConstantsAuditTargetType = "term"
 	AuditTargetTermImport     ConstantsAuditTargetType = "term_import"
 )
 
@@ -126,6 +175,8 @@ func (e ConstantsAuditTargetType) Valid() bool {
 	case AuditTargetNamespace:
 		return true
 	case AuditTargetSyncJob:
+		return true
+	case AuditTargetTerm:
 		return true
 	case AuditTargetTermImport:
 		return true
@@ -173,6 +224,48 @@ func (e ConstantsGlossaryItemType) Valid() bool {
 	case GlossaryItemTypePronoun:
 		return true
 	case GlossaryItemTypeVerb:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ConstantsNamespaceMessageSyntax.
+const (
+	NamespaceMessageSyntaxICU   ConstantsNamespaceMessageSyntax = "icu"
+	NamespaceMessageSyntaxPlain ConstantsNamespaceMessageSyntax = "plain"
+)
+
+// Valid indicates whether the value is a known member of the ConstantsNamespaceMessageSyntax enum.
+func (e ConstantsNamespaceMessageSyntax) Valid() bool {
+	switch e {
+	case NamespaceMessageSyntaxICU:
+		return true
+	case NamespaceMessageSyntaxPlain:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ConstantsSyncContextsProblem.
+const (
+	SyncContextsProblemNotText    ConstantsSyncContextsProblem = "not_text"
+	SyncContextsProblemTooLong    ConstantsSyncContextsProblem = "too_long"
+	SyncContextsProblemTooMany    ConstantsSyncContextsProblem = "too_many"
+	SyncContextsProblemUnknownKey ConstantsSyncContextsProblem = "unknown_key"
+)
+
+// Valid indicates whether the value is a known member of the ConstantsSyncContextsProblem enum.
+func (e ConstantsSyncContextsProblem) Valid() bool {
+	switch e {
+	case SyncContextsProblemNotText:
+		return true
+	case SyncContextsProblemTooLong:
+		return true
+	case SyncContextsProblemTooMany:
+		return true
+	case SyncContextsProblemUnknownKey:
 		return true
 	default:
 		return false
@@ -251,6 +344,60 @@ func (e ConstantsTermImportFormat) Valid() bool {
 	}
 }
 
+// Defines values for ConstantsTermReviewProblem.
+const (
+	TermReviewProblemNoTerms      ConstantsTermReviewProblem = "no_terms"
+	TermReviewProblemTooManyTerms ConstantsTermReviewProblem = "too_many_terms"
+)
+
+// Valid indicates whether the value is a known member of the ConstantsTermReviewProblem enum.
+func (e ConstantsTermReviewProblem) Valid() bool {
+	switch e {
+	case TermReviewProblemNoTerms:
+		return true
+	case TermReviewProblemTooManyTerms:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ConstantsTermTranslationProblem.
+const (
+	TermTranslationProblemGlossaryTermMissing ConstantsTermTranslationProblem = "glossary_term_missing"
+	TermTranslationProblemICUInvalid          ConstantsTermTranslationProblem = "icu_invalid"
+	TermTranslationProblemModelFailed         ConstantsTermTranslationProblem = "model_failed"
+	TermTranslationProblemPlaceholdersChanged ConstantsTermTranslationProblem = "placeholders_changed"
+	TermTranslationProblemPluralForms         ConstantsTermTranslationProblem = "plural_forms"
+	TermTranslationProblemTagsChanged         ConstantsTermTranslationProblem = "tags_changed"
+	TermTranslationProblemTooManyVariants     ConstantsTermTranslationProblem = "too_many_variants"
+	TermTranslationProblemUntranslated        ConstantsTermTranslationProblem = "untranslated"
+)
+
+// Valid indicates whether the value is a known member of the ConstantsTermTranslationProblem enum.
+func (e ConstantsTermTranslationProblem) Valid() bool {
+	switch e {
+	case TermTranslationProblemGlossaryTermMissing:
+		return true
+	case TermTranslationProblemICUInvalid:
+		return true
+	case TermTranslationProblemModelFailed:
+		return true
+	case TermTranslationProblemPlaceholdersChanged:
+		return true
+	case TermTranslationProblemPluralForms:
+		return true
+	case TermTranslationProblemTagsChanged:
+		return true
+	case TermTranslationProblemTooManyVariants:
+		return true
+	case TermTranslationProblemUntranslated:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for DtoDTOTermImportStatus.
 const (
 	Completed  DtoDTOTermImportStatus = "completed"
@@ -277,62 +424,71 @@ func (e DtoDTOTermImportStatus) Valid() bool {
 
 // Defines values for ResponseType.
 const (
-	ErrBackupCodeInvalid          ResponseType = "BACKUP_CODE_INVALID"
-	ErrColumnCountMismatch        ResponseType = "COLUMN_COUNT_MISMATCH"
-	ErrConflict                   ResponseType = "CONFLICT"
-	ErrConnectionAlreadyExists    ResponseType = "CONNECTION_ALREADY_EXISTS"
-	ErrCustomPromptNotShared      ResponseType = "CUSTOM_PROMPT_NOT_SHARED"
-	ErrDuplicate                  ResponseType = "DUPLICATE"
-	ErrEmailRequired              ResponseType = "EMAIL_REQUIRED"
-	ErrEmpty                      ResponseType = "EMPTY"
-	ErrEmptyValue                 ResponseType = "EMPTY_VALUE"
-	ErrForbidden                  ResponseType = "FORBIDDEN"
-	ErrImportInvalidFile          ResponseType = "IMPORT_INVALID_FILE"
-	ErrImportUnsupportedFormat    ResponseType = "IMPORT_UNSUPPORTED_FORMAT"
-	ErrInnovationAgencyIDRequired ResponseType = "INNOVATION_AGENCY_ID_REQUIRED"
-	ErrInsufficientPermissions    ResponseType = "INSUFFICIENT_PERMISSIONS"
-	ErrInsufficientScope          ResponseType = "INSUFFICIENT_SCOPE"
-	ErrInternalServer             ResponseType = "INTERNAL_SERVER_ERROR"
-	ErrInvalidCustomPrompt        ResponseType = "INVALID_CUSTOM_PROMPT"
-	ErrInvalidImportStatus        ResponseType = "INVALID_IMPORT_STATUS"
-	ErrInvalidName                ResponseType = "INVALID_NAME"
-	ErrInvalidOldPassword         ResponseType = "INVALID_OLD_PASSWORD"
-	ErrInvalidRequest             ResponseType = "INVALID_REQUEST"
-	ErrInvalidRole                ResponseType = "INVALID_ROLE"
-	ErrInvalidToken               ResponseType = "INVALID_TOKEN"
-	ErrLanguageNotInNamespace     ResponseType = "LANGUAGE_NOT_IN_NAMESPACE"
-	ErrLoginIntentToken           ResponseType = "LOGIN_INTENT_TOKEN"
-	ErrMissingBackupCode          ResponseType = "MISSING_BACKUP_CODE"
-	ErrMissingNewPassword         ResponseType = "MISSING_NEW_PASSWORD"
-	ErrMissingPermissions         ResponseType = "MISSING_PERMISSIONS"
-	ErrMissingResetPasswordSecret ResponseType = "MISSING_RESET_PASSWORD_SECRET"
-	ErrNameRequired               ResponseType = "NAME_REQUIRED"
-	ErrNamespaceMissing           ResponseType = "NAMESPACE_MISSING"
-	ErrNewPasswordRequired        ResponseType = "NEW_PASSWORD_REQUIRED"
-	ErrNoConnections              ResponseType = "NO_CONNECTIONS"
-	ErrNoTranslationSource        ResponseType = "NO_TRANSLATION_SOURCE"
-	ErrNotFound                   ResponseType = "NOT_FOUND"
-	ErrNotImplemented             ResponseType = "NOT_IMPLEMENTED"
-	ErrOTPInvalid                 ResponseType = "OTP_INVALID"
-	ErrOldPasswordRequired        ResponseType = "OLD_PASSWORD_REQUIRED"
-	ErrOrgBlocked                 ResponseType = "ORG_BLOCKED"
-	ErrOrganizationMissing        ResponseType = "ORGANIZATION_MISSING"
-	ErrPasswordRequired           ResponseType = "PASSWORD_REQUIRED"
-	ErrPayloadInvalid             ResponseType = "INVALID_PAYLOAD"
-	ErrSecretExpired              ResponseType = "SECRET_EXPIRED"
-	ErrSecretNotFound             ResponseType = "SECRET_NOT_FOUND"
-	ErrSetupRequired              ResponseType = "SETUP_REQUIRED"
-	ErrTermAlreadyExists          ResponseType = "TERM_ALREADY_EXISTS"
-	ErrTermIsRequired             ResponseType = "TERM_IS_REQUIRED"
-	ErrTooManyRequests            ResponseType = "TOO_MANY_REQUESTS"
-	ErrUnauthorized               ResponseType = "UNAUTHORIZED"
-	ErrUserAlreadyExists          ResponseType = "USER_ALREADY_EXISTS"
-	ErrUserNotFound               ResponseType = "USER_NOT_FOUND"
+	ErrAITranslationBudgetExceeded   ResponseType = "AI_TRANSLATION_BUDGET_EXCEEDED"
+	ErrBackupCodeInvalid             ResponseType = "BACKUP_CODE_INVALID"
+	ErrColumnCountMismatch           ResponseType = "COLUMN_COUNT_MISMATCH"
+	ErrConflict                      ResponseType = "CONFLICT"
+	ErrConnectionAlreadyExists       ResponseType = "CONNECTION_ALREADY_EXISTS"
+	ErrCustomPromptNotShared         ResponseType = "CUSTOM_PROMPT_NOT_SHARED"
+	ErrDuplicate                     ResponseType = "DUPLICATE"
+	ErrEmailRequired                 ResponseType = "EMAIL_REQUIRED"
+	ErrEmpty                         ResponseType = "EMPTY"
+	ErrEmptyValue                    ResponseType = "EMPTY_VALUE"
+	ErrForbidden                     ResponseType = "FORBIDDEN"
+	ErrImportInvalidFile             ResponseType = "IMPORT_INVALID_FILE"
+	ErrImportUnsupportedFormat       ResponseType = "IMPORT_UNSUPPORTED_FORMAT"
+	ErrInnovationAgencyIDRequired    ResponseType = "INNOVATION_AGENCY_ID_REQUIRED"
+	ErrInsufficientPermissions       ResponseType = "INSUFFICIENT_PERMISSIONS"
+	ErrInsufficientScope             ResponseType = "INSUFFICIENT_SCOPE"
+	ErrInternalServer                ResponseType = "INTERNAL_SERVER_ERROR"
+	ErrInvalidCustomPrompt           ResponseType = "INVALID_CUSTOM_PROMPT"
+	ErrInvalidImportStatus           ResponseType = "INVALID_IMPORT_STATUS"
+	ErrInvalidMessageSyntax          ResponseType = "INVALID_MESSAGE_SYNTAX"
+	ErrInvalidName                   ResponseType = "INVALID_NAME"
+	ErrInvalidOldPassword            ResponseType = "INVALID_OLD_PASSWORD"
+	ErrInvalidRequest                ResponseType = "INVALID_REQUEST"
+	ErrInvalidRole                   ResponseType = "INVALID_ROLE"
+	ErrInvalidToken                  ResponseType = "INVALID_TOKEN"
+	ErrLanguageNotInNamespace        ResponseType = "LANGUAGE_NOT_IN_NAMESPACE"
+	ErrLoginIntentToken              ResponseType = "LOGIN_INTENT_TOKEN"
+	ErrMissingBackupCode             ResponseType = "MISSING_BACKUP_CODE"
+	ErrMissingNewPassword            ResponseType = "MISSING_NEW_PASSWORD"
+	ErrMissingPermissions            ResponseType = "MISSING_PERMISSIONS"
+	ErrMissingResetPasswordSecret    ResponseType = "MISSING_RESET_PASSWORD_SECRET"
+	ErrNameRequired                  ResponseType = "NAME_REQUIRED"
+	ErrNamespaceMissing              ResponseType = "NAMESPACE_MISSING"
+	ErrNewPasswordRequired           ResponseType = "NEW_PASSWORD_REQUIRED"
+	ErrNoConnections                 ResponseType = "NO_CONNECTIONS"
+	ErrNoTranslationSource           ResponseType = "NO_TRANSLATION_SOURCE"
+	ErrNotFound                      ResponseType = "NOT_FOUND"
+	ErrNotImplemented                ResponseType = "NOT_IMPLEMENTED"
+	ErrOTPInvalid                    ResponseType = "OTP_INVALID"
+	ErrOldPasswordRequired           ResponseType = "OLD_PASSWORD_REQUIRED"
+	ErrOrgBlocked                    ResponseType = "ORG_BLOCKED"
+	ErrOrganizationMissing           ResponseType = "ORGANIZATION_MISSING"
+	ErrPasswordRequired              ResponseType = "PASSWORD_REQUIRED"
+	ErrPayloadInvalid                ResponseType = "INVALID_PAYLOAD"
+	ErrSecretExpired                 ResponseType = "SECRET_EXPIRED"
+	ErrSecretNotFound                ResponseType = "SECRET_NOT_FOUND"
+	ErrSetupRequired                 ResponseType = "SETUP_REQUIRED"
+	ErrSyncContextsInvalid           ResponseType = "SYNC_CONTEXTS_INVALID"
+	ErrTermAlreadyExists             ResponseType = "TERM_ALREADY_EXISTS"
+	ErrTermFilterLanguageRequired    ResponseType = "TERM_FILTER_LANGUAGE_REQUIRED"
+	ErrTermImportTranslationsInvalid ResponseType = "TERM_IMPORT_TRANSLATIONS_INVALID"
+	ErrTermIsRequired                ResponseType = "TERM_IS_REQUIRED"
+	ErrTermReviewInvalid             ResponseType = "TERM_REVIEW_INVALID"
+	ErrTermTranslationInvalid        ResponseType = "TERM_TRANSLATION_INVALID"
+	ErrTooManyRequests               ResponseType = "TOO_MANY_REQUESTS"
+	ErrUnauthorized                  ResponseType = "UNAUTHORIZED"
+	ErrUserAlreadyExists             ResponseType = "USER_ALREADY_EXISTS"
+	ErrUserNotFound                  ResponseType = "USER_NOT_FOUND"
 )
 
 // Valid indicates whether the value is a known member of the ResponseType enum.
 func (e ResponseType) Valid() bool {
 	switch e {
+	case ErrAITranslationBudgetExceeded:
+		return true
 	case ErrBackupCodeInvalid:
 		return true
 	case ErrColumnCountMismatch:
@@ -368,6 +524,8 @@ func (e ResponseType) Valid() bool {
 	case ErrInvalidCustomPrompt:
 		return true
 	case ErrInvalidImportStatus:
+		return true
+	case ErrInvalidMessageSyntax:
 		return true
 	case ErrInvalidName:
 		return true
@@ -423,9 +581,19 @@ func (e ResponseType) Valid() bool {
 		return true
 	case ErrSetupRequired:
 		return true
+	case ErrSyncContextsInvalid:
+		return true
 	case ErrTermAlreadyExists:
 		return true
+	case ErrTermFilterLanguageRequired:
+		return true
+	case ErrTermImportTranslationsInvalid:
+		return true
 	case ErrTermIsRequired:
+		return true
+	case ErrTermReviewInvalid:
+		return true
+	case ErrTermTranslationInvalid:
 		return true
 	case ErrTooManyRequests:
 		return true
@@ -482,6 +650,9 @@ type AuditPayloadListResponse struct {
 	NextCursorId        *string                      `json:"nextCursorId,omitempty"`
 }
 
+// ConstantsAITranslationWorkWindow defines model for constants.AITranslationWorkWindow.
+type ConstantsAITranslationWorkWindow string
+
 // ConstantsAuditAction defines model for constants.AuditAction.
 type ConstantsAuditAction string
 
@@ -491,6 +662,12 @@ type ConstantsAuditTargetType string
 // ConstantsGlossaryItemType defines model for constants.GlossaryItemType.
 type ConstantsGlossaryItemType string
 
+// ConstantsNamespaceMessageSyntax defines model for constants.NamespaceMessageSyntax.
+type ConstantsNamespaceMessageSyntax string
+
+// ConstantsSyncContextsProblem defines model for constants.SyncContextsProblem.
+type ConstantsSyncContextsProblem string
+
 // ConstantsTermBulkImportStatus defines model for constants.TermBulkImportStatus.
 type ConstantsTermBulkImportStatus string
 
@@ -499,6 +676,18 @@ type ConstantsTermImportCSVColumnSetupType string
 
 // ConstantsTermImportFormat defines model for constants.TermImportFormat.
 type ConstantsTermImportFormat string
+
+// ConstantsTermReviewProblem defines model for constants.TermReviewProblem.
+type ConstantsTermReviewProblem string
+
+// ConstantsTermTranslationProblem defines model for constants.TermTranslationProblem.
+type ConstantsTermTranslationProblem string
+
+// DtoAITranslationBudgetRefusal defines model for dto.AITranslationBudgetRefusal.
+type DtoAITranslationBudgetRefusal struct {
+	RetryAt string                           `json:"retryAt"`
+	Window  ConstantsAITranslationWorkWindow `json:"window"`
+}
 
 // DtoAPIKey defines model for dto.APIKey.
 type DtoAPIKey struct {
@@ -554,6 +743,12 @@ type DtoDTOLanguageConnection struct {
 	LanguageId     *int    `json:"language_id,omitempty"`
 	LanguageName   *string `json:"language_name,omitempty"`
 	LanguageShared *bool   `json:"language_shared,omitempty"`
+
+	// UnreviewedCount UnreviewedCount is how many of the language's translations have
+	// text that nobody marked reviewed (POST
+	// .../translations/{languageId}/review). 0 for the default language,
+	// whose texts are what the others are translated from.
+	UnreviewedCount int `json:"unreviewedCount"`
 }
 
 // DtoDTONamespace defines model for dto.DTONamespace.
@@ -568,11 +763,16 @@ type DtoDTONamespace struct {
 	DefaultLanguageId     *int      `json:"defaultLanguageId,omitempty"`
 	Id                    *string   `json:"id,omitempty"`
 	Languages             *[]string `json:"languages,omitempty"`
-	Name                  *string   `json:"name,omitempty"`
-	OrganizationId        *string   `json:"organization_id,omitempty"`
-	Progress              *float32  `json:"progress,omitempty"`
-	TotalTerms            *int      `json:"total_terms,omitempty"`
-	UpdatedAt             *string   `json:"updated_at,omitempty"`
+
+	// MessageSyntax MessageSyntax is what the namespace's strings are: plain (variables
+	// kept as they are) or icu (ICU MessageFormat 1, translated per plural
+	// form and checked before storing).
+	MessageSyntax  ConstantsNamespaceMessageSyntax `json:"messageSyntax"`
+	Name           *string                         `json:"name,omitempty"`
+	OrganizationId *string                         `json:"organization_id,omitempty"`
+	Progress       *float32                        `json:"progress,omitempty"`
+	TotalTerms     *int                            `json:"total_terms,omitempty"`
+	UpdatedAt      *string                         `json:"updated_at,omitempty"`
 }
 
 // DtoDTOSyncJob defines model for dto.DTOSyncJob.
@@ -618,8 +818,13 @@ type DtoDTOSyncJob struct {
 	Status                 *string                       `json:"status,omitempty"`
 	StillUntranslatedCount *int                          `json:"stillUntranslatedCount,omitempty"`
 	Strategy               *string                       `json:"strategy,omitempty"`
-	UpdatedCount           *int                          `json:"updatedCount,omitempty"`
-	WaitForAutotranslate   *bool                         `json:"waitForAutotranslate,omitempty"`
+
+	// UnreviewedPerLanguage UnreviewedPerLanguage counts, per language code, the translations
+	// with text nobody marked reviewed when the job finished (not the
+	// job's source language). Set on status='completed'.
+	UnreviewedPerLanguage *map[string]int `json:"unreviewedPerLanguage,omitempty"`
+	UpdatedCount          *int            `json:"updatedCount,omitempty"`
+	WaitForAutotranslate  *bool           `json:"waitForAutotranslate,omitempty"`
 }
 
 // DtoDTOSyncJobCreateResponse defines model for dto.DTOSyncJobCreateResponse.
@@ -629,10 +834,32 @@ type DtoDTOSyncJobCreateResponse struct {
 
 // DtoDTOSyncJobFailure defines model for dto.DTOSyncJobFailure.
 type DtoDTOSyncJobFailure struct {
+	Argument *string `json:"argument,omitempty"`
+
+	// Code Code says why a translation was not stored: an automatic
+	// translation the checks refused (phase autotranslate) or a pushed
+	// value an ICU namespace refused (phase push). Absent for other
+	// failures.
+	Code *ConstantsTermTranslationProblem `json:"code,omitempty"`
+
+	// Dropped Dropped counts the phase's failures not listed (more than 500); set
+	// on one summary entry.
+	Dropped *int `json:"dropped,omitempty"`
+
+	// Error Error is English, for logs and older clients; a client words Code.
 	Error *string `json:"error,omitempty"`
-	Mark  *string `json:"mark,omitempty"`
-	OpIdx *int    `json:"opIdx,omitempty"`
-	Phase *string `json:"phase,omitempty"`
+
+	// LanguageCode LanguageCode is the language of the translation Code is about.
+	LanguageCode *string   `json:"languageCode,omitempty"`
+	Mark         *string   `json:"mark,omitempty"`
+	Missing      *[]string `json:"missing,omitempty"`
+
+	// Offset The facts of Code: where an ICU message stops being valid, which
+	// plural or select, which forms, variables, tags or terms.
+	Offset     *int      `json:"offset,omitempty"`
+	OpIdx      *int      `json:"opIdx,omitempty"`
+	Phase      *string   `json:"phase,omitempty"`
+	Unexpected *[]string `json:"unexpected,omitempty"`
 }
 
 // DtoDTOSyncJobOp defines model for dto.DTOSyncJobOp.
@@ -719,6 +946,83 @@ type DtoLangInfo struct {
 	Id   int    `json:"id"`
 }
 
+// DtoMarkReviewedRequest defines model for dto.MarkReviewedRequest.
+type DtoMarkReviewedRequest struct {
+	// TermIds TermIDs are the terms, 1 to 1,000.
+	TermIds []int `json:"termIds"`
+}
+
+// DtoMarkReviewedResponse defines model for dto.MarkReviewedResponse.
+type DtoMarkReviewedResponse struct {
+	Reviewed int `json:"reviewed"`
+}
+
+// DtoSyncContextsProblem defines model for dto.SyncContextsProblem.
+type DtoSyncContextsProblem struct {
+	// Key Key is the entry it is about (unknown_key, too_long, not_text).
+	Key *string `json:"key,omitempty"`
+
+	// Max Max is the most entries the request may have (too_many).
+	Max *int `json:"max,omitempty"`
+
+	// MaxChars MaxChars is the longest a description may be (too_long).
+	MaxChars *int                         `json:"maxChars,omitempty"`
+	Reason   ConstantsSyncContextsProblem `json:"reason"`
+}
+
+// DtoTermImportTranslationProblem defines model for dto.TermImportTranslationProblem.
+type DtoTermImportTranslationProblem struct {
+	// Argument Argument is the plural or select whose branches are wrong
+	// (plural_forms).
+	Argument   *string `json:"argument,omitempty"`
+	LanguageId int     `json:"languageId"`
+	Mark       string  `json:"mark"`
+
+	// Missing Missing and Unexpected list the forms, variables, tags or glossary
+	// terms missing or not allowed.
+	Missing *[]string `json:"missing,omitempty"`
+
+	// Offset Offset is the character (Unicode code point, from 0) where the
+	// message stops being valid ICU (icu_invalid).
+	Offset *int                            `json:"offset,omitempty"`
+	Reason ConstantsTermTranslationProblem `json:"reason"`
+
+	// Row Row is the file's row, from 1 (the header is row 1, so the first
+	// value is row 2).
+	Row        int       `json:"row"`
+	Unexpected *[]string `json:"unexpected,omitempty"`
+}
+
+// DtoTermImportTranslationProblems defines model for dto.TermImportTranslationProblems.
+type DtoTermImportTranslationProblems struct {
+	Problems []DtoTermImportTranslationProblem `json:"problems"`
+	Total    int                               `json:"total"`
+}
+
+// DtoTermReviewProblem defines model for dto.TermReviewProblem.
+type DtoTermReviewProblem struct {
+	// Max Max is the most terms one request may mark (too_many_terms).
+	Max    *int                       `json:"max,omitempty"`
+	Reason ConstantsTermReviewProblem `json:"reason"`
+}
+
+// DtoTermTranslationProblem defines model for dto.TermTranslationProblem.
+type DtoTermTranslationProblem struct {
+	// Argument Argument is the plural or select whose branches are wrong
+	// (plural_forms).
+	Argument *string `json:"argument,omitempty"`
+
+	// Missing Missing and Unexpected list the forms, variables, tags or glossary
+	// terms missing or not allowed.
+	Missing *[]string `json:"missing,omitempty"`
+
+	// Offset Offset is the character (Unicode code point, from 0) where the
+	// message stops being valid ICU (icu_invalid).
+	Offset     *int                            `json:"offset,omitempty"`
+	Reason     ConstantsTermTranslationProblem `json:"reason"`
+	Unexpected *[]string                       `json:"unexpected,omitempty"`
+}
+
 // DtoTranslationInfo defines model for dto.TranslationInfo.
 type DtoTranslationInfo struct {
 	// AiGenerated AIGenerated is true while the value is exactly what AI translation
@@ -728,8 +1032,12 @@ type DtoTranslationInfo struct {
 	CreatedAt             *string     `json:"created_at,omitempty"`
 	Lang                  DtoLangInfo `json:"lang"`
 	LanguageToNamespaceId int         `json:"language_to_namespace_id"`
-	UpdatedAt             *string     `json:"updated_at,omitempty"`
-	Value                 string      `json:"value"`
+
+	// ReviewedAt ReviewedAt is when a person marked the current text reviewed; null
+	// while it is not (a changed text is unreviewed again).
+	ReviewedAt *string `json:"reviewedAt,omitempty"`
+	UpdatedAt  *string `json:"updated_at,omitempty"`
+	Value      string  `json:"value"`
 }
 
 // GlossaryAddTranslationRequest defines model for glossary.addTranslationRequest.
@@ -829,8 +1137,12 @@ type NamespacePayloadCreateNamespaceRequest struct {
 
 	// DefaultLanguageId Preferred new fields — pass exactly one. The CLI/frontend should
 	// emit these going forward.
-	DefaultLanguageId *int   `json:"defaultLanguageId,omitempty"`
-	Name              string `json:"name"`
+	DefaultLanguageId *int `json:"defaultLanguageId,omitempty"`
+
+	// MessageSyntax MessageSyntax is what the namespace's strings are: plain (the
+	// default) or icu (ICU MessageFormat 1).
+	MessageSyntax *ConstantsNamespaceMessageSyntax `json:"messageSyntax,omitempty"`
+	Name          string                           `json:"name"`
 }
 
 // NamespacePayloadUpdateNamespaceRequest defines model for namespace.payloadUpdateNamespaceRequest.
@@ -851,7 +1163,11 @@ type NamespacePayloadUpdateNamespaceRequest struct {
 	// now accepts either int or string via LanguageRef. Prefer the explicit
 	// fields above.
 	DefaultLanguage *TypesLanguageRef `json:"default_language,omitempty"`
-	Name            *string           `json:"name,omitempty"`
+
+	// MessageSyntax MessageSyntax sets what the namespace's strings are: plain or icu
+	// (ICU MessageFormat 1). Omit to keep it.
+	MessageSyntax *ConstantsNamespaceMessageSyntax `json:"messageSyntax,omitempty"`
+	Name          *string                          `json:"name,omitempty"`
 }
 
 // PoeditorPOEditorTime defines model for poeditor.POEditorTime.
@@ -942,8 +1258,14 @@ type SharedTermImportSetup struct {
 
 // SyncjobCreateSyncRequest defines model for syncjob.createSyncRequest.
 type SyncjobCreateSyncRequest struct {
-	DefaultLanguageCode *string `json:"defaultLanguageCode,omitempty"`
-	DryRun              *bool   `json:"dryRun,omitempty"`
+	// Contexts Contexts are key descriptions ({key: description}) the push phase
+	// stores with the terms; an empty description clears one, a key left
+	// out keeps its own. Each key must be one of the source language's
+	// keys in this request, each description at most 1,000 characters.
+	// The model gets them with the key when it translates.
+	Contexts            *map[string]string `json:"contexts,omitempty"`
+	DefaultLanguageCode *string            `json:"defaultLanguageCode,omitempty"`
+	DryRun              *bool              `json:"dryRun,omitempty"`
 
 	// Marks Marks is the legacy default-lang-only shape. Kept for one
 	// release of the CLI; new clients submit MarksPerLanguage.
@@ -1140,11 +1462,29 @@ type ListGlossaryItemsParams struct {
 
 // ListByNamespaceParams defines parameters for ListByNamespace.
 type ListByNamespaceParams struct {
-	Cursor             string `form:"cursor" json:"cursor"`
-	HasAnyUntranslated *bool  `form:"hasAnyUntranslated,omitempty" json:"hasAnyUntranslated,omitempty"`
-	Limit              int    `form:"limit" json:"limit"`
-	Search             string `form:"search" json:"search"`
-	UntranslatedLangId *int   `form:"untranslatedLangId,omitempty" json:"untranslatedLangId,omitempty"`
+	// AiGenerated AIGenerated lists only terms whose translation in languageId has
+	// text that is (true) or is not (false) exactly the AI's.
+	AiGenerated *bool `form:"aiGenerated,omitempty" json:"aiGenerated,omitempty"`
+
+	// Cursor Cursor is the next value of the page before; empty for the first.
+	Cursor             *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+	HasAnyUntranslated *bool   `form:"hasAnyUntranslated,omitempty" json:"hasAnyUntranslated,omitempty"`
+
+	// LanguageId LanguageID is the language the reviewed and aiGenerated filters
+	// look at; required with either.
+	LanguageId *int `form:"languageId,omitempty" json:"languageId,omitempty"`
+
+	// Limit Limit is the page size, 1 to 100; 25 when absent or out of range.
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Reviewed Reviewed lists only terms whose translation in languageId has text
+	// and is (true) or is not (false) marked reviewed.
+	Reviewed *bool `form:"reviewed,omitempty" json:"reviewed,omitempty"`
+
+	// Search Search narrows the list to terms whose key or translations contain
+	// it; empty lists every term.
+	Search             *string `form:"search,omitempty" json:"search,omitempty"`
+	UntranslatedLangId *int    `form:"untranslatedLangId,omitempty" json:"untranslatedLangId,omitempty"`
 }
 
 // CreateImportMultipartBody defines parameters for CreateImport.
@@ -1189,8 +1529,8 @@ type UpdateNamespaceJSONRequestBody = NamespacePayloadUpdateNamespaceRequest
 // AddLanguageJSONRequestBody defines body for AddLanguage for application/json ContentType.
 type AddLanguageJSONRequestBody = NamespacePayloadAddLanguageRequest
 
-// PostNamespacesNamespaceNameSyncJSONRequestBody defines body for PostNamespacesNamespaceNameSync for application/json ContentType.
-type PostNamespacesNamespaceNameSyncJSONRequestBody = SyncjobCreateSyncRequest
+// CreateSyncJobJSONRequestBody defines body for CreateSyncJob for application/json ContentType.
+type CreateSyncJobJSONRequestBody = SyncjobCreateSyncRequest
 
 // AddTermJSONRequestBody defines body for AddTerm for application/json ContentType.
 type AddTermJSONRequestBody = TermPayloadAddRequest
@@ -1213,14 +1553,17 @@ type RecommendMagicTranslationJSONRequestBody = TermPayloadRecommendMagicTransla
 // UpdateTermTranslationJSONRequestBody defines body for UpdateTermTranslation for application/json ContentType.
 type UpdateTermTranslationJSONRequestBody = TermPayloadUpdateTranslationRequest
 
+// MarkTranslationsReviewedJSONRequestBody defines body for MarkTranslationsReviewed for application/json ContentType.
+type MarkTranslationsReviewedJSONRequestBody = DtoMarkReviewedRequest
+
 // CreateCustomPromptJSONRequestBody defines body for CreateCustomPrompt for application/json ContentType.
 type CreateCustomPromptJSONRequestBody = TranslationCreateCustomPromptInput
 
 // UpdateCustomPromptJSONRequestBody defines body for UpdateCustomPrompt for application/json ContentType.
 type UpdateCustomPromptJSONRequestBody = TranslationPatchCustomPromptInput
 
-// PostTranslationsTranslateJSONRequestBody defines body for PostTranslationsTranslate for application/json ContentType.
-type PostTranslationsTranslateJSONRequestBody = TranslationTranslateTextBody
+// TranslateTextJSONRequestBody defines body for TranslateText for application/json ContentType.
+type TranslateTextJSONRequestBody = TranslationTranslateTextBody
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -1400,13 +1743,13 @@ type ClientInterface interface {
 	// RemoveLanguage request
 	RemoveLanguage(ctx context.Context, namespaceName string, languageId int, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostNamespacesNamespaceNameSyncWithBody request with any body
-	PostNamespacesNamespaceNameSyncWithBody(ctx context.Context, namespaceName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// CreateSyncJobWithBody request with any body
+	CreateSyncJobWithBody(ctx context.Context, namespaceName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostNamespacesNamespaceNameSync(ctx context.Context, namespaceName string, body PostNamespacesNamespaceNameSyncJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	CreateSyncJob(ctx context.Context, namespaceName string, body CreateSyncJobJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetNamespacesNamespaceNameSyncJobId request
-	GetNamespacesNamespaceNameSyncJobId(ctx context.Context, namespaceName string, jobId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetSyncJob request
+	GetSyncJob(ctx context.Context, namespaceName string, jobId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListByNamespace request
 	ListByNamespace(ctx context.Context, namespaceName string, params *ListByNamespaceParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -1453,6 +1796,11 @@ type ClientInterface interface {
 
 	UpdateTermTranslation(ctx context.Context, namespaceName string, termId int, languageToNamespaceId int, body UpdateTermTranslationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// MarkTranslationsReviewedWithBody request with any body
+	MarkTranslationsReviewedWithBody(ctx context.Context, namespaceName string, languageId int, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	MarkTranslationsReviewed(ctx context.Context, namespaceName string, languageId int, body MarkTranslationsReviewedJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListCustomPrompts request
 	ListCustomPrompts(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -1472,10 +1820,10 @@ type ClientInterface interface {
 
 	UpdateCustomPrompt(ctx context.Context, promptId string, body UpdateCustomPromptJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostTranslationsTranslateWithBody request with any body
-	PostTranslationsTranslateWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// TranslateTextWithBody request with any body
+	TranslateTextWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostTranslationsTranslate(ctx context.Context, body PostTranslationsTranslateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	TranslateText(ctx context.Context, body TranslateTextJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) ListAPIKeys(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -1946,8 +2294,8 @@ func (c *Client) RemoveLanguage(ctx context.Context, namespaceName string, langu
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostNamespacesNamespaceNameSyncWithBody(ctx context.Context, namespaceName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostNamespacesNamespaceNameSyncRequestWithBody(c.Server, namespaceName, contentType, body)
+func (c *Client) CreateSyncJobWithBody(ctx context.Context, namespaceName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateSyncJobRequestWithBody(c.Server, namespaceName, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -1958,8 +2306,8 @@ func (c *Client) PostNamespacesNamespaceNameSyncWithBody(ctx context.Context, na
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostNamespacesNamespaceNameSync(ctx context.Context, namespaceName string, body PostNamespacesNamespaceNameSyncJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostNamespacesNamespaceNameSyncRequest(c.Server, namespaceName, body)
+func (c *Client) CreateSyncJob(ctx context.Context, namespaceName string, body CreateSyncJobJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateSyncJobRequest(c.Server, namespaceName, body)
 	if err != nil {
 		return nil, err
 	}
@@ -1970,8 +2318,8 @@ func (c *Client) PostNamespacesNamespaceNameSync(ctx context.Context, namespaceN
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetNamespacesNamespaceNameSyncJobId(ctx context.Context, namespaceName string, jobId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetNamespacesNamespaceNameSyncJobIdRequest(c.Server, namespaceName, jobId)
+func (c *Client) GetSyncJob(ctx context.Context, namespaceName string, jobId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetSyncJobRequest(c.Server, namespaceName, jobId)
 	if err != nil {
 		return nil, err
 	}
@@ -2186,6 +2534,30 @@ func (c *Client) UpdateTermTranslation(ctx context.Context, namespaceName string
 	return c.Client.Do(req)
 }
 
+func (c *Client) MarkTranslationsReviewedWithBody(ctx context.Context, namespaceName string, languageId int, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMarkTranslationsReviewedRequestWithBody(c.Server, namespaceName, languageId, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) MarkTranslationsReviewed(ctx context.Context, namespaceName string, languageId int, body MarkTranslationsReviewedJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMarkTranslationsReviewedRequest(c.Server, namespaceName, languageId, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ListCustomPrompts(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListCustomPromptsRequest(c.Server)
 	if err != nil {
@@ -2270,8 +2642,8 @@ func (c *Client) UpdateCustomPrompt(ctx context.Context, promptId string, body U
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostTranslationsTranslateWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostTranslationsTranslateRequestWithBody(c.Server, contentType, body)
+func (c *Client) TranslateTextWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTranslateTextRequestWithBody(c.Server, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -2282,8 +2654,8 @@ func (c *Client) PostTranslationsTranslateWithBody(ctx context.Context, contentT
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostTranslationsTranslate(ctx context.Context, body PostTranslationsTranslateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostTranslationsTranslateRequest(c.Server, body)
+func (c *Client) TranslateText(ctx context.Context, body TranslateTextJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTranslateTextRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -3439,19 +3811,19 @@ func NewRemoveLanguageRequest(server string, namespaceName string, languageId in
 	return req, nil
 }
 
-// NewPostNamespacesNamespaceNameSyncRequest calls the generic PostNamespacesNamespaceNameSync builder with application/json body
-func NewPostNamespacesNamespaceNameSyncRequest(server string, namespaceName string, body PostNamespacesNamespaceNameSyncJSONRequestBody) (*http.Request, error) {
+// NewCreateSyncJobRequest calls the generic CreateSyncJob builder with application/json body
+func NewCreateSyncJobRequest(server string, namespaceName string, body CreateSyncJobJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewPostNamespacesNamespaceNameSyncRequestWithBody(server, namespaceName, "application/json", bodyReader)
+	return NewCreateSyncJobRequestWithBody(server, namespaceName, "application/json", bodyReader)
 }
 
-// NewPostNamespacesNamespaceNameSyncRequestWithBody generates requests for PostNamespacesNamespaceNameSync with any type of body
-func NewPostNamespacesNamespaceNameSyncRequestWithBody(server string, namespaceName string, contentType string, body io.Reader) (*http.Request, error) {
+// NewCreateSyncJobRequestWithBody generates requests for CreateSyncJob with any type of body
+func NewCreateSyncJobRequestWithBody(server string, namespaceName string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -3486,8 +3858,8 @@ func NewPostNamespacesNamespaceNameSyncRequestWithBody(server string, namespaceN
 	return req, nil
 }
 
-// NewGetNamespacesNamespaceNameSyncJobIdRequest generates requests for GetNamespacesNamespaceNameSyncJobId
-func NewGetNamespacesNamespaceNameSyncJobIdRequest(server string, namespaceName string, jobId string) (*http.Request, error) {
+// NewGetSyncJobRequest generates requests for GetSyncJob
+func NewGetSyncJobRequest(server string, namespaceName string, jobId string) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -3562,12 +3934,28 @@ func NewListByNamespaceRequest(server string, namespaceName string, params *List
 		// per the OpenAPI spec (e.g. "color=blue,black,brown").
 		var rawQueryFragments []string
 
-		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "cursor", params.Cursor, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
-			return nil, err
-		} else {
-			for _, qp := range strings.Split(queryFrag, "&") {
-				rawQueryFragments = append(rawQueryFragments, qp)
+		if params.AiGenerated != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "aiGenerated", *params.AiGenerated, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "boolean", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
 			}
+
+		}
+
+		if params.Cursor != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "cursor", *params.Cursor, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
 		}
 
 		if params.HasAnyUntranslated != nil {
@@ -3582,20 +3970,52 @@ func NewListByNamespaceRequest(server string, namespaceName string, params *List
 
 		}
 
-		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "limit", params.Limit, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: ""}); err != nil {
-			return nil, err
-		} else {
-			for _, qp := range strings.Split(queryFrag, "&") {
-				rawQueryFragments = append(rawQueryFragments, qp)
+		if params.LanguageId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "languageId", *params.LanguageId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
 			}
+
 		}
 
-		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "search", params.Search, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
-			return nil, err
-		} else {
-			for _, qp := range strings.Split(queryFrag, "&") {
-				rawQueryFragments = append(rawQueryFragments, qp)
+		if params.Limit != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "limit", *params.Limit, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
 			}
+
+		}
+
+		if params.Reviewed != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "reviewed", *params.Reviewed, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "boolean", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Search != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "search", *params.Search, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
 		}
 
 		if params.UntranslatedLangId != nil {
@@ -4107,6 +4527,60 @@ func NewUpdateTermTranslationRequestWithBody(server string, namespaceName string
 	return req, nil
 }
 
+// NewMarkTranslationsReviewedRequest calls the generic MarkTranslationsReviewed builder with application/json body
+func NewMarkTranslationsReviewedRequest(server string, namespaceName string, languageId int, body MarkTranslationsReviewedJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewMarkTranslationsReviewedRequestWithBody(server, namespaceName, languageId, "application/json", bodyReader)
+}
+
+// NewMarkTranslationsReviewedRequestWithBody generates requests for MarkTranslationsReviewed with any type of body
+func NewMarkTranslationsReviewedRequestWithBody(server string, namespaceName string, languageId int, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "namespaceName", namespaceName, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithOptions("simple", false, "languageId", languageId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "integer", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/namespaces/%s/translations/%s/review", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewListCustomPromptsRequest generates requests for ListCustomPrompts
 func NewListCustomPromptsRequest(server string) (*http.Request, error) {
 	var err error
@@ -4289,19 +4763,19 @@ func NewUpdateCustomPromptRequestWithBody(server string, promptId string, conten
 	return req, nil
 }
 
-// NewPostTranslationsTranslateRequest calls the generic PostTranslationsTranslate builder with application/json body
-func NewPostTranslationsTranslateRequest(server string, body PostTranslationsTranslateJSONRequestBody) (*http.Request, error) {
+// NewTranslateTextRequest calls the generic TranslateText builder with application/json body
+func NewTranslateTextRequest(server string, body TranslateTextJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewPostTranslationsTranslateRequestWithBody(server, "application/json", bodyReader)
+	return NewTranslateTextRequestWithBody(server, "application/json", bodyReader)
 }
 
-// NewPostTranslationsTranslateRequestWithBody generates requests for PostTranslationsTranslate with any type of body
-func NewPostTranslationsTranslateRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+// NewTranslateTextRequestWithBody generates requests for TranslateText with any type of body
+func NewTranslateTextRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -4477,13 +4951,13 @@ type ClientWithResponsesInterface interface {
 	// RemoveLanguageWithResponse request
 	RemoveLanguageWithResponse(ctx context.Context, namespaceName string, languageId int, reqEditors ...RequestEditorFn) (*RemoveLanguageResponse, error)
 
-	// PostNamespacesNamespaceNameSyncWithBodyWithResponse request with any body
-	PostNamespacesNamespaceNameSyncWithBodyWithResponse(ctx context.Context, namespaceName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostNamespacesNamespaceNameSyncResponse, error)
+	// CreateSyncJobWithBodyWithResponse request with any body
+	CreateSyncJobWithBodyWithResponse(ctx context.Context, namespaceName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateSyncJobResponse, error)
 
-	PostNamespacesNamespaceNameSyncWithResponse(ctx context.Context, namespaceName string, body PostNamespacesNamespaceNameSyncJSONRequestBody, reqEditors ...RequestEditorFn) (*PostNamespacesNamespaceNameSyncResponse, error)
+	CreateSyncJobWithResponse(ctx context.Context, namespaceName string, body CreateSyncJobJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateSyncJobResponse, error)
 
-	// GetNamespacesNamespaceNameSyncJobIdWithResponse request
-	GetNamespacesNamespaceNameSyncJobIdWithResponse(ctx context.Context, namespaceName string, jobId string, reqEditors ...RequestEditorFn) (*GetNamespacesNamespaceNameSyncJobIdResponse, error)
+	// GetSyncJobWithResponse request
+	GetSyncJobWithResponse(ctx context.Context, namespaceName string, jobId string, reqEditors ...RequestEditorFn) (*GetSyncJobResponse, error)
 
 	// ListByNamespaceWithResponse request
 	ListByNamespaceWithResponse(ctx context.Context, namespaceName string, params *ListByNamespaceParams, reqEditors ...RequestEditorFn) (*ListByNamespaceResponse, error)
@@ -4530,6 +5004,11 @@ type ClientWithResponsesInterface interface {
 
 	UpdateTermTranslationWithResponse(ctx context.Context, namespaceName string, termId int, languageToNamespaceId int, body UpdateTermTranslationJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateTermTranslationResponse, error)
 
+	// MarkTranslationsReviewedWithBodyWithResponse request with any body
+	MarkTranslationsReviewedWithBodyWithResponse(ctx context.Context, namespaceName string, languageId int, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MarkTranslationsReviewedResponse, error)
+
+	MarkTranslationsReviewedWithResponse(ctx context.Context, namespaceName string, languageId int, body MarkTranslationsReviewedJSONRequestBody, reqEditors ...RequestEditorFn) (*MarkTranslationsReviewedResponse, error)
+
 	// ListCustomPromptsWithResponse request
 	ListCustomPromptsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListCustomPromptsResponse, error)
 
@@ -4549,10 +5028,10 @@ type ClientWithResponsesInterface interface {
 
 	UpdateCustomPromptWithResponse(ctx context.Context, promptId string, body UpdateCustomPromptJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateCustomPromptResponse, error)
 
-	// PostTranslationsTranslateWithBodyWithResponse request with any body
-	PostTranslationsTranslateWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostTranslationsTranslateResponse, error)
+	// TranslateTextWithBodyWithResponse request with any body
+	TranslateTextWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TranslateTextResponse, error)
 
-	PostTranslationsTranslateWithResponse(ctx context.Context, body PostTranslationsTranslateJSONRequestBody, reqEditors ...RequestEditorFn) (*PostTranslationsTranslateResponse, error)
+	TranslateTextWithResponse(ctx context.Context, body TranslateTextJSONRequestBody, reqEditors ...RequestEditorFn) (*TranslateTextResponse, error)
 }
 
 type ListAPIKeysResponse struct {
@@ -5478,19 +5957,23 @@ func (r RemoveLanguageResponse) ContentType() string {
 	return ""
 }
 
-type PostNamespacesNamespaceNameSyncResponse struct {
+type CreateSyncJobResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON202      *DtoDTOSyncJobCreateResponse
-	JSON400      *ResponseAPIError
-	JSON401      *ResponseAPIError
-	JSON403      *ResponseAPIError
-	JSON404      *ResponseAPIError
-	JSON500      *ResponseAPIError
+	JSON400      *struct {
+		Data *DtoSyncContextsProblem `json:"data,omitempty"`
+		Msg  string                  `json:"msg"`
+		Type ResponseType            `json:"type"`
+	}
+	JSON401 *ResponseAPIError
+	JSON403 *ResponseAPIError
+	JSON404 *ResponseAPIError
+	JSON500 *ResponseAPIError
 }
 
 // Status returns HTTPResponse.Status
-func (r PostNamespacesNamespaceNameSyncResponse) Status() string {
+func (r CreateSyncJobResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -5498,7 +5981,7 @@ func (r PostNamespacesNamespaceNameSyncResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostNamespacesNamespaceNameSyncResponse) StatusCode() int {
+func (r CreateSyncJobResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -5506,14 +5989,14 @@ func (r PostNamespacesNamespaceNameSyncResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r PostNamespacesNamespaceNameSyncResponse) ContentType() string {
+func (r CreateSyncJobResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
 	return ""
 }
 
-type GetNamespacesNamespaceNameSyncJobIdResponse struct {
+type GetSyncJobResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *DtoDTOSyncJob
@@ -5525,7 +6008,7 @@ type GetNamespacesNamespaceNameSyncJobIdResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetNamespacesNamespaceNameSyncJobIdResponse) Status() string {
+func (r GetSyncJobResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -5533,7 +6016,7 @@ func (r GetNamespacesNamespaceNameSyncJobIdResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetNamespacesNamespaceNameSyncJobIdResponse) StatusCode() int {
+func (r GetSyncJobResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -5541,7 +6024,7 @@ func (r GetNamespacesNamespaceNameSyncJobIdResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r GetNamespacesNamespaceNameSyncJobIdResponse) ContentType() string {
+func (r GetSyncJobResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
@@ -5591,11 +6074,20 @@ type AddTermResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *DtoDTOTerm
-	JSON400      *ResponseAPIError
-	JSON401      *ResponseAPIError
-	JSON403      *ResponseAPIError
-	JSON404      *ResponseAPIError
-	JSON500      *ResponseAPIError
+	JSON400      *struct {
+		Data *DtoTermTranslationProblem `json:"data,omitempty"`
+		Msg  string                     `json:"msg"`
+		Type ResponseType               `json:"type"`
+	}
+	JSON401 *ResponseAPIError
+	JSON403 *ResponseAPIError
+	JSON404 *ResponseAPIError
+	JSON429 *struct {
+		Data *DtoAITranslationBudgetRefusal `json:"data,omitempty"`
+		Msg  string                         `json:"msg"`
+		Type ResponseType                   `json:"type"`
+	}
+	JSON500 *ResponseAPIError
 }
 
 // Status returns HTTPResponse.Status
@@ -5696,11 +6188,20 @@ type ImportFinishResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *TermImportFinishResponse
-	JSON400      *ResponseAPIError
-	JSON401      *ResponseAPIError
-	JSON403      *ResponseAPIError
-	JSON404      *ResponseAPIError
-	JSON500      *ResponseAPIError
+	JSON400      *struct {
+		Data *DtoTermImportTranslationProblems `json:"data,omitempty"`
+		Msg  string                            `json:"msg"`
+		Type ResponseType                      `json:"type"`
+	}
+	JSON401 *ResponseAPIError
+	JSON403 *ResponseAPIError
+	JSON404 *ResponseAPIError
+	JSON429 *struct {
+		Data *DtoAITranslationBudgetRefusal `json:"data,omitempty"`
+		Msg  string                         `json:"msg"`
+		Type ResponseType                   `json:"type"`
+	}
+	JSON500 *ResponseAPIError
 }
 
 // Status returns HTTPResponse.Status
@@ -5735,7 +6236,12 @@ type TranslateMissingTranslationsResponse struct {
 	JSON401      *ResponseAPIError
 	JSON403      *ResponseAPIError
 	JSON404      *ResponseAPIError
-	JSON500      *ResponseAPIError
+	JSON429      *struct {
+		Data *DtoAITranslationBudgetRefusal `json:"data,omitempty"`
+		Msg  string                         `json:"msg"`
+		Type ResponseType                   `json:"type"`
+	}
+	JSON500 *ResponseAPIError
 }
 
 // Status returns HTTPResponse.Status
@@ -5874,7 +6380,12 @@ type RecommendMagicTranslationResponse struct {
 	JSON401      *ResponseAPIError
 	JSON403      *ResponseAPIError
 	JSON404      *ResponseAPIError
-	JSON500      *ResponseAPIError
+	JSON429      *struct {
+		Data *DtoAITranslationBudgetRefusal `json:"data,omitempty"`
+		Msg  string                         `json:"msg"`
+		Type ResponseType                   `json:"type"`
+	}
+	JSON500 *ResponseAPIError
 }
 
 // Status returns HTTPResponse.Status
@@ -5905,11 +6416,15 @@ type UpdateTermTranslationResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *DtoDTOTerm
-	JSON400      *ResponseAPIError
-	JSON401      *ResponseAPIError
-	JSON403      *ResponseAPIError
-	JSON404      *ResponseAPIError
-	JSON500      *ResponseAPIError
+	JSON400      *struct {
+		Data *DtoTermTranslationProblem `json:"data,omitempty"`
+		Msg  string                     `json:"msg"`
+		Type ResponseType               `json:"type"`
+	}
+	JSON401 *ResponseAPIError
+	JSON403 *ResponseAPIError
+	JSON404 *ResponseAPIError
+	JSON500 *ResponseAPIError
 }
 
 // Status returns HTTPResponse.Status
@@ -5930,6 +6445,45 @@ func (r UpdateTermTranslationResponse) StatusCode() int {
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
 func (r UpdateTermTranslationResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type MarkTranslationsReviewedResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DtoMarkReviewedResponse
+	JSON400      *struct {
+		Data *DtoTermReviewProblem `json:"data,omitempty"`
+		Msg  string                `json:"msg"`
+		Type ResponseType          `json:"type"`
+	}
+	JSON401 *ResponseAPIError
+	JSON403 *ResponseAPIError
+	JSON404 *ResponseAPIError
+	JSON500 *ResponseAPIError
+}
+
+// Status returns HTTPResponse.Status
+func (r MarkTranslationsReviewedResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r MarkTranslationsReviewedResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r MarkTranslationsReviewedResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
@@ -6102,16 +6656,21 @@ func (r UpdateCustomPromptResponse) ContentType() string {
 	return ""
 }
 
-type PostTranslationsTranslateResponse struct {
+type TranslateTextResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *TranslationTranslateTextResponse
 	JSON400      *ResponseAPIError
-	JSON500      *ResponseAPIError
+	JSON429      *struct {
+		Data *DtoAITranslationBudgetRefusal `json:"data,omitempty"`
+		Msg  string                         `json:"msg"`
+		Type ResponseType                   `json:"type"`
+	}
+	JSON500 *ResponseAPIError
 }
 
 // Status returns HTTPResponse.Status
-func (r PostTranslationsTranslateResponse) Status() string {
+func (r TranslateTextResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -6119,7 +6678,7 @@ func (r PostTranslationsTranslateResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostTranslationsTranslateResponse) StatusCode() int {
+func (r TranslateTextResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -6127,7 +6686,7 @@ func (r PostTranslationsTranslateResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r PostTranslationsTranslateResponse) ContentType() string {
+func (r TranslateTextResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
@@ -6473,30 +7032,30 @@ func (c *ClientWithResponses) RemoveLanguageWithResponse(ctx context.Context, na
 	return ParseRemoveLanguageResponse(rsp)
 }
 
-// PostNamespacesNamespaceNameSyncWithBodyWithResponse request with arbitrary body returning *PostNamespacesNamespaceNameSyncResponse
-func (c *ClientWithResponses) PostNamespacesNamespaceNameSyncWithBodyWithResponse(ctx context.Context, namespaceName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostNamespacesNamespaceNameSyncResponse, error) {
-	rsp, err := c.PostNamespacesNamespaceNameSyncWithBody(ctx, namespaceName, contentType, body, reqEditors...)
+// CreateSyncJobWithBodyWithResponse request with arbitrary body returning *CreateSyncJobResponse
+func (c *ClientWithResponses) CreateSyncJobWithBodyWithResponse(ctx context.Context, namespaceName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateSyncJobResponse, error) {
+	rsp, err := c.CreateSyncJobWithBody(ctx, namespaceName, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostNamespacesNamespaceNameSyncResponse(rsp)
+	return ParseCreateSyncJobResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostNamespacesNamespaceNameSyncWithResponse(ctx context.Context, namespaceName string, body PostNamespacesNamespaceNameSyncJSONRequestBody, reqEditors ...RequestEditorFn) (*PostNamespacesNamespaceNameSyncResponse, error) {
-	rsp, err := c.PostNamespacesNamespaceNameSync(ctx, namespaceName, body, reqEditors...)
+func (c *ClientWithResponses) CreateSyncJobWithResponse(ctx context.Context, namespaceName string, body CreateSyncJobJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateSyncJobResponse, error) {
+	rsp, err := c.CreateSyncJob(ctx, namespaceName, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostNamespacesNamespaceNameSyncResponse(rsp)
+	return ParseCreateSyncJobResponse(rsp)
 }
 
-// GetNamespacesNamespaceNameSyncJobIdWithResponse request returning *GetNamespacesNamespaceNameSyncJobIdResponse
-func (c *ClientWithResponses) GetNamespacesNamespaceNameSyncJobIdWithResponse(ctx context.Context, namespaceName string, jobId string, reqEditors ...RequestEditorFn) (*GetNamespacesNamespaceNameSyncJobIdResponse, error) {
-	rsp, err := c.GetNamespacesNamespaceNameSyncJobId(ctx, namespaceName, jobId, reqEditors...)
+// GetSyncJobWithResponse request returning *GetSyncJobResponse
+func (c *ClientWithResponses) GetSyncJobWithResponse(ctx context.Context, namespaceName string, jobId string, reqEditors ...RequestEditorFn) (*GetSyncJobResponse, error) {
+	rsp, err := c.GetSyncJob(ctx, namespaceName, jobId, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetNamespacesNamespaceNameSyncJobIdResponse(rsp)
+	return ParseGetSyncJobResponse(rsp)
 }
 
 // ListByNamespaceWithResponse request returning *ListByNamespaceResponse
@@ -6646,6 +7205,23 @@ func (c *ClientWithResponses) UpdateTermTranslationWithResponse(ctx context.Cont
 	return ParseUpdateTermTranslationResponse(rsp)
 }
 
+// MarkTranslationsReviewedWithBodyWithResponse request with arbitrary body returning *MarkTranslationsReviewedResponse
+func (c *ClientWithResponses) MarkTranslationsReviewedWithBodyWithResponse(ctx context.Context, namespaceName string, languageId int, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MarkTranslationsReviewedResponse, error) {
+	rsp, err := c.MarkTranslationsReviewedWithBody(ctx, namespaceName, languageId, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMarkTranslationsReviewedResponse(rsp)
+}
+
+func (c *ClientWithResponses) MarkTranslationsReviewedWithResponse(ctx context.Context, namespaceName string, languageId int, body MarkTranslationsReviewedJSONRequestBody, reqEditors ...RequestEditorFn) (*MarkTranslationsReviewedResponse, error) {
+	rsp, err := c.MarkTranslationsReviewed(ctx, namespaceName, languageId, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMarkTranslationsReviewedResponse(rsp)
+}
+
 // ListCustomPromptsWithResponse request returning *ListCustomPromptsResponse
 func (c *ClientWithResponses) ListCustomPromptsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListCustomPromptsResponse, error) {
 	rsp, err := c.ListCustomPrompts(ctx, reqEditors...)
@@ -6707,21 +7283,21 @@ func (c *ClientWithResponses) UpdateCustomPromptWithResponse(ctx context.Context
 	return ParseUpdateCustomPromptResponse(rsp)
 }
 
-// PostTranslationsTranslateWithBodyWithResponse request with arbitrary body returning *PostTranslationsTranslateResponse
-func (c *ClientWithResponses) PostTranslationsTranslateWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostTranslationsTranslateResponse, error) {
-	rsp, err := c.PostTranslationsTranslateWithBody(ctx, contentType, body, reqEditors...)
+// TranslateTextWithBodyWithResponse request with arbitrary body returning *TranslateTextResponse
+func (c *ClientWithResponses) TranslateTextWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TranslateTextResponse, error) {
+	rsp, err := c.TranslateTextWithBody(ctx, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostTranslationsTranslateResponse(rsp)
+	return ParseTranslateTextResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostTranslationsTranslateWithResponse(ctx context.Context, body PostTranslationsTranslateJSONRequestBody, reqEditors ...RequestEditorFn) (*PostTranslationsTranslateResponse, error) {
-	rsp, err := c.PostTranslationsTranslate(ctx, body, reqEditors...)
+func (c *ClientWithResponses) TranslateTextWithResponse(ctx context.Context, body TranslateTextJSONRequestBody, reqEditors ...RequestEditorFn) (*TranslateTextResponse, error) {
+	rsp, err := c.TranslateText(ctx, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostTranslationsTranslateResponse(rsp)
+	return ParseTranslateTextResponse(rsp)
 }
 
 // ParseListAPIKeysResponse parses an HTTP response from a ListAPIKeysWithResponse call
@@ -8169,15 +8745,15 @@ func ParseRemoveLanguageResponse(rsp *http.Response) (*RemoveLanguageResponse, e
 	return response, nil
 }
 
-// ParsePostNamespacesNamespaceNameSyncResponse parses an HTTP response from a PostNamespacesNamespaceNameSyncWithResponse call
-func ParsePostNamespacesNamespaceNameSyncResponse(rsp *http.Response) (*PostNamespacesNamespaceNameSyncResponse, error) {
+// ParseCreateSyncJobResponse parses an HTTP response from a CreateSyncJobWithResponse call
+func ParseCreateSyncJobResponse(rsp *http.Response) (*CreateSyncJobResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostNamespacesNamespaceNameSyncResponse{
+	response := &CreateSyncJobResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -8191,7 +8767,11 @@ func ParsePostNamespacesNamespaceNameSyncResponse(rsp *http.Response) (*PostName
 		response.JSON202 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest ResponseAPIError
+		var dest struct {
+			Data *DtoSyncContextsProblem `json:"data,omitempty"`
+			Msg  string                  `json:"msg"`
+			Type ResponseType            `json:"type"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -8230,15 +8810,15 @@ func ParsePostNamespacesNamespaceNameSyncResponse(rsp *http.Response) (*PostName
 	return response, nil
 }
 
-// ParseGetNamespacesNamespaceNameSyncJobIdResponse parses an HTTP response from a GetNamespacesNamespaceNameSyncJobIdWithResponse call
-func ParseGetNamespacesNamespaceNameSyncJobIdResponse(rsp *http.Response) (*GetNamespacesNamespaceNameSyncJobIdResponse, error) {
+// ParseGetSyncJobResponse parses an HTTP response from a GetSyncJobWithResponse call
+func ParseGetSyncJobResponse(rsp *http.Response) (*GetSyncJobResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetNamespacesNamespaceNameSyncJobIdResponse{
+	response := &GetSyncJobResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -8378,7 +8958,11 @@ func ParseAddTermResponse(rsp *http.Response) (*AddTermResponse, error) {
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest ResponseAPIError
+		var dest struct {
+			Data *DtoTermTranslationProblem `json:"data,omitempty"`
+			Msg  string                     `json:"msg"`
+			Type ResponseType               `json:"type"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -8404,6 +8988,17 @@ func ParseAddTermResponse(rsp *http.Response) (*AddTermResponse, error) {
 			return nil, err
 		}
 		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 429:
+		var dest struct {
+			Data *DtoAITranslationBudgetRefusal `json:"data,omitempty"`
+			Msg  string                         `json:"msg"`
+			Type ResponseType                   `json:"type"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON429 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest ResponseAPIError
@@ -8561,7 +9156,11 @@ func ParseImportFinishResponse(rsp *http.Response) (*ImportFinishResponse, error
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest ResponseAPIError
+		var dest struct {
+			Data *DtoTermImportTranslationProblems `json:"data,omitempty"`
+			Msg  string                            `json:"msg"`
+			Type ResponseType                      `json:"type"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -8587,6 +9186,17 @@ func ParseImportFinishResponse(rsp *http.Response) (*ImportFinishResponse, error
 			return nil, err
 		}
 		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 429:
+		var dest struct {
+			Data *DtoAITranslationBudgetRefusal `json:"data,omitempty"`
+			Msg  string                         `json:"msg"`
+			Type ResponseType                   `json:"type"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON429 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest ResponseAPIError
@@ -8648,6 +9258,17 @@ func ParseTranslateMissingTranslationsResponse(rsp *http.Response) (*TranslateMi
 			return nil, err
 		}
 		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 429:
+		var dest struct {
+			Data *DtoAITranslationBudgetRefusal `json:"data,omitempty"`
+			Msg  string                         `json:"msg"`
+			Type ResponseType                   `json:"type"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON429 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest ResponseAPIError
@@ -8886,6 +9507,17 @@ func ParseRecommendMagicTranslationResponse(rsp *http.Response) (*RecommendMagic
 		}
 		response.JSON404 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 429:
+		var dest struct {
+			Data *DtoAITranslationBudgetRefusal `json:"data,omitempty"`
+			Msg  string                         `json:"msg"`
+			Type ResponseType                   `json:"type"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON429 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest ResponseAPIError
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -8920,7 +9552,76 @@ func ParseUpdateTermTranslationResponse(rsp *http.Response) (*UpdateTermTranslat
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest struct {
+			Data *DtoTermTranslationProblem `json:"data,omitempty"`
+			Msg  string                     `json:"msg"`
+			Type ResponseType               `json:"type"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
 		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ResponseAPIError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseMarkTranslationsReviewedResponse parses an HTTP response from a MarkTranslationsReviewedWithResponse call
+func ParseMarkTranslationsReviewedResponse(rsp *http.Response) (*MarkTranslationsReviewedResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &MarkTranslationsReviewedResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DtoMarkReviewedResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest struct {
+			Data *DtoTermReviewProblem `json:"data,omitempty"`
+			Msg  string                `json:"msg"`
+			Type ResponseType          `json:"type"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -9201,15 +9902,15 @@ func ParseUpdateCustomPromptResponse(rsp *http.Response) (*UpdateCustomPromptRes
 	return response, nil
 }
 
-// ParsePostTranslationsTranslateResponse parses an HTTP response from a PostTranslationsTranslateWithResponse call
-func ParsePostTranslationsTranslateResponse(rsp *http.Response) (*PostTranslationsTranslateResponse, error) {
+// ParseTranslateTextResponse parses an HTTP response from a TranslateTextWithResponse call
+func ParseTranslateTextResponse(rsp *http.Response) (*TranslateTextResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostTranslationsTranslateResponse{
+	response := &TranslateTextResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -9228,6 +9929,17 @@ func ParsePostTranslationsTranslateResponse(rsp *http.Response) (*PostTranslatio
 			return nil, err
 		}
 		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 429:
+		var dest struct {
+			Data *DtoAITranslationBudgetRefusal `json:"data,omitempty"`
+			Msg  string                         `json:"msg"`
+			Type ResponseType                   `json:"type"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON429 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest ResponseAPIError

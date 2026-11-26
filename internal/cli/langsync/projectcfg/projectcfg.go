@@ -17,7 +17,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
+	"unicode/utf8"
+
+	"github.com/norcubeplatform/cli/internal/cli/langsync/projectcfg/translations"
 )
 
 // Filename is the canonical name we read and write. The CLI does not
@@ -107,7 +111,21 @@ type Namespace struct {
 	// Pure separator differences (cs_cz ↔ cs-CZ) get an automatic
 	// silent alias so the file's local spelling is preserved.
 	LanguageAliases map[string]string `json:"language_aliases,omitempty"`
+	// ContextFile is an optional flat JSON object {key: description} in
+	// the source language: what each key is, for the people and the
+	// model that translate it. Sync sends the descriptions of the source
+	// file's keys with the job. A relative path is resolved like Dir. It
+	// must not sit directly in Dir with a .json name, because every such
+	// file there is read as a language (a subdirectory such as
+	// "context/en.json" is fine).
+	ContextFile string `json:"context_file,omitempty"`
 }
+
+// MaxContextChars is the longest key description LangSync stores, in
+// Unicode code points. The server refuses a longer one too
+// (SYNC_CONTEXTS_INVALID, reason too_long); checking it here names the
+// key before anything is sent.
+const MaxContextChars = 1000
 
 // Find walks up from start (inclusive) looking for a .langsync.json
 // file. Returns its absolute path. Mirrors how git, npm, and similar
@@ -155,7 +173,43 @@ func Load(path string) (*File, error) {
 	if err := f.Validate(); err != nil {
 		return nil, fmt.Errorf("%s: %w", path, err)
 	}
+	if err := f.checkContextFiles(path); err != nil {
+		return nil, fmt.Errorf("%s: %w", path, err)
+	}
 	return &f, nil
+}
+
+// checkContextFiles refuses a context_file that the language scan would
+// also read as a language: a "<name>.json" directly in the namespace's
+// dir. Sync would otherwise push its descriptions as translations of a
+// language called <name>.
+func (f *File) checkContextFiles(configPath string) error {
+	for i, ns := range f.Namespaces {
+		if ns.ContextFile == "" {
+			continue
+		}
+		file := f.ResolveContextFile(configPath, ns)
+		if !translations.IsLangFileName(filepath.Base(file)) {
+			continue
+		}
+		if sameDir(filepath.Dir(file), f.ResolveDir(configPath, ns)) {
+			return fmt.Errorf("namespaces[%d] (%q): context_file %s is in the namespace's dir, where every *.json file is read as a language; move it to a subdirectory (for example %s)",
+				i, ns.Namespace, file, filepath.Join(filepath.Dir(file), "context", filepath.Base(file)))
+		}
+	}
+	return nil
+}
+
+// sameDir reports whether a and b are the same directory: the same
+// cleaned path, or, when both exist, the same directory on disk (a
+// symlink, or another letter case on a case-insensitive file system).
+func sameDir(a, b string) bool {
+	if a == b {
+		return true
+	}
+	ai, errA := os.Stat(a)
+	bi, errB := os.Stat(b)
+	return errA == nil && errB == nil && os.SameFile(ai, bi)
 }
 
 // Save writes the config atomically (tmp file + rename) with stable
@@ -234,6 +288,9 @@ func (f *File) Validate() error {
 		if strings.TrimSpace(ns.DefaultLocalLanguage) == "" {
 			return fmt.Errorf("namespaces[%d] (%q): default_local_language must not be empty", i, ns.Namespace)
 		}
+		if ns.ContextFile != "" && strings.TrimSpace(ns.ContextFile) == "" {
+			return fmt.Errorf("namespaces[%d] (%q): context_file must not be blank (leave it out for no key descriptions)", i, ns.Namespace)
+		}
 	}
 	return nil
 }
@@ -247,6 +304,46 @@ func (f *File) ResolveDir(configPath string, ns Namespace) string {
 		return filepath.Clean(ns.Dir)
 	}
 	return filepath.Clean(filepath.Join(filepath.Dir(configPath), ns.Dir))
+}
+
+// ResolveContextFile returns the absolute path of ns.ContextFile, anchored
+// like ResolveDir; "" when the namespace has none.
+func (f *File) ResolveContextFile(configPath string, ns Namespace) string {
+	if ns.ContextFile == "" {
+		return ""
+	}
+	if filepath.IsAbs(ns.ContextFile) {
+		return filepath.Clean(ns.ContextFile)
+	}
+	return filepath.Clean(filepath.Join(filepath.Dir(configPath), ns.ContextFile))
+}
+
+// ReadContexts reads a context file: a flat JSON object of key
+// descriptions. A missing file, a value that is not a string and a
+// description longer than MaxContextChars are errors naming the file
+// (and the key); an empty description is kept, because it clears the
+// key's description on the server.
+func ReadContexts(path string) (map[string]string, error) {
+	contexts, err := translations.ReadFlatJSON(path)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil, fmt.Errorf("context_file %s does not exist (create it, or remove context_file from %s)", path, Filename)
+		}
+		return nil, fmt.Errorf("context_file: %w", err)
+	}
+	// Report the first key in a stable order, so a rerun names the same.
+	keys := make([]string, 0, len(contexts))
+	for k, v := range contexts {
+		if utf8.RuneCountInString(v) > MaxContextChars {
+			keys = append(keys, k)
+		}
+	}
+	if len(keys) > 0 {
+		sort.Strings(keys)
+		return nil, fmt.Errorf("context_file %s: the description of key %q is %d characters long; the most is %d",
+			path, keys[0], utf8.RuneCountInString(contexts[keys[0]]), MaxContextChars)
+	}
+	return contexts, nil
 }
 
 // FindNamespace returns the namespace entry by name (case-sensitive)

@@ -108,8 +108,12 @@ func setTranslation(cmd *cobra.Command, c *langsyncContext, ns string, termID in
 		return translationSet{}, err
 	}
 	if !ok2xx(res.HTTPResponse) {
+		var bad *langsync.ResponseAPIError
+		if res.JSON400 != nil {
+			bad = refusal(res.JSON400.Msg, res.JSON400.Type, res.JSON400.Data)
+		}
 		return translationSet{}, namespaceAPIError(c, ns, res.HTTPResponse, res.Body,
-			res.JSON400, res.JSON401, res.JSON403, res.JSON404, res.JSON500)
+			bad, res.JSON401, res.JSON403, res.JSON404, res.JSON500)
 	}
 	return translationSet{
 		Namespace: ns, TermID: termID, Language: cmdutil.Deref(conn.LanguageCode),

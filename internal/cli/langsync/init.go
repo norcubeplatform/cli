@@ -674,11 +674,17 @@ func buildInitEntries(picked []langsync.DtoDTONamespace, langByID map[int]string
 			}
 		}
 
+		// What only a person writes into an entry (the file code aliases
+		// and the key descriptions file) survives picking the namespace
+		// again.
+		prior := existingByName[name]
 		out = append(out, projectcfg.Namespace{
 			Namespace:            name,
 			Dir:                  dir,
 			Format:               projectcfg.FormatFlatJSON,
 			DefaultLocalLanguage: defaultCode,
+			LanguageAliases:      prior.LanguageAliases,
+			ContextFile:          prior.ContextFile,
 		})
 	}
 	return out, nil

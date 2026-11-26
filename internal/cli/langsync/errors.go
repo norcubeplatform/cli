@@ -67,7 +67,19 @@ func typedOf(e *langsync.ResponseAPIError) *apierror.Typed {
 	if e == nil {
 		return nil
 	}
-	return &apierror.Typed{Msg: e.Msg, Type: string(e.Type)}
+	return &apierror.Typed{Msg: e.Msg, Type: string(e.Type), Data: e.Data}
+}
+
+// refusal is the common error shape of a 400 the generated client types
+// per endpoint because its body carries a data object (the reason and
+// its facts). The data stays with the error, so -o json shows it under
+// details.data.
+func refusal[D any](msg string, typ langsync.ResponseType, data *D) *langsync.ResponseAPIError {
+	e := &langsync.ResponseAPIError{Msg: msg, Type: typ}
+	if data != nil {
+		e.Data = data
+	}
+	return e
 }
 
 // namespaceAPIError is apiError for a namespace-scoped endpoint: a typed
