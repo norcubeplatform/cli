@@ -5,6 +5,8 @@ this file collects what users and scripts need to know.
 
 ## Unreleased
 
+## 0.29.0 (2026-11-26)
+
 ### New
 
 - `norcube cms validate -o json` (and `-o yaml`) gives each finding its
