@@ -9,7 +9,7 @@ this file collects what users and scripts need to know.
 
 - `norcube cms validate -o json` (and `-o yaml`) gives each finding its
   `cause`, which of the rule's causes it is, and `params`, the facts its
-  message is made of, typed (cms-schema 0.12.1). Kinds of value are codes
+  message is made of, typed (cms-schema 0.12.2). Kinds of value are codes
   (`params.expected` and `params.actual`: `group_of_fields`,
   `list_of_references`, `string`…), the vocabulary the module's
   `report/catalog.json` lists. The table, `-o text` and the English
