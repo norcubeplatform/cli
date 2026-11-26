@@ -53,7 +53,38 @@ type validateReport struct {
 	Summary  validateSummary  `json:"summary" yaml:"summary"`
 	// Quality says what the content quality checks looked at, skipped and
 	// assumed; present only with --quality.
-	Quality *quality.Summary `json:"quality,omitempty" yaml:"quality,omitempty"`
+	Quality *qualityReport `json:"quality,omitempty" yaml:"quality,omitempty"`
+}
+
+// qualityReport is the module's quality summary as report version 1
+// prints it. Version 1 gave a skipped rule's reason as an English
+// sentence; it stays one, and the module's code and params for it are
+// added beside it.
+type qualityReport struct {
+	*quality.Summary
+	Skipped []skippedRule `json:"skipped,omitempty" yaml:"skipped,omitempty"`
+}
+
+// skippedRule is a quality rule the run did not run.
+type skippedRule struct {
+	Rule report.Rule `json:"rule" yaml:"rule"`
+	// Reason says why in English; Code and Params say it as data
+	// (quality.SkipReasons).
+	Reason string             `json:"reason" yaml:"reason"`
+	Code   quality.SkipReason `json:"code" yaml:"code"`
+	Params *report.Params     `json:"params,omitempty" yaml:"params,omitempty"`
+}
+
+// newQualityReport is s as report version 1 prints it; nil for nil.
+func newQualityReport(s *quality.Summary) *qualityReport {
+	if s == nil {
+		return nil
+	}
+	q := &qualityReport{Summary: s}
+	for _, sk := range s.Skipped {
+		q.Skipped = append(q.Skipped, skippedRule{Rule: sk.Rule, Reason: sk.Message, Code: sk.Reason, Params: sk.Params})
+	}
+	return q
 }
 
 // validateSummary counts what the run looked at and found.
@@ -233,7 +264,7 @@ Notices never fail a run. A path that is not a CMS site exits 3.`,
 					Files: res.Files, SchemaFiles: res.SchemaFiles,
 					Errors: res.Errors, Warnings: res.Warnings, Notices: res.Notices,
 				},
-				Quality: res.Quality,
+				Quality: newQualityReport(res.Quality),
 			}
 			if rep.Findings == nil {
 				rep.Findings = []report.Finding{}
@@ -347,7 +378,7 @@ func findingPath(f report.Finding) string {
 // same in "quality").
 func printQualityNotes(w io.Writer, s *quality.Summary, withGit bool) {
 	for _, sk := range s.Skipped {
-		note := sk.Reason
+		note := sk.Message
 		if sk.Rule == report.RuleQualityTranslationOutdated && !withGit {
 			note += "; pass --git to read the git history"
 		}

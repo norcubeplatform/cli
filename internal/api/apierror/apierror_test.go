@@ -91,3 +91,25 @@ func TestFormatProblemScopeAndForbidden(t *testing.T) {
 		t.Errorf("text %q", err.Error())
 	}
 }
+
+func TestFormatTypedBodyKeepsItsData(t *testing.T) {
+	data := map[string]any{"reason": "too_long", "key": "checkout.total", "maxChars": 1000}
+	err := Format("langsync", respFor("POST", "https://api.test/s", 400), nil,
+		&Typed{Msg: "contexts invalid", Type: "SYNC_CONTEXTS_INVALID", Data: data})
+	var ce *clierr.Error
+	if !errors.As(err, &ce) {
+		t.Fatalf("not a clierr.Error: %T", err)
+	}
+	d, ok := ce.Details.(map[string]any)
+	if !ok || d["data"] == nil {
+		t.Fatalf("details %v", ce.Details)
+	}
+	if ce.Code != clierr.CodeValidation {
+		t.Fatalf("code %q", ce.Code)
+	}
+	// Without data there are no details.
+	_ = errors.As(Format("langsync", respFor("GET", "https://api.test/s", 400), nil, &Typed{Msg: "bad", Type: "X"}), &ce)
+	if ce.Details != nil {
+		t.Fatalf("details without data: %v", ce.Details)
+	}
+}

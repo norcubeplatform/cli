@@ -5,6 +5,68 @@ this file collects what users and scripts need to know.
 
 ## Unreleased
 
+## 0.29.0 (2026-11-26)
+
+### New
+
+- `norcube cms validate -o json` (and `-o yaml`) gives each finding its
+  `cause`, which of the rule's causes it is, and `params`, the facts its
+  message is made of, typed (cms-schema 0.12.2). Kinds of value are codes
+  (`params.expected` and `params.actual`: `group_of_fields`,
+  `list_of_references`, `string`…), the vocabulary the module's
+  `report/catalog.json` lists. The table, `-o text` and the English
+  `message` and `hint` are unchanged. A skipped quality rule keeps its
+  English `reason` and gains `code` and `params`.
+- LangSync key descriptions from the project: a namespace in
+  `.langsync.json` can name a `context_file`, a flat JSON object
+  `{"key": "what the key is"}` in the source language (a relative path is
+  resolved like `dir`). `langsync sync` sends the descriptions of the
+  source file's keys with the job, and the people and the model that
+  translate a key see it; an empty description clears one. Descriptions
+  of keys the source file doesn't have are not sent, with one warning
+  line giving the count. A missing file, invalid JSON, a value that isn't
+  text and a description longer than 1,000 characters stop the sync
+  before anything is sent, naming the file (and the key). A
+  `context_file` that sits directly in the namespace's `dir` with a
+  `.json` name is refused when the project file is read, because every
+  such file there is read as a language: keep it in a subdirectory such
+  as `context/en.json`. `langsync pull` doesn't read it. No new flag.
+- `langsync namespaces create` and `update` take `--message-syntax plain|icu`:
+  what the namespace's strings are. With `icu` LangSync translates ICU
+  MessageFormat per plural form of each language and checks every
+  translation and every write before storing it. `namespaces list` shows
+  it in a SYNTAX column.
+- The `langsync sync` summary lists every translation LangSync didn't
+  store, with the key, the language, the reason (`placeholders_changed`,
+  `icu_invalid`, `plural_forms`, `tags_changed`, `glossary_term_missing`,
+  `too_many_variants`, `untranslated`, `model_failed`) and its facts, and
+  "and N more" for the ones the server didn't list. A "Not reviewed"
+  block counts per language the translations nobody has marked reviewed.
+  A refusal of the descriptions (`SYNC_CONTEXTS_INVALID`) names the
+  context file and the key.
+
+### Fixes
+
+- `langsync init` keeps a namespace's `language_aliases` and
+  `context_file` when the namespace is picked again.
+
+### Changes for scripts
+
+- `langsync sync` / `pull` / `init -o json|yaml`: each namespace's summary
+  has `failures` (the job's entries: `phase`, `opIdx`, `mark`, `error`,
+  and for a translation not stored `code`, `languageCode`, `offset`,
+  `argument`, `missing`, `unexpected`; one entry with `dropped` stands for
+  the entries not listed) and `unreviewedPerLanguage` (`{languageCode:
+  count}`), both left out when the job has none. `-o text` columns are
+  unchanged.
+- `langsync namespaces list -o json|yaml` has `messageSyntax` (`plain` or
+  `icu`); `-o text` has it as a new last column. `namespaces create` and
+  `update -o json` have `messageSyntax` when the command set it.
+- A LangSync refusal whose body carries a data object (such as
+  `TERM_TRANSLATION_INVALID` from `translations set` or `terms add`, or
+  `TERM_IMPORT_TRANSLATIONS_INVALID` from `terms import`) has it in the
+  JSON error's `details.data`.
+
 ## 0.28.0 (2026-11-25)
 
 ### New

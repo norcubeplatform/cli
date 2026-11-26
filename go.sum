@@ -129,8 +129,8 @@ github.com/muesli/cancelreader v0.2.2 h1:3I4Kt4BQjOR54NavqnDogx/MIoWBFa0StPA8ELU
 github.com/muesli/cancelreader v0.2.2/go.mod h1:3XuTXfFS2VjM+HTLZY9Ak0l6eUKfijIfMUZ4EgX0QYo=
 github.com/muesli/termenv v0.16.0 h1:S5AlUN9dENB57rsbnkPyfdGuWIlkmzJjbFf0Tf5FWUc=
 github.com/muesli/termenv v0.16.0/go.mod h1:ZRfOIKPFDYQoDFF4Olj7/QJbW60Ol/kL1pU3VfY/Cnk=
-github.com/norcubeplatform/cms-schema v0.11.1 h1:GWief9ru4UOTNlEjidKZ3LACcKWRDavJwz66l51gu1I=
-github.com/norcubeplatform/cms-schema v0.11.1/go.mod h1:fY05NpvoygKgMBZjj3+R6KI1vko9CSJPJKS02n6WRh0=
+github.com/norcubeplatform/cms-schema v0.12.2 h1:JjU+20g6X5J9faIYkmOfrdCJmWQ53KriH/mFor0uS4Q=
+github.com/norcubeplatform/cms-schema v0.12.2/go.mod h1:fY05NpvoygKgMBZjj3+R6KI1vko9CSJPJKS02n6WRh0=
 github.com/oapi-codegen/runtime v1.4.0 h1:KLOSFOp7UzkbS7Cs1ms6NBEKYr0WmH2wZG0KKbd2er4=
 github.com/oapi-codegen/runtime v1.4.0/go.mod h1:5sw5fxCDmnOzKNYmkVNF8d34kyUeejJEY8HNT2WaPec=
 github.com/oasdiff/yaml v0.1.1 h1:6nHx+pn9gBRM6YpBlFZFQGCCd1nuvqOBtTD3KKTgGxY=

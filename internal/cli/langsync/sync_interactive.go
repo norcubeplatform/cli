@@ -145,8 +145,8 @@ func fetchDefaultLangValues(ctx context.Context, c *langsyncContext, namespace, 
 	cursor := ""
 	for {
 		params := &langsync.ListByNamespaceParams{
-			Cursor: cursor,
-			Limit:  200,
+			Cursor: optional(cursor),
+			Limit:  optional(200),
 		}
 		res, err := c.API.ListByNamespaceWithResponse(ctx, namespace, params)
 		if err != nil {

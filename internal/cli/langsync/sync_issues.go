@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"sort"
+	"strings"
 
 	"github.com/norcubeplatform/cli/internal/api/langsync"
 	"github.com/norcubeplatform/cli/internal/cli/langsync/projectcfg"
@@ -52,15 +53,7 @@ func collectIssues(ctx context.Context, c *langsyncContext, cfg *projectcfg.File
 		// Backend-reported failures from the failures array.
 		if r.finalJob.Failures != nil {
 			for _, f := range *r.finalJob.Failures {
-				msg := cmdutil.Deref(f.Error)
-				phase := cmdutil.Deref(f.Phase)
-				mark := cmdutil.Deref(f.Mark)
-				prefix := fmt.Sprintf("[%s] %s", r.namespace, phase)
-				if mark != "" {
-					lines = append(lines, fmt.Sprintf("%s — %s: %s", prefix, mark, msg))
-				} else {
-					lines = append(lines, fmt.Sprintf("%s — %s", prefix, msg))
-				}
+				lines = append(lines, failureLine(r.namespace, f))
 			}
 		}
 
@@ -93,6 +86,94 @@ func collectIssues(ctx context.Context, c *langsyncContext, cfg *projectcfg.File
 	return lines
 }
 
+// failureLine is one entry of the failures array for people. An entry
+// with a code (a translation LangSync didn't store because of its text)
+// names the key, the language, the code and its facts in words; an entry
+// with dropped stands for the failures the server didn't list; any other
+// keeps the server's English error.
+func failureLine(namespace string, f langsync.DtoDTOSyncJobFailure) string {
+	prefix := fmt.Sprintf("[%s] %s", namespace, cmdutil.Deref(f.Phase))
+	if n := cmdutil.Deref(f.Dropped); n > 0 {
+		return fmt.Sprintf("%s — and %d more", prefix, n)
+	}
+	mark := cmdutil.Deref(f.Mark)
+	if lang := cmdutil.Deref(f.LanguageCode); lang != "" {
+		mark = strings.TrimSpace(mark + " [" + lang + "]")
+	}
+	what := cmdutil.Deref(f.Error)
+	if f.Code != nil {
+		what = describeTranslationProblem(f)
+	}
+	if mark != "" {
+		return fmt.Sprintf("%s — %s: %s", prefix, mark, what)
+	}
+	return fmt.Sprintf("%s — %s", prefix, what)
+}
+
+// translationProblemWords say what each code of a refused translation
+// means. A code this CLI doesn't know yet is shown with the server's
+// English error.
+var translationProblemWords = map[langsync.ConstantsTermTranslationProblem]string{
+	langsync.TermTranslationProblemPlaceholdersChanged: "the variables or placeholders changed",
+	langsync.TermTranslationProblemICUInvalid:          "not a valid ICU message",
+	langsync.TermTranslationProblemPluralForms:         "the plural forms don't fit the language",
+	langsync.TermTranslationProblemTagsChanged:         "the tags changed",
+	langsync.TermTranslationProblemGlossaryTermMissing: "a glossary term that stays as it is is missing",
+	langsync.TermTranslationProblemTooManyVariants:     "too many plural and select variants (split the message)",
+	langsync.TermTranslationProblemUntranslated:        "the model answered with the source text",
+	langsync.TermTranslationProblemModelFailed:         "the model failed to translate it",
+}
+
+// describeTranslationProblem is "<code>: <words> (<facts>)".
+func describeTranslationProblem(f langsync.DtoDTOSyncJobFailure) string {
+	code := cmdutil.Deref(f.Code)
+	words, ok := translationProblemWords[code]
+	if !ok {
+		words = cmdutil.Deref(f.Error)
+	}
+	var facts []string
+	if f.Argument != nil && *f.Argument != "" {
+		facts = append(facts, "argument "+*f.Argument)
+	}
+	if f.Offset != nil {
+		facts = append(facts, fmt.Sprintf("at offset %d", *f.Offset))
+	}
+	if f.Missing != nil && len(*f.Missing) > 0 {
+		facts = append(facts, "missing: "+strings.Join(*f.Missing, ", "))
+	}
+	if f.Unexpected != nil && len(*f.Unexpected) > 0 {
+		facts = append(facts, "unexpected: "+strings.Join(*f.Unexpected, ", "))
+	}
+	out := strings.TrimSpace(string(code) + ": " + words)
+	if len(facts) > 0 {
+		out += " (" + strings.Join(facts, "; ") + ")"
+	}
+	return out
+}
+
+// unreviewedLine says how many translations per language nobody has
+// marked reviewed, or "" when there are none.
+func unreviewedLine(namespace string, counts map[string]int) string {
+	codes := make([]string, 0, len(counts))
+	total := 0
+	for code, n := range counts {
+		if n > 0 {
+			codes = append(codes, code)
+			total += n
+		}
+	}
+	if total == 0 {
+		return ""
+	}
+	sort.Strings(codes)
+	parts := make([]string, len(codes))
+	for i, code := range codes {
+		parts[i] = fmt.Sprintf("%s %d", code, counts[code])
+	}
+	return fmt.Sprintf("[%s] %d %s not reviewed: %s", namespace, total,
+		plural(total, "translation", "translations"), strings.Join(parts, ", "))
+}
+
 // diagnoseEmptyCells fetches the namespace's still-untranslated
 // marks and labels each by likely cause. Most common cause: the
 // mark's source value (in the default language) is blank.
@@ -116,8 +197,8 @@ func diagnoseEmptyCells(ctx context.Context, c *langsyncContext, ns projectcfg.N
 	truthy := true
 	for page := 0; page < maxDiagnosePages; page++ {
 		params := &langsync.ListByNamespaceParams{
-			Cursor:             cursor,
-			Limit:              pageLimit,
+			Cursor:             optional(cursor),
+			Limit:              optional(pageLimit),
 			HasAnyUntranslated: &truthy,
 		}
 		res, err := c.API.ListByNamespaceWithResponse(ctx, ns.Namespace, params)

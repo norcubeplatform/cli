@@ -160,8 +160,12 @@ waits for it (and exits 1, code job_failed, when it failed), and
 				return nil, err
 			}
 			if res.JSON200 == nil {
+				var bad *langsync.ResponseAPIError
+				if res.JSON400 != nil {
+					bad = refusal(res.JSON400.Msg, res.JSON400.Type, res.JSON400.Data)
+				}
 				return nil, namespaceAPIError(c, ns, res.HTTPResponse, res.Body,
-					res.JSON400, res.JSON401, res.JSON403, res.JSON404, res.JSON500)
+					bad, res.JSON401, res.JSON403, res.JSON404, res.JSON500)
 			}
 			result.Status = string(res.JSON200.Status)
 			if wait.Wait {

@@ -6,6 +6,7 @@
   languages:
     - en
     - cs
+  messageSyntax: plain
   name: web
   organization_id: org-1
   progress: 50
