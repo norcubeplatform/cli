@@ -20,7 +20,7 @@ on:
       - internal/api/**
       - specs/**
       - tools/codegen/**
-      - tools/swagger2openapi/**
+      - tools/specconv/**
   schedule:
     - cron: "17 6 * * 1"
   workflow_dispatch:

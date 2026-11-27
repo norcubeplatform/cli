@@ -1,7 +1,7 @@
 // codegen regenerates the typed API clients listed in
 // internal/registry/services.yaml: for every service with a `package`, it
-// converts the Swagger 2.0 spec from the backend monorepo to OpenAPI 3
-// (specs/<package>.openapi.json) and runs a pinned oapi-codegen with
+// converts the service's API document from the backend monorepo (Swagger
+// 2.0 or OpenAPI 3.0/3.1) to OpenAPI 3.0 (specs/<package>.openapi.json) and runs a pinned oapi-codegen with
 // internal/api/<package>/oapi-codegen.yaml.
 //
 // Usage: go run ./tools/codegen -mono ../backend-mono [-only snapdb,langsync]
@@ -76,7 +76,7 @@ func generate(mono string, s registry.Service) error {
 		return err
 	}
 	var converted bytes.Buffer
-	conv := exec.Command("go", "run", "./tools/swagger2openapi", "-exclude-tags", strings.Join(excluded, ","), spec) // #nosec G204 -- paths from the embedded manifest
+	conv := exec.Command("go", "run", "./tools/specconv", "-exclude-tags", strings.Join(excluded, ","), spec) // #nosec G204 -- paths from the embedded manifest
 	conv.Stdout, conv.Stderr = &converted, os.Stderr
 	if err := conv.Run(); err != nil {
 		return fmt.Errorf("convert: %w", err)
