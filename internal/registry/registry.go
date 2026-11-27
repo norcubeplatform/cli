@@ -126,11 +126,11 @@ func Keys() []string {
 }
 
 // Callable returns the services `nrc api` can call: those with an
-// audience and a command name, sorted by command.
+// audience, a command name and an endpoint, sorted by command.
 func Callable() []Service {
 	var out []Service
 	for _, s := range All() {
-		if s.Audience != "" && s.Command != "" {
+		if s.Audience != "" && s.Command != "" && s.Endpoint != "" {
 			out = append(out, s)
 		}
 	}

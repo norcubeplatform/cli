@@ -87,4 +87,5 @@ services:
   - key: pentest
     name: Pentest
     command: pentest
+    audience: pentest
     plugin: nrc-pentest

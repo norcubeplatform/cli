@@ -18,6 +18,9 @@ this file collects what users and scripts need to know.
 - `norcube pentest` runs the Norcube Pentest engine (`nrc-pentest`), the
   first plugin. The engine is installed separately; until it is,
   `norcube pentest` says how to install it.
+- `norcube auth token --audience` accepts every service the CLI knows,
+  taken from its service registry (new: `pentest`). The names it accepted
+  before are unchanged.
 
 ## 0.29.0 (2026-11-26)
 
