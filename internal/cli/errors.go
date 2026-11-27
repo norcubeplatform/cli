@@ -166,6 +166,10 @@ func outputFromArgs(args []string) string {
 // PrintError writes err to w, as {"error": {...}} when asJSON, otherwise as
 // the message and, on its own line, the hint. It returns the exit code.
 func PrintError(w io.Writer, err error, asJSON bool) int {
+	var passthrough clierr.PassthroughExit
+	if errors.As(err, &passthrough) {
+		return passthrough.Code
+	}
 	e := Describe(err)
 	if asJSON {
 		enc := json.NewEncoder(w)

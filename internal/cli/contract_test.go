@@ -37,8 +37,9 @@ func TestEveryCommandHasAnExample(t *testing.T) {
 // through cmdutil.Print, which honors -o and --query. These are the
 // places allowed to touch stdout directly.
 var stdoutAllowed = map[string]string{
-	"authcmd.go": "term.IsTerminal(cmd.OutOrStdout())", // only asks whether it is a terminal
-	"config.go":  "os.Stdin, os.Stdout, os.Stderr",     // the user's editor runs on the terminal
+	"authcmd.go": "term.IsTerminal(cmd.OutOrStdout())",   // only asks whether it is a terminal
+	"config.go":  "os.Stdin, os.Stdout, os.Stderr",       // the user's editor runs on the terminal
+	"plugin.go":  "cmd.OutOrStdout(), cmd.ErrOrStderr()", // a plugin prints its own result (docs/PLUGINS.md)
 }
 
 var stdoutWrite = regexp.MustCompile(`OutOrStdout\(\)|os\.Stdout|fmt\.Print(f|ln)?\(`)

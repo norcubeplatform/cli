@@ -5,6 +5,17 @@ this file collects what users and scripts need to know.
 
 ## Unreleased
 
+### New
+
+- Plugins: a product whose engine ships as its own executable can add a
+  command group. `norcube <command> …` runs `nrc-<command> …` from the
+  plugin directory (`NORCUBE_PLUGIN_DIR`, by default
+  `<config dir>/norcube/plugins`) or `PATH`. Only plugins named in the
+  service registry run, an executable other users can write is refused,
+  and a version handshake comes first. Plugins get short-lived tokens from
+  `norcube auth token`, never stored credentials. Contract:
+  `docs/PLUGINS.md`.
+
 ## 0.29.0 (2026-11-26)
 
 ### New
