@@ -2,7 +2,7 @@
 
 ## Engineering standards (non-negotiable)
 
-The full text is `docs/ENGINEERING.md` in the golang-template repository (github.com/jetlio/golang-template; locally `~/Work/golang-template/docs/ENGINEERING.md`). Read it before designing or changing code, and say in the plan how the change meets it. References: golang-template, and in backend-mono `apps/monitor` (layout, wiring, lint-enforced layers, apperr) and `apps/assistant` (huma). **Never copy patterns from older services.**
+These are the Norcube team's non-negotiable engineering standards (the full text is an internal document). Check every design and change against them and say in the plan how it meets them. Never copy patterns from older code that breaks them.
 
 1. **One source of truth.** Generate from the owner of a fact: OpenAPI → clients, catalogs → constants, migrations → sqlc. Never hand-edit generated code; CI checks for drift.
 2. **Clean layers.** handler → service → repo, with dto and mapper beside them, enforced by lint.
