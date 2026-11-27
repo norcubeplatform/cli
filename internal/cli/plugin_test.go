@@ -19,7 +19,7 @@ func TestPluginCommandPassesArgsAndExitCode(t *testing.T) {
 		t.Skip("shell-script plugin")
 	}
 	dir := t.TempDir()
-	_ = os.Chmod(dir, 0o755)
+	_ = os.Chmod(dir, 0o755) // #nosec G302 -- a plugin directory must be traversable; the test checks group/other write bits
 	script := "#!/bin/sh\nif [ \"$1\" = __plugin-info ]; then echo '{\"name\":\"nrc-demo\",\"version\":\"0.1.0\",\"protocol\":1}'; exit 0; fi\n" +
 		"echo \"args=$* protocol=$NRC_PLUGIN_PROTOCOL bin=${NRC_BIN:+set}\"\n[ \"$1\" = fail ] && exit 9\nexit 0\n"
 	if err := os.WriteFile(filepath.Join(dir, "nrc-demo"), []byte(script), 0o755); err != nil { // #nosec G306 -- test executable

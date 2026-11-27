@@ -18,7 +18,7 @@ func fakePlugin(t *testing.T, name, info string) string {
 		t.Skip("shell-script plugins")
 	}
 	dir := t.TempDir()
-	if err := os.Chmod(dir, 0o755); err != nil {
+	if err := os.Chmod(dir, 0o755); err != nil { // #nosec G302 -- a plugin directory must be traversable
 		t.Fatal(err)
 	}
 	script := `#!/bin/sh
