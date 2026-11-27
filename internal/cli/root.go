@@ -111,6 +111,7 @@ func NewRootCmd() *cobra.Command {
 		monitor.NewCmd(),
 		cms.NewCmd(),
 	)
+	cmd.AddCommand(newPluginCmds()...)
 	markUsageErrors(cmd)
 	completion.Bind(flags)
 	registerCompletions(cmd)

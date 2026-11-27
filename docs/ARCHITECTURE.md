@@ -124,6 +124,15 @@ cached for a day in the user cache directory.
 4. **Wire it** into `NewRootCmd` in `internal/cli/root.go`, and register
    dynamic completions for the resource ids it takes.
 
+
+## Adding a plugin service
+
+A product whose engine ships as its own executable adds an entry with
+`command` and `plugin: nrc-<command>`; the endpoint can wait until its
+platform API is public. The CLI then has a `norcube <command>` that runs the
+plugin (internal/plugin, internal/cli/plugin.go). The contract the plugin
+implements is [PLUGINS.md](PLUGINS.md).
+
 ## Adding a command
 
 - Name it `<service> <resource> <verb>`: plural resources, verbs `list`,

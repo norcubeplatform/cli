@@ -58,9 +58,30 @@ func TestParseRejects(t *testing.T) {
 		"duplicate name":  "services:\n  - key: a\n    name: A\n    endpoint: https://a.example\n  - key: b\n    name: B\n    aliases: [a]\n    endpoint: https://b.example\n",
 		"package no spec": "services:\n  - key: a\n    name: A\n    endpoint: https://a.example\n    package: a\n",
 		"bad key":         "services:\n  - key: A B\n    name: A\n    endpoint: https://a.example\n",
+		"no endpoint":     "services:\n  - key: a\n    name: A\n    command: a\n",
+		"plugin name":     "services:\n  - key: a\n    name: A\n    command: a\n    plugin: evil\n",
+		"plugin no cmd":   "services:\n  - key: a\n    name: A\n    plugin: nrc-a\n",
 	} {
 		if _, err := Parse([]byte(doc)); err == nil {
 			t.Errorf("%s: accepted", name)
+		}
+	}
+}
+
+// A plugin service may have no endpoint yet; it is then left out of the
+// endpoint keys (doctor, --endpoint-url, environments) but still has its
+// command.
+func TestPluginWithoutEndpoint(t *testing.T) {
+	got, err := Parse([]byte("services:\n  - key: a\n    name: A\n    endpoint: https://a.example\n  - key: p\n    name: P\n    command: p\n    plugin: nrc-p\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(got) != 2 || got[1].Plugin != "nrc-p" {
+		t.Fatalf("got %+v", got)
+	}
+	for _, k := range Keys() {
+		if s, _ := Get(k); s.Endpoint == "" {
+			t.Errorf("Keys() lists %s, which has no endpoint", k)
 		}
 	}
 }

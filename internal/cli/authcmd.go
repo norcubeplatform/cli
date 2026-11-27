@@ -18,6 +18,7 @@ import (
 	"github.com/norcubeplatform/cli/internal/cmdutil"
 	"github.com/norcubeplatform/cli/internal/config"
 	"github.com/norcubeplatform/cli/internal/output"
+	"github.com/norcubeplatform/cli/internal/registry"
 	"github.com/norcubeplatform/cli/internal/resolve"
 	"github.com/norcubeplatform/cli/internal/term"
 )
@@ -353,18 +354,21 @@ func checkSession(ctx context.Context, flags *clictx.Flags, cfg *config.Config) 
 	return ts.CheckSession(ctx)
 }
 
-// audiences maps the names `auth token --audience` accepts to Norcube
-// audiences.
-var audiences = map[string]string{
-	"auth":        auth.AudienceAuth,
-	"billing":     auth.AudienceBilling,
-	"backup":      auth.AudienceSnapDB,
-	"snapdb":      auth.AudienceSnapDB,
-	"langsync":    auth.AudienceLangsync,
-	"domainradar": auth.AudienceDomainradar,
-	"prompthub":   auth.AudiencePrompthub,
-	"monitor":     auth.AudienceMonitor,
-}
+// audiences maps the names `auth token --audience` accepts (each service's
+// command, key and aliases) to its Norcube audience, from the service
+// registry, so a new service is never a second edit here.
+var audiences = func() map[string]string {
+	out := map[string]string{}
+	for _, s := range registry.All() {
+		if s.Audience == "" {
+			continue
+		}
+		for _, n := range s.Names() {
+			out[n] = s.Audience
+		}
+	}
+	return out
+}()
 
 func audienceNames() []string {
 	names := make([]string, 0, len(audiences))

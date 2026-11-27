@@ -129,3 +129,10 @@ func CodeForStatus(status int, serviceType string) string {
 	}
 	return CodeError
 }
+
+// PassthroughExit carries the exit code of a plugin (docs/PLUGINS.md). The plugin has
+// already printed its own result and errors, so nothing more is printed; the CLI exits
+// with the plugin's code.
+type PassthroughExit struct{ Code int }
+
+func (e PassthroughExit) Error() string { return fmt.Sprintf("plugin exited with status %d", e.Code) }

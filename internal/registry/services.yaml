@@ -9,6 +9,9 @@
 #     the backend monorepo, `package` the generated client under
 #     internal/api/<package>.
 #
+#   - plugins: `plugin` names the executable that implements a service's
+#     commands (docs/PLUGINS.md); only plugins listed here ever run.
+#
 # Adding a service: add an entry here, run `make codegen`, then wire its
 # commands with service.New (see docs/ARCHITECTURE.md).
 services:
@@ -80,3 +83,9 @@ services:
     spec:
       app: prompthub
       file: prompthub_swagger.json
+
+  - key: pentest
+    name: Pentest
+    command: pentest
+    audience: pentest
+    plugin: nrc-pentest

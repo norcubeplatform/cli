@@ -42,6 +42,10 @@ type Service struct {
 	// Package is the generated client under internal/api/<package>;
 	// empty when no client is generated yet.
 	Package string `yaml:"package"`
+	// Plugin is the executable that implements the service's commands
+	// (`nrc <command> …` runs `<plugin> …`, see docs/PLUGINS.md); empty
+	// for services built into the CLI. Only plugins named here ever run.
+	Plugin string `yaml:"plugin"`
 }
 
 // Spec is where a service's API description lives in the backend
@@ -109,22 +113,24 @@ func Lookup(name string) (Service, bool) {
 	return Service{}, false
 }
 
-// Keys returns every service key in manifest order.
+// Keys returns the key of every service with an endpoint, in manifest
+// order (a plugin without a public platform API has none).
 func Keys() []string {
-	all := All()
-	out := make([]string, len(all))
-	for i, s := range all {
-		out[i] = s.Key
+	var out []string
+	for _, s := range All() {
+		if s.Endpoint != "" {
+			out = append(out, s.Key)
+		}
 	}
 	return out
 }
 
 // Callable returns the services `nrc api` can call: those with an
-// audience and a command name, sorted by command.
+// audience, a command name and an endpoint, sorted by command.
 func Callable() []Service {
 	var out []Service
 	for _, s := range All() {
-		if s.Audience != "" && s.Command != "" {
+		if s.Audience != "" && s.Command != "" && s.Endpoint != "" {
 			out = append(out, s)
 		}
 	}
@@ -167,15 +173,21 @@ func Parse(data []byte) ([]Service, error) {
 				return nil, err
 			}
 		}
-		u, err := url.Parse(s.Endpoint)
-		if err != nil || u.Scheme != "https" || u.Host == "" {
-			return nil, fmt.Errorf("service %s: endpoint must be an https URL, got %q", s.Key, s.Endpoint)
+		// A plugin whose platform API isn't public yet has no endpoint.
+		if s.Endpoint != "" || s.Plugin == "" {
+			u, err := url.Parse(s.Endpoint)
+			if err != nil || u.Scheme != "https" || u.Host == "" {
+				return nil, fmt.Errorf("service %s: endpoint must be an https URL, got %q", s.Key, s.Endpoint)
+			}
 		}
 		if s.Package != "" && (s.Spec == nil || s.Spec.App == "" || s.Spec.File == "") {
 			return nil, fmt.Errorf("service %s: a generated package needs a spec", s.Key)
 		}
 		if s.Package != "" && !namePattern.MatchString(s.Package) {
 			return nil, fmt.Errorf("service %s: invalid package %q", s.Key, s.Package)
+		}
+		if s.Plugin != "" && (s.Command == "" || s.Plugin != "nrc-"+s.Command) {
+			return nil, fmt.Errorf("service %s: plugin must be named nrc-<command>, got %q", s.Key, s.Plugin)
 		}
 	}
 	return doc.Services, nil

@@ -5,6 +5,23 @@ this file collects what users and scripts need to know.
 
 ## Unreleased
 
+### New
+
+- Plugins: a product whose engine ships as its own executable can add a
+  command group. `norcube <command> …` runs `nrc-<command> …` from the
+  plugin directory (`NORCUBE_PLUGIN_DIR`, by default
+  `<config dir>/norcube/plugins`) or `PATH`. Only plugins named in the
+  service registry run, an executable other users can write is refused,
+  and a version handshake comes first. Plugins get short-lived tokens from
+  `norcube auth token`, never stored credentials. Contract:
+  `docs/PLUGINS.md`.
+- `norcube pentest` runs the Norcube Pentest engine (`nrc-pentest`), the
+  first plugin. The engine is installed separately; until it is,
+  `norcube pentest` says how to install it.
+- `norcube auth token --audience` accepts every service the CLI knows,
+  taken from its service registry (new: `pentest`). The names it accepted
+  before are unchanged.
+
 ## 0.29.0 (2026-11-26)
 
 ### New
