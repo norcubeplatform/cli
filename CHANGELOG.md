@@ -5,6 +5,16 @@ this file collects what users and scripts need to know.
 
 ## Unreleased
 
+### Development
+
+- `make codegen` reads OpenAPI 3.0 and 3.1 service documents (huma) as
+  well as Swagger 2.0 (swag). The converter, renamed from
+  `tools/swagger2openapi` to `tools/specconv`, brings OpenAPI 3.1 down to
+  the 3.0 that the pinned oapi-codegen reads (nullable types, exclusive
+  bounds, `const`, schema `examples`, huma's read-only `$schema` field)
+  and applies the same clean-ups and excluded tags to both. The generated
+  specs and clients of every existing service are unchanged.
+
 ## 0.29.0 (2026-11-26)
 
 ### New

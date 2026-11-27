@@ -1,7 +1,11 @@
-// swagger2openapi reads a Swagger 2.0 JSON document and writes the equivalent
-// OpenAPI 3.0 JSON to stdout. This is a glue tool: the Norcube backend
-// services emit Swagger 2.0 via `swag`, but oapi-codegen only ingests
-// OpenAPI 3.x, so we run every spec through this converter before codegen.
+// specconv reads a service's API document and writes the OpenAPI 3.0 JSON
+// that the pinned oapi-codegen generates clients from, on stdout.
+//
+// It accepts both formats the Norcube services publish: Swagger 2.0 (swag)
+// is converted to OpenAPI 3.0, and OpenAPI 3.1 (huma) is brought down to
+// 3.0 (downlevel.go), so every client is generated from the same input
+// format. The same clean-ups apply to both, then the excluded tags are
+// removed.
 package main
 
 import (
@@ -22,7 +26,7 @@ func main() {
 	excludeTags := flag.String("exclude-tags", "", "comma-separated tags whose operations are left out (with the schemas only they use)")
 	flag.Parse()
 	if flag.NArg() != 1 {
-		fmt.Fprintln(os.Stderr, "usage: swagger2openapi [-exclude-tags a,b] <swagger-2.0.json>")
+		fmt.Fprintln(os.Stderr, "usage: specconv [-exclude-tags a,b] <swagger-2.0-or-openapi-3.x.json>")
 		os.Exit(2)
 	}
 
@@ -33,10 +37,7 @@ func main() {
 	raw, err := io.ReadAll(in)
 	must(err)
 
-	var v2 openapi2.T
-	must(json.Unmarshal(raw, &v2))
-
-	v3, err := openapi2conv.ToV3(&v2)
+	v3, err := toOpenAPI30(raw)
 	must(err)
 
 	normalizeFiberPathParams(v3)
@@ -52,6 +53,38 @@ func main() {
 
 	_, err = os.Stdout.Write(out)
 	must(err)
+}
+
+// toOpenAPI30 reads a Swagger 2.0, OpenAPI 3.0 or OpenAPI 3.1 document as
+// OpenAPI 3.0.
+func toOpenAPI30(raw []byte) (*openapi3.T, error) {
+	var head struct {
+		Swagger string `json:"swagger"`
+		OpenAPI string `json:"openapi"`
+	}
+	if err := json.Unmarshal(raw, &head); err != nil {
+		return nil, err
+	}
+	switch {
+	case head.Swagger == "2.0":
+		var v2 openapi2.T
+		if err := json.Unmarshal(raw, &v2); err != nil {
+			return nil, err
+		}
+		return openapi2conv.ToV3(&v2)
+	case strings.HasPrefix(head.OpenAPI, "3.0."), strings.HasPrefix(head.OpenAPI, "3.1."):
+		down, err := downlevel(raw)
+		if err != nil {
+			return nil, err
+		}
+		// The loader resolves internal references (written back as $ref);
+		// a service document has no business pointing at external files.
+		loader := openapi3.NewLoader()
+		loader.IsExternalRefsAllowed = false
+		return loader.LoadFromData(down)
+	default:
+		return nil, fmt.Errorf("not a Swagger 2.0 or OpenAPI 3.0/3.1 document (swagger: %q, openapi: %q)", head.Swagger, head.OpenAPI)
+	}
 }
 
 func must(err error) {

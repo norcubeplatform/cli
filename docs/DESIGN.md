@@ -678,8 +678,10 @@ the registry entries that have a `package`:
 1. reads `apps/<app>/docs/<file>` from the backend checkout (`MONO`,
    default `../backend-mono`) or from any directory with the same layout,
    such as a published spec archive;
-2. converts Swagger 2.0 to OpenAPI 3 with
-   [`tools/swagger2openapi`](../tools/swagger2openapi/main.go), dropping
+2. converts the document to OpenAPI 3.0 with
+   [`tools/specconv`](../tools/specconv/main.go): Swagger 2.0 (swag) is
+   converted, OpenAPI 3.1 (huma) is brought down to 3.0
+   ([`downlevel.go`](../tools/specconv/downlevel.go)), dropping
    operations whose tags are listed under `output-options.exclude-tags` in
    the package's `oapi-codegen.yaml`, and the schemas only they used, so
    admin and webhook routes never appear in this public repository;
