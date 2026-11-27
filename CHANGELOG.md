@@ -15,6 +15,9 @@ this file collects what users and scripts need to know.
   and a version handshake comes first. Plugins get short-lived tokens from
   `norcube auth token`, never stored credentials. Contract:
   `docs/PLUGINS.md`.
+- `norcube pentest` runs the Norcube Pentest engine (`nrc-pentest`), the
+  first plugin. The engine is installed separately; until it is,
+  `norcube pentest` says how to install it.
 
 ## 0.29.0 (2026-11-26)
 
