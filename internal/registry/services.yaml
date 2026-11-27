@@ -84,3 +84,7 @@ services:
       app: prompthub
       file: prompthub_swagger.json
 
+  - key: pentest
+    name: Pentest
+    command: pentest
+    plugin: nrc-pentest
